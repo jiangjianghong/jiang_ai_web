@@ -102,6 +102,7 @@ export function WebsiteCard({ id, name, url, favicon, tags, visitCount, lastVisi
             onSave(data);
             setShowEditModal(false);
           }}
+          onDelete={onDelete} // 传递 onDelete，编辑时才有删除按钮
         />
       )}
     </>

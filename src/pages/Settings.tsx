@@ -75,9 +75,6 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
           note=""
           onClose={() => setShowAddCardModal(false)}
           onSave={handleSaveNewCard}
-          onDelete={(id) => {
-            setWebsites(websites.filter(card => card.id !== id));
-          }}
         />
       )}
     </div>

@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import CardEditModal from './CardEditModal';
 
 interface WebsiteCardProps {
@@ -17,20 +17,13 @@ interface WebsiteCardProps {
 
 export function WebsiteCard({ id, name, url, favicon, tags, visitCount, lastVisit, note, onSave, onDelete }: WebsiteCardProps) {
   const [showEditModal, setShowEditModal] = useState(false);
-  const [showMenu, setShowMenu] = useState(false);
-
-  const handleDelete = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (confirm('确定要删除这个卡片吗？')) {
-      onDelete?.(id);
-    }
-    setShowMenu(false);
-  };
+  const cardRef = useRef<HTMLDivElement>(null);
 
   return (
     <>
       <motion.div
-        className="w-32 h-32 rounded-xl cursor-pointer shadow-lg bg-white/5 backdrop-blur-sm border border-white/10 overflow-hidden relative"
+        ref={cardRef}
+        className="w-32 h-32 rounded-xl cursor-pointer shadow-lg bg-white/5 backdrop-blur-sm border border-white/10 overflow-hidden relative group"
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.98 }}
         transition={{ type: "spring", stiffness: 300, damping: 15 }}
@@ -48,9 +41,6 @@ export function WebsiteCard({ id, name, url, favicon, tags, visitCount, lastVisi
             <i className="fa-solid fa-gear text-xs"></i>
           </button>
         </div>
-
-
-
         <div className="h-full flex flex-col pt-3">
           {/* 网站图标和名称区域 */}
           <div className="flex flex-col items-center px-2">
@@ -65,17 +55,14 @@ export function WebsiteCard({ id, name, url, favicon, tags, visitCount, lastVisi
                 }}
               />
             </div>
-
              <h3 className="text-xs font-medium text-white text-center line-clamp-2 px-2 mt-1">{name}</h3>
            </div>
-
             {/* 备注区域 */}
             <div className="px-2 mb-1">
               <p className="text-white/60 text-[0.65rem] text-center line-clamp-2">
                {note || new URL(url).hostname}
               </p>
            </div>
-
             {/* 标签区域 - 等分间距 */}
             <div className="mt-0 px-3 pb-2">
               <div className="flex flex-wrap gap-1 justify-center">
@@ -88,7 +75,6 @@ export function WebsiteCard({ id, name, url, favicon, tags, visitCount, lastVisi
            </div>
         </div>
       </motion.div>
-
       {showEditModal && (
         <CardEditModal
           id={id}
@@ -102,7 +88,7 @@ export function WebsiteCard({ id, name, url, favicon, tags, visitCount, lastVisi
             onSave(data);
             setShowEditModal(false);
           }}
-          onDelete={onDelete} // 传递 onDelete，编辑时才有删除按钮
+          onDelete={onDelete}
         />
       )}
     </>

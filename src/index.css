@@ -12,3 +12,83 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+@keyframes particle-burst {
+  0% {
+    opacity: 0.8;
+    transform: translate(-50%, -50%) scale(1) rotate(var(--angle, 0deg)) translateY(-10px);
+  }
+  60% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.2) rotate(var(--angle, 0deg)) translateY(-40px);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.7) rotate(var(--angle, 0deg)) translateY(-70px);
+  }
+}
+
+.ribbon-animated {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, #ff6b6b, #fbbf24, #34d399, #60a5fa, #a78bfa, #f472b6, #ff6b6b);
+  background-size: 200% 100%;
+  border-radius: 0.5rem 0 0 0.5rem;
+  animation: ribbon-wave 2.5s linear infinite;
+  box-shadow: 0 2px 8px 0 #0002;
+  opacity: 0.95;
+}
+
+@keyframes ribbon-wave {
+  0% {
+    background-position: 0% 50%;
+    transform: skewX(-12deg) scaleY(1);
+  }
+  50% {
+    background-position: 100% 50%;
+    transform: skewX(-12deg) scaleY(1.08);
+  }
+  100% {
+    background-position: 0% 50%;
+    transform: skewX(-12deg) scaleY(1);
+  }
+}
+
+@keyframes confetti-fly {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(var(--angle, 0deg)) translateY(0) skewY(0deg);
+  }
+  60% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(var(--angle, 0deg)) translateY(calc(var(--distance, 80px) * 0.7)) skewY(var(--curve, 0px));
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--angle, 0deg)) translateY(var(--distance, 80px)) skewY(calc(var(--curve, 0px) * 1.5));
+  }
+}
+
+.bokeh-burst {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.85;
+  filter: blur(0.5px);
+  pointer-events: none;
+}
+
+@keyframes bokeh-explosion {
+  0% {
+    opacity: 0.85;
+    transform: translate(-50%, -50%) rotate(var(--angle, 0deg)) scale(1);
+  }
+  60% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(var(--angle, 0deg)) scale(1.2) translateY(-60px);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--angle, 0deg)) scale(0.8) translateY(-120px);
+  }
+}

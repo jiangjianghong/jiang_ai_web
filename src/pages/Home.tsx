@@ -26,8 +26,8 @@ export default function Home({ websites, setWebsites }: HomeProps) {
     tags: string[];
     note?: string;
   }) => {
-    setWebsites(prev => 
-      prev.map(card => 
+    setWebsites(
+      websites.map(card =>
         card.id === updatedCard.id ? { ...card, ...updatedCard } : card
       )
     );

@@ -24,16 +24,16 @@ export function SearchBar() {
   ];
   const emojiList = [
     <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 22, height: 22, verticalAlign: 'middle', position: 'relative', top: '1px' }}>
-      <img src="/icon/chatgpt.svg" alt="chatGPT" style={{ width: 20, height: 20, display: 'block' }} />
+      <img src={import.meta.env.BASE_URL + "icon/chatgpt.svg"} alt="chatGPT" style={{ width: 20, height: 20, display: 'block' }} />
     </span>,
     <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 22, height: 22, verticalAlign: 'middle', position: 'relative', top: '1px' }}>
-      <img src="/icon/gemini.svg" alt="Gemini" style={{ width: 20, height: 20, display: 'block' }} />
+      <img src={import.meta.env.BASE_URL + "icon/gemini.svg"} alt="Gemini" style={{ width: 20, height: 20, display: 'block' }} />
     </span>,
     <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 22, height: 22, verticalAlign: 'middle', position: 'relative', top: '1px' }}>
-      <img src="/icon/deepseek.svg" alt="Deepseek" style={{ width: 20, height: 20, display: 'block' }} />
+      <img src={import.meta.env.BASE_URL + "icon/deepseek.svg"} alt="Deepseek" style={{ width: 20, height: 20, display: 'block' }} />
     </span>,
     <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 22, height: 22, verticalAlign: 'middle', position: 'relative', top: '1px' }}>
-      <img src="/icon/kimi.svg" alt="Kimi" style={{ width: 20, height: 20, display: 'block' }} />
+      <img src={import.meta.env.BASE_URL + "icon/kimi.svg"} alt="Kimi" style={{ width: 20, height: 20, display: 'block' }} />
     </span>,
   ];
 

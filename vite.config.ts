@@ -12,5 +12,6 @@ function getPlugins() {
 }
 
 export default defineConfig({
+  base: process.env.NODE_ENV === 'production' ? '/jiang_ai_web/' : '/', // 仅生产环境设置 base
   plugins: getPlugins(),
 });

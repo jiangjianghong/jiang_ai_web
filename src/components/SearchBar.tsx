@@ -71,6 +71,13 @@ export function SearchBar() {
               placeholder="输入内容..."
               className="bg-white/10 backdrop-blur-md border border-white/20 rounded-full pl-4 py-2 text-white placeholder-white/60 focus:outline-none focus:ring-1 focus:ring-white/30 text-base transition-all duration-200 pr-12 w-full ml-3"
               style={{ minWidth: '4rem', maxWidth: '100%' }}
+              onKeyDown={e => {
+                if (e.key === 'Tab' && !e.shiftKey) {
+                  e.preventDefault();
+                  const idx = engineList.findIndex(en => en.key === engine);
+                  setEngine(engineList[(idx + 1) % engineList.length].key as any);
+                }
+              }}
             />
             <button
               type="submit"

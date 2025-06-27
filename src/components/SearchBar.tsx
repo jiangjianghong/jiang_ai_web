@@ -16,6 +16,12 @@ export function SearchBar() {
 
   // 表情名称和图标
   const emojiNames = ['chatGPT', 'Gemini', 'Deepseek', 'Kimi'];
+  const emojiLinks = [
+    'https://chatgpt.com/',
+    'https://gemini.google.com/',
+    'https://chat.deepseek.com/',
+    'https://www.kimi.com/',
+  ];
   const emojiList = [
     <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 22, height: 22, verticalAlign: 'middle', position: 'relative', top: '1px' }}>
       <img src="/icon/chatgpt.svg" alt="chatGPT" style={{ width: 20, height: 20, display: 'block' }} />
@@ -172,7 +178,7 @@ export function SearchBar() {
                       <motion.span
                         key={i}
                         role="img"
-                        aria-label={typeof emoji === 'string' ? emoji : 'Gemini'}
+                        aria-label={emojiNames[i]}
                         initial={{ x: 0, y: 0, scale: 0.3, opacity: 0, filter: 'none' }}
                         animate={{ x, y, scale: 1.18, opacity: 1, filter: 'none' }}
                         whileHover={{ scale: 1.38, filter: 'drop-shadow(0 0 4px #fff) drop-shadow(0 0 8px #fff)' }}
@@ -192,9 +198,9 @@ export function SearchBar() {
                           zIndex: 2,
                           willChange: 'filter, transform',
                         }}
+                        onClick={() => window.open(emojiLinks[i], '_blank')}
                         onMouseEnter={() => setHoveredEmojiIdx(i)}
                         onMouseLeave={() => setHoveredEmojiIdx(null)}
-                        onClick={() => alert(`你点击了${emoji}`)}
                       >
                         {emoji}
                         {hoveredEmojiIdx === i && (

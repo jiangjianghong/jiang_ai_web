@@ -79,7 +79,7 @@ export function WebsiteCard({ id, name, url, favicon, tags, visitCount, lastVisi
             {/* 标签区域 - 等分间距 */}
             <div className="mt-0 px-3 pb-2">
               <div className="flex flex-wrap gap-1 justify-center">
-                {tags.slice(0, 2).map(tag => (
+                {tags.slice(0, 6).map(tag => (
                   <span key={tag} className="px-1.5 py-0.5 bg-white/20 rounded-full text-[0.65rem] text-white max-w-[60px] truncate">
                    {tag}
                  </span>

@@ -12,8 +12,8 @@ export function SearchBar() {
   };
 
   return (
-       <div className="relative left-0 right-0 z-50 flex justify-center px-4">
-       <motion.div 
+    <div className="relative left-0 right-0 z-50 flex justify-center px-4">
+      <motion.div
         className="w-full max-w-md"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -27,7 +27,7 @@ export function SearchBar() {
             placeholder="搜索..."
             className="w-full bg-white/10 backdrop-blur-md border border-white/20 rounded-full px-4 py-2 text-white placeholder-white/60 focus:outline-none focus:ring-1 focus:ring-white/30 text-base"
           />
-          <button 
+          <button
             type="submit"
             className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-white/70 hover:text-white transition-colors"
           >

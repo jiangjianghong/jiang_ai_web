@@ -7,7 +7,7 @@ export function SearchBar() {
   const [engine, setEngine] = useState<'bing' | 'google'>('bing');
   const engineList = [
     { key: 'bing', label: 'Bing', icon: <i className="fa-brands fa-microsoft text-blue-400"></i> },
-    { key: 'google', label: 'Google', icon: <i className="fa-brands fa-google text-red-500"></i> },
+    { key: 'google', label: 'Google', icon: <i className="fa-brands fa-google text-blue-500"></i> },
   ];
 
   const getSearchUrl = (engine: string, query: string) => {
@@ -41,15 +41,16 @@ export function SearchBar() {
           onMouseLeave={() => setIsHovered(false)}
         >
           <motion.div
-            animate={{ width: isHovered ? 420 : 240 }}
+            animate={{ width: isHovered ? 520 : 340 }}
+            initial={{ width: 340 }} // 初始宽度更宽
             transition={{ type: 'tween', duration: 0.28, ease: 'easeInOut' }}
             style={{ display: 'flex', alignItems: 'center', position: 'relative' }}
           >
             {/* 搜索引擎切换按钮和“搜索”字样 */}
             <button
               type="button"
-              className="absolute left-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5 px-0.8 py-1 text-white/70 hover:text-white bg-transparent border-none outline-none text-xs select-none"
-              style={{ pointerEvents: 'auto', zIndex: 2 }}
+              className="flex items-center gap-2 px-1.5 py-1 text-white/80 hover:text-white bg-transparent border-none outline-none text-lg select-none relative z-20"
+              style={{ pointerEvents: 'auto' }}
               tabIndex={-1}
               onClick={() => {
                 const idx = engineList.findIndex(e => e.key === engine);
@@ -58,15 +59,17 @@ export function SearchBar() {
               title={`切换搜索引擎：${engineList.find(e => e.key === engine)?.label}`}
             >
               {engineList.find(e => e.key === engine)?.icon}
-              <span className="hidden sm:inline">{engineList.find(e => e.key === engine)?.label}</span>
+              <span className="hidden sm:inline text-base font-semibold">{engineList.find(e => e.key === engine)?.label}</span>
             </button>
-            <span className="absolute left-6 top-1/2 -translate-y-1/2 text-white/60 select-none font-normal">搜索</span>
+            {/* 分隔符 */}
+            <span className="mx-2 text-white/30 select-none font-normal text-base z-10">|</span>
+            <span className="text-white/60 select-none font-normal text-base z-10"></span>
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="输入内容..."
-              className="bg-white/10 backdrop-blur-md border border-white/20 rounded-full pl-20 py-2 text-white placeholder-white/60 focus:outline-none focus:ring-1 focus:ring-white/30 text-base transition-all duration-200 pr-12 w-full"
+              className="bg-white/10 backdrop-blur-md border border-white/20 rounded-full pl-4 py-2 text-white placeholder-white/60 focus:outline-none focus:ring-1 focus:ring-white/30 text-base transition-all duration-200 pr-12 w-full ml-3"
               style={{ minWidth: '4rem', maxWidth: '100%' }}
             />
             <button

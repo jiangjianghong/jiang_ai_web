@@ -44,7 +44,7 @@ export function WebsiteCard({ id, name, url, favicon, tags, visitCount, lastVisi
         <div className="h-full flex flex-col pt-3">
           {/* 网站图标和名称区域 */}
           <div className="flex flex-col items-center px-2">
-            <div className="w-11 h-11 mb-1 rounded-md overflow-hidden">
+            <div className="w-11 h-11 mb-1 rounded-md overflow-hidden"> {/* 恢复原始图标大小 */}
               <img 
                 src={favicon} 
                 alt={`${name} favicon`} 
@@ -55,7 +55,7 @@ export function WebsiteCard({ id, name, url, favicon, tags, visitCount, lastVisi
                 }}
               />
             </div>
-             <h3 className="text-xs font-medium text-white text-center line-clamp-2 px-2 mt-1">{name}</h3>
+             <h3 className="text-xs font-medium text-white text-center line-clamp-2 px-2 mt-1">{name}</h3> {/* 恢复原始字体大小 */}
            </div>
             {/* 备注区域 */}
             <div className="px-2 mb-1">

@@ -46,12 +46,37 @@ export function WebsiteCard({ id, name, url, favicon, tags, visitCount, lastVisi
           <div className="flex flex-col items-center px-2">
             <div className="w-11 h-11 mb-1 rounded-md overflow-hidden"> {/* 恢复原始图标大小 */}
               <img 
-                src={favicon} 
+                src={favicon}
                 alt={`${name} favicon`} 
                 className="w-full h-full object-contain"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
-                  target.src = `https://www.google.com/s2/favicons?domain=${url}`;
+                  // 先尝试 Google 高清接口
+                  if (!target.dataset.triedGoogle) {
+                    target.src = `https://www.google.com/s2/favicons?domain=${url}&sz=128`;
+                    target.dataset.triedGoogle = '1';
+                  } else if (!target.dataset.triedYandex) {
+                    // 再尝试 yandex 高清接口
+                    const domain = url.replace(/^(https?:\/\/)?(www\.)?/, '').split('/')[0];
+                    target.src = `https://favicon.yandex.net/favicon/v2/${domain}?size=120`;
+                    target.dataset.triedYandex = '1';
+                  } else if (!target.dataset.triedApple) {
+                    // 再尝试 apple-touch-icon
+                    const domain = url.replace(/^(https?:\/\/)?(www\.)?/, '').split('/')[0];
+                    target.src = `https://${domain}/apple-touch-icon.png`;
+                    target.dataset.triedApple = '1';
+                  } else if (!target.dataset.triedDuck) {
+                    // 再尝试 DuckDuckGo
+                    const domain = url.replace(/^(https?:\/\/)?(www\.)?/, '').split('/')[0];
+                    target.src = `https://icons.duckduckgo.com/ip3/${domain}.ico`;
+                    target.dataset.triedDuck = '1';
+                  } else {
+                    // 最后兜底为 /favicon.ico
+                    try {
+                      const domain = url.replace(/^(https?:\/\/)?(www\.)?/, '').split('/')[0];
+                      target.src = `https://${domain}/favicon.ico`;
+                    } catch {}
+                  }
                 }}
               />
             </div>

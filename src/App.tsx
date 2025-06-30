@@ -4,10 +4,11 @@ import { createContext, useState, useEffect } from "react";
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { mockWebsites } from '@/lib/mockData';
+import { TransparencyProvider } from '@/contexts/TransparencyContext';
  
 export const AuthContext = createContext({
   isAuthenticated: false,
-  setIsAuthenticated: (value: boolean) => {},
+  setIsAuthenticated: (_value: boolean) => {},
   logout: () => {},
 });
 
@@ -36,14 +37,16 @@ export default function App() {
   };
 
   return (
-    <DndProvider backend={HTML5Backend}>
-      <AuthContext.Provider
-        value={{ isAuthenticated, setIsAuthenticated, logout }}
-      >
-        <Routes>
-          <Route path="/" element={<Home websites={websites} setWebsites={setWebsites} />} />
-        </Routes>
-      </AuthContext.Provider>
-    </DndProvider>
+    <TransparencyProvider>
+      <DndProvider backend={HTML5Backend}>
+        <AuthContext.Provider
+          value={{ isAuthenticated, setIsAuthenticated, logout }}
+        >
+          <Routes>
+            <Route path="/" element={<Home websites={websites} setWebsites={setWebsites} />} />
+          </Routes>
+        </AuthContext.Provider>
+      </DndProvider>
+    </TransparencyProvider>
   );
 }

@@ -1,14 +1,23 @@
-import { useState, useRef, useLayoutEffect } from 'react';
+import { useState, useRef, useLayoutEffect, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useTransparency } from '@/contexts/TransparencyContext';
 
-export function SearchBar() {
+interface SearchBarProps {
+  // 不再需要websites参数
+}
+
+export function SearchBar(_props: SearchBarProps = {}) {
   const [searchQuery, setSearchQuery] = useState('');
   const [isHovered, setIsHovered] = useState(false);
   const [engine, setEngine] = useState<'bing' | 'google'>('bing');
   const [isExpandDone, setIsExpandDone] = useState(false);
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
   const searchBtnRef = useRef<HTMLButtonElement>(null);
   const [fixedPos, setFixedPos] = useState<{ left: number; top: number } | null>(null);
   const [hoveredEmojiIdx, setHoveredEmojiIdx] = useState<number | null>(null);
+  const { searchBarOpacity } = useTransparency();
   const engineList = [
     { key: 'bing', label: 'Bing', icon: <i className="fa-brands fa-microsoft text-blue-400"></i> },
     { key: 'google', label: 'Google', icon: <i className="fa-brands fa-google text-blue-500"></i> },
@@ -46,10 +55,180 @@ export function SearchBar() {
     }
   };
 
-  const handleSearch = (e: React.FormEvent) => {
+  // 生成搜索建议 - 使用百度联想API (带CORS处理)
+  const generateSuggestions = async (query: string): Promise<any[]> => {
+    if (!query.trim()) return [];
+    
+    try {
+      // 尝试使用百度联想API，通过JSONP方式绕过CORS
+      const script = document.createElement('script');
+      const callbackName = `baiduCallback_${Date.now()}`;
+      
+      return new Promise<any[]>((resolve) => {
+        // 设置全局回调函数
+        (window as any)[callbackName] = (data: any) => {
+          if (data && data.s && Array.isArray(data.s)) {
+            const suggestions = data.s.slice(0, 5).map((suggestion: string, index: number) => ({
+              id: `baidu-${index}`,
+              text: suggestion,
+              query: suggestion
+            }));
+            resolve(suggestions);
+          } else {
+            // 如果百度API失败，使用本地建议
+            const localSuggestions = generateSmartSuggestions(query);
+            resolve(localSuggestions.slice(0, 5).map((suggestion, index) => ({
+              id: `local-${index}`,
+              text: suggestion,
+              query: suggestion
+            })));
+          }
+          
+          // 清理
+          document.head.removeChild(script);
+          delete (window as any)[callbackName];
+        };
+        
+        // 设置超时处理
+        setTimeout(() => {
+          if ((window as any)[callbackName]) {
+            // 超时后使用本地建议
+            const localSuggestions = generateSmartSuggestions(query);
+            resolve(localSuggestions.slice(0, 5).map((suggestion, index) => ({
+              id: `local-${index}`,
+              text: suggestion,
+              query: suggestion
+            })));
+            
+            // 清理
+            if (document.head.contains(script)) {
+              document.head.removeChild(script);
+            }
+            delete (window as any)[callbackName];
+          }
+        }, 2000);
+        
+        // 创建JSONP请求
+        script.src = `https://suggestion.baidu.com/su?wd=${encodeURIComponent(query)}&cb=${callbackName}`;
+        script.onerror = () => {
+          // 如果脚本加载失败，使用本地建议
+          const localSuggestions = generateSmartSuggestions(query);
+          resolve(localSuggestions.slice(0, 5).map((suggestion, index) => ({
+            id: `local-${index}`,
+            text: suggestion,
+            query: suggestion
+          })));
+          
+          // 清理
+          if (document.head.contains(script)) {
+            document.head.removeChild(script);
+          }
+          delete (window as any)[callbackName];
+        };
+        
+        document.head.appendChild(script);
+      });
+    } catch (error) {
+      console.warn('Failed to fetch Baidu suggestions:', error);
+      
+      // 备用方案：使用本地智能建议
+      const suggestions = generateSmartSuggestions(query);
+      return suggestions.slice(0, 5).map((suggestion, index) => ({
+        id: `local-${index}`,
+        text: suggestion,
+        query: suggestion
+      }));
+    }
+  };
+
+  // 生成智能搜索建议
+  const generateSmartSuggestions = (query: string) => {
+    const suggestions = [];
+    const queryLower = query.toLowerCase();
+    
+    // 常见的搜索模式
+    const patterns = [
+      query, // 原始查询
+      `${query} 是什么`,
+      `${query} 怎么用`,
+      `${query} 教程`,
+      `如何 ${query}`,
+      `${query} 下载`,
+      `${query} 官网`,
+      `${query} 价格`,
+    ];
+
+    // 根据查询内容智能生成建议
+    if (queryLower.includes('什么') || queryLower.includes('how')) {
+      suggestions.push(`${query}`, `${query} 详解`, `${query} 原理`);
+    } else if (queryLower.includes('怎么') || queryLower.includes('如何')) {
+      suggestions.push(`${query}`, `${query} 步骤`, `${query} 方法`);
+    } else {
+      suggestions.push(...patterns);
+    }
+
+    // 移除重复并返回
+    return [...new Set(suggestions)];
+  };
+
+  // 监听搜索查询变化，更新建议（添加防抖）
+  useEffect(() => {
+    const debounceTimer = setTimeout(() => {
+      if (searchQuery.trim()) {
+        generateSuggestions(searchQuery).then((newSuggestions) => {
+          setSuggestions(newSuggestions);
+          setShowSuggestions(newSuggestions.length > 0);
+          setSelectedSuggestionIndex(-1);
+        });
+      } else {
+        setSuggestions([]);
+        setShowSuggestions(false);
+        setSelectedSuggestionIndex(-1);
+      }
+    }, 500); // 增加到500ms防抖，给API更多时间
+
+    return () => clearTimeout(debounceTimer);
+  }, [searchQuery]);
+
+  const handleSearch = (e: React.FormEvent, suggestionQuery?: string) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      window.open(getSearchUrl(engine, searchQuery), '_blank');
+    const queryToSearch = suggestionQuery || (selectedSuggestionIndex >= 0 && suggestions[selectedSuggestionIndex] 
+      ? suggestions[selectedSuggestionIndex].query 
+      : searchQuery);
+      
+    if (queryToSearch.trim()) {
+      window.open(getSearchUrl(engine, queryToSearch), '_blank');
+      setSearchQuery('');
+      setShowSuggestions(false);
+    }
+  };
+
+  // 处理键盘导航
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!showSuggestions) return;
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setSelectedSuggestionIndex(prev => 
+          prev < suggestions.length - 1 ? prev + 1 : prev
+        );
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setSelectedSuggestionIndex(prev => prev > -1 ? prev - 1 : -1);
+        break;
+      case 'Escape':
+        setShowSuggestions(false);
+        setSelectedSuggestionIndex(-1);
+        break;
+      case 'Tab':
+        if (!e.shiftKey) {
+          e.preventDefault();
+          const idx = engineList.findIndex(en => en.key === engine);
+          setEngine(engineList[(idx + 1) % engineList.length].key as any);
+        }
+        break;
     }
   };
 
@@ -91,6 +270,10 @@ export function SearchBar() {
             shrinkTimeout.current = setTimeout(() => {
               setIsHovered(false);
               setIsExpandDone(false);
+              // 延迟隐藏建议，避免鼠标移动到建议上时立即隐藏
+              setTimeout(() => {
+                setShowSuggestions(false);
+              }, 100);
             }, 200);
           }}
         >
@@ -125,15 +308,13 @@ export function SearchBar() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={handleKeyDown}
               placeholder="输入内容..."
-              className="bg-white/10 backdrop-blur-md border border-white/20 rounded-full pl-4 py-2 text-white placeholder-white/60 focus:outline-none focus:ring-1 focus:ring-white/30 text-base transition-all duration-200 pr-12 w-full ml-3"
-              style={{ minWidth: '4rem', maxWidth: '100%' }}
-              onKeyDown={e => {
-                if (e.key === 'Tab' && !e.shiftKey) {
-                  e.preventDefault();
-                  const idx = engineList.findIndex(en => en.key === engine);
-                  setEngine(engineList[(idx + 1) % engineList.length].key as any);
-                }
+              className="backdrop-blur-md border border-white/20 rounded-full pl-4 py-2 text-white placeholder-white/60 focus:outline-none focus:ring-1 focus:ring-white/30 text-base transition-all duration-200 pr-12 w-full ml-3"
+              style={{
+                backgroundColor: `rgba(255, 255, 255, ${searchBarOpacity})`,
+                minWidth: '4rem',
+                maxWidth: '100%'
               }}
             />
             <button
@@ -151,6 +332,45 @@ export function SearchBar() {
                 style={{ display: 'inline-block' }}
               />
             </button>
+
+            {/* 搜索建议列表 */}
+            {showSuggestions && suggestions.length > 0 && (
+              <motion.div
+                className="absolute top-full left-0 right-0 mt-2 backdrop-blur-md rounded-lg shadow-lg border border-white/20 z-50 overflow-hidden max-h-60 overflow-y-auto"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.2 }}
+                style={{ 
+                  pointerEvents: 'auto',
+                  backgroundColor: `rgba(255, 255, 255, 0.9)` // 更白的背景
+                }}
+              >
+                {suggestions.map((suggestion, index) => (
+                  <div
+                    key={suggestion.id}
+                    className={`px-4 py-3 cursor-pointer transition-colors border-b border-white/10 last:border-b-0 ${
+                      index === selectedSuggestionIndex 
+                        ? 'bg-blue-500/20 text-gray-800' 
+                        : 'hover:bg-white/50 text-gray-700'
+                    }`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSearchQuery(suggestion.text);
+                      handleSearch(e as any, suggestion.query);
+                    }}
+                    onMouseEnter={() => setSelectedSuggestionIndex(index)}
+                    onMouseDown={(e) => e.preventDefault()} // 防止失去焦点
+                  >
+                    <div className="flex items-center gap-3">
+                      <i className="fa-solid fa-magnifying-glass text-gray-400 text-sm w-4"></i>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-sm truncate">{suggestion.text}</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </motion.div>
+            )}
             {/* 悬停时显示的表情（fixed定位，圆心为放大镜按钮绝对中心） */}
             {isHovered && isExpandDone && fixedPos && (
               <div

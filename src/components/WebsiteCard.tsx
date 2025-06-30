@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { useState, useRef } from 'react';
 import CardEditModal from './CardEditModal';
+import { useTransparency } from '@/contexts/TransparencyContext';
 
 interface WebsiteCardProps {
   id: string;
@@ -18,12 +19,16 @@ interface WebsiteCardProps {
 export function WebsiteCard({ id, name, url, favicon, tags, visitCount, lastVisit, note, onSave, onDelete }: WebsiteCardProps) {
   const [showEditModal, setShowEditModal] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
+  const { cardOpacity } = useTransparency();
 
   return (
     <>
       <motion.div
         ref={cardRef}
-        className="w-32 h-32 rounded-xl cursor-pointer shadow-lg bg-white/5 backdrop-blur-sm border border-white/10 overflow-hidden relative group"
+        className="w-32 h-32 rounded-xl cursor-pointer shadow-lg backdrop-blur-md border border-white/20 overflow-hidden relative group"
+        style={{
+          backgroundColor: `rgba(255, 255, 255, ${cardOpacity})`,
+        }}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.98 }}
         transition={{ type: "spring", stiffness: 300, damping: 15 }}

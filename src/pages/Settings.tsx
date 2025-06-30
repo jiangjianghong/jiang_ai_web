@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import CardEditModal from '@/components/CardEditModal';
+import { useTransparency } from '@/contexts/TransparencyContext';
 
 interface SettingsProps {
   onClose: () => void;
@@ -10,6 +11,7 @@ interface SettingsProps {
 
 export default function Settings({ onClose, websites, setWebsites }: SettingsProps) {
   const [showAddCardModal, setShowAddCardModal] = useState(false);
+  const { cardOpacity, searchBarOpacity, setCardOpacity, setSearchBarOpacity } = useTransparency();
 
   const handleSaveNewCard = (data: {
     id: string;
@@ -45,6 +47,42 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
           <h2 className="text-xl font-medium text-gray-800 mb-4">设置</h2>
         </div>
         <div className="flex-1 px-6 py-2 space-y-6 overflow-y-auto">
+          <div className="space-y-4">
+            <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">透明度设置</h3>
+            
+            {/* 卡片透明度控制 */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">
+                卡片透明度 ({Math.round(cardOpacity * 100)}%)
+              </label>
+              <input
+                type="range"
+                min="0.05"
+                max="0.3"
+                step="0.01"
+                value={cardOpacity}
+                onChange={(e) => setCardOpacity(parseFloat(e.target.value))}
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+              />
+            </div>
+
+            {/* 搜索框透明度控制 */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">
+                搜索框透明度 ({Math.round(searchBarOpacity * 100)}%)
+              </label>
+              <input
+                type="range"
+                min="0.05"
+                max="0.3"
+                step="0.01"
+                value={searchBarOpacity}
+                onChange={(e) => setSearchBarOpacity(parseFloat(e.target.value))}
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+              />
+            </div>
+          </div>
+          
           <div className="space-y-4">
             <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">卡片管理</h3>
             <button

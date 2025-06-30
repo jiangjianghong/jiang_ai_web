@@ -17,6 +17,7 @@ export function SearchBar(_props: SearchBarProps = {}) {
   const searchBtnRef = useRef<HTMLButtonElement>(null);
   const [fixedPos, setFixedPos] = useState<{ left: number; top: number } | null>(null);
   const [hoveredEmojiIdx, setHoveredEmojiIdx] = useState<number | null>(null);
+  const [showEngineTooltip, setShowEngineTooltip] = useState(false);
   const searchBarRef = useRef<HTMLFormElement>(null);
   const { searchBarOpacity } = useTransparency();
   
@@ -480,11 +481,20 @@ export function SearchBar(_props: SearchBarProps = {}) {
                 onClick={() => {
                   switchEngine();
                 }}
-                title={`切换搜索引擎：${engineList.find(e => e.key === engine)?.label}`}
+                onMouseEnter={() => setShowEngineTooltip(true)}
+                onMouseLeave={() => setShowEngineTooltip(false)}
               >
                 {engineList.find(e => e.key === engine)?.icon}
                 <span className="hidden sm:inline text-base font-semibold select-none">{engineList.find(e => e.key === engine)?.label}</span>
               </button>
+              
+              {/* 自定义美观的 tooltip */}
+              {showEngineTooltip && (
+                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800/90 text-white text-sm rounded-lg shadow-lg backdrop-blur-sm border border-white/10 whitespace-nowrap z-30">
+                  切换至 {engine === 'bing' ? 'Google' : 'Bing'}
+                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-gray-800/90"></div>
+                </div>
+              )}
             </div>
             {/* 分隔符 */}
             <span className="mx-2 text-white/30 select-none font-normal text-base z-10">|</span>

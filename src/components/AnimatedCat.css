@@ -1,0 +1,442 @@
+/* 小猫动画样式 */
+.cat-container {
+  position: fixed;
+  bottom: 0px;
+  width: 100vw;
+  height: 150px;
+  z-index: 1000;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* CSS变量定义 */
+:root {
+  --cat-black: #000;
+  --cat-white: #fff;
+  --cat-grey: rgb(97, 97, 97);
+  --cat-pink: rgb(156, 27, 77);
+  --cat-time: 0.45s;
+  --cat-color: var(--cat-black);
+}
+
+/* 动画定义 */
+@keyframes shake {
+  50% { top: 6px; }
+}
+
+@keyframes shadow {
+  50% { 
+    width: 110px;
+    margin-left: -40px;
+  }
+}
+
+@keyframes tail {
+  50% { transform: rotateZ(38deg); }
+}
+
+@keyframes track {
+  to { margin-left: 20px; }
+}
+
+@keyframes eye {
+  50% { top: 2px; }
+}
+
+@keyframes mustache_l {
+  50% { transform: rotateZ(-10deg); }
+}
+
+@keyframes mustache_r {
+  0%, 100% { transform: rotateY(180deg) rotateZ(0); }
+  50% { transform: rotateY(180deg) rotateZ(-10deg); }
+}
+
+@keyframes ear_l {
+  50% { transform: rotateZ(-30deg); }
+}
+
+@keyframes ear_r {
+  50% { transform: rotateZ(30deg); }
+}
+
+@keyframes paw_l {
+  50% {
+    left: 130px;
+    top: 176px;
+  }   
+  70% {
+    top: 160px;
+  }
+}
+
+@keyframes paw_r {
+  25% {
+    top: 160px;
+  }
+  50% {
+    left: 88px;
+    top: 176px;
+  }
+}
+
+/* 添加小猫移动动画 */
+@keyframes move-cat {
+  0% {
+    right: -200px;
+  }
+  25% {
+    right: 100vw;
+  }
+  100% {
+    right: 100vw;
+  }
+}
+
+.cat {
+  position: absolute;
+  bottom: 0px;
+  right: -200px;
+  width: 188px;
+  height: 260px;
+  color: var(--cat-color);
+  animation: move-cat 30s linear infinite;
+  transform: scale(0.4);
+  transform-origin: bottom center;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.cat .paw {
+  position: absolute;
+  top: 176px;
+  left: 88px;
+  width: 20px;
+  height: 80px;
+  background: currentcolor;
+  border-radius: 20px / 0 0 80px 40px;
+  transform: rotateZ(10deg);
+  animation: paw_l var(--cat-time) infinite linear;
+}
+
+.cat .paw:after {
+  position: absolute;
+  content: '';
+  bottom: -5px;
+  left: -4px;
+  width: 20px;
+  height: 26px;
+  background: currentcolor;
+  border-radius: 50%;
+  transform: rotateZ(24deg);
+}
+
+.cat .paw:nth-child(2) {
+  left: 130px;
+  animation: paw_r var(--cat-time) infinite linear;
+}
+
+.cat .shake {
+  position: absolute;
+  width: 100%;
+  top: 0;
+  animation: shake var(--cat-time) infinite linear;
+}
+
+.cat:before {
+  position: absolute;
+  content: '';
+  top: 100%;
+  left: 50%;
+  width: 130px;
+  height: 30px;
+  margin-left: -50px;
+  margin-top: -20px;
+  background: var(--cat-grey);
+  opacity: 0.4;
+  border-radius: 50%;
+  animation: shadow var(--cat-time) infinite linear;
+  animation-delay: calc(var(--cat-time) / 2);
+}
+
+.cat:after {
+  position: absolute;
+  content: '';
+  top: 100%;
+  left: 100%;
+  width: 15px;
+  height: 10px;
+  margin-left: -30px;
+  margin-top: -10px;
+  background: var(--cat-grey);
+  opacity: 0.3;
+  border-radius: 50%;
+  box-shadow: 
+    50px 0 var(--cat-grey),
+    100px 0 var(--cat-grey),
+    150px 0 var(--cat-grey),
+    200px 0 var(--cat-grey),
+    250px 0 var(--cat-grey),
+    300px 0 var(--cat-grey);
+  animation: track calc(var(--cat-time) / 2) infinite linear;
+}
+
+.cat .tail {
+  position: absolute;
+  content: '';
+  top: 0;
+  right: -4px;
+  width: 160px;
+  height: 150px;
+  border: 20px solid;
+  border-color: 
+    currentcolor transparent 
+    transparent currentcolor;
+  transform: rotateZ(45deg);
+  border-radius: 120px / 106px 120px 0 120px;
+  box-sizing: border-box;
+  animation: tail var(--cat-time) infinite linear;
+}
+
+.cat .tail:after {
+  position: absolute;
+  content: '';
+  width: 20px;
+  height: 20px;
+  background: currentcolor;
+  border-radius: 50%;
+  bottom: 0;
+  box-shadow: 
+    2px 4px   currentcolor, 
+    2px 7px   currentcolor,
+    2px 10px  currentcolor,
+    1px 14px  currentcolor,
+   -1px 18px  currentcolor,
+   -5px 22px  currentcolor,
+   -10px 25px currentcolor,
+   -15px 28px currentcolor,
+   -20px 30px currentcolor;
+}
+
+.cat .main {
+  position: absolute;
+  top: 14px;
+  right: 0;
+  width: 144px;
+  height: 216px;
+  color: currentcolor;
+}
+
+.cat .main .head {
+  position: absolute;
+  bottom: -10px;
+  left: 20px;
+  width: 104px;
+  height: 180px;
+  background: currentcolor;
+  border-radius: 55px / 100px 100px 65px 65px;
+  transform: rotateZ(40deg);
+}
+
+.cat .main .body {
+  position: absolute;
+  right: 0;
+  width: 130px;
+  height: 180px;
+  background: currentcolor;
+  border-radius: 65px / 70px 70px 100px 100px;
+}
+
+.cat .main .body .leg {
+  position: absolute;
+  right: -10px;
+  top: 20px;
+  width: 50px;
+  height: 116px;
+  background: currentcolor;
+  border-radius: 25px / 0 60px 50px 0;
+}
+
+.cat .main .body .leg:before {
+  position: absolute;
+  content: '';
+  bottom: -4px;
+  right: 0;
+  width: 20px;
+  height: 40px;
+  border: 3px solid transparent;
+  border-radius: 50%;
+  border-left-color: var(--cat-grey);
+  transform: rotateZ(6deg);
+}
+
+.cat .main .body .leg:after {
+  position: absolute;
+  content: '';
+  left: 3px;
+  bottom: 35px;
+  width: 76px;
+  height: 70px;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  border-bottom-color: var(--cat-grey);
+  transform: rotateZ(65deg);
+}
+
+.cat .main .face {
+  position: absolute;
+  bottom: 0;
+  width: 76px;
+  height: 80px;
+}
+
+.cat .main .face .nose {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  width: 18px;
+  height: 9px;
+  margin-left: -10px;
+  background: var(--cat-pink);
+  border-radius: 20px / 10px 10px 20px 20px;
+}
+
+.cat .main .face .mustache_cont {
+  position: absolute;
+  bottom: 5px;
+  width: 20px;
+  height: 10px;
+  animation: mustache_l var(--cat-time) infinite linear;
+}
+
+.cat .main .face .mustache_cont:nth-child(2) {
+  right: 0;
+  animation: mustache_r var(--cat-time) infinite linear;
+}
+
+.cat .main .face .mustache {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  border: 1px solid var(--cat-grey);
+  transform-origin: 100% 0;
+  transform: rotateZ(-10deg);
+}
+
+.cat .main .face .mustache:last-child {
+  top: 6px;
+  transform: rotateZ(-20deg);
+}
+
+.cat .main .face .eye {
+  position: absolute;
+  top: 28px;
+  left: -8px;
+  width: 30px;
+  height: 30px;
+  background: var(--cat-white);
+  border: 3px solid var(--cat-black);
+  border-radius: 50%;
+  box-sizing: border-box;
+}
+
+.cat .main .face .eye:nth-child(5) {
+  top: 26px;
+  left: 36px;
+}
+
+.cat .main .face .eye:after {
+  position: absolute;
+  content: '';
+  width: 10px;
+  height: 10px;
+  right: 1px;
+  top: 4px;
+  background: var(--cat-black);
+  border-radius: 50%;
+  animation: eye var(--cat-time) infinite linear;
+}
+
+.cat .main .face .brow_cont {
+  position: absolute;
+  top: 14px;
+  left: 10px;
+  width: 10px;
+  height: 10px;
+}
+
+.cat .main .face .brow_cont:nth-child(7) {
+  transform: rotateY(180deg) rotateZ(0);
+  left: 38px;
+}
+
+.cat .main .face .brow {
+  position: absolute;
+  top: 20%;
+  height: 60%;
+  border: 1px solid var(--cat-grey);
+  transform-origin: 100% 0;
+  transform: rotateZ(10deg);
+}
+
+.cat .main .face .brow:last-child {
+  top: 0;
+  height: 100%;
+  left: 6px;
+  transform: rotateZ(3deg);
+}
+
+.cat .main .face .ear_l {
+  position: absolute;
+  top: -17px;
+  width: 20px;
+  height: 30px;
+  background: currentcolor;
+  border-radius: 20px / 55px 55px 0 0;
+  transform-origin: 50% 100%;
+  overflow: hidden;
+  transform: rotateZ(-20deg);
+  animation: ear_l var(--cat-time) infinite linear;
+}
+
+.cat .main .face .ear_l .inner {
+  position: absolute;
+  top: 5px;
+  left: 50%;
+  width: 6px;
+  height: 14px;
+  margin-left: -4px;
+  background: var(--cat-grey);
+  border-radius: 7px / 20px 20px 0 0;
+}
+
+.cat .main .face .ear_r {
+  position: absolute;
+  right: 0;
+  margin-top: -22px;
+  width: 36px;
+  height: 30px;
+  transform-origin: 50% 100%;
+  overflow: hidden;
+  transform: rotateZ(20deg);
+  animation: ear_r var(--cat-time) infinite linear;
+}
+
+.cat .main .face .ear_r .outer {
+  position: absolute;
+  width: 30px;
+  height: 200%;
+  border: 3px solid var(--cat-grey);
+  border-radius: 20px / 55px 55px 0 0;
+}
+
+.cat .main .face .ear_r .inner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 12px;
+  height: 26px;
+  margin-left: -6px;
+  background: var(--cat-grey);
+  border-radius: 50%;
+}

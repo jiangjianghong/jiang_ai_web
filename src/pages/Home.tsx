@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { WebsiteCard } from '@/components/WebsiteCard';
 import { SearchBar } from '@/components/SearchBar';
+import { AnimatedCat } from '@/components/AnimatedCat';
 import { useDragAndDrop } from '@/hooks/useDragAndDrop';
 import { motion } from 'framer-motion';
 import { useTheme } from '@/hooks/useTheme';
@@ -169,6 +170,8 @@ export default function Home({ websites, setWebsites }: HomeProps) {
           <i className="fa-solid fa-sliders text-lg"></i>
         </button>
       </div>
+
+      <AnimatedCat />
       </div>
     </div>
   );

@@ -136,24 +136,24 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 select-none">
       <motion.div
-        className="w-full max-w-md bg-white rounded-xl shadow-xl p-6"
+        className="w-full max-w-md bg-white rounded-xl shadow-xl p-6 select-none"
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.9 }}
         transition={{ type: 'spring', damping: 25 }}
       >
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">编辑卡片</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
-            <i className="fa-solid fa-xmark"></i>
+        <div className="flex justify-between items-center mb-4 select-none">
+          <h2 className="text-xl font-semibold select-none">编辑卡片</h2>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700 select-none">
+            <i className="fa-solid fa-xmark select-none"></i>
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">网址</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1 select-none">网址</label>
             <div className="flex gap-2">
               <input
                 type="url"
@@ -167,16 +167,16 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
                 type="button"
                 onClick={handleAutoFetch}
                 disabled={autoFetching || !formData.url}
-                className="px-3 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:bg-blue-300"
+                className="px-3 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:bg-blue-300 select-none"
               >
                 {autoFetching ? '获取中...' : '自动获取'}
               </button>
             </div>
-            {errors.url && <p className="mt-1 text-sm text-red-500">{errors.url}</p>}
+            {errors.url && <p className="mt-1 text-sm text-red-500 select-none">{errors.url}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">网站名</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1 select-none">网站名</label>
             <input
               type="text"
               name="name"
@@ -185,11 +185,11 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
               className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="网站名称"
             />
-            {errors.name && <p className="mt-1 text-sm text-red-500">{errors.name}</p>}
+            {errors.name && <p className="mt-1 text-sm text-red-500 select-none">{errors.name}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">图标</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1 select-none">图标</label>
             <div className="flex items-center gap-3">
               <div className="flex-1">
                 <input
@@ -201,8 +201,8 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
                   placeholder="https://example.com/favicon.ico"
                 />
               </div>
-              <span className="text-gray-400">或</span>
-              <label className="cursor-pointer">
+              <span className="text-gray-400 select-none">或</span>
+              <label className="cursor-pointer select-none">
                 <input
                   type="file"
                   accept="image/*"
@@ -223,31 +223,31 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
                     }
                   }}
                 />
-                <div className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-sm text-gray-700 transition-colors">
-                  <i className="fa-solid fa-upload mr-1"></i>上传
+                <div className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-sm text-gray-700 transition-colors select-none">
+                  <i className="fa-solid fa-upload mr-1 select-none"></i>上传
                 </div>
               </label>
             </div>
             {formData.favicon && (
-              <div className="mt-2 flex items-center">
+              <div className="mt-2 flex items-center select-none">
                 <img 
                   src={formData.favicon} 
                   alt="图标预览" 
-                  className="w-8 h-8 rounded mr-2"
+                  className="w-8 h-8 rounded mr-2 select-none"
                 />
-                <span className="text-xs text-gray-500 truncate max-w-xs">
+                <span className="text-xs text-gray-500 truncate max-w-xs select-none">
                   {formData.favicon.startsWith('data:image') ? '上传的图标' : formData.favicon}
                 </span>
               </div>
             )}
-            {errors.favicon && <p className="mt-1 text-sm text-red-500">{errors.favicon}</p>}
+            {errors.favicon && <p className="mt-1 text-sm text-red-500 select-none">{errors.favicon}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-1 select-none">
                  备注 (使用{}标记标签，如: 备注内容 {'工作'} {'代码'})
             </label>
-            <div className="text-xs text-gray-500 mb-1">
+            <div className="text-xs text-gray-500 mb-1 select-none">
               花括号{}内的内容会被识别为标签
             </div>
 
@@ -262,18 +262,18 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
           </div>
 
 
-           <div className="flex flex-col gap-4 pt-4">
-              <div className="flex gap-2">
+           <div className="flex flex-col gap-4 pt-4 select-none">
+              <div className="flex gap-2 select-none">
                 <button
                   type="button"
                   onClick={onClose}
-                  className="flex-1 px-4 py-2 text-gray-700 border rounded-md hover:bg-gray-50"
+                  className="flex-1 px-4 py-2 text-gray-700 border rounded-md hover:bg-gray-50 select-none"
                 >
                   取消
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                  className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 select-none"
                 >
                   保存
                 </button>
@@ -287,9 +287,9 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
                       onClose();
                     }
                   }}
-                  className="w-full px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 shadow-md"
+                  className="w-full px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 shadow-md select-none"
                 >
-                  <i className="fa-solid fa-trash mr-2"></i>删除卡片
+                  <i className="fa-solid fa-trash mr-2 select-none"></i>删除卡片
                 </button>
               )}
             </div>

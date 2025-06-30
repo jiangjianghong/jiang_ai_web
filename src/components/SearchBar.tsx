@@ -218,17 +218,17 @@ export function SearchBar(_props: SearchBarProps = {}) {
     'https://www.kimi.com/',
   ];
   const emojiList = [
-    <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 22, height: 22, verticalAlign: 'middle', position: 'relative', top: '1px' }}>
-      <img src={import.meta.env.BASE_URL + "icon/chatgpt.svg"} alt="chatGPT" style={{ width: 20, height: 20, display: 'block' }} />
+    <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 22, height: 22, verticalAlign: 'middle', position: 'relative', top: '1px', userSelect: 'none' }}>
+      <img src={import.meta.env.BASE_URL + "icon/chatgpt.svg"} alt="chatGPT" style={{ width: 20, height: 20, display: 'block', userSelect: 'none' }} />
     </span>,
-    <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 22, height: 22, verticalAlign: 'middle', position: 'relative', top: '1px' }}>
-      <img src={import.meta.env.BASE_URL + "icon/gemini.svg"} alt="Gemini" style={{ width: 20, height: 20, display: 'block' }} />
+    <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 22, height: 22, verticalAlign: 'middle', position: 'relative', top: '1px', userSelect: 'none' }}>
+      <img src={import.meta.env.BASE_URL + "icon/gemini.svg"} alt="Gemini" style={{ width: 20, height: 20, display: 'block', userSelect: 'none' }} />
     </span>,
-    <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 22, height: 22, verticalAlign: 'middle', position: 'relative', top: '1px' }}>
-      <img src={import.meta.env.BASE_URL + "icon/deepseek.svg"} alt="Deepseek" style={{ width: 20, height: 20, display: 'block' }} />
+    <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 22, height: 22, verticalAlign: 'middle', position: 'relative', top: '1px', userSelect: 'none' }}>
+      <img src={import.meta.env.BASE_URL + "icon/deepseek.svg"} alt="Deepseek" style={{ width: 20, height: 20, display: 'block', userSelect: 'none' }} />
     </span>,
-    <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 22, height: 22, verticalAlign: 'middle', position: 'relative', top: '1px' }}>
-      <img src={import.meta.env.BASE_URL + "icon/kimi.svg"} alt="Kimi" style={{ width: 20, height: 20, display: 'block' }} />
+    <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 22, height: 22, verticalAlign: 'middle', position: 'relative', top: '1px', userSelect: 'none' }}>
+      <img src={import.meta.env.BASE_URL + "icon/kimi.svg"} alt="Kimi" style={{ width: 20, height: 20, display: 'block', userSelect: 'none' }} />
     </span>,
   ];
 
@@ -433,7 +433,7 @@ export function SearchBar(_props: SearchBarProps = {}) {
   }, [isExpandDone, engine]);
 
   return (
-    <div className="relative left-0 right-0 z-50 flex justify-center px-4">
+    <div className="relative left-0 right-0 z-50 flex justify-center px-4 select-none">
       <motion.div
         className="w-full flex justify-center"
         initial={{ opacity: 0, y: -20 }}
@@ -483,7 +483,7 @@ export function SearchBar(_props: SearchBarProps = {}) {
                 title={`切换搜索引擎：${engineList.find(e => e.key === engine)?.label}`}
               >
                 {engineList.find(e => e.key === engine)?.icon}
-                <span className="hidden sm:inline text-base font-semibold">{engineList.find(e => e.key === engine)?.label}</span>
+                <span className="hidden sm:inline text-base font-semibold select-none">{engineList.find(e => e.key === engine)?.label}</span>
               </button>
             </div>
             {/* 分隔符 */}
@@ -505,7 +505,7 @@ export function SearchBar(_props: SearchBarProps = {}) {
             <button
               ref={searchBtnRef}
               type="submit"
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-white/70 hover:text-white transition-colors bg-transparent border-none outline-none group"
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-white/70 hover:text-white transition-colors bg-transparent border-none outline-none group select-none"
               style={{ pointerEvents: 'auto' }}
             >
               <motion.i
@@ -533,7 +533,7 @@ export function SearchBar(_props: SearchBarProps = {}) {
                 {suggestions.map((suggestion, index) => (
                   <div
                     key={suggestion.id}
-                    className={`px-4 py-3 cursor-pointer transition-colors border-b border-white/10 last:border-b-0 ${
+                    className={`px-4 py-3 cursor-pointer transition-colors border-b border-white/10 last:border-b-0 select-none ${
                       index === selectedSuggestionIndex 
                         ? 'bg-blue-500/20 text-gray-800' 
                         : 'hover:bg-white/50 text-gray-700'
@@ -546,10 +546,10 @@ export function SearchBar(_props: SearchBarProps = {}) {
                     onMouseEnter={() => setSelectedSuggestionIndex(index)}
                     onMouseDown={(e) => e.preventDefault()} // 防止失去焦点
                   >
-                    <div className="flex items-center gap-3">
-                      <i className="fa-solid fa-magnifying-glass text-gray-400 text-sm w-4"></i>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium text-sm truncate">{suggestion.text}</div>
+                    <div className="flex items-center gap-3 select-none">
+                      <i className="fa-solid fa-magnifying-glass text-gray-400 text-sm w-4 select-none"></i>
+                      <div className="flex-1 min-w-0 select-none">
+                        <div className="font-medium text-sm truncate select-none">{suggestion.text}</div>
                       </div>
                     </div>
                   </div>
@@ -632,7 +632,7 @@ export function SearchBar(_props: SearchBarProps = {}) {
                               whiteSpace: 'nowrap',
                             }}
                           >
-                            <span>{emojiNames[i]}</span>
+                            <span style={{ userSelect: 'none' }}>{emojiNames[i]}</span>
                           </div>
                         )}
                       </motion.span>

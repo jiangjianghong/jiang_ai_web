@@ -25,7 +25,7 @@ export function WebsiteCard({ id, name, url, favicon, tags, visitCount, lastVisi
     <>
       <motion.div
         ref={cardRef}
-        className="w-32 h-32 rounded-xl cursor-pointer shadow-lg backdrop-blur-md border border-white/20 overflow-hidden relative group"
+        className="w-32 h-32 rounded-xl cursor-pointer shadow-lg backdrop-blur-md border border-white/20 overflow-hidden relative group select-none"
         style={{
           backgroundColor: `rgba(255, 255, 255, ${cardOpacity})`,
         }}
@@ -41,19 +41,19 @@ export function WebsiteCard({ id, name, url, favicon, tags, visitCount, lastVisi
               e.stopPropagation();
               setShowEditModal(true);
             }}
-            className="p-1 text-white/50 hover:text-white"
+            className="p-1 text-white/50 hover:text-white select-none"
           >
-            <i className="fa-solid fa-gear text-xs"></i>
+            <i className="fa-solid fa-gear text-xs select-none"></i>
           </button>
         </div>
         <div className="h-full flex flex-col pt-3">
           {/* 网站图标和名称区域 */}
-          <div className="flex flex-col items-center px-2">
-            <div className="w-11 h-11 mb-1 rounded-md overflow-hidden"> {/* 恢复原始图标大小 */}
+          <div className="flex flex-col items-center px-2 select-none">
+            <div className="w-11 h-11 mb-1 rounded-md overflow-hidden select-none"> {/* 恢复原始图标大小 */}
               <img 
                 src={favicon}
                 alt={`${name} favicon`} 
-                className="w-full h-full object-contain"
+                className="w-full h-full object-contain select-none"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   // 先尝试 Google 高清接口
@@ -85,19 +85,19 @@ export function WebsiteCard({ id, name, url, favicon, tags, visitCount, lastVisi
                 }}
               />
             </div>
-             <h3 className="text-xs font-medium text-white text-center line-clamp-2 px-2 mt-1">{name}</h3> {/* 恢复原始字体大小 */}
+             <h3 className="text-xs font-medium text-white text-center line-clamp-2 px-2 mt-1 select-none">{name}</h3> {/* 恢复原始字体大小 */}
            </div>
             {/* 备注区域 */}
-            <div className="px-2 mb-1">
-              <p className="text-white/60 text-[0.65rem] text-center line-clamp-2">
+            <div className="px-2 mb-1 select-none">
+              <p className="text-white/60 text-[0.65rem] text-center line-clamp-2 select-none">
                {note || new URL(url).hostname}
               </p>
            </div>
             {/* 标签区域 - 等分间距 */}
-            <div className="mt-0 px-3 pb-2">
-              <div className="flex flex-wrap gap-1 justify-center">
+            <div className="mt-0 px-3 pb-2 select-none">
+              <div className="flex flex-wrap gap-1 justify-center select-none">
                 {tags.slice(0, 6).map(tag => (
-                  <span key={tag} className="px-1.5 py-0.5 bg-white/20 rounded-full text-[0.65rem] text-white max-w-[60px] truncate">
+                  <span key={tag} className="px-1.5 py-0.5 bg-white/20 rounded-full text-[0.65rem] text-white max-w-[60px] truncate select-none">
                    {tag}
                  </span>
                ))}

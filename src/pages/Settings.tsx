@@ -11,7 +11,7 @@ interface SettingsProps {
 
 export default function Settings({ onClose, websites, setWebsites }: SettingsProps) {
   const [showAddCardModal, setShowAddCardModal] = useState(false);
-  const { cardOpacity, searchBarOpacity, setCardOpacity, setSearchBarOpacity } = useTransparency();
+  const { cardOpacity, searchBarOpacity, parallaxEnabled, setCardOpacity, setSearchBarOpacity, setParallaxEnabled } = useTransparency();
 
   const handleSaveNewCard = (data: {
     id: string;
@@ -80,6 +80,28 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
                 onChange={(e) => setSearchBarOpacity(parseFloat(e.target.value))}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
               />
+            </div>
+
+            {/* 视差效果开关 */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700 flex items-center justify-between">
+                <span>视差背景效果</span>
+                <button
+                  onClick={() => setParallaxEnabled(!parallaxEnabled)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                    parallaxEnabled ? 'bg-blue-500' : 'bg-gray-300'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      parallaxEnabled ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </label>
+              <p className="text-xs text-gray-500">
+                {parallaxEnabled ? '背景会跟随鼠标轻微移动' : '背景固定不动'}
+              </p>
             </div>
           </div>
           

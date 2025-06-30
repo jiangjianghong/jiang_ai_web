@@ -3,8 +3,10 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 interface TransparencyContextType {
   cardOpacity: number;
   searchBarOpacity: number;
+  parallaxEnabled: boolean;
   setCardOpacity: (opacity: number) => void;
   setSearchBarOpacity: (opacity: number) => void;
+  setParallaxEnabled: (enabled: boolean) => void;
 }
 
 const TransparencyContext = createContext<TransparencyContextType | undefined>(undefined);
@@ -20,6 +22,11 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
     return saved ? parseFloat(saved) : 0.1;
   });
 
+  const [parallaxEnabled, setParallaxEnabled] = useState(() => {
+    const saved = localStorage.getItem('parallaxEnabled');
+    return saved ? JSON.parse(saved) : true;
+  });
+
   useEffect(() => {
     localStorage.setItem('cardOpacity', cardOpacity.toString());
   }, [cardOpacity]);
@@ -28,13 +35,19 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('searchBarOpacity', searchBarOpacity.toString());
   }, [searchBarOpacity]);
 
+  useEffect(() => {
+    localStorage.setItem('parallaxEnabled', JSON.stringify(parallaxEnabled));
+  }, [parallaxEnabled]);
+
   return (
     <TransparencyContext.Provider
       value={{
         cardOpacity,
         searchBarOpacity,
+        parallaxEnabled,
         setCardOpacity,
         setSearchBarOpacity,
+        setParallaxEnabled,
       }}
     >
       {children}

@@ -17,6 +17,9 @@ export function SearchBar(_props: SearchBarProps = {}) {
   const searchBtnRef = useRef<HTMLButtonElement>(null);
   const [fixedPos, setFixedPos] = useState<{ left: number; top: number } | null>(null);
   const [hoveredEmojiIdx, setHoveredEmojiIdx] = useState<number | null>(null);
+  const [mousePosition, setMousePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [searchBarCenter, setSearchBarCenter] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const searchBarRef = useRef<HTMLFormElement>(null);
   const { searchBarOpacity } = useTransparency();
   const engineList = [
     { key: 'bing', label: 'Bing', icon: <i className="fa-brands fa-microsoft text-blue-400"></i> },
@@ -53,6 +56,33 @@ export function SearchBar(_props: SearchBarProps = {}) {
       default:
         return `https://www.bing.com/search?q=${encodeURIComponent(query)}`;
     }
+  };
+
+  // 计算背景偏移量
+  const calculateBackgroundOffset = () => {
+    // 如果鼠标位置或搜索框中心未初始化，返回默认值
+    if (!mousePosition.x || !mousePosition.y || !searchBarCenter.x || !searchBarCenter.y) {
+      return { x: 0, y: 0 };
+    }
+    
+    // 计算搜索框中心到鼠标的向量
+    const deltaX = mousePosition.x - searchBarCenter.x;
+    const deltaY = mousePosition.y - searchBarCenter.y;
+    
+    // 计算距离
+    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    
+    // 最大偏移量（增加到15%的移动范围，让效果更明显）
+    const maxOffset = 15;
+    
+    // 根据距离计算偏移强度，距离越远偏移越大，但有上限
+    const offsetStrength = Math.min(distance / 150, 1); // 减少到150px 作为参考距离，让效果更敏感
+    
+    // 计算偏移量
+    const offsetX = (deltaX / (distance || 1)) * maxOffset * offsetStrength;
+    const offsetY = (deltaY / (distance || 1)) * maxOffset * offsetStrength;
+    
+    return { x: offsetX, y: offsetY };
   };
 
   // 生成搜索建议 - 使用百度联想API (带CORS处理)
@@ -190,6 +220,41 @@ export function SearchBar(_props: SearchBarProps = {}) {
     return () => clearTimeout(debounceTimer);
   }, [searchQuery]);
 
+  // 监听鼠标移动
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePosition({ x: e.clientX, y: e.clientY });
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
+  // 更新搜索框中心位置
+  useEffect(() => {
+    const updateSearchBarCenter = () => {
+      if (searchBarRef.current) {
+        const rect = searchBarRef.current.getBoundingClientRect();
+        setSearchBarCenter({
+          x: rect.left + rect.width / 2,
+          y: rect.top + rect.height / 2
+        });
+      }
+    };
+
+    // 初始化时更新一次
+    updateSearchBarCenter();
+
+    // 监听窗口大小变化和滚动
+    window.addEventListener('resize', updateSearchBarCenter);
+    window.addEventListener('scroll', updateSearchBarCenter);
+
+    return () => {
+      window.removeEventListener('resize', updateSearchBarCenter);
+      window.removeEventListener('scroll', updateSearchBarCenter);
+    };
+  }, [isHovered, engine]); // 当状态变化时重新计算中心位置
+
   const handleSearch = (e: React.FormEvent, suggestionQuery?: string) => {
     e.preventDefault();
     const queryToSearch = suggestionQuery || (selectedSuggestionIndex >= 0 && suggestions[selectedSuggestionIndex] 
@@ -256,6 +321,7 @@ export function SearchBar(_props: SearchBarProps = {}) {
         transition={{ duration: 0.3 }}
       >
         <form
+          ref={searchBarRef}
           onSubmit={handleSearch}
           className="relative flex items-center justify-center"
           onMouseEnter={() => {

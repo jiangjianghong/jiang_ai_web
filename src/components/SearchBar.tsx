@@ -17,14 +17,197 @@ export function SearchBar(_props: SearchBarProps = {}) {
   const searchBtnRef = useRef<HTMLButtonElement>(null);
   const [fixedPos, setFixedPos] = useState<{ left: number; top: number } | null>(null);
   const [hoveredEmojiIdx, setHoveredEmojiIdx] = useState<number | null>(null);
-  const [mousePosition, setMousePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-  const [searchBarCenter, setSearchBarCenter] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const searchBarRef = useRef<HTMLFormElement>(null);
   const { searchBarOpacity } = useTransparency();
+  
   const engineList = [
     { key: 'bing', label: 'Bing', icon: <i className="fa-brands fa-microsoft text-blue-400"></i> },
     { key: 'google', label: 'Google', icon: <i className="fa-brands fa-google text-blue-500"></i> },
   ];
+
+  // 创建彩带动画效果 - 使用真正多样的SVG形状
+  const createFireworkEffect = (centerX: number, centerY: number) => {
+    // 丰富的彩带颜色
+    const colors = [
+      '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FECA57', '#FF9FF3',
+      '#54A0FF', '#5F27CD', '#00D2D3', '#FF9F43', '#EE5A24', '#FD79A8',
+      '#0FB9B1', '#A55EEA', '#26D0CE', '#FDCB6E', '#6C5CE7', '#74B9FF',
+      '#E17055', '#F39C12', '#E74C3C', '#3498DB', '#9B59B6', '#1ABC9C'
+    ];
+
+    // 多样的SVG彩带形状路径 - 更小更多样的形状
+    const ribbonPaths = [
+      // 细长S形彩带
+      'M2,5 Q12,2 22,5 Q32,8 42,5 L42,8 Q32,11 22,8 Q12,5 2,8 Z',
+      // 三角形彩带
+      'M20,2 L38,2 L29,12 Z',
+      // 圆形彩带
+      'M20,7 A6,6 0,1,1 20,7.1 Z',
+      // 菱形彩带
+      'M20,2 L30,7 L20,12 L10,7 Z',
+      // 星形彩带
+      'M20,2 L22,8 L28,8 L23,11 L25,17 L20,14 L15,17 L17,11 L12,8 L18,8 Z',
+      // 长条波浪彩带
+      'M2,6 Q15,2 28,6 Q41,10 54,6 L54,9 Q41,13 28,9 Q15,5 2,9 Z',
+      // 锯齿彩带
+      'M5,5 L10,2 L15,5 L20,2 L25,5 L30,2 L35,5 L35,8 L30,11 L25,8 L20,11 L15,8 L10,11 L5,8 Z',
+      // 花瓣彩带
+      'M20,2 Q25,7 20,12 Q15,7 20,2 M20,2 Q25,7 30,2 Q25,7 30,12 Q25,7 20,12',
+      // 爱心彩带
+      'M20,4 C18,2 15,2 15,5 C15,8 20,12 20,12 C20,12 25,8 25,5 C25,2 22,2 20,4 Z',
+      // 蝴蝶结彩带
+      'M15,4 Q10,7 15,10 Q20,7 25,10 Q30,7 25,4 Q20,7 15,4',
+      // 扭曲带彩带
+      'M5,4 Q20,2 35,4 Q40,7 35,10 Q20,8 5,10 Q0,7 5,4',
+      // 螺旋彩带
+      'M2,7 Q10,3 18,7 Q26,11 34,7 Q38,5 42,7 L42,10 Q38,8 34,10 Q26,14 18,10 Q10,6 2,10 Z'
+    ];
+
+    // 增加粒子数量
+    const particleCount = 50;
+
+    for (let i = 0; i < particleCount; i++) {
+      // 创建SVG元素
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      
+      // 随机选择颜色和形状
+      const randomColor = colors[Math.floor(Math.random() * colors.length)];
+      const randomPath = ribbonPaths[Math.floor(Math.random() * ribbonPaths.length)];
+      
+      // 更小的随机大小
+      const scale = Math.random() * 0.6 + 0.5; // 0.5-1.1倍缩放
+      const width = 44 * scale; // 大幅缩小
+      const height = 16 * scale; // 大幅缩小
+      
+      // 设置SVG属性
+      svg.setAttribute('width', width.toString());
+      svg.setAttribute('height', height.toString());
+      svg.setAttribute('viewBox', '0 0 44 16'); // 匹配小尺寸
+      svg.style.cssText = `
+        position: fixed;
+        pointer-events: none;
+        z-index: 10000;
+        left: ${centerX - width/2}px;
+        top: ${centerY - height/2}px;
+        transform-origin: center;
+      `;
+      
+      // 设置路径属性
+      path.setAttribute('d', randomPath);
+      path.setAttribute('fill', randomColor);
+      
+      // 50%的概率添加描边效果
+      if (Math.random() > 0.5) {
+        path.setAttribute('stroke', randomColor);
+        path.setAttribute('stroke-width', '1');
+        path.setAttribute('fill-opacity', '0.8');
+      }
+      
+      // 30%的概率使用渐变填充
+      if (Math.random() > 0.7) {
+        const gradientId = `gradient-${Date.now()}-${i}`;
+        const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+        const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+        const stop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+        const stop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+        
+        gradient.setAttribute('id', gradientId);
+        gradient.setAttribute('x1', '0%');
+        gradient.setAttribute('y1', '0%');
+        gradient.setAttribute('x2', '100%');
+        gradient.setAttribute('y2', '100%');
+        
+        stop1.setAttribute('offset', '0%');
+        stop1.setAttribute('stop-color', randomColor);
+        stop2.setAttribute('offset', '100%');
+        stop2.setAttribute('stop-color', colors[Math.floor(Math.random() * colors.length)]);
+        
+        gradient.appendChild(stop1);
+        gradient.appendChild(stop2);
+        defs.appendChild(gradient);
+        svg.appendChild(defs);
+        
+        path.setAttribute('fill', `url(#${gradientId})`);
+      }
+      
+      svg.appendChild(path);
+      document.body.appendChild(svg);
+
+      // 随机初始速度和方向 - 更慢更优雅
+      const angle = (Math.random() * 360) * (Math.PI / 180);
+      const velocity = Math.random() * 4 + 2; // 进一步减慢速度：2-6
+      let vx = Math.cos(angle) * velocity;
+      let vy = Math.sin(angle) * velocity;
+      
+      // 随机旋转速度 - 更慢
+      const rotationSpeed = (Math.random() - 0.5) * 80; // 进一步减慢旋转：-40到40度/秒
+      let rotation = Math.random() * 360; // 随机初始旋转
+      
+      let x = centerX - width/2;
+      let y = centerY - height/2;
+      
+      const gravity = 0.2; // 进一步减小重力
+      const friction = 0.998; // 进一步减小阻力，让动画更持久
+      
+      const startTime = Date.now();
+      
+      const animate = () => {
+        const elapsed = (Date.now() - startTime) / 1000;
+        
+        // 应用重力
+        vy += gravity;
+        
+        // 应用空气阻力
+        vx *= friction;
+        vy *= friction;
+        
+        // 更新位置
+        x += vx;
+        y += vy;
+        
+        // 更新旋转
+        rotation += rotationSpeed * (1/60);
+        
+        // 应用变换
+        svg.style.left = x + 'px';
+        svg.style.top = y + 'px';
+        svg.style.transform = `rotate(${rotation}deg)`;
+        
+        // 淡出效果 - 进一步延长动画时间
+        const opacity = Math.max(0, 1 - elapsed / 7); // 从5秒延长到7秒
+        svg.style.opacity = opacity.toString();
+        
+        if (opacity > 0 && y < window.innerHeight + 100) {
+          requestAnimationFrame(animate);
+        } else {
+          if (document.body.contains(svg)) {
+            document.body.removeChild(svg);
+          }
+        }
+      };
+      
+      // 适度的随机延迟 - 创造层次感
+      setTimeout(() => {
+        requestAnimationFrame(animate);
+      }, Math.random() * 150); // 从50ms增加到150ms
+    }
+  };
+
+  // 切换搜索引擎并触发动画
+  const switchEngine = () => {
+    const idx = engineList.findIndex(e => e.key === engine);
+    const newEngine = engineList[(idx + 1) % engineList.length].key as any;
+    setEngine(newEngine);
+    
+    // 触发彩带动画
+    if (searchBarRef.current) {
+      const rect = searchBarRef.current.getBoundingClientRect();
+      const centerX = rect.left + 60; // 搜索引擎按钮的大概位置
+      const centerY = rect.top + rect.height / 2;
+      createFireworkEffect(centerX, centerY);
+    }
+  };
 
   // 表情名称和图标
   const emojiNames = ['chatGPT', 'Gemini', 'Deepseek', 'Kimi'];
@@ -56,33 +239,6 @@ export function SearchBar(_props: SearchBarProps = {}) {
       default:
         return `https://www.bing.com/search?q=${encodeURIComponent(query)}`;
     }
-  };
-
-  // 计算背景偏移量
-  const calculateBackgroundOffset = () => {
-    // 如果鼠标位置或搜索框中心未初始化，返回默认值
-    if (!mousePosition.x || !mousePosition.y || !searchBarCenter.x || !searchBarCenter.y) {
-      return { x: 0, y: 0 };
-    }
-    
-    // 计算搜索框中心到鼠标的向量
-    const deltaX = mousePosition.x - searchBarCenter.x;
-    const deltaY = mousePosition.y - searchBarCenter.y;
-    
-    // 计算距离
-    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-    
-    // 最大偏移量（增加到15%的移动范围，让效果更明显）
-    const maxOffset = 15;
-    
-    // 根据距离计算偏移强度，距离越远偏移越大，但有上限
-    const offsetStrength = Math.min(distance / 150, 1); // 减少到150px 作为参考距离，让效果更敏感
-    
-    // 计算偏移量
-    const offsetX = (deltaX / (distance || 1)) * maxOffset * offsetStrength;
-    const offsetY = (deltaY / (distance || 1)) * maxOffset * offsetStrength;
-    
-    return { x: offsetX, y: offsetY };
   };
 
   // 生成搜索建议 - 使用百度联想API (带CORS处理)
@@ -220,41 +376,6 @@ export function SearchBar(_props: SearchBarProps = {}) {
     return () => clearTimeout(debounceTimer);
   }, [searchQuery]);
 
-  // 监听鼠标移动
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
-
-  // 更新搜索框中心位置
-  useEffect(() => {
-    const updateSearchBarCenter = () => {
-      if (searchBarRef.current) {
-        const rect = searchBarRef.current.getBoundingClientRect();
-        setSearchBarCenter({
-          x: rect.left + rect.width / 2,
-          y: rect.top + rect.height / 2
-        });
-      }
-    };
-
-    // 初始化时更新一次
-    updateSearchBarCenter();
-
-    // 监听窗口大小变化和滚动
-    window.addEventListener('resize', updateSearchBarCenter);
-    window.addEventListener('scroll', updateSearchBarCenter);
-
-    return () => {
-      window.removeEventListener('resize', updateSearchBarCenter);
-      window.removeEventListener('scroll', updateSearchBarCenter);
-    };
-  }, [isHovered, engine]); // 当状态变化时重新计算中心位置
-
   const handleSearch = (e: React.FormEvent, suggestionQuery?: string) => {
     e.preventDefault();
     const queryToSearch = suggestionQuery || (selectedSuggestionIndex >= 0 && suggestions[selectedSuggestionIndex] 
@@ -270,16 +391,16 @@ export function SearchBar(_props: SearchBarProps = {}) {
 
   // 处理键盘导航
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (!showSuggestions) return;
-
     switch (e.key) {
       case 'ArrowDown':
+        if (!showSuggestions) return;
         e.preventDefault();
         setSelectedSuggestionIndex(prev => 
           prev < suggestions.length - 1 ? prev + 1 : prev
         );
         break;
       case 'ArrowUp':
+        if (!showSuggestions) return;
         e.preventDefault();
         setSelectedSuggestionIndex(prev => prev > -1 ? prev - 1 : -1);
         break;
@@ -290,8 +411,7 @@ export function SearchBar(_props: SearchBarProps = {}) {
       case 'Tab':
         if (!e.shiftKey) {
           e.preventDefault();
-          const idx = engineList.findIndex(en => en.key === engine);
-          setEngine(engineList[(idx + 1) % engineList.length].key as any);
+          switchEngine();
         }
         break;
     }
@@ -358,8 +478,7 @@ export function SearchBar(_props: SearchBarProps = {}) {
                 style={{ pointerEvents: 'auto', height: 36, minWidth: 36, minHeight: 36, justifyContent: 'center', alignItems: 'center', display: 'flex' }}
                 tabIndex={-1}
                 onClick={() => {
-                  const idx = engineList.findIndex(e => e.key === engine);
-                  setEngine(engineList[(idx + 1) % engineList.length].key as any);
+                  switchEngine();
                 }}
                 title={`切换搜索引擎：${engineList.find(e => e.key === engine)?.label}`}
               >

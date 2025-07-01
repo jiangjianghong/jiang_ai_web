@@ -13,6 +13,7 @@
   "dependencies": {
     "@tsparticles/react": "^3.0.0",
     "clsx": "^2.1.1",
+    "firebase": "^11.10.0",
     "framer-motion": "^12.9.2",
     "html2canvas": "^1.4.1",
     "react": "^18.3.1",

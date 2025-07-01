@@ -6,7 +6,11 @@ import { useDragAndDrop } from '@/hooks/useDragAndDrop';
 import { motion } from 'framer-motion';
 import { useTheme } from '@/hooks/useTheme';
 import { useTransparency } from '@/contexts/TransparencyContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { useUserProfile } from '@/contexts/UserProfileContext';
+import { useAutoSync } from '@/hooks/useAutoSync';
 import Settings from '@/pages/Settings';
+import EmailVerificationBanner from '@/components/EmailVerificationBanner';
 
 interface HomeProps {
   websites: any[];
@@ -16,6 +20,12 @@ interface HomeProps {
 export default function Home({ websites, setWebsites }: HomeProps) {
   const { theme } = useTheme();
   const { parallaxEnabled } = useTransparency();
+  const { currentUser } = useAuth();
+  const { displayName } = useUserProfile();
+  
+  // 启用自动同步
+  useAutoSync(websites);
+  
   const { drag, drop, isDragging } = useDragAndDrop(websites, setWebsites);
   const [bgImage, setBgImage] = useState('https://bing.img.run/uhd.php');
   const [bgLoaded, setBgLoaded] = useState(false);
@@ -125,18 +135,22 @@ export default function Home({ websites, setWebsites }: HomeProps) {
   }, [parallaxEnabled]);
 
     return (
-    <div 
-      className="fixed top-0 left-0 w-full h-full bg-cover bg-center bg-no-repeat -z-10"
-      style={{ 
-        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1)), url(${bgImage})`, // 显示90%的背景
-        backgroundSize: '105% 105%', // 稍微放大，为视差移动留出空间
-        backgroundPosition: 'center center',
-        backgroundAttachment: 'fixed',
-        transform: calculateParallaxTransform(),
-        transition: 'transform 0.1s ease-out' // 使用transform的过渡，更流畅
-      }}
-    >
-      <div className="relative min-h-screen pt-[33vh]">
+    <>
+      {/* 邮箱验证横幅 */}
+      <EmailVerificationBanner />
+      
+      <div 
+        className="fixed top-0 left-0 w-full h-full bg-cover bg-center bg-no-repeat -z-10"
+        style={{ 
+          backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1)), url(${bgImage})`, // 显示90%的背景
+          backgroundSize: '105% 105%', // 稍微放大，为视差移动留出空间
+          backgroundPosition: 'center center',
+          backgroundAttachment: 'fixed',
+          transform: calculateParallaxTransform(),
+          transition: 'transform 0.1s ease-out' // 使用transform的过渡，更流畅
+        }}
+      >
+        <div className="relative min-h-screen pt-[33vh]">
     
       <SearchBar />
       
@@ -175,6 +189,18 @@ export default function Home({ websites, setWebsites }: HomeProps) {
         />
       )}
 
+      {/* 用户信息显示 - 仅在邮箱已验证时显示 */}
+      {currentUser && currentUser.emailVerified && (
+        <div className="fixed top-4 right-4 z-40">
+          <div className="bg-white/20 backdrop-blur-sm rounded-lg px-3 py-2 flex items-center space-x-2">
+            <i className="fa-solid fa-user text-white/80"></i>
+            <span className="text-white/90 text-sm font-medium">
+              {displayName}
+            </span>
+          </div>
+        </div>
+      )}
+
       <div className="fixed bottom-4 right-4 z-[9999]">
         <button
           onClick={() => setShowSettings(true)}
@@ -188,5 +214,6 @@ export default function Home({ websites, setWebsites }: HomeProps) {
       <AnimatedCat />
       </div>
     </div>
+    </>
   );
 }

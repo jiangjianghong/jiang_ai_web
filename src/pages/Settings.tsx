@@ -1,7 +1,11 @@
 import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import CardEditModal from '@/components/CardEditModal';
+import SyncStatusIndicator from '@/components/SyncStatusIndicator';
+import AuthForm from '@/components/AuthForm';
+import UserNameEditor from '@/components/UserNameEditor';
 import { useTransparency } from '@/contexts/TransparencyContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface SettingsProps {
   onClose: () => void;
@@ -12,6 +16,7 @@ interface SettingsProps {
 export default function Settings({ onClose, websites, setWebsites }: SettingsProps) {
   const [showAddCardModal, setShowAddCardModal] = useState(false);
   const { cardOpacity, searchBarOpacity, parallaxEnabled, setCardOpacity, setSearchBarOpacity, setParallaxEnabled } = useTransparency();
+  const { currentUser, logout } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSaveNewCard = (data: {
@@ -223,6 +228,39 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
             >
               <i className="fa-solid fa-plus mr-2 select-none"></i>添加新卡片
             </button>
+          </div>
+          
+          {/* 账号管理部分 */}
+          <div className="space-y-4 select-none">
+            <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider select-none">账号管理</h3>
+            
+            {currentUser ? (
+              <div className="space-y-3">
+                <UserNameEditor />
+                <button
+                  onClick={async () => {
+                    try {
+                      await logout();
+                      onClose(); // 登出后关闭设置面板
+                    } catch (error) {
+                      console.error('登出失败:', error);
+                    }
+                  }}
+                  className="w-full px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md transition-colors select-none"
+                >
+                  <i className="fa-solid fa-sign-out-alt mr-2 select-none"></i>登出
+                </button>
+              </div>
+            ) : (
+              <div className="bg-gray-50 rounded-lg p-4">
+                <AuthForm onSuccess={onClose} />
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-4 select-none">
+            <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider select-none">云端同步</h3>
+            <SyncStatusIndicator />
           </div>
           
           <div className="space-y-4 select-none">

@@ -12,9 +12,13 @@ import { useCloudData } from '@/hooks/useCloudData';
 import { useAuth } from '@/contexts/AuthContext';
 import { saveUserWebsites, WebsiteData } from '@/lib/firebaseSync';
 import { useState, useEffect } from 'react';
+import { usePageTitle } from '@/hooks/usePageTitle';
 
 // 内部应用组件，可以使用认证上下文
 function AppContent() {
+  // 使用页面标题hook
+  usePageTitle();
+  
   const { currentUser } = useAuth();
   const { cloudWebsites, hasCloudData, mergeWithLocalData } = useCloudData();
   

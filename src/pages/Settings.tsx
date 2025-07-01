@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import CardEditModal from '@/components/CardEditModal';
 import { useTransparency } from '@/contexts/TransparencyContext';
@@ -12,6 +12,7 @@ interface SettingsProps {
 export default function Settings({ onClose, websites, setWebsites }: SettingsProps) {
   const [showAddCardModal, setShowAddCardModal] = useState(false);
   const { cardOpacity, searchBarOpacity, parallaxEnabled, setCardOpacity, setSearchBarOpacity, setParallaxEnabled } = useTransparency();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSaveNewCard = (data: {
     id: string;
@@ -28,6 +29,107 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
     };
     setWebsites([...websites, newCard]);
     setShowAddCardModal(false);
+  };
+
+  // 导出所有用户数据
+  const exportData = () => {
+    try {
+      const allData = {
+        websites,
+        settings: {
+          cardOpacity,
+          searchBarOpacity,
+          parallaxEnabled,
+          theme: localStorage.getItem('theme') || 'light'
+        },
+        exportTime: new Date().toISOString(),
+        version: '1.0'
+      };
+
+      const dataStr = JSON.stringify(allData, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `炫酷收藏夹_导出数据_${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      alert('数据导出成功！');
+    } catch (error) {
+      console.error('导出数据失败:', error);
+      alert('导出数据失败，请重试！');
+    }
+  };
+
+  // 导入用户数据
+  const importData = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // 确认导入前的警告
+    const confirmed = confirm(
+      '⚠️ 导入数据前请注意：\n\n' +
+      '• 导入会完全覆盖当前所有数据\n' +
+      '• 包括所有网站卡片、透明度设置、主题等\n' +
+      '• 建议先导出当前数据作为备份\n\n' +
+      '确定要继续导入吗？'
+    );
+
+    if (!confirmed) {
+      // 清空 input 值，以便下次可以选择同一个文件
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const content = e.target?.result as string;
+        const importedData = JSON.parse(content);
+
+        // 验证数据格式
+        if (!importedData.websites || !Array.isArray(importedData.websites)) {
+          throw new Error('无效的数据格式：缺少网站数据');
+        }
+
+        // 导入网站数据
+        setWebsites(importedData.websites);
+
+        // 导入设置数据
+        if (importedData.settings) {
+          const { cardOpacity: newCardOpacity, searchBarOpacity: newSearchBarOpacity, parallaxEnabled: newParallaxEnabled, theme } = importedData.settings;
+          
+          if (typeof newCardOpacity === 'number') setCardOpacity(newCardOpacity);
+          if (typeof newSearchBarOpacity === 'number') setSearchBarOpacity(newSearchBarOpacity);
+          if (typeof newParallaxEnabled === 'boolean') setParallaxEnabled(newParallaxEnabled);
+          if (theme) localStorage.setItem('theme', theme);
+        }
+
+        alert('数据导入成功！页面将刷新以应用新设置。');
+        // 刷新页面以确保所有设置生效
+        window.location.reload();
+      } catch (error) {
+        console.error('导入数据失败:', error);
+        alert('导入数据失败：文件格式不正确或数据损坏！');
+      }
+    };
+
+    reader.onerror = () => {
+      alert('读取文件失败！');
+    };
+
+    reader.readAsText(file);
+    
+    // 清空 input 值，以便下次可以选择同一个文件
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   return (
@@ -121,6 +223,38 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
             >
               <i className="fa-solid fa-plus mr-2 select-none"></i>添加新卡片
             </button>
+          </div>
+          
+          <div className="space-y-4 select-none">
+            <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider select-none">数据管理</h3>
+            
+            {/* 导出数据 */}
+            <button
+              onClick={exportData}
+              className="w-full px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-md transition-colors select-none"
+            >
+              <i className="fa-solid fa-download mr-2 select-none"></i>导出数据
+            </button>
+            
+            {/* 导入数据 */}
+            <div className="space-y-2 select-none">
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-md transition-colors select-none"
+              >
+                <i className="fa-solid fa-upload mr-2 select-none"></i>导入数据
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".json"
+                onChange={importData}
+                className="hidden"
+              />
+              <p className="text-xs text-gray-500 select-none">
+                ⚠️ 导入会覆盖所有当前数据，建议先导出备份
+              </p>
+            </div>
           </div>
         </div>
       </motion.div>

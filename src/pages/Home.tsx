@@ -22,6 +22,18 @@ export default function Home({ websites, setWebsites }: HomeProps) {
   const [showSettings, setShowSettings] = useState(false);
   const [mousePosition, setMousePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
+  // 根据访问次数自动排序卡片
+  const sortedWebsites = [...websites].sort((a, b) => {
+    // 首先按访问次数降序排序
+    const visitDiff = (b.visitCount || 0) - (a.visitCount || 0);
+    if (visitDiff !== 0) return visitDiff;
+    
+    // 如果访问次数相同，按最后访问时间降序排序
+    const dateA = new Date(a.lastVisit || '2000-01-01').getTime();
+    const dateB = new Date(b.lastVisit || '2000-01-01').getTime();
+    return dateB - dateA;
+  });
+
   const handleSaveCard = (updatedCard: {
     id: string;
     name: string;
@@ -29,6 +41,8 @@ export default function Home({ websites, setWebsites }: HomeProps) {
     favicon: string;
     tags: string[];
     note?: string;
+    visitCount?: number;
+    lastVisit?: string;
   }) => {
     setWebsites(
       websites.map(card =>
@@ -133,7 +147,7 @@ export default function Home({ websites, setWebsites }: HomeProps) {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
         >
-          {websites.map((website) => (
+          {sortedWebsites.map((website) => (
              <motion.div 
               key={website.id}
               ref={(node) => drag(drop(node))}

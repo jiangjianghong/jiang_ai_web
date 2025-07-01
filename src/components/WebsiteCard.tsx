@@ -21,6 +21,24 @@ export function WebsiteCard({ id, name, url, favicon, tags, visitCount, lastVisi
   const cardRef = useRef<HTMLDivElement>(null);
   const { cardOpacity } = useTransparency();
 
+  // 处理卡片点击，增加访问次数统计
+  const handleCardClick = () => {
+    // 更新访问次数和最后访问时间
+    onSave({
+      id,
+      name,
+      url,
+      favicon,
+      tags,
+      note,
+      visitCount: (visitCount || 0) + 1,
+      lastVisit: new Date().toISOString().split('T')[0]
+    });
+    
+    // 打开网址
+    window.open(url, '_blank');
+  };
+
   return (
     <>
       <motion.div
@@ -32,7 +50,7 @@ export function WebsiteCard({ id, name, url, favicon, tags, visitCount, lastVisi
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.98 }}
         transition={{ type: "spring", stiffness: 300, damping: 15 }}
-        onClick={() => window.open(url, '_blank')}
+        onClick={handleCardClick}
       >
         {/* 设置按钮 */}
         <div className="absolute bottom-0.5 right-0.5 z-11">

@@ -11,13 +11,12 @@ interface WebsiteCardProps {
   favicon: string;
   tags: string[];
   visitCount: number;
-  lastVisit: string;
   note?: string;
   onSave: (data: any) => void;
   onDelete?: (id: string) => void;
 }
 
-export function WebsiteCard({ id, name, url, favicon, tags, visitCount, lastVisit, note, onSave, onDelete }: WebsiteCardProps) {
+export function WebsiteCard({ id, name, url, favicon, tags, visitCount, note, onSave, onDelete }: WebsiteCardProps) {
   const [showEditModal, setShowEditModal] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const { cardOpacity } = useTransparency();
@@ -86,12 +85,6 @@ export function WebsiteCard({ id, name, url, favicon, tags, visitCount, lastVisi
               <p className="text-white/60 text-[0.65rem] text-center line-clamp-2 select-none">
                {note || new URL(url).hostname}
               </p>
-              {/* 显示最后访问时间 */}
-              {lastVisit && (
-                <p className="text-white/40 text-[0.6rem] text-center select-none">
-                  {lastVisit}
-                </p>
-              )}
            </div>
             {/* 标签区域 - 等分间距 */}
             <div className="mt-0 px-3 pb-2 select-none">

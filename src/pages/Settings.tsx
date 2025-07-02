@@ -1,11 +1,11 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import CardEditModal from '@/components/CardEditModal';
 import SyncStatusIndicator from '@/components/SyncStatusIndicator';
 import AuthForm from '@/components/AuthForm';
 import UserNameEditor from '@/components/UserNameEditor';
 import PrivacySettings from '@/components/PrivacySettings';
-import { useTransparency } from '@/contexts/TransparencyContext';
+import { useTransparency, WallpaperResolution } from '@/contexts/TransparencyContext';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface SettingsProps {
@@ -17,9 +17,30 @@ interface SettingsProps {
 export default function Settings({ onClose, websites, setWebsites }: SettingsProps) {
   const [showAddCardModal, setShowAddCardModal] = useState(false);
   const [showPrivacySettings, setShowPrivacySettings] = useState(false);
-  const { cardOpacity, searchBarOpacity, parallaxEnabled, setCardOpacity, setSearchBarOpacity, setParallaxEnabled } = useTransparency();
+  const { 
+    cardOpacity, 
+    searchBarOpacity, 
+    parallaxEnabled, 
+    wallpaperResolution,
+    setCardOpacity, 
+    setSearchBarOpacity, 
+    setParallaxEnabled,
+    setWallpaperResolution,
+    setIsSettingsOpen
+  } = useTransparency();
   const { currentUser, logout } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // 设置页面打开时暂时关闭视差
+  useEffect(() => {
+    setIsSettingsOpen(true);
+    return () => setIsSettingsOpen(false);
+  }, [setIsSettingsOpen]);
+
+  const handleClose = () => {
+    setIsSettingsOpen(false);
+    onClose();
+  };
 
   const handleSaveNewCard = (data: {
     id: string;
@@ -47,6 +68,7 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
           cardOpacity,
           searchBarOpacity,
           parallaxEnabled,
+          wallpaperResolution,
           theme: localStorage.getItem('theme') || 'light'
         },
         exportTime: new Date().toISOString(),
@@ -110,11 +132,20 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
 
         // 导入设置数据
         if (importedData.settings) {
-          const { cardOpacity: newCardOpacity, searchBarOpacity: newSearchBarOpacity, parallaxEnabled: newParallaxEnabled, theme } = importedData.settings;
+          const { 
+            cardOpacity: newCardOpacity, 
+            searchBarOpacity: newSearchBarOpacity, 
+            parallaxEnabled: newParallaxEnabled,
+            wallpaperResolution: newWallpaperResolution,
+            theme 
+          } = importedData.settings;
           
           if (typeof newCardOpacity === 'number') setCardOpacity(newCardOpacity);
           if (typeof newSearchBarOpacity === 'number') setSearchBarOpacity(newSearchBarOpacity);
           if (typeof newParallaxEnabled === 'boolean') setParallaxEnabled(newParallaxEnabled);
+          if (newWallpaperResolution && ['4k', '1080p', '720p', 'mobile'].includes(newWallpaperResolution)) {
+            setWallpaperResolution(newWallpaperResolution as WallpaperResolution);
+          }
           if (theme) localStorage.setItem('theme', theme);
         }
 
@@ -143,7 +174,7 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
     <div className="fixed inset-0 z-50 flex items-center justify-center select-none">
       <div 
         className="absolute inset-0 bg-black/50"
-        onClick={onClose}
+        onClick={handleClose}
       />
       <motion.div
         className="w-96 bg-white rounded-xl shadow-2xl z-50 max-h-[80vh] flex flex-col select-none"
@@ -156,7 +187,7 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-medium text-gray-800 select-none">设置</h2>
             <button 
-              onClick={onClose} 
+              onClick={handleClose} 
               className="text-gray-500 hover:text-gray-700 select-none"
             >
               <i className="fa-solid fa-xmark text-lg select-none"></i>
@@ -164,8 +195,43 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
           </div>
         </div>
         <div className="flex-1 px-6 py-2 pb-6 space-y-6 overflow-y-auto select-none">
+          
+          {/* 账号管理部分 - 移到最上面 */}
           <div className="space-y-4 select-none">
-            <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider select-none">透明度设置</h3>
+            <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider select-none">账号管理</h3>
+            
+            {currentUser ? (
+              <div className="bg-gray-50 rounded-lg p-4 space-y-4">
+                <UserNameEditor />
+                <div className="flex justify-center pt-1">
+                  <button
+                    onClick={async () => {
+                      try {
+                        await logout();
+                        handleClose(); // 登出后关闭设置面板
+                      } catch (error) {
+                        console.error('登出失败:', error);
+                      }
+                    }}
+                    className="text-red-500 hover:text-red-600 transition-colors flex items-center text-sm select-none"
+                  >
+                    <i className="fa-solid fa-sign-out-alt mr-1.5 text-xs select-none"></i>登出
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="bg-gray-50 rounded-lg p-4">
+                <AuthForm onSuccess={handleClose} />
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-4 select-none">
+            <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider select-none">云端同步</h3>
+            <SyncStatusIndicator />
+          </div>
+          <div className="space-y-4 select-none">
+            <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider select-none">外观设置</h3>
             
             {/* 卡片透明度控制 */}
             <div className="space-y-2 select-none">
@@ -220,6 +286,45 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
                 {parallaxEnabled ? '背景会跟随鼠标轻微移动' : '背景固定不动'}
               </p>
             </div>
+
+            {/* 壁纸分辨率选择 - 重新设计为按钮组 */}
+            <div className="space-y-2 select-none">
+              <label className="text-sm font-medium text-gray-700 select-none">
+                壁纸分辨率
+              </label>
+              <div className="grid grid-cols-2 gap-2 select-none">
+                {[
+                  { value: '4k', label: '4K 超高清', desc: '大屏设备' },
+                  { value: '1080p', label: '1080p 高清', desc: '推荐' },
+                  { value: '720p', label: '720p 标清', desc: '网络较慢' },
+                  { value: 'mobile', label: '竖屏壁纸', desc: '移动设备' }
+                ].map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => setWallpaperResolution(option.value as WallpaperResolution)}
+                    disabled={window.innerHeight > window.innerWidth && option.value !== 'mobile'}
+                    className={`p-3 rounded-lg border-2 transition-all text-left select-none ${
+                      wallpaperResolution === option.value
+                        ? 'border-blue-500 bg-blue-50 text-blue-700'
+                        : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+                    } ${
+                      window.innerHeight > window.innerWidth && option.value !== 'mobile'
+                        ? 'opacity-50 cursor-not-allowed'
+                        : 'cursor-pointer'
+                    }`}
+                  >
+                    <div className="font-medium text-sm">{option.label}</div>
+                    <div className="text-xs text-gray-500">{option.desc}</div>
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-gray-500 select-none">
+                {window.innerHeight > window.innerWidth 
+                  ? '检测到竖屏设备，已自动选择竖屏壁纸' 
+                  : '更改分辨率后会重新加载壁纸并更新缓存'
+                }
+              </p>
+            </div>
           </div>
           
           <div className="space-y-4 select-none">
@@ -232,40 +337,39 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
             </button>
           </div>
           
-          {/* 账号管理部分 */}
           <div className="space-y-4 select-none">
-            <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider select-none">账号管理</h3>
+            <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider select-none">数据管理</h3>
             
-            {currentUser ? (
-              <div className="space-y-3">
-                <UserNameEditor />
-                <button
-                  onClick={async () => {
-                    try {
-                      await logout();
-                      onClose(); // 登出后关闭设置面板
-                    } catch (error) {
-                      console.error('登出失败:', error);
-                    }
-                  }}
-                  className="w-full px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md transition-colors select-none"
-                >
-                  <i className="fa-solid fa-sign-out-alt mr-2 select-none"></i>登出
-                </button>
-              </div>
-            ) : (
-              <div className="bg-gray-50 rounded-lg p-4">
-                <AuthForm onSuccess={onClose} />
-              </div>
-            )}
-          </div>
-
-          <div className="space-y-4 select-none">
-            <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider select-none">云端同步</h3>
-            <SyncStatusIndicator />
+            {/* 导入导出并排显示，小一点 */}
+            <div className="grid grid-cols-2 gap-3 select-none">
+              <button
+                onClick={exportData}
+                className="px-3 py-2 bg-green-500 hover:bg-green-600 text-white rounded-md transition-colors text-sm select-none"
+              >
+                <i className="fa-solid fa-download mr-1 select-none"></i>导出
+              </button>
+              
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="px-3 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-md transition-colors text-sm select-none"
+              >
+                <i className="fa-solid fa-upload mr-1 select-none"></i>导入
+              </button>
+            </div>
+            
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".json"
+              onChange={importData}
+              className="hidden"
+            />
+            <p className="text-xs text-gray-500 select-none">
+              ⚠️ 导入会覆盖所有当前数据，建议先导出备份
+            </p>
           </div>
           
-          {/* 隐私与Cookie管理 */}
+          {/* 隐私与Cookie管理 - 放在最下面 */}
           <div className="space-y-4 select-none">
             <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider select-none">隐私与Cookie</h3>
             <button
@@ -274,38 +378,6 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
             >
               <i className="fa-solid fa-shield-halved mr-2 select-none"></i>隐私设置
             </button>
-          </div>
-          
-          <div className="space-y-4 select-none">
-            <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider select-none">数据管理</h3>
-            
-            {/* 导出数据 */}
-            <button
-              onClick={exportData}
-              className="w-full px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-md transition-colors select-none"
-            >
-              <i className="fa-solid fa-download mr-2 select-none"></i>导出数据
-            </button>
-            
-            {/* 导入数据 */}
-            <div className="space-y-2 select-none">
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="w-full px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-md transition-colors select-none"
-              >
-                <i className="fa-solid fa-upload mr-2 select-none"></i>导入数据
-              </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".json"
-                onChange={importData}
-                className="hidden"
-              />
-              <p className="text-xs text-gray-500 select-none">
-                ⚠️ 导入会覆盖所有当前数据，建议先导出备份
-              </p>
-            </div>
           </div>
         </div>
       </motion.div>

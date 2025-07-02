@@ -7,7 +7,7 @@ import { autoSync, UserSettings, WebsiteData } from '@/lib/firebaseSync';
 export function useAutoSync(websites: WebsiteData[]) {
   const { currentUser } = useAuth();
   const { updateSyncStatus } = useSyncStatus();
-  const { cardOpacity, searchBarOpacity, parallaxEnabled } = useTransparency();
+  const { cardOpacity, searchBarOpacity, parallaxEnabled, wallpaperResolution } = useTransparency();
   
   // 用于存储上次同步的数据指纹，避免重复同步
   const lastSyncDataRef = useRef<string>('');
@@ -33,6 +33,7 @@ export function useAutoSync(websites: WebsiteData[]) {
       cardOpacity,
       searchBarOpacity,
       parallaxEnabled,
+      wallpaperResolution,
       theme: localStorage.getItem('theme') || 'light',
       lastSync: null
     };
@@ -52,7 +53,7 @@ export function useAutoSync(websites: WebsiteData[]) {
         // 更新数据指纹，标记为已同步
         const currentDataFingerprint = JSON.stringify({
           websites: websites.map(w => ({ id: w.id, name: w.name, url: w.url, visitCount: w.visitCount })),
-          settings: { cardOpacity, searchBarOpacity, parallaxEnabled, theme: settings.theme }
+          settings: { cardOpacity, searchBarOpacity, parallaxEnabled, wallpaperResolution, theme: settings.theme }
         });
         lastSyncDataRef.current = currentDataFingerprint;
         lastChangeTimeRef.current = 0; // 重置变更时间
@@ -74,14 +75,14 @@ export function useAutoSync(websites: WebsiteData[]) {
         console.error('❌ 同步失败:', error);
       }
     });
-  }, [currentUser, websites, cardOpacity, searchBarOpacity, parallaxEnabled, updateSyncStatus]);
+  }, [currentUser, websites, cardOpacity, searchBarOpacity, parallaxEnabled, wallpaperResolution, updateSyncStatus]);
 
   // 智能防抖同步：结合防抖和最大等待时间
   useEffect(() => {
     // 创建当前数据的指纹，用于比较是否有变化
     const currentDataFingerprint = JSON.stringify({
       websites: websites.map(w => ({ id: w.id, name: w.name, url: w.url, visitCount: w.visitCount })),
-      settings: { cardOpacity, searchBarOpacity, parallaxEnabled, theme: localStorage.getItem('theme') || 'light' }
+      settings: { cardOpacity, searchBarOpacity, parallaxEnabled, wallpaperResolution, theme: localStorage.getItem('theme') || 'light' }
     });
 
     // 如果数据没有变化，不重置计时器
@@ -148,7 +149,7 @@ export function useAutoSync(websites: WebsiteData[]) {
         clearTimeout(syncTimeoutRef.current);
       }
     };
-  }, [currentUser, websites, cardOpacity, searchBarOpacity, parallaxEnabled, performSync]);
+  }, [currentUser, websites, cardOpacity, searchBarOpacity, parallaxEnabled, wallpaperResolution, performSync]);
 
   // 组件卸载时清理所有计时器
   useEffect(() => {

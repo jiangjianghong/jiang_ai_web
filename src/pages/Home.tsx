@@ -19,7 +19,7 @@ interface HomeProps {
 }
 
 export default function Home({ websites, setWebsites }: HomeProps) {
-  const { parallaxEnabled } = useTransparency();
+  const { parallaxEnabled, wallpaperResolution, isSettingsOpen } = useTransparency();
   const { currentUser } = useAuth();
   const { displayName } = useUserProfile();
   
@@ -65,8 +65,8 @@ export default function Home({ websites, setWebsites }: HomeProps) {
 
   // 计算视差变换 - 基于博客思路优化
   const calculateParallaxTransform = () => {
-    // 如果视差被禁用，返回默认值
-    if (!parallaxEnabled || !mousePosition.x || !mousePosition.y) {
+    // 如果视差被禁用或设置页面打开，返回默认值
+    if (!parallaxEnabled || isSettingsOpen || !mousePosition.x || !mousePosition.y) {
       return 'translate(0px, 0px)'; // 默认无偏移
     }
 
@@ -84,19 +84,23 @@ export default function Home({ websites, setWebsites }: HomeProps) {
     const yValue = parseFloat(calcValue(mousePosition.y, windowHeight));
     
     // 背景图偏移（使用更小的系数让移动更微妙）
-    const translateX = -xValue * 0.5;
-    const translateY = -yValue * 0.5;
+    const translateX = -xValue * 0.4;
+    const translateY = -yValue * 0.4;
     
     return `translate(${translateX}px, ${translateY}px)`;
   };
 
   useEffect(() => {
-    const wallpapers = [
-      'https://bing.img.run/uhd.php',
-      'https://bing.img.run/1920x1080.php',
-      'https://bing.img.run/1366x768.php',
-      'https://bing.img.run/m.php'
-    ];
+    // 根据分辨率设置获取对应的壁纸URL
+    const getWallpaperUrl = (resolution: string) => {
+      const wallpapers = {
+        '4k': 'https://bing.img.run/uhd.php',
+        '1080p': 'https://bing.img.run/1920x1080.php',
+        '720p': 'https://bing.img.run/1366x768.php',
+        'mobile': 'https://bing.img.run/m.php'
+      };
+      return wallpapers[resolution as keyof typeof wallpapers];
+    };
 
     // 获取今天的日期字符串（格式：YYYY-MM-DD）
     const getTodayKey = () => {
@@ -109,8 +113,9 @@ export default function Home({ websites, setWebsites }: HomeProps) {
       try {
         const cached = localStorage.getItem('bing-wallpaper-cache');
         if (cached) {
-          const { date, url } = JSON.parse(cached);
-          if (date === getTodayKey()) {
+          const { date, url, resolution } = JSON.parse(cached);
+          // 如果是今天的缓存且分辨率匹配，返回缓存的URL
+          if (date === getTodayKey() && resolution === wallpaperResolution) {
             return url;
           }
         }
@@ -125,7 +130,8 @@ export default function Home({ websites, setWebsites }: HomeProps) {
       try {
         const cacheData = {
           date: getTodayKey(),
-          url: url
+          url: url,
+          resolution: wallpaperResolution
         };
         localStorage.setItem('bing-wallpaper-cache', JSON.stringify(cacheData));
       } catch (error) {
@@ -133,22 +139,18 @@ export default function Home({ websites, setWebsites }: HomeProps) {
       }
     };
 
-    const tryLoadWallpaper = (index = 0) => {
-      if (index >= wallpapers.length) {
-        const fallbackUrl = 'https://source.unsplash.com/random/1920x1080/?nature';
-        setBgImage(fallbackUrl);
-        cacheWallpaper(fallbackUrl);
-        return;
-      }
-
+    const loadWallpaper = (url: string) => {
       const img = new Image();
-      img.src = wallpapers[index];
+      img.src = url;
       img.onload = () => {
         setBgImage(img.src);
         cacheWallpaper(img.src);
       };
       img.onerror = () => {
-        tryLoadWallpaper(index + 1);
+        // 如果加载失败，使用Unsplash作为备用
+        const fallbackUrl = 'https://source.unsplash.com/random/1920x1080/?nature';
+        setBgImage(fallbackUrl);
+        cacheWallpaper(fallbackUrl);
       };
     };
 
@@ -159,14 +161,15 @@ export default function Home({ websites, setWebsites }: HomeProps) {
       setBgImage(cachedUrl);
     } else {
       // 没有缓存或缓存已过期，重新加载
-      tryLoadWallpaper();
+      const wallpaperUrl = getWallpaperUrl(wallpaperResolution);
+      loadWallpaper(wallpaperUrl);
     }
-  }, []);
+  }, [wallpaperResolution]); // 依赖wallpaperResolution，当分辨率改变时重新加载
 
   // 监听鼠标移动 - 根据视差开关决定是否启用
   useEffect(() => {
-    // 如果视差被禁用，不添加鼠标监听器
-    if (!parallaxEnabled) {
+    // 如果视差被禁用或设置页面打开，不添加鼠标监听器
+    if (!parallaxEnabled || isSettingsOpen) {
       setMousePosition({ x: 0, y: 0 });
       return;
     }
@@ -179,7 +182,7 @@ export default function Home({ websites, setWebsites }: HomeProps) {
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
     };
-  }, [parallaxEnabled]);
+  }, [parallaxEnabled, isSettingsOpen]);
 
   // 预加载 favicon
   useEffect(() => {

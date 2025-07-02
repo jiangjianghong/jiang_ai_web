@@ -62,25 +62,20 @@ export default function UserNameEditor() {
   };
 
   return (
-    <div className="space-y-3">
-      <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wider">
-        用户资料
-      </h4>
-      
-      <div className="bg-gray-50 rounded-lg p-3 space-y-3">
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-600">用户名</span>
-          {!isEditing && (
-            <button
-              onClick={() => setIsEditing(true)}
-              className="text-xs text-blue-500 hover:text-blue-600"
-              disabled={profileLoading}
-            >
-              <i className="fa-solid fa-edit mr-1"></i>
-              编辑
-            </button>
-          )}
-        </div>
+    <div className="bg-gray-50 rounded-lg p-1 space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="text-sm text-gray-600">用户名</span>
+        {!isEditing && (
+          <button
+            onClick={() => setIsEditing(true)}
+            className="text-xs text-blue-500 hover:text-blue-600"
+            disabled={profileLoading}
+          >
+            <i className="fa-solid fa-edit mr-1"></i>
+            编辑
+          </button>
+        )}
+      </div>
 
         {isEditing ? (
           <div className="space-y-2">
@@ -140,13 +135,14 @@ export default function UserNameEditor() {
         )}
 
         <div className="border-t border-gray-200 pt-2">
-          <div className="flex items-center space-x-2">
-            <i className="fa-solid fa-envelope text-gray-400"></i>
-            <span className="text-xs text-gray-600">{currentUser.email}</span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <i className="fa-solid fa-envelope text-gray-400"></i>
+              <span className="text-xs text-gray-600">{currentUser.email}</span>
+            </div>
             <i className="fa-solid fa-check-circle text-green-500 text-xs" title="邮箱已验证"></i>
           </div>
         </div>
       </div>
-    </div>
   );
 }

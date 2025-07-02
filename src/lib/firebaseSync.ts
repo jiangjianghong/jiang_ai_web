@@ -7,12 +7,14 @@ import {
 } from 'firebase/firestore';
 import { User } from 'firebase/auth';
 import { db } from '@/lib/firebase';
+import { WallpaperResolution } from '@/contexts/TransparencyContext';
 
 // 用户设置接口
 export interface UserSettings {
   cardOpacity: number;
   searchBarOpacity: number;
   parallaxEnabled: boolean;
+  wallpaperResolution: WallpaperResolution;
   theme: string;
   lastSync: any;
 }

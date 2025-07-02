@@ -3,7 +3,7 @@ import Home from "@/pages/Home";
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { mockWebsites } from '@/lib/mockData';
-import { TransparencyProvider } from '@/contexts/TransparencyContext';
+import { TransparencyProvider, useTransparency } from '@/contexts/TransparencyContext';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { SyncProvider } from '@/contexts/SyncContext';
 import { UserProfileProvider } from '@/contexts/UserProfileContext';
@@ -30,7 +30,13 @@ function AppContent() {
   const storage = useStorage();
   
   const { currentUser } = useAuth();
-  const { cloudWebsites, hasCloudData, mergeWithLocalData } = useCloudData();
+  const { cloudWebsites, cloudSettings, hasCloudData, mergeWithLocalData } = useCloudData();
+  const { 
+    setCardOpacity, 
+    setSearchBarOpacity, 
+    setParallaxEnabled, 
+    setWallpaperResolution 
+  } = useTransparency();
   
   // 优先从存储管理器读取卡片数据
   const [websites, setWebsites] = useState(() => {
@@ -68,6 +74,30 @@ function AppContent() {
       }
     }
   }, [currentUser, hasCloudData, cloudWebsites, websites.length, syncProcessed]);
+
+  // 应用云端设置
+  useEffect(() => {
+    if (currentUser && currentUser.emailVerified && cloudSettings) {
+      console.log('🎨 应用云端设置:', cloudSettings);
+      
+      // 应用各种设置
+      if (typeof cloudSettings.cardOpacity === 'number') {
+        setCardOpacity(cloudSettings.cardOpacity);
+      }
+      if (typeof cloudSettings.searchBarOpacity === 'number') {
+        setSearchBarOpacity(cloudSettings.searchBarOpacity);
+      }
+      if (typeof cloudSettings.parallaxEnabled === 'boolean') {
+        setParallaxEnabled(cloudSettings.parallaxEnabled);
+      }
+      if (cloudSettings.wallpaperResolution) {
+        setWallpaperResolution(cloudSettings.wallpaperResolution);
+      }
+      if (cloudSettings.theme) {
+        localStorage.setItem('theme', cloudSettings.theme);
+      }
+    }
+  }, [currentUser, cloudSettings, setCardOpacity, setSearchBarOpacity, setParallaxEnabled, setWallpaperResolution]);
 
   // 处理数据同步选择
   const handleSyncChoice = async (choice: 'local' | 'cloud' | 'merge') => {

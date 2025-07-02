@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* 标记Tailwind CSS已加载 */
+html {
+  --tailwind-loaded: true;
+}
+
 :root {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
   line-height: 1.5;
@@ -11,6 +16,21 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  
+  /* 兼容性修复 */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* 全局兼容性样式 */
+* {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+button, [role="button"] {
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 @keyframes particle-burst {

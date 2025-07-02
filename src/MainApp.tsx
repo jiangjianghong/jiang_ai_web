@@ -20,23 +20,19 @@ import { useStorage } from '@/lib/storageManager';
 
 // 内部应用组件，可以使用认证上下文
 function AppContent() {
+  console.log('🎯 AppContent 开始渲染');
+  
   // 使用页面标题hook
   usePageTitle();
+  
+  // 启用资源预加载
+  useResourcePreloader();
   
   // 存储管理
   const storage = useStorage();
   
   const { currentUser } = useAuth();
-  
-  // 延迟初始化标记
-  const [isFirstRenderComplete, setIsFirstRenderComplete] = useState(false);
-  
-  // 暂时禁用云同步，专注解决登录问题
-  const shouldEnableCloudSync = false; // isFirstRenderComplete && currentUser?.emailVerified;
-  const { cloudWebsites, cloudSettings, hasCloudData, mergeWithLocalData } = useCloudData(shouldEnableCloudSync);
-  
-  // 暂时禁用资源预加载
-  useResourcePreloader(false); // isFirstRenderComplete
+  const { cloudWebsites, cloudSettings, hasCloudData, mergeWithLocalData } = useCloudData();
   const { 
     setCardOpacity, 
     setSearchBarOpacity, 
@@ -44,53 +40,26 @@ function AppContent() {
     setWallpaperResolution 
   } = useTransparency();
   
-  // 优先使用轻量级初始数据，避免首屏同步读取大量存储数据
-  const [websites, setWebsites] = useState<WebsiteData[]>(() => {
-    // 首屏只显示基础数据，避免同步读取存储
-    return mockWebsites.slice(0, 6); // 只显示前6个网站，减少首屏渲染负担
+  // 优先从存储管理器读取卡片数据
+  const [websites, setWebsites] = useState(() => {
+    const saved = storage.getItem<WebsiteData[]>('websites');
+    if (saved) {
+      return saved;
+    }
+    return mockWebsites;
   });
 
   const [showSyncModal, setShowSyncModal] = useState(false);
   const [syncProcessed, setSyncProcessed] = useState(false);
   const [showPrivacySettings, setShowPrivacySettings] = useState(false);
 
-  // 首屏渲染完成后启用数据同步和资源预加载
+  // 持久化到存储管理器
   useEffect(() => {
-    // 使用 setTimeout 确保首屏DOM完全渲染后再启用重型操作
-    const timer = setTimeout(() => {
-      // 移除调试日志，静默启用
-      setIsFirstRenderComplete(true);
-    }, 100); // 100ms延迟确保首屏渲染完成
+    storage.setItem('websites', websites);
+  }, [websites, storage]);
 
-    return () => clearTimeout(timer);
-  }, []);
-
-  // 延迟加载完整的本地数据 - 避免循环更新
+  // 检查是否需要显示数据同步对话框
   useEffect(() => {
-    if (isFirstRenderComplete) {
-      const saved = storage.getItem<WebsiteData[]>('websites');
-      if (saved && saved.length > 0) {
-        // 静默加载本地数据
-        setWebsites(saved);
-      } else {
-        // 使用默认数据并保存
-        setWebsites(mockWebsites);
-        storage.setItem('websites', mockWebsites); // 立即保存避免后续循环
-      }
-    }
-  }, [isFirstRenderComplete]); // 移除 storage 依赖避免循环
-
-  // 持久化到存储管理器 - 但跳过初始化阶段
-  useEffect(() => {
-    if (isFirstRenderComplete) {
-      storage.setItem('websites', websites);
-    }
-  }, [websites, storage, isFirstRenderComplete]);
-
-  // 检查是否需要显示数据同步对话框（延迟到云同步启用后）
-  useEffect(() => {
-    if (!shouldEnableCloudSync) return;
-    
     if (currentUser && currentUser.emailVerified && hasCloudData && cloudWebsites && !syncProcessed) {
       // 检查本地数据是否与云端数据不同
       const localCount = websites.length;
@@ -106,12 +75,10 @@ function AppContent() {
         setSyncProcessed(true);
       }
     }
-  }, [shouldEnableCloudSync, currentUser, hasCloudData, cloudWebsites, websites.length, syncProcessed]);
+  }, [currentUser, hasCloudData, cloudWebsites, websites.length, syncProcessed]);
 
-  // 应用云端设置（延迟到云同步启用后）
+  // 应用云端设置
   useEffect(() => {
-    if (!shouldEnableCloudSync) return;
-    
     if (currentUser && currentUser.emailVerified && cloudSettings) {
       console.log('🎨 应用云端设置:', cloudSettings);
       
@@ -132,7 +99,7 @@ function AppContent() {
         localStorage.setItem('theme', cloudSettings.theme);
       }
     }
-  }, [shouldEnableCloudSync, currentUser, cloudSettings, setCardOpacity, setSearchBarOpacity, setParallaxEnabled, setWallpaperResolution]);
+  }, [currentUser, cloudSettings, setCardOpacity, setSearchBarOpacity, setParallaxEnabled, setWallpaperResolution]);
 
   // 处理数据同步选择
   const handleSyncChoice = async (choice: 'local' | 'cloud' | 'merge') => {
@@ -169,6 +136,8 @@ function AppContent() {
     }
   };
 
+  console.log('✅ AppContent 渲染完成');
+
   return (
     <>
       <Routes>
@@ -187,23 +156,11 @@ function AppContent() {
           onChoice={handleSyncChoice}
         />
       )}
+
+      <CookieConsent />
       
-      {/* Cookie同意横幅 */}
-      <CookieConsent 
-        onAccept={() => {
-          console.log('✅ 用户接受Cookie使用，启用完整功能');
-        }}
-        onDecline={() => {
-          console.log('❌ 用户拒绝Cookie使用，限制数据存储');
-        }}
-        onCustomize={() => {
-          setShowPrivacySettings(true);
-        }}
-      />
-      
-      {/* 隐私设置面板 */}
       {showPrivacySettings && (
-        <PrivacySettings
+        <PrivacySettings 
           isOpen={showPrivacySettings}
           onClose={() => setShowPrivacySettings(false)}
         />
@@ -212,18 +169,21 @@ function AppContent() {
   );
 }
 
-export default function App() {
+// 主应用组件，包含所有Provider
+export default function MainApp() {
+  console.log('🎯 MainApp 开始渲染');
+  
   return (
-    <AuthProvider>
-      <UserProfileProvider>
-        <SyncProvider>
-          <TransparencyProvider>
-            <DndProvider backend={HTML5Backend}>
+    <DndProvider backend={HTML5Backend}>
+      <TransparencyProvider>
+        <AuthProvider>
+          <SyncProvider>
+            <UserProfileProvider>
               <AppContent />
-            </DndProvider>
-          </TransparencyProvider>
-        </SyncProvider>
-      </UserProfileProvider>
-    </AuthProvider>
+            </UserProfileProvider>
+          </SyncProvider>
+        </AuthProvider>
+      </TransparencyProvider>
+    </DndProvider>
   );
 }

@@ -4,9 +4,15 @@ import { resourcePreloader } from '@/lib/resourcePreloader';
 /**
  * 资源预加载 Hook
  * 用于预加载关键资源，提升页面性能
+ * @param enabled 是否启用预加载，用于延迟初始化避免阻塞首屏
  */
-export function useResourcePreloader() {
+export function useResourcePreloader(enabled: boolean = true) {
   useEffect(() => {
+    if (!enabled) {
+      return;
+    }
+
+    console.log('🚀 开始预加载资源...');
     // 预加载 FontAwesome 字体
     const fontAwesomeUrls = [
       'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/webfonts/fa-solid-900.woff2',
@@ -39,7 +45,7 @@ export function useResourcePreloader() {
     return () => {
       // 可以在这里做一些清理工作
     };
-  }, []);
+  }, [enabled]);
 
   /**
    * 预加载网站 favicon

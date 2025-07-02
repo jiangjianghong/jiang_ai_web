@@ -87,17 +87,20 @@ export function useAutoSync(websites: WebsiteData[]) {
 
     // 如果数据没有变化，不重置计时器
     if (currentDataFingerprint === lastSyncDataRef.current) {
-      console.log('📊 数据未变化，保持现有同步计时器');
+      // 数据未变化，静默返回
       return;
     }
 
-    console.log('🔄 检测到数据变化，更新同步策略');
+    // 简化日志，避免频繁输出
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔄 检测到数据变化，更新同步策略');
+    }
     const now = Date.now();
     
     // 如果是第一次检测到变化，记录时间
     if (lastChangeTimeRef.current === 0) {
       lastChangeTimeRef.current = now;
-      console.log('📝 记录首次数据变化时间');
+      // 移除频繁的日志输出
     }
     
     // 清除之前的防抖计时器

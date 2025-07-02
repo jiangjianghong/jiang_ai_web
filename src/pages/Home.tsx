@@ -7,11 +7,9 @@ import { motion } from 'framer-motion';
 import { useTransparency } from '@/contexts/TransparencyContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserProfile } from '@/contexts/UserProfileContext';
-import { useAutoSync } from '@/hooks/useAutoSync';
 import Settings from '@/pages/Settings';
 import EmailVerificationBanner from '@/components/EmailVerificationBanner';
 import { faviconCache } from '@/lib/faviconCache';
-import { useResourcePreloader } from '@/hooks/useResourcePreloader';
 
 interface HomeProps {
   websites: any[];
@@ -23,11 +21,10 @@ export default function Home({ websites, setWebsites }: HomeProps) {
   const { currentUser } = useAuth();
   const { displayName } = useUserProfile();
   
-  // 启用自动同步
-  useAutoSync(websites);
+  // 暂时禁用自动同步，专注解决登录问题
+  // useAutoSync(websites);
   
-  // 启用资源预加载
-  useResourcePreloader();
+  // 移除重复的 useResourcePreloader() 调用，已在 App.tsx 中处理
   
   const { drag, drop, isDragging } = useDragAndDrop(websites, setWebsites);
   const [bgImage, setBgImage] = useState('');

@@ -7,7 +7,27 @@ import react from "@vitejs/plugin-react";
 import tsconfigPaths from "vite-tsconfig-paths";
 
 function getPlugins() {
-  const plugins = [react(), tsconfigPaths()];
+  const plugins = [
+    react(), 
+    tsconfigPaths(),
+    // 自定义插件：设置正确的MIME类型
+    {
+      name: 'mime-fix',
+      configureServer(server) {
+        server.middlewares.use((req, res, next) => {
+          const url = req.url || '';
+          if (url.endsWith('.js')) {
+            res.setHeader('Content-Type', 'application/javascript');
+          } else if (url.endsWith('.css')) {
+            res.setHeader('Content-Type', 'text/css');
+          } else if (url.endsWith('.ts') || url.endsWith('.tsx')) {
+            res.setHeader('Content-Type', 'text/x-typescript');
+          }
+          next();
+        });
+      }
+    }
+  ];
   return plugins;
 }
 
@@ -55,6 +75,11 @@ export default defineConfig({
   
   // 开发服务器配置
   server: {
+    // 设置正确的MIME类型和缓存头
+    headers: {
+      'X-Content-Type-Options': 'nosniff',
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+    },
     // 预热常用文件
     warmup: {
       clientFiles: [
@@ -86,9 +111,11 @@ export default defineConfig({
   
   // 预览服务器配置(用于生产构建预览)
   preview: {
-    // 设置缓存头
+    // 设置安全和缓存头
     headers: {
-      'Cache-Control': 'public, max-age=31536000, immutable', // 静态资源长期缓存
+      'X-Content-Type-Options': 'nosniff',
+      'Cache-Control': 'public, max-age=31536000, immutable',
+      'Expires': '', // 清空Expires头，使用Cache-Control
     }
   }
 });

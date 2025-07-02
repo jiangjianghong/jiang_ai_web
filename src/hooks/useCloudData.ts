@@ -15,7 +15,7 @@ interface UseCloudDataResult extends CloudDataState {
   hasCloudData: boolean;
 }
 
-export function useCloudData(): UseCloudDataResult {
+export function useCloudData(enabled: boolean = true): UseCloudDataResult {
   const { currentUser } = useAuth();
   const [state, setState] = useState<CloudDataState>({
     cloudWebsites: null,
@@ -70,9 +70,9 @@ export function useCloudData(): UseCloudDataResult {
     return mergeWebsiteData(localWebsites, state.cloudWebsites);
   };
 
-  // 当用户登录状态变化时，自动加载云端数据
+  // 当用户登录状态变化时，自动加载云端数据（仅在启用时）
   useEffect(() => {
-    if (currentUser && currentUser.emailVerified) {
+    if (enabled && currentUser && currentUser.emailVerified) {
       loadCloudData();
     } else {
       setState({
@@ -82,7 +82,7 @@ export function useCloudData(): UseCloudDataResult {
         error: null
       });
     }
-  }, [currentUser]);
+  }, [currentUser, enabled]);
 
   return {
     ...state,

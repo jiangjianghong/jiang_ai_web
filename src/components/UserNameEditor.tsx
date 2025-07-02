@@ -64,7 +64,7 @@ export default function UserNameEditor() {
   return (
     <div className="bg-gray-50 rounded-lg p-1 space-y-3">
       <div className="flex items-center justify-between">
-        <span className="text-sm text-gray-600">用户名</span>
+        <span className="text-sm text-gray-600">人类</span>
         {!isEditing && (
           <button
             onClick={() => setIsEditing(true)}

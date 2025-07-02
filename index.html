@@ -4,6 +4,21 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>jiang_ai_web</title>
+    
+    <!-- 预连接到重要的第三方域名 -->
+    <link rel="preconnect" href="https://bing.img.run" />
+    <link rel="preconnect" href="https://www.google.com" />
+    <link rel="preconnect" href="https://favicon.yandex.net" />
+    <link rel="preconnect" href="https://icons.duckduckgo.com" />
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
+    
+    <!-- 预加载关键CSS -->
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
+    
+    <!-- DNS预取常用域名 -->
+    <link rel="dns-prefetch" href="//source.unsplash.com" />
+    <link rel="dns-prefetch" href="//github.githubassets.com" />
+    
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
@@ -14,5 +29,20 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Service Worker 注册 -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('✅ Service Worker 注册成功:', registration.scope);
+            })
+            .catch((error) => {
+              console.log('❌ Service Worker 注册失败:', error);
+            });
+        });
+      }
+    </script>
   </body>
 </html>

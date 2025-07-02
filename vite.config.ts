@@ -14,4 +14,81 @@ function getPlugins() {
 export default defineConfig({
   base: process.env.NODE_ENV === 'production' ? '/jiang_ai_web/' : '/', // 仅生产环境设置 base
   plugins: getPlugins(),
+  
+  // 构建优化配置
+  build: {
+    // 启用文件名哈希，确保缓存失效
+    rollupOptions: {
+      output: {
+        // 静态资源文件名包含hash，实现长期缓存
+        chunkFileNames: 'assets/js/[name]-[hash].js',
+        entryFileNames: 'assets/js/[name]-[hash].js',
+        assetFileNames: (assetInfo) => {
+          const info = assetInfo.name?.split('.') || [];
+          const ext = info[info.length - 1];
+          if (/png|jpe?g|svg|gif|tiff|bmp|ico/i.test(ext)) {
+            return `assets/images/[name]-[hash][extname]`;
+          }
+          if (/woff2?|eot|ttf|otf/i.test(ext)) {
+            return `assets/fonts/[name]-[hash][extname]`;
+          }
+          return `assets/[ext]/[name]-[hash][extname]`;
+        },
+        // 代码分割优化
+        manualChunks: {
+          // 将大型第三方库单独打包
+          'react-vendor': ['react', 'react-dom'],
+          'router-vendor': ['react-router-dom'],
+          'ui-vendor': ['framer-motion', 'react-dnd', 'react-dnd-html5-backend'],
+          'firebase-vendor': ['firebase/app', 'firebase/auth', 'firebase/firestore'],
+          'chart-vendor': ['recharts'],
+        }
+      }
+    },
+    // 启用代码压缩
+    minify: 'esbuild', // 使用esbuild替代terser，速度更快
+    // 启用source map但仅在开发环境
+    sourcemap: process.env.NODE_ENV !== 'production',
+    // 设置chunk大小警告阈值
+    chunkSizeWarningLimit: 1000,
+  },
+  
+  // 开发服务器配置
+  server: {
+    // 预热常用文件
+    warmup: {
+      clientFiles: [
+        './src/main.tsx',
+        './src/App.tsx',
+        './src/pages/Home.tsx',
+        './src/components/**/*.tsx'
+      ]
+    }
+  },
+  
+  // 依赖预构建优化
+  optimizeDeps: {
+    // 强制预构建这些依赖
+    include: [
+      'react',
+      'react-dom',
+      'react-router-dom',
+      'framer-motion',
+      'firebase/app',
+      'firebase/auth',
+      'firebase/firestore',
+      'clsx',
+      'tailwind-merge'
+    ],
+    // 排除不需要预构建的依赖
+    exclude: ['@tsparticles/react']
+  },
+  
+  // 预览服务器配置(用于生产构建预览)
+  preview: {
+    // 设置缓存头
+    headers: {
+      'Cache-Control': 'public, max-age=31536000, immutable', // 静态资源长期缓存
+    }
+  }
 });

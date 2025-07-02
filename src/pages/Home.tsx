@@ -82,8 +82,8 @@ export default function Home({ websites, setWebsites }: HomeProps) {
     const yValue = parseFloat(calcValue(mousePosition.y, windowHeight));
     
     // 背景图偏移（使用更小的系数让移动更微妙）
-    const translateX = xValue * 0.3;
-    const translateY = -yValue * 0.3;
+    const translateX = -xValue * 0.5;
+    const translateY = -yValue * 0.5;
     
     return `translate(${translateX}px, ${translateY}px)`;
   };

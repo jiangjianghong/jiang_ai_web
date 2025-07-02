@@ -4,6 +4,7 @@ import CardEditModal from '@/components/CardEditModal';
 import SyncStatusIndicator from '@/components/SyncStatusIndicator';
 import AuthForm from '@/components/AuthForm';
 import UserNameEditor from '@/components/UserNameEditor';
+import PrivacySettings from '@/components/PrivacySettings';
 import { useTransparency } from '@/contexts/TransparencyContext';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -15,6 +16,7 @@ interface SettingsProps {
 
 export default function Settings({ onClose, websites, setWebsites }: SettingsProps) {
   const [showAddCardModal, setShowAddCardModal] = useState(false);
+  const [showPrivacySettings, setShowPrivacySettings] = useState(false);
   const { cardOpacity, searchBarOpacity, parallaxEnabled, setCardOpacity, setSearchBarOpacity, setParallaxEnabled } = useTransparency();
   const { currentUser, logout } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -263,6 +265,17 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
             <SyncStatusIndicator />
           </div>
           
+          {/* 隐私与Cookie管理 */}
+          <div className="space-y-4 select-none">
+            <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider select-none">隐私与Cookie</h3>
+            <button
+              onClick={() => setShowPrivacySettings(true)}
+              className="w-full px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md transition-colors select-none"
+            >
+              <i className="fa-solid fa-shield-halved mr-2 select-none"></i>隐私设置
+            </button>
+          </div>
+          
           <div className="space-y-4 select-none">
             <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider select-none">数据管理</h3>
             
@@ -307,6 +320,14 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
           note=""
           onClose={() => setShowAddCardModal(false)}
           onSave={handleSaveNewCard}
+        />
+      )}
+      
+      {/* 隐私设置面板 */}
+      {showPrivacySettings && (
+        <PrivacySettings
+          isOpen={showPrivacySettings}
+          onClose={() => setShowPrivacySettings(false)}
         />
       )}
     </div>

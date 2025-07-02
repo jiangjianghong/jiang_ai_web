@@ -28,88 +28,15 @@ export default function Home({ websites, setWebsites }: HomeProps) {
   
   // 启用资源预加载
   useResourcePreloader();
-
-  // 壁纸相关工具函数
-  // 获取今天的日期字符串（格式：YYYY-MM-DD）
-  const getTodayKey = () => {
-    const today = new Date();
-    return today.toISOString().split('T')[0];
-  };
-  // 根据分辨率获取对应的壁纸URL
-  const getWallpaperUrl = (resolution: string) => {
-    const wallpapers: Record<string, string> = {
-      '4k': 'https://bing.img.run/uhd.php',
-      '1080p': 'https://bing.img.run/1920x1080.php',
-      '720p': 'https://bing.img.run/1366x768.php',
-      'mobile': 'https://bing.img.run/m.php'
-    };
-    return wallpapers[resolution] || wallpapers['4k'];
-  };
-  // 从 localStorage 获取缓存壁纸数据（包含日期、URL、分辨率）
-  const getCachedWallpaper = (): { date: string; url: string; resolution: string } | null => {
-    if (typeof window === 'undefined') return null;
-    try {
-      const data = localStorage.getItem('bing-wallpaper-cache');
-      if (data) {
-        return JSON.parse(data);
-      }
-    } catch {
-      // 忽略错误
-    }
-    return null;
-  };
-  // 默认壁纸URL
-  const defaultWallpaperUrl = getWallpaperUrl(wallpaperResolution);
-
+  
   const { drag, drop, isDragging } = useDragAndDrop(websites, setWebsites);
-  const [bgImage, setBgImage] = useState(defaultWallpaperUrl);
+  const [bgImage, setBgImage] = useState('');
+  const [bgImageLoaded, setBgImageLoaded] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [mousePosition, setMousePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [showGreeting, setShowGreeting] = useState(false);
   const [clickCount, setClickCount] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
-
-  // 按日期和分辨率加载和缓存壁纸
-  useEffect(() => {
-    const todayKey = getTodayKey();
-    const cacheObj = getCachedWallpaper();
-    if (cacheObj && cacheObj.date === todayKey && cacheObj.resolution === wallpaperResolution) {
-      setBgImage(cacheObj.url);
-    } else {
-      const img = new Image();
-      img.src = defaultWallpaperUrl;
-      img.onload = () => {
-        setBgImage(img.src);
-        try {
-          localStorage.setItem('bing-wallpaper-cache', JSON.stringify({ date: todayKey, url: img.src, resolution: wallpaperResolution }));
-        } catch {}
-      };
-      img.onerror = () => {
-        const fbUrl = 'https://source.unsplash.com/random/1920x1080/?nature';
-        setBgImage(fbUrl);
-        try {
-          localStorage.setItem('bing-wallpaper-cache', JSON.stringify({ date: todayKey, url: fbUrl, resolution: wallpaperResolution }));
-        } catch {}
-      };
-    }
-  }, [wallpaperResolution, defaultWallpaperUrl]);
-
-  // 预加载 favicon
-  useEffect(() => {
-    if (websites.length > 0) {
-      // 延迟预加载，避免影响主要内容的加载
-      const timer = setTimeout(() => {
-        faviconCache.preloadFavicons(
-          websites.map(website => ({
-            url: website.url,
-            favicon: website.favicon
-          }))
-        );
-      }, 1000); // 1秒后开始预加载
-
-      return () => clearTimeout(timer);
-    }
-  }, [websites]);
 
   // 根据访问次数自动排序卡片
   const sortedWebsites = [...websites].sort((a, b) => {
@@ -185,6 +112,90 @@ export default function Home({ websites, setWebsites }: HomeProps) {
     return `translate(${translateX}px, ${translateY}px)`;
   };
 
+  useEffect(() => {
+    // 根据分辨率设置获取对应的壁纸URL - 与设置页面完全对应
+    const getWallpaperUrl = (resolution: string) => {
+      const wallpapers = {
+        '4k': 'https://bing.img.run/uhd.php',        // UHD超高清原图
+        '1080p': 'https://bing.img.run/1920x1080.php', // 1080P高清
+        '720p': 'https://bing.img.run/1366x768.php',   // 普清 (1366x768)
+        'mobile': 'https://bing.img.run/m.php'         // 手机版1080P高清
+      };
+      return wallpapers[resolution as keyof typeof wallpapers];
+    };
+
+    // 获取今天的日期字符串（格式：YYYY-MM-DD）
+    const getTodayKey = () => {
+      const today = new Date();
+      return today.toISOString().split('T')[0];
+    };
+
+    // 从缓存中获取今天的壁纸
+    const getCachedWallpaper = () => {
+      try {
+        const cached = localStorage.getItem('bing-wallpaper-cache');
+        if (cached) {
+          const { date, url, resolution } = JSON.parse(cached);
+          // 如果是今天的缓存且分辨率匹配，返回缓存的URL
+          if (date === getTodayKey() && resolution === wallpaperResolution) {
+            return url;
+          }
+        }
+      } catch (error) {
+        console.warn('读取壁纸缓存失败:', error);
+      }
+      return null;
+    };
+
+    // 缓存壁纸URL
+    const cacheWallpaper = (url: string) => {
+      try {
+        const cacheData = {
+          date: getTodayKey(),
+          url: url,
+          resolution: wallpaperResolution
+        };
+        localStorage.setItem('bing-wallpaper-cache', JSON.stringify(cacheData));
+      } catch (error) {
+        console.warn('缓存壁纸失败:', error);
+      }
+    };
+
+    const loadWallpaper = (url: string) => {
+      console.log('加载Bing壁纸:', url);
+      setBgImageLoaded(false);
+      
+      const img = new Image();
+      img.onload = () => {
+        console.log('Bing壁纸加载成功:', img.src);
+        setBgImage(img.src);
+        setBgImageLoaded(true);
+        cacheWallpaper(img.src);
+      };
+      
+      img.onerror = () => {
+        console.warn('Bing壁纸加载失败:', url);
+        setBgImage('');
+        setBgImageLoaded(true);
+      };
+      
+      img.src = url;
+    };
+
+    // 直接加载对应分辨率的Bing壁纸
+    const wallpaperUrl = getWallpaperUrl(wallpaperResolution);
+    console.log('当前分辨率设置:', wallpaperResolution, '对应URL:', wallpaperUrl);
+    
+    // 检查缓存
+    const cachedUrl = getCachedWallpaper();
+    if (cachedUrl && cachedUrl === wallpaperUrl) {
+      console.log('使用缓存的壁纸:', cachedUrl);
+      setBgImage(cachedUrl);
+      setBgImageLoaded(true);
+    } else {
+      loadWallpaper(wallpaperUrl);
+    }
+  }, [wallpaperResolution]); // 依赖wallpaperResolution，当分辨率改变时重新加载
 
   // 监听鼠标移动 - 根据视差开关决定是否启用
   useEffect(() => {
@@ -204,24 +215,56 @@ export default function Home({ websites, setWebsites }: HomeProps) {
     };
   }, [parallaxEnabled, isSettingsOpen]);
 
+  // 预加载 favicon
+  useEffect(() => {
+    if (websites.length > 0) {
+      // 延迟预加载，避免影响主要内容的加载
+      const timer = setTimeout(() => {
+        faviconCache.preloadFavicons(
+          websites.map(website => ({
+            url: website.url,
+            favicon: website.favicon
+          }))
+        );
+      }, 1000); // 1秒后开始预加载
+
+      return () => clearTimeout(timer);
+    }
+  }, [websites]);
 
     return (
     <>
       {/* 邮箱验证横幅 */}
       <EmailVerificationBanner />
       
+      {/* 壁纸背景层 */}
       <div 
-        className="fixed top-0 left-0 w-full h-full bg-cover bg-center bg-no-repeat -z-10"
+        className="fixed top-0 left-0 w-full h-full -z-10"
         style={{ 
-          backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1)), url(${bgImage})`, // 显示90%的背景
-          backgroundSize: '105% 105%', // 稍微放大，为视差移动留出空间
+          backgroundImage: bgImage ? `linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1)), url(${bgImage})` : 'none',
+          backgroundSize: 'cover',
           backgroundPosition: 'center center',
-          backgroundAttachment: 'fixed',
+          backgroundRepeat: 'no-repeat',
           transform: calculateParallaxTransform(),
-          transition: 'transform 0.1s ease-out' // 使用transform的过渡，更流畅
+          transition: 'transform 0.1s ease-out, opacity 0.3s ease-in-out',
+          opacity: bgImageLoaded && bgImage ? 1 : 0,
+          backgroundColor: 'transparent' // 确保没有背景色
         }}
-      >
-        <div className="relative min-h-screen pt-[33vh]">
+      />
+      
+      {/* 壁纸加载指示器 */}
+      {!bgImageLoaded && (
+        <div className="fixed top-0 left-0 w-full h-full -z-5 bg-black/20 backdrop-blur-sm flex items-center justify-center">
+          <div className="bg-white/20 backdrop-blur-sm rounded-lg px-6 py-3">
+            <div className="text-white text-lg font-medium flex items-center space-x-3">
+              <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+              <span>加载壁纸中...</span>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      <div className="relative min-h-screen pt-[33vh]">
     
       <SearchBar />
       
@@ -303,7 +346,6 @@ export default function Home({ websites, setWebsites }: HomeProps) {
 
       <AnimatedCat />
       </div>
-    </div>
     </>
   );
 }

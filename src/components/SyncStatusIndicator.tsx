@@ -79,12 +79,8 @@ export default function SyncStatusIndicator() {
   };
 
   return (
-    <div className="space-y-3">
-      <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wider">
-        云端同步状态
-      </h4>
-      
-      <div className="bg-gray-50 rounded-lg p-3 space-y-2">
+    <div className="space-y-2">
+      <div className="space-y-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             {getStatusIcon()}
@@ -143,22 +139,6 @@ export default function SyncStatusIndicator() {
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
-      
-      {/* 数据统计 */}
-      <div className="grid grid-cols-2 gap-2 text-xs">
-        <div className="bg-blue-50 rounded p-2 text-center">
-          <div className="font-medium text-blue-700">云端备份</div>
-          <div className="text-blue-600">
-            {currentUser ? '已启用' : '未启用'}
-          </div>
-        </div>
-        <div className="bg-green-50 rounded p-2 text-center">
-          <div className="font-medium text-green-700">智能同步</div>
-          <div className="text-green-600">
-            {syncStatus.pendingChanges > 0 ? '3秒防抖' : '30秒强制'}
-          </div>
-        </div>
       </div>
     </div>
   );

@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import CardEditModal from '@/components/CardEditModal';
 import SyncStatusIndicator from '@/components/SyncStatusIndicator';
+import SyncStatsCards from '@/components/SyncStatsCards';
 import AuthForm from '@/components/AuthForm';
 import UserNameEditor from '@/components/UserNameEditor';
 import PrivacySettings from '@/components/PrivacySettings';
@@ -201,7 +202,7 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
             <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider select-none">账号管理</h3>
             
             {currentUser ? (
-              <div className="bg-gray-50 rounded-lg p-4 space-y-4">
+              <div className="bg-gray-100 rounded-lg p-4 space-y-4">
                 <UserNameEditor />
                 <div className="flex justify-center pt-1">
                   <button
@@ -220,7 +221,7 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
                 </div>
               </div>
             ) : (
-              <div className="bg-gray-50 rounded-lg p-4">
+              <div className="bg-gray-100 rounded-lg p-4">
                 <AuthForm onSuccess={handleClose} />
               </div>
             )}
@@ -228,7 +229,14 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
 
           <div className="space-y-4 select-none">
             <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider select-none">云端同步</h3>
-            <SyncStatusIndicator />
+            <div className="bg-gray-100 rounded-lg p-4">
+              <SyncStatusIndicator />
+            </div>
+          </div>
+
+          {/* 云端同步统计卡片 */}
+          <div className="select-none -mt-4">
+            <SyncStatsCards />
           </div>
           <div className="space-y-4 select-none">
             <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider select-none">外观设置</h3>

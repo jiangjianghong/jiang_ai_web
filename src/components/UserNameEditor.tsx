@@ -62,7 +62,7 @@ export default function UserNameEditor() {
   };
 
   return (
-    <div className="bg-gray-50 rounded-lg p-1 space-y-3">
+    <div className="space-y-3">
       <div className="flex items-center justify-between">
         <span className="text-sm text-gray-600">人类</span>
         {!isEditing && (

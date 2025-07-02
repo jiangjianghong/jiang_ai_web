@@ -28,14 +28,88 @@ export default function Home({ websites, setWebsites }: HomeProps) {
   
   // 启用资源预加载
   useResourcePreloader();
-  
+
+  // 壁纸相关工具函数
+  // 获取今天的日期字符串（格式：YYYY-MM-DD）
+  const getTodayKey = () => {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  };
+  // 根据分辨率获取对应的壁纸URL
+  const getWallpaperUrl = (resolution: string) => {
+    const wallpapers: Record<string, string> = {
+      '4k': 'https://bing.img.run/uhd.php',
+      '1080p': 'https://bing.img.run/1920x1080.php',
+      '720p': 'https://bing.img.run/1366x768.php',
+      'mobile': 'https://bing.img.run/m.php'
+    };
+    return wallpapers[resolution] || wallpapers['4k'];
+  };
+  // 从 localStorage 获取缓存壁纸数据（包含日期、URL、分辨率）
+  const getCachedWallpaper = (): { date: string; url: string; resolution: string } | null => {
+    if (typeof window === 'undefined') return null;
+    try {
+      const data = localStorage.getItem('bing-wallpaper-cache');
+      if (data) {
+        return JSON.parse(data);
+      }
+    } catch {
+      // 忽略错误
+    }
+    return null;
+  };
+  // 默认壁纸URL
+  const defaultWallpaperUrl = getWallpaperUrl(wallpaperResolution);
+
   const { drag, drop, isDragging } = useDragAndDrop(websites, setWebsites);
-  const [bgImage, setBgImage] = useState('https://bing.img.run/uhd.php');
+  const [bgImage, setBgImage] = useState(defaultWallpaperUrl);
   const [showSettings, setShowSettings] = useState(false);
   const [mousePosition, setMousePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [showGreeting, setShowGreeting] = useState(false);
   const [clickCount, setClickCount] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
+
+  // 按日期和分辨率加载和缓存壁纸
+  useEffect(() => {
+    const todayKey = getTodayKey();
+    const cacheObj = getCachedWallpaper();
+    if (cacheObj && cacheObj.date === todayKey && cacheObj.resolution === wallpaperResolution) {
+      setBgImage(cacheObj.url);
+    } else {
+      const img = new Image();
+      img.src = defaultWallpaperUrl;
+      img.onload = () => {
+        setBgImage(img.src);
+        try {
+          localStorage.setItem('bing-wallpaper-cache', JSON.stringify({ date: todayKey, url: img.src, resolution: wallpaperResolution }));
+        } catch {}
+      };
+      img.onerror = () => {
+        const fbUrl = 'https://source.unsplash.com/random/1920x1080/?nature';
+        setBgImage(fbUrl);
+        try {
+          localStorage.setItem('bing-wallpaper-cache', JSON.stringify({ date: todayKey, url: fbUrl, resolution: wallpaperResolution }));
+        } catch {}
+      };
+    }
+  }, [wallpaperResolution, defaultWallpaperUrl]);
+
+  // 预加载 favicon
+  useEffect(() => {
+    if (websites.length > 0) {
+      // 延迟预加载，避免影响主要内容的加载
+      const timer = setTimeout(() => {
+        faviconCache.preloadFavicons(
+          websites.map(website => ({
+            url: website.url,
+            favicon: website.favicon
+          }))
+        );
+      }, 1000); // 1秒后开始预加载
+
+      return () => clearTimeout(timer);
+    }
+  }, [websites]);
 
   // 根据访问次数自动排序卡片
   const sortedWebsites = [...websites].sort((a, b) => {
@@ -111,81 +185,6 @@ export default function Home({ websites, setWebsites }: HomeProps) {
     return `translate(${translateX}px, ${translateY}px)`;
   };
 
-  useEffect(() => {
-    // 根据分辨率设置获取对应的壁纸URL
-    const getWallpaperUrl = (resolution: string) => {
-      const wallpapers = {
-        '4k': 'https://bing.img.run/uhd.php',
-        '1080p': 'https://bing.img.run/1920x1080.php',
-        '720p': 'https://bing.img.run/1366x768.php',
-        'mobile': 'https://bing.img.run/m.php'
-      };
-      return wallpapers[resolution as keyof typeof wallpapers];
-    };
-
-    // 获取今天的日期字符串（格式：YYYY-MM-DD）
-    const getTodayKey = () => {
-      const today = new Date();
-      return today.toISOString().split('T')[0];
-    };
-
-    // 从缓存中获取今天的壁纸
-    const getCachedWallpaper = () => {
-      try {
-        const cached = localStorage.getItem('bing-wallpaper-cache');
-        if (cached) {
-          const { date, url, resolution } = JSON.parse(cached);
-          // 如果是今天的缓存且分辨率匹配，返回缓存的URL
-          if (date === getTodayKey() && resolution === wallpaperResolution) {
-            return url;
-          }
-        }
-      } catch (error) {
-        console.warn('读取壁纸缓存失败:', error);
-      }
-      return null;
-    };
-
-    // 缓存壁纸URL
-    const cacheWallpaper = (url: string) => {
-      try {
-        const cacheData = {
-          date: getTodayKey(),
-          url: url,
-          resolution: wallpaperResolution
-        };
-        localStorage.setItem('bing-wallpaper-cache', JSON.stringify(cacheData));
-      } catch (error) {
-        console.warn('缓存壁纸失败:', error);
-      }
-    };
-
-    const loadWallpaper = (url: string) => {
-      const img = new Image();
-      img.src = url;
-      img.onload = () => {
-        setBgImage(img.src);
-        cacheWallpaper(img.src);
-      };
-      img.onerror = () => {
-        // 如果加载失败，使用Unsplash作为备用
-        const fallbackUrl = 'https://source.unsplash.com/random/1920x1080/?nature';
-        setBgImage(fallbackUrl);
-        cacheWallpaper(fallbackUrl);
-      };
-    };
-
-    // 首先检查缓存
-    const cachedUrl = getCachedWallpaper();
-    if (cachedUrl) {
-      // 使用缓存的壁纸
-      setBgImage(cachedUrl);
-    } else {
-      // 没有缓存或缓存已过期，重新加载
-      const wallpaperUrl = getWallpaperUrl(wallpaperResolution);
-      loadWallpaper(wallpaperUrl);
-    }
-  }, [wallpaperResolution]); // 依赖wallpaperResolution，当分辨率改变时重新加载
 
   // 监听鼠标移动 - 根据视差开关决定是否启用
   useEffect(() => {
@@ -205,22 +204,6 @@ export default function Home({ websites, setWebsites }: HomeProps) {
     };
   }, [parallaxEnabled, isSettingsOpen]);
 
-  // 预加载 favicon
-  useEffect(() => {
-    if (websites.length > 0) {
-      // 延迟预加载，避免影响主要内容的加载
-      const timer = setTimeout(() => {
-        faviconCache.preloadFavicons(
-          websites.map(website => ({
-            url: website.url,
-            favicon: website.favicon
-          }))
-        );
-      }, 1000); // 1秒后开始预加载
-
-      return () => clearTimeout(timer);
-    }
-  }, [websites]);
 
     return (
     <>

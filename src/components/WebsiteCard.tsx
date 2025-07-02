@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { useState, useRef } from 'react';
 import CardEditModal from './CardEditModal';
 import { useTransparency } from '@/contexts/TransparencyContext';
+import { useFavicon } from '@/hooks/useFavicon';
 
 interface WebsiteCardProps {
   id: string;
@@ -20,6 +21,9 @@ export function WebsiteCard({ id, name, url, favicon, tags, visitCount, lastVisi
   const [showEditModal, setShowEditModal] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const { cardOpacity } = useTransparency();
+  
+  // 使用 favicon 缓存 hook
+  const { faviconUrl } = useFavicon(url, favicon);
 
   // 处理卡片点击，增加访问次数统计
   const handleCardClick = () => {
@@ -69,38 +73,10 @@ export function WebsiteCard({ id, name, url, favicon, tags, visitCount, lastVisi
           <div className="flex flex-col items-center px-2 select-none">
             <div className="w-11 h-11 mb-1 rounded-md overflow-hidden select-none"> {/* 恢复原始图标大小 */}
               <img 
-                src={favicon}
+                src={faviconUrl}
                 alt={`${name} favicon`} 
                 className="w-full h-full object-contain select-none"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  // 先尝试 Google 高清接口
-                  if (!target.dataset.triedGoogle) {
-                    target.src = `https://www.google.com/s2/favicons?domain=${url}&sz=128`;
-                    target.dataset.triedGoogle = '1';
-                  } else if (!target.dataset.triedYandex) {
-                    // 再尝试 yandex 高清接口
-                    const domain = url.replace(/^(https?:\/\/)?(www\.)?/, '').split('/')[0];
-                    target.src = `https://favicon.yandex.net/favicon/v2/${domain}?size=120`;
-                    target.dataset.triedYandex = '1';
-                  } else if (!target.dataset.triedApple) {
-                    // 再尝试 apple-touch-icon
-                    const domain = url.replace(/^(https?:\/\/)?(www\.)?/, '').split('/')[0];
-                    target.src = `https://${domain}/apple-touch-icon.png`;
-                    target.dataset.triedApple = '1';
-                  } else if (!target.dataset.triedDuck) {
-                    // 再尝试 DuckDuckGo
-                    const domain = url.replace(/^(https?:\/\/)?(www\.)?/, '').split('/')[0];
-                    target.src = `https://icons.duckduckgo.com/ip3/${domain}.ico`;
-                    target.dataset.triedDuck = '1';
-                  } else {
-                    // 最后兜底为 /favicon.ico
-                    try {
-                      const domain = url.replace(/^(https?:\/\/)?(www\.)?/, '').split('/')[0];
-                      target.src = `https://${domain}/favicon.ico`;
-                    } catch {}
-                  }
-                }}
+                loading="lazy"
               />
             </div>
              <h3 className="text-xs font-medium text-white text-center line-clamp-2 px-2 mt-1 select-none">{name}</h3> {/* 恢复原始字体大小 */}
@@ -110,6 +86,12 @@ export function WebsiteCard({ id, name, url, favicon, tags, visitCount, lastVisi
               <p className="text-white/60 text-[0.65rem] text-center line-clamp-2 select-none">
                {note || new URL(url).hostname}
               </p>
+              {/* 显示最后访问时间 */}
+              {lastVisit && (
+                <p className="text-white/40 text-[0.6rem] text-center select-none">
+                  {lastVisit}
+                </p>
+              )}
            </div>
             {/* 标签区域 - 等分间距 */}
             <div className="mt-0 px-3 pb-2 select-none">

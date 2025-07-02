@@ -4,13 +4,14 @@ import { SearchBar } from '@/components/SearchBar';
 import { AnimatedCat } from '@/components/AnimatedCat';
 import { useDragAndDrop } from '@/hooks/useDragAndDrop';
 import { motion } from 'framer-motion';
-import { useTheme } from '@/hooks/useTheme';
 import { useTransparency } from '@/contexts/TransparencyContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserProfile } from '@/contexts/UserProfileContext';
 import { useAutoSync } from '@/hooks/useAutoSync';
 import Settings from '@/pages/Settings';
 import EmailVerificationBanner from '@/components/EmailVerificationBanner';
+import { faviconCache } from '@/lib/faviconCache';
+import { useResourcePreloader } from '@/hooks/useResourcePreloader';
 
 interface HomeProps {
   websites: any[];
@@ -18,7 +19,6 @@ interface HomeProps {
 }
 
 export default function Home({ websites, setWebsites }: HomeProps) {
-  const { theme } = useTheme();
   const { parallaxEnabled } = useTransparency();
   const { currentUser } = useAuth();
   const { displayName } = useUserProfile();
@@ -26,9 +26,11 @@ export default function Home({ websites, setWebsites }: HomeProps) {
   // 启用自动同步
   useAutoSync(websites);
   
+  // 启用资源预加载
+  useResourcePreloader();
+  
   const { drag, drop, isDragging } = useDragAndDrop(websites, setWebsites);
   const [bgImage, setBgImage] = useState('https://bing.img.run/uhd.php');
-  const [bgLoaded, setBgLoaded] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [mousePosition, setMousePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
@@ -96,24 +98,69 @@ export default function Home({ websites, setWebsites }: HomeProps) {
       'https://bing.img.run/m.php'
     ];
 
+    // 获取今天的日期字符串（格式：YYYY-MM-DD）
+    const getTodayKey = () => {
+      const today = new Date();
+      return today.toISOString().split('T')[0];
+    };
+
+    // 从缓存中获取今天的壁纸
+    const getCachedWallpaper = () => {
+      try {
+        const cached = localStorage.getItem('bing-wallpaper-cache');
+        if (cached) {
+          const { date, url } = JSON.parse(cached);
+          if (date === getTodayKey()) {
+            return url;
+          }
+        }
+      } catch (error) {
+        console.warn('读取壁纸缓存失败:', error);
+      }
+      return null;
+    };
+
+    // 缓存壁纸URL
+    const cacheWallpaper = (url: string) => {
+      try {
+        const cacheData = {
+          date: getTodayKey(),
+          url: url
+        };
+        localStorage.setItem('bing-wallpaper-cache', JSON.stringify(cacheData));
+      } catch (error) {
+        console.warn('缓存壁纸失败:', error);
+      }
+    };
+
     const tryLoadWallpaper = (index = 0) => {
       if (index >= wallpapers.length) {
-        setBgImage('https://source.unsplash.com/random/1920x1080/?nature');
+        const fallbackUrl = 'https://source.unsplash.com/random/1920x1080/?nature';
+        setBgImage(fallbackUrl);
+        cacheWallpaper(fallbackUrl);
         return;
       }
 
       const img = new Image();
       img.src = wallpapers[index];
       img.onload = () => {
-        setBgLoaded(true);
         setBgImage(img.src);
+        cacheWallpaper(img.src);
       };
       img.onerror = () => {
         tryLoadWallpaper(index + 1);
       };
     };
 
-    tryLoadWallpaper();
+    // 首先检查缓存
+    const cachedUrl = getCachedWallpaper();
+    if (cachedUrl) {
+      // 使用缓存的壁纸
+      setBgImage(cachedUrl);
+    } else {
+      // 没有缓存或缓存已过期，重新加载
+      tryLoadWallpaper();
+    }
   }, []);
 
   // 监听鼠标移动 - 根据视差开关决定是否启用
@@ -133,6 +180,23 @@ export default function Home({ websites, setWebsites }: HomeProps) {
       window.removeEventListener('mousemove', handleMouseMove);
     };
   }, [parallaxEnabled]);
+
+  // 预加载 favicon
+  useEffect(() => {
+    if (websites.length > 0) {
+      // 延迟预加载，避免影响主要内容的加载
+      const timer = setTimeout(() => {
+        faviconCache.preloadFavicons(
+          websites.map(website => ({
+            url: website.url,
+            favicon: website.favicon
+          }))
+        );
+      }, 1000); // 1秒后开始预加载
+
+      return () => clearTimeout(timer);
+    }
+  }, [websites]);
 
     return (
     <>

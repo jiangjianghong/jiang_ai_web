@@ -31,12 +31,12 @@ function AppContent() {
   // 延迟初始化标记
   const [isFirstRenderComplete, setIsFirstRenderComplete] = useState(false);
   
-  // 暂时禁用云同步，专注解决登录问题
-  const shouldEnableCloudSync = false; // isFirstRenderComplete && currentUser?.emailVerified;
+  // 延迟启用云数据和资源预加载，避免阻塞首屏渲染
+  const shouldEnableCloudSync = isFirstRenderComplete && currentUser?.emailVerified;
   const { cloudWebsites, cloudSettings, hasCloudData, mergeWithLocalData } = useCloudData(shouldEnableCloudSync);
   
-  // 暂时禁用资源预加载
-  useResourcePreloader(false); // isFirstRenderComplete
+  // 在首屏渲染完成后再启用资源预加载
+  useResourcePreloader(isFirstRenderComplete);
   const { 
     setCardOpacity, 
     setSearchBarOpacity, 
@@ -58,9 +58,8 @@ function AppContent() {
   useEffect(() => {
     // 使用 setTimeout 确保首屏DOM完全渲染后再启用重型操作
     const timer = setTimeout(() => {
-      // 移除调试日志，静默启用
       setIsFirstRenderComplete(true);
-    }, 100); // 100ms延迟确保首屏渲染完成
+    }, 100);
 
     return () => clearTimeout(timer);
   }, []);

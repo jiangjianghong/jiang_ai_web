@@ -2,15 +2,6 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 
-// 网络状态检查器
-const checkNetworkStatus = () => {
-  return {
-    isOnline: navigator.onLine,
-    connection: (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection,
-    timestamp: new Date().toISOString()
-  };
-};
-
 interface AuthFormProps {
   onSuccess: () => void;
 }
@@ -62,19 +53,13 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
     setLoading(true);
     setError('');
 
-    console.log('🔐 开始认证流程:', { isLogin, email: email.substring(0, 3) + '***' });
-
     try {
       if (isLogin) {
-        console.log('🔑 执行登录操作');
         await login(email, password);
-        console.log('✅ 登录流程完成');
         onSuccess();
       } else {
         // 注册流程
-        console.log('📝 执行注册操作');
         await register(email, password);
-        console.log('✅ 注册流程完成');
         
         // 注册成功后显示验证邮件提示
         setShowVerificationMessage(true);
@@ -84,13 +69,7 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
         localStorage.setItem('pendingDisplayName', displayName);
       }
     } catch (error: any) {
-      console.error('❌ 认证失败详情:', {
-        code: error.code,
-        message: error.message,
-        authErrorCode: error.code,
-        networkStatus: checkNetworkStatus(),
-        stack: error.stack
-      });
+      console.error('认证失败:', error);
       
       const errorCode = error.code;
       switch (errorCode) {
@@ -130,18 +109,11 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
     setLoading(true);
     setError('');
     
-    console.log('🔑 开始 Google 登录流程');
-    
     try {
       await loginWithGoogle();
-      console.log('✅ Google 登录流程完成');
       onSuccess();
     } catch (error: any) {
-      console.error('❌ Google 登录失败详情:', {
-        code: error.code,
-        message: error.message,
-        stack: error.stack
-      });
+      console.error('Google登录失败:', error);
       setError('Google登录失败，请重试');
     } finally {
       setLoading(false);

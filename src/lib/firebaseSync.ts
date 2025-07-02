@@ -6,7 +6,7 @@ import {
   serverTimestamp 
 } from 'firebase/firestore';
 import { User } from 'firebase/auth';
-import { db } from '@/lib/firebase-debug'; // 临时使用调试版本
+import { db } from '@/lib/firebase';
 import { WallpaperResolution } from '@/contexts/TransparencyContext';
 
 // 用户设置接口

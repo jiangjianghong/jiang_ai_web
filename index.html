@@ -13,11 +13,16 @@
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
     
     <!-- 预加载关键CSS -->
-    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" as="style" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'" />
+    
+    <!-- 预加载主要JS模块 -->
+    <link rel="modulepreload" href="data:application/octet-stream;base64,aW1wb3J0IHsgU3RyaWN0TW9kZSB9IGZyb20gInJlYWN0IjsKaW1wb3J0IHsgY3JlYXRlUm9vdCB9IGZyb20gInJlYWN0LWRvbS9jbGllbnQiOwppbXBvcnQgeyBCcm93c2VyUm91dGVyIH0gZnJvbSAicmVhY3Qtcm91dGVyLWRvbSI7CmltcG9ydCB7IFRvYXN0ZXIgfSBmcm9tICdzb25uZXInOwppbXBvcnQgQXBwIGZyb20gIi4vQXBwLnRzeCI7CmltcG9ydCAiLi9pbmRleC5jc3MiOwoKY29uc3QgaXNMb2NhbGhvc3QgPSB3aW5kb3cubG9jYXRpb24uaG9zdG5hbWUgPT09ICJsb2NhbGhvc3QiIHx8IHdpbmRvdy5sb2NhdGlvbi5ob3N0bmFtZSA9PT0gIjEyNy4wLjAuMSI7CmNvbnN0IGJhc2VuYW1lID0gaXNMb2NhbGhvc3QgPyB1bmRlZmluZWQgOiAiL2ppYW5nX2FpX3dlYiI7Cgpjb25zb2xlLmxvZygn8J+agCBtYWluLnRzeCDlvIDlp4vmiafooYwnKTsKY29uc29sZS5sb2coJ/CfjJAg5b2T5YmN546v5aKDOicsIHsgaXNMb2NhbGhvc3QsIGJhc2VuYW1lIH0pOwoKLy8g6ZSZ6K+v6L6555WM5aSE55CGCmNvbnN0IEVycm9yRmFsbGJhY2sgPSAoeyBlcnJvciB9OiB7IGVycm9yOiBFcnJvciB9KSA9PiAoCiAgPGRpdiBzdHlsZT17ewogICAgcG9zaXRpb246ICdmaXhlZCcsCiAgICB0b3A6IDAsCiAgICBsZWZ0OiAwLAogICAgd2lkdGg6ICcxMDAlJywKICAgIGhlaWdodDogJzEwMHZoJywKICAgIGJhY2tncm91bmQ6ICd3aGl0ZScsCiAgICBkaXNwbGF5OiAnZmxleCcsCiAgICBmbGV4RGlyZWN0aW9uOiAnY29sdW1uJywKICAgIGp1c3RpZnlDb250ZW50OiAnY2VudGVyJywKICAgIGFsaWduSXRlbXM6ICdjZW50ZXInLAogICAgcGFkZGluZzogJzIwcHgnLAogICAgZm9udEZhbWlseTogJ0FyaWFsLCBzYW5zLXNlcmlmJwogIH19PgogICAgPGgxIHN0eWxlPXt7IGNvbG9yOiAncmVkJywgbWFyZ2luQm90dG9tOiAnMjBweCcgfX0+5bqU55So5Yqg6L295aSx6LSlPC9oMT4KICAgIDxwcmUgc3R5bGU9e3sgCiAgICAgIGJhY2tncm91bmQ6ICcjZjVmNWY1JywgCiAgICAgIHBhZGRpbmc6ICcyMHB4JywgCiAgICAgIGJvcmRlclJhZGl1czogJzhweCcsCiAgICAgIGZvbnRTaXplOiAnMTRweCcsCiAgICAgIG1heFdpZHRoOiAnODAlJywKICAgICAgb3ZlcmZsb3c6ICdhdXRvJwogICAgfX0+CiAgICAgIHtlcnJvci5tZXNzYWdlfQogICAgICB7J1xuXG4nfQogICAgICB7ZXJyb3Iuc3RhY2t9CiAgICA8L3ByZT4KICA8L2Rpdj4KKTsKCnRyeSB7CiAgY29uc29sZS5sb2coJ/Cfjq8g6I635Y+Wcm9vdOWFg+e0oCcpOwogIGNvbnN0IHJvb3RFbGVtZW50ID0gZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoInJvb3QiKTsKICAKICBpZiAoIXJvb3RFbGVtZW50KSB7CiAgICB0aHJvdyBuZXcgRXJyb3IoJ+aXoOazleaJvuWIsGlk5Li6InJvb3Qi55qE5YWD57SgJyk7CiAgfQogIAogIGNvbnNvbGUubG9nKCfinIUgcm9vdOWFg+e0oOaJvuWIsO+8jOWIm+W7ulJlYWN05qC5Jyk7CiAgY29uc3Qgcm9vdCA9IGNyZWF0ZVJvb3Qocm9vdEVsZW1lbnQpOwoKICBjb25zb2xlLmxvZygn8J+OryDlvIDlp4vmuLLmn5NSZWFjdOW6lOeUqCcpOwogIAogIC8vIOa4suafk+W6lOeUqAogIHJvb3QucmVuZGVyKAogICAgPFN0cmljdE1vZGU+CiAgICAgIDxCcm93c2VyUm91dGVyIGJhc2VuYW1lPXtiYXNlbmFtZX0+CiAgICAgICAgPEFwcCAvPgogICAgICAgIDxUb2FzdGVyIC8+CiAgICAgIDwvQnJvd3NlclJvdXRlcj4KICAgIDwvU3RyaWN0TW9kZT4KICApOwoKICBjb25zb2xlLmxvZygn4pyFIFJlYWN05bqU55So5riy5p+T5a6M5oiQJyk7Cgp9IGNhdGNoIChlcnJvcikgewogIGNvbnNvbGUuZXJyb3IoJ+KdjCBSZWFjdOW6lOeUqOWIneWni+WMluWksei0pTonLCBlcnJvcik7CiAgCiAgLy8g5pi+56S66ZSZ6K+v5L+h5oGvCiAgY29uc3Qgcm9vdCA9IGNyZWF0ZVJvb3QoZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoInJvb3QiKSEpOwogIHJvb3QucmVuZGVyKDxFcnJvckZhbGxiYWNrIGVycm9yPXtlcnJvciBhcyBFcnJvcn0gLz4pOwp9Cg==">
+    <link rel="modulepreload" href="/jiang_ai_web/assets/tsx/App-GG2Fw8nB.tsx">
     
     <!-- DNS预取常用域名 -->
     <link rel="dns-prefetch" href="//source.unsplash.com" />
     <link rel="dns-prefetch" href="//github.githubassets.com" />
+    <link rel="dns-prefetch" href="//bing.img.run" />
     
     <link
       rel="stylesheet"
@@ -25,28 +30,69 @@
       crossorigin="anonymous"
     />
     <link rel="icon" type="image/jpeg" href="/jiang_ai_web/assets/images/icon-D-XuDlSy.jpg" />
-    <script type="module" crossorigin src="/jiang_ai_web/assets/js/index-BWAzs435.js"></script>
+    <script type="module" crossorigin src="/jiang_ai_web/assets/js/index-C70d5NGQ.js"></script>
     <link rel="modulepreload" crossorigin href="/jiang_ai_web/assets/js/react-vendor-BtP0CW_r.js">
     <link rel="modulepreload" crossorigin href="/jiang_ai_web/assets/js/router-vendor-ojeZ8ZvP.js">
     <link rel="modulepreload" crossorigin href="/jiang_ai_web/assets/js/ui-vendor-D5AR4Rpp.js">
     <link rel="modulepreload" crossorigin href="/jiang_ai_web/assets/js/firebase-vendor-DV2vFSYp.js">
-    <link rel="stylesheet" crossorigin href="/jiang_ai_web/assets/css/index-C0JOsZ7K.css">
+    <link rel="stylesheet" crossorigin href="/jiang_ai_web/assets/css/index-CwbzHknq.css">
   </head>
   <body>
+    <!-- React应用根节点 -->
     <div id="root"></div>
+    
     
     <!-- Service Worker 注册 -->
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
+          // 强制使用带时间戳的路径避免缓存问题
+          const timestamp = Date.now();
+          const swPath = './sw.js?v=' + timestamp;
+          
+          console.log('🔧 尝试注册Service Worker:', swPath);
+          console.log('🌐 当前URL:', window.location.href);
+          console.log('📍 当前路径:', window.location.pathname);
+          
+          navigator.serviceWorker.register(swPath)
             .then((registration) => {
               console.log('✅ Service Worker 注册成功:', registration.scope);
             })
             .catch((error) => {
               console.log('❌ Service Worker 注册失败:', error);
+              // 尝试不同的路径
+              const fallbackPaths = [
+                'sw.js',
+                '/sw.js',
+                '/jiang_ai_web/sw.js'
+              ];
+              
+              console.log('🔄 尝试备用路径...');
+              
+              const tryNextPath = (index) => {
+                if (index >= fallbackPaths.length) {
+                  console.log('❌ 所有Service Worker路径都失败了');
+                  return;
+                }
+                
+                const path = fallbackPaths[index];
+                console.log(`🧪 尝试路径 ${index + 1}:`, path);
+                
+                navigator.serviceWorker.register(path)
+                  .then((registration) => {
+                    console.log('✅ Service Worker 注册成功 (备用路径):', registration.scope);
+                  })
+                  .catch((err) => {
+                    console.log(`❌ 路径 ${index + 1} 失败:`, err.message);
+                    tryNextPath(index + 1);
+                  });
+              };
+              
+              tryNextPath(0);
             });
         });
+      } else {
+        console.log('⚠️ 浏览器不支持Service Worker');
       }
     </script>
   </body>

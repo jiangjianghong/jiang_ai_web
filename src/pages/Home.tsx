@@ -33,6 +33,9 @@ export default function Home({ websites, setWebsites }: HomeProps) {
   const [bgImage, setBgImage] = useState('https://bing.img.run/uhd.php');
   const [showSettings, setShowSettings] = useState(false);
   const [mousePosition, setMousePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [showGreeting, setShowGreeting] = useState(false);
+  const [clickCount, setClickCount] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
 
   // 根据访问次数自动排序卡片
   const sortedWebsites = [...websites].sort((a, b) => {
@@ -45,6 +48,24 @@ export default function Home({ websites, setWebsites }: HomeProps) {
     const dateB = new Date(b.lastVisit || '2000-01-01').getTime();
     return dateB - dateA;
   });
+
+  // 处理用户名框点击事件
+  const handleUserNameClick = () => {
+    if (isAnimating) return; // 防止动画期间重复点击
+    
+    setClickCount(prev => prev + 1);
+    setIsAnimating(true);
+    setShowGreeting(true);
+    
+    // 1秒后开始淡出
+    setTimeout(() => {
+      setShowGreeting(false);
+      // 再等待动画完成后重置动画状态
+      setTimeout(() => {
+        setIsAnimating(false);
+      }, 300); // 等待淡出动画完成
+    }, 1000);
+  };
 
   const handleSaveCard = (updatedCard: {
     id: string;
@@ -259,12 +280,31 @@ export default function Home({ websites, setWebsites }: HomeProps) {
       {/* 用户信息显示 - 仅在邮箱已验证时显示 */}
       {currentUser && currentUser.emailVerified && (
         <div className="fixed top-4 right-4 z-40">
-          <div className="bg-white/20 backdrop-blur-sm rounded-lg px-3 py-2 flex items-center space-x-2">
+          <button
+            onClick={handleUserNameClick}
+            className="bg-white/20 backdrop-blur-sm rounded-lg px-3 py-2 flex items-center space-x-2 hover:bg-white/30 transition-colors cursor-pointer"
+          >
             <i className="fa-solid fa-user text-white/80"></i>
             <span className="text-white/90 text-sm font-medium">
               {displayName}
             </span>
-          </div>
+          </button>
+          
+          {/* 问候语气泡 */}
+          {showGreeting && (
+            <div className={`absolute top-full right-0 mt-2 bg-white/95 backdrop-blur-sm rounded-lg px-4 py-3 shadow-lg border border-white/20 transition-opacity duration-300 ${showGreeting ? 'opacity-100' : 'opacity-0'}`}>
+              <p className="text-gray-800 text-sm font-medium whitespace-nowrap">
+                {clickCount >= 10 ? (
+                  <>
+                    <span className="text-red-500">😠</span> 别点啦！
+                  </>
+                ) : (
+                  `你好鸭，"${displayName}"，今天也要开心哦！`
+                )}
+              </p>
+              <div className="absolute -top-2 right-4 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-white/95"></div>
+            </div>
+          )}
         </div>
       )}
 

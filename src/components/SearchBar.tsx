@@ -7,6 +7,28 @@ interface SearchBarProps {
 }
 
 export function SearchBar(_props: SearchBarProps = {}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  // 全局监听空格键，未聚焦输入框时聚焦搜索框
+  useEffect(() => {
+    const handleSpaceFocus = (e: KeyboardEvent) => {
+      // 只处理空格键
+      if (e.code === 'Space' || e.key === ' ' || e.keyCode === 32) {
+        // 判断当前聚焦元素是否是输入框/textarea/可编辑内容
+        const active = document.activeElement;
+        const isInput = active && (
+          active.tagName === 'INPUT' ||
+          active.tagName === 'TEXTAREA' ||
+          (active as HTMLElement).isContentEditable
+        );
+        if (!isInput && inputRef.current) {
+          e.preventDefault(); // 阻止页面滚动
+          inputRef.current.focus();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleSpaceFocus, { capture: true });
+    return () => window.removeEventListener('keydown', handleSpaceFocus, { capture: true } as any);
+  }, []);
   const [searchQuery, setSearchQuery] = useState('');
   const [isHovered, setIsHovered] = useState(false);
   const [engine, setEngine] = useState<'bing' | 'google'>('bing');
@@ -500,6 +522,7 @@ export function SearchBar(_props: SearchBarProps = {}) {
             <span className="mx-2 text-white/30 select-none font-normal text-base z-10">|</span>
             <span className="text-white/60 select-none font-normal text-base z-10"></span>
             <input
+              ref={inputRef}
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}

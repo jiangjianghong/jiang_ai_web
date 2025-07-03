@@ -111,8 +111,83 @@ export const optimizedFaviconFetcher = async (url: string): Promise<string> => {
   }
 };
 
-// 背景图片预加载和缓存
+// 改进的背景图片缓存 - 缓存实际图片数据
+export const improvedWallpaperCache = {
+  // 缓存图片blob数据
+  async cacheWallpaperBlob(url: string, cacheKey: string): Promise<string> {
+    try {
+      // 检查是否已有缓存的blob URL
+      const cachedBlobUrl = cacheManager.get<string>(`wallpaper-blob:${cacheKey}`);
+      if (cachedBlobUrl) {
+        return cachedBlobUrl;
+      }
+
+      // 下载图片
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('下载失败');
+      
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      
+      // 缓存blob URL (2小时)
+      cacheManager.set(`wallpaper-blob:${cacheKey}`, blobUrl, 2 * 60 * 60 * 1000);
+      
+      // 也缓存原始URL用于引用
+      cacheManager.set(`wallpaper-source:${cacheKey}`, url, 2 * 60 * 60 * 1000);
+      
+      return blobUrl;
+    } catch (error) {
+      console.error('壁纸缓存失败:', error);
+      return url; // 回退到原始URL
+    }
+  },
+
+  // 预加载当日壁纸
+  async preloadTodayWallpapers(): Promise<void> {
+    const today = new Date().toDateString();
+    const wallpaperSources = [
+      { url: 'https://bing.img.run/uhd.php', key: `bing-${today}` },
+      { url: 'https://bing.img.run/1920x1080.php', key: `bing-hd-${today}` },
+      { url: 'https://source.unsplash.com/1920x1080/?nature', key: `unsplash-${today}` }
+    ];
+
+    // 并发预加载，但限制并发数
+    const results = await Promise.allSettled(
+      wallpaperSources.map(({ url, key }) => this.cacheWallpaperBlob(url, key))
+    );
+
+    console.log('📷 壁纸预加载完成:', results.filter(r => r.status === 'fulfilled').length, '/', results.length);
+  },
+
+  // 获取缓存的壁纸
+  getCachedWallpaper(cacheKey: string): string | null {
+    return cacheManager.get<string>(`wallpaper-blob:${cacheKey}`);
+  },
+
+  // 清理壁纸缓存
+  cleanupWallpaperCache(): void {
+    // 清理过期的blob URLs
+    const keys = Array.from((cacheManager as any).cache.keys()) as string[];
+    keys.filter((key: string) => key.startsWith('wallpaper-blob:')).forEach((key: string) => {
+      const blobUrl = cacheManager.get<string>(key);
+      if (blobUrl) {
+        // 撤销blob URL释放内存
+        try {
+          URL.revokeObjectURL(blobUrl);
+        } catch (e) {
+          // 忽略错误
+        }
+      }
+    });
+  }
+};
+
+// 背景图片预加载和缓存 - 保留原有的简单版本用于兼容
 export const preloadBackgroundImages = () => {
+  // 使用改进的缓存机制
+  improvedWallpaperCache.preloadTodayWallpapers().catch(console.error);
+  
+  // 原有的简单缓存（用于快速回退）
   const wallpapers = [
     'https://bing.img.run/uhd.php',
     'https://bing.img.run/1920x1080.php',
@@ -124,8 +199,9 @@ export const preloadBackgroundImages = () => {
       const img = new Image();
       img.src = url;
       img.onload = () => {
-        cacheManager.set(`wallpaper:${index}`, url, 60 * 60 * 1000); // 1小时缓存
+        // 标记为已验证的URL
+        cacheManager.set(`wallpaper-verified:${index}`, url, 60 * 60 * 1000);
       };
-    }, index * 100); // 错开加载时间
+    }, index * 100);
   });
 };

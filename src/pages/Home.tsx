@@ -34,6 +34,82 @@ export default function Home({ websites, setWebsites }: HomeProps) {
   const [clickCount, setClickCount] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
 
+  // 组件挂载时立即检查缓存，提供即时加载体验
+  useEffect(() => {
+    const getTodayKey = () => {
+      const today = new Date();
+      return today.toISOString().split('T')[0];
+    };
+
+    const getCacheKey = () => `wallpaper-${wallpaperResolution}-${getTodayKey()}`;
+
+    const getCachedWallpaper = () => {
+      try {
+        const cacheKey = getCacheKey();
+        const cached = localStorage.getItem(cacheKey);
+        if (cached) {
+          const { url, timestamp } = JSON.parse(cached);
+          const now = Date.now();
+          const oneDay = 24 * 60 * 60 * 1000;
+          if (now - timestamp < oneDay && url) {
+            return url;
+          }
+        }
+      } catch (error) {
+        console.warn('读取壁纸缓存失败:', error);
+      }
+      return null;
+    };
+    
+    const cachedUrl = getCachedWallpaper();
+    if (cachedUrl) {
+      setBgImage(cachedUrl);
+      setBgImageLoaded(true);
+      console.log('⚡ 即时加载缓存壁纸');
+    }
+  }, []); // 只在组件挂载时执行一次
+
+  // 壁纸预加载机制 - 简化版本
+  useEffect(() => {
+    // 在组件挂载后延迟预加载壁纸，避免阻塞首屏渲染
+    const preloadTimer = setTimeout(() => {
+      const getTodayKey = () => {
+        const today = new Date();
+        return today.toISOString().split('T')[0];
+      };
+
+      const getCacheKey = (resolution: string) => `wallpaper-${resolution}-${getTodayKey()}`;
+
+      const getCachedWallpaper = (resolution: string) => {
+        try {
+          const cacheKey = getCacheKey(resolution);
+          const cached = localStorage.getItem(cacheKey);
+          if (cached) {
+            const { url, timestamp } = JSON.parse(cached);
+            const now = Date.now();
+            const oneDay = 24 * 60 * 60 * 1000;
+            if (now - timestamp < oneDay && url) {
+              return url;
+            }
+          }
+        } catch (error) {
+          console.warn('读取缓存失败:', error);
+        }
+        return null;
+      };
+
+      // 检查当前分辨率是否有缓存
+      const cachedUrl = getCachedWallpaper(wallpaperResolution);
+      if (!cachedUrl) {
+        console.log('🚀 当前分辨率无缓存，将在正常加载时获取');
+      } else {
+        console.log('✅ 当前分辨率已有缓存');
+      }
+    }, 300);
+
+    return () => clearTimeout(preloadTimer);
+  }, [wallpaperResolution]);
+
   // 根据访问次数自动排序卡片
   const sortedWebsites = [...websites].sort((a, b) => {
     // 首先按访问次数降序排序
@@ -109,31 +185,49 @@ export default function Home({ websites, setWebsites }: HomeProps) {
   };
 
   useEffect(() => {
-    // 根据分辨率设置获取对应的壁纸URL - 与设置页面完全对应
+    // 根据分辨率设置获取对应的壁纸URL
     const getWallpaperUrl = (resolution: string) => {
       const wallpapers = {
-        '4k': 'https://bing.img.run/uhd.php',        // UHD超高清原图
-        '1080p': 'https://bing.img.run/1920x1080.php', // 1080P高清
-        '720p': 'https://bing.img.run/1366x768.php',   // 普清 (1366x768)
-        'mobile': 'https://bing.img.run/m.php'         // 手机版1080P高清
+        '4k': 'https://bing.img.run/uhd.php',
+        '1080p': 'https://bing.img.run/1920x1080.php',
+        '720p': 'https://bing.img.run/1366x768.php',
+        'mobile': 'https://bing.img.run/m.php'
       };
       return wallpapers[resolution as keyof typeof wallpapers];
     };
 
-    // 获取今天的日期字符串（格式：YYYY-MM-DD）
+    // 备用壁纸URLs（用于localhost开发环境）
+    const getFallbackWallpaperUrl = () => {
+      // 使用无跨域限制的备用壁纸
+      const fallbackWallpapers = [
+        'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&h=1080&fit=crop',
+        'https://images.unsplash.com/photo-1519904981063-b0cf448d479e?w=1920&h=1080&fit=crop',
+        'https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=1920&h=1080&fit=crop'
+      ];
+      const today = new Date().getDate();
+      return fallbackWallpapers[today % fallbackWallpapers.length];
+    };
+
+    // 获取今天的日期字符串
     const getTodayKey = () => {
       const today = new Date();
       return today.toISOString().split('T')[0];
     };
 
+    // 生成缓存键
+    const getCacheKey = () => `wallpaper-${wallpaperResolution}-${getTodayKey()}`;
+
     // 从缓存中获取今天的壁纸
     const getCachedWallpaper = () => {
       try {
-        const cached = localStorage.getItem('bing-wallpaper-cache');
+        const cacheKey = getCacheKey();
+        const cached = localStorage.getItem(cacheKey);
         if (cached) {
-          const { date, url, resolution } = JSON.parse(cached);
-          // 如果是今天的缓存且分辨率匹配，返回缓存的URL
-          if (date === getTodayKey() && resolution === wallpaperResolution) {
+          const { url, timestamp } = JSON.parse(cached);
+          // 检查缓存是否在24小时内有效
+          const now = Date.now();
+          const oneDay = 24 * 60 * 60 * 1000;
+          if (now - timestamp < oneDay && url) {
             return url;
           }
         }
@@ -144,51 +238,79 @@ export default function Home({ websites, setWebsites }: HomeProps) {
     };
 
     // 缓存壁纸URL
-    const cacheWallpaper = (url: string) => {
+    const cacheWallpaper = (imageUrl: string) => {
       try {
+        const cacheKey = getCacheKey();
         const cacheData = {
-          date: getTodayKey(),
-          url: url,
+          url: imageUrl,
+          timestamp: Date.now(),
           resolution: wallpaperResolution
         };
-        localStorage.setItem('bing-wallpaper-cache', JSON.stringify(cacheData));
+        localStorage.setItem(cacheKey, JSON.stringify(cacheData));
+        console.log('✅ 壁纸已缓存');
       } catch (error) {
         console.warn('缓存壁纸失败:', error);
       }
     };
 
-    const loadWallpaper = (url: string) => {
+    const loadWallpaper = (apiUrl: string, isFallback = false) => {
+      console.log('🖼️ 加载壁纸，分辨率:', wallpaperResolution, isFallback ? '(备用)' : '');
       setBgImageLoaded(false);
       
       const img = new Image();
+      // 只有在主要API时才设置crossOrigin
+      if (!isFallback) {
+        img.crossOrigin = 'anonymous';
+      }
+      
+      // 超时处理
+      const timeout = setTimeout(() => {
+        img.onload = null;
+        img.onerror = null;
+        console.warn('⏰ 壁纸加载超时，使用占位背景');
+        setBgImage('');
+        setBgImageLoaded(true);
+      }, 8000); // 8秒超时
+      
       img.onload = () => {
+        clearTimeout(timeout);
         setBgImage(img.src);
         setBgImageLoaded(true);
-        cacheWallpaper(img.src);
+        cacheWallpaper(img.src); // 缓存实际的图片URL（重定向后的最终URL）
+        console.log('✅ 壁纸加载完成');
       };
       
       img.onerror = () => {
-        console.warn('Bing壁纸加载失败:', url);
-        setBgImage('');
-        setBgImageLoaded(true);
+        clearTimeout(timeout);
+        
+        // 如果是主要API失败，尝试备用壁纸
+        if (!isFallback) {
+          console.warn('❌ 主要壁纸API失败，尝试备用壁纸');
+          const fallbackUrl = getFallbackWallpaperUrl();
+          loadWallpaper(fallbackUrl, true);
+        } else {
+          console.warn('❌ 备用壁纸也失败，使用占位背景');
+          setBgImage('');
+          setBgImageLoaded(true);
+        }
       };
       
-      img.src = url;
+      img.src = apiUrl;
     };
 
-    // 直接加载对应分辨率的Bing壁纸
-    const wallpaperUrl = getWallpaperUrl(wallpaperResolution);
-    
-    // 检查缓存
+    // 检查缓存，如果有效就直接使用
     const cachedUrl = getCachedWallpaper();
-    if (cachedUrl && cachedUrl === wallpaperUrl) {
-      // 静默使用缓存
+    if (cachedUrl) {
+      console.log('📦 使用缓存壁纸');
       setBgImage(cachedUrl);
       setBgImageLoaded(true);
     } else {
+      // 没有缓存，加载新壁纸
+      const wallpaperUrl = getWallpaperUrl(wallpaperResolution);
+      console.log('🌐 加载新壁纸:', wallpaperUrl);
       loadWallpaper(wallpaperUrl);
     }
-  }, [wallpaperResolution]); // 依赖wallpaperResolution，当分辨率改变时重新加载
+  }, [wallpaperResolution]);
 
   // 监听鼠标移动 - 根据视差开关决定是否启用
   useEffect(() => {
@@ -234,25 +356,37 @@ export default function Home({ websites, setWebsites }: HomeProps) {
       <div 
         className="fixed top-0 left-0 w-full h-full -z-10"
         style={{ 
-          backgroundImage: bgImage ? `linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1)), url(${bgImage})` : 'none',
+          backgroundImage: bgImage ? `url(${bgImage})` : 'none',
           backgroundSize: 'cover',
           backgroundPosition: 'center center',
           backgroundRepeat: 'no-repeat',
           transform: calculateParallaxTransform(),
-          transition: 'transform 0.1s ease-out, opacity 0.3s ease-in-out',
+          transition: 'transform 0.1s ease-out, filter 1.2s ease-out',
           opacity: bgImageLoaded && bgImage ? 1 : 0,
-          backgroundColor: 'transparent' // 确保没有背景色
+          backgroundColor: '#1e293b', // 更深的占位背景色（slate-800）
+          filter: bgImageLoaded && bgImage ? 'brightness(1)' : 'brightness(0.3)' // "天亮了"效果：从暗到亮
         }}
       />
       
-      {/* 壁纸加载指示器 */}
-      {!bgImageLoaded && (
-        <div className="fixed top-0 left-0 w-full h-full -z-5 bg-black/20 backdrop-blur-sm flex items-center justify-center">
-          <div className="bg-white/20 backdrop-blur-sm rounded-lg px-6 py-3">
-            <div className="text-white text-lg font-medium flex items-center space-x-3">
-              <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
-              <span>加载壁纸中...</span>
-            </div>
+      {/* 天亮渐变遮罩层 - 营造"黎明"效果 */}
+      {bgImage && (
+        <div 
+          className="fixed top-0 left-0 w-full h-full -z-9"
+          style={{
+            background: 'linear-gradient(to bottom, rgba(30, 41, 59, 0.7) 0%, rgba(30, 41, 59, 0.3) 50%, rgba(30, 41, 59, 0.1) 100%)',
+            opacity: bgImageLoaded ? 0 : 1,
+            transition: 'opacity 1.5s ease-out',
+            pointerEvents: 'none'
+          }}
+        />
+      )}
+      
+      {/* 壁纸加载指示器 - 简化版本 */}
+      {!bgImageLoaded && bgImage && (
+        <div className="fixed top-4 left-4 z-40 bg-black/30 backdrop-blur-sm rounded-lg px-4 py-2">
+          <div className="text-white/90 text-sm font-medium flex items-center space-x-2">
+            <div className="animate-pulse rounded-full h-2 w-2 bg-white/70"></div>
+            <span>壁纸加载中</span>
           </div>
         </div>
       )}

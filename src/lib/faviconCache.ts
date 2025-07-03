@@ -1,6 +1,6 @@
 /**
- * Favicon 缓存管理工具
- * 提供 favicon 的缓存、预加载和错误处理功能
+ * Favicon 缓存管理工具（简化版）
+ * 提供简单可靠的 favicon 缓存功能
  */
 
 interface FaviconCacheItem {
@@ -15,7 +15,7 @@ interface FaviconCacheStorage {
 }
 
 class FaviconCacheManager {
-  private cacheKey = 'favicon-cache-v1';
+  private cacheKey = 'favicon-cache-simple';
   private defaultExpiry = 7 * 24 * 60 * 60 * 1000; // 7天缓存
   private cache: FaviconCacheStorage = {};
   private loadingPromises: Map<string, Promise<string>> = new Map();
@@ -32,7 +32,6 @@ class FaviconCacheManager {
       const cached = localStorage.getItem(this.cacheKey);
       if (cached) {
         this.cache = JSON.parse(cached);
-        // 清理过期缓存
         this.cleanExpiredCache();
       }
     } catch (error) {
@@ -86,21 +85,21 @@ class FaviconCacheManager {
   }
 
   /**
-   * 获取 favicon 的备用 URL 列表
+   * 获取 favicon 的备用 URL 列表（简化版）
    */
   private getFaviconUrls(originalUrl: string, domain: string): string[] {
     return [
       originalUrl, // 原始 URL
-      `https://www.google.com/s2/favicons?domain=${domain}&sz=128`,
-      `https://favicon.yandex.net/favicon/v2/${domain}?size=120`,
-      `https://${domain}/apple-touch-icon.png`,
+      `https://www.google.com/s2/favicons?domain=${domain}&sz=64`,
+      `https://www.google.com/s2/favicons?domain=${domain}&sz=32`,
       `https://icons.duckduckgo.com/ip3/${domain}.ico`,
-      `https://${domain}/favicon.ico`
+      `https://${domain}/favicon.ico`,
+      '/icon/icon.jpg' // 默认兜底图标
     ];
   }
 
   /**
-   * 尝试加载 favicon
+   * 尝试加载 favicon（简化版）
    */
   private async tryLoadFavicon(urls: string[]): Promise<string> {
     for (const url of urls) {
@@ -110,15 +109,19 @@ class FaviconCacheManager {
           img.onload = () => resolve();
           img.onerror = () => reject();
           img.src = url;
+          // 2秒超时
+          setTimeout(() => reject(), 2000);
         });
-        return url; // 成功加载
+        console.log(`✅ Favicon 加载成功: ${url}`);
+        return url;
       } catch {
-        continue; // 继续尝试下一个 URL
+        console.log(`❌ Favicon 加载失败: ${url}`);
+        continue;
       }
     }
     
-    // 所有 URL 都失败，返回最后一个作为兜底
-    return urls[urls.length - 1];
+    // 返回默认图标
+    return '/icon/icon.jpg';
   }
 
   /**
@@ -136,7 +139,7 @@ class FaviconCacheManager {
   }
 
   /**
-   * 异步获取 favicon URL（带缓存）
+   * 异步获取 favicon URL（简化版）
    */
   async getFavicon(originalUrl: string, faviconUrl: string): Promise<string> {
     const domain = this.extractDomain(originalUrl);
@@ -165,7 +168,7 @@ class FaviconCacheManager {
   }
 
   /**
-   * 加载 favicon 并缓存
+   * 加载 favicon 并缓存（简化版）
    */
   private async loadFavicon(originalUrl: string, faviconUrl: string, domain: string): Promise<string> {
     const urls = this.getFaviconUrls(faviconUrl, domain);
@@ -185,27 +188,83 @@ class FaviconCacheManager {
       return workingUrl;
     } catch (error) {
       console.warn(`获取 favicon 失败: ${domain}`, error);
-      // 返回第一个 URL 作为兜底
-      return urls[0];
+      // 返回默认图标
+      return '/icon/icon.jpg';
     }
   }
 
   /**
-   * 批量预加载 favicon
+   * 增强的获取 favicon 方法（简化版）
    */
-  async preloadFavicons(websites: Array<{ url: string; favicon: string }>): Promise<void> {
-    const uncachedSites = websites.filter(site => !this.getCachedFavicon(site.url));
-    
-    if (uncachedSites.length === 0) return;
+  async getFaviconWithIndexedDB(originalUrl: string, faviconUrl: string): Promise<string> {
+    // 直接使用简化版的获取方法
+    return this.getFavicon(originalUrl, faviconUrl);
+  }
 
-    // 分批加载，避免同时发起太多请求
-    const batchSize = 5;
-    for (let i = 0; i < uncachedSites.length; i += batchSize) {
-      const batch = uncachedSites.slice(i, i + batchSize);
-      await Promise.allSettled(
-        batch.map(site => this.getFavicon(site.url, site.favicon))
-      );
+  /**
+   * 混合缓存策略（简化版）
+   */
+  async getFaviconWithHybridCache(originalUrl: string, faviconUrl: string): Promise<string> {
+    // 直接使用简化版的获取方法
+    return this.getFavicon(originalUrl, faviconUrl);
+  }
+
+  /**
+   * 批量缓存 favicon（简化版）
+   */
+  async batchCacheFaviconsToIndexedDB(websites: Array<{ url: string; favicon: string }>): Promise<void> {
+    console.log(`🚀 开始简单批量缓存 ${websites.length} 个 favicon`);
+    
+    let successCount = 0;
+    let skipCount = 0;
+    let errorCount = 0;
+    
+    const BATCH_SIZE = 2;
+    
+    for (let i = 0; i < websites.length; i += BATCH_SIZE) {
+      const batch = websites.slice(i, i + BATCH_SIZE);
+      
+      const promises = batch.map(async (site, index) => {
+        const domain = this.extractDomain(site.url);
+        
+        try {
+          // 检查是否已缓存
+          const cached = this.getCachedFavicon(site.url);
+          if (cached) {
+            skipCount++;
+            return;
+          }
+          
+          // 添加延迟
+          const delay = (index + 1) * 500;
+          await new Promise(resolve => setTimeout(resolve, delay));
+          
+          console.log(`🔄 [${i + index + 1}/${websites.length}] 处理: ${domain}`);
+          
+          const result = await this.getFavicon(site.url, site.favicon);
+          if (result) {
+            successCount++;
+            console.log(`✅ 缓存成功: ${domain}`);
+          } else {
+            errorCount++;
+          }
+          
+        } catch (error) {
+          errorCount++;
+          console.warn(`❌ 批量缓存失败: ${domain}`, error);
+        }
+      });
+      
+      await Promise.allSettled(promises);
+      
+      // 批次间停顿
+      if (i + BATCH_SIZE < websites.length) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
     }
+    
+    console.log(`✅ 简单批量 favicon 缓存完成:`);
+    console.log(`   成功: ${successCount}, 跳过: ${skipCount}, 失败: ${errorCount}`);
   }
 
   /**
@@ -214,6 +273,7 @@ class FaviconCacheManager {
   clearCache(): void {
     this.cache = {};
     this.loadingPromises.clear();
+    
     try {
       localStorage.removeItem(this.cacheKey);
     } catch (error) {

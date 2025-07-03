@@ -11,6 +11,7 @@ import { useAutoSync } from '@/hooks/useAutoSync';
 import Settings from '@/pages/Settings';
 import EmailVerificationBanner from '@/components/EmailVerificationBanner';
 import { faviconCache } from '@/lib/faviconCache';
+import { improvedWallpaperCache } from '@/lib/cacheManager';
 import { useRAFThrottledMouseMove } from '@/hooks/useRAFThrottle';
 
 interface HomeProps {
@@ -224,11 +225,25 @@ export default function Home({ websites, setWebsites }: HomeProps) {
 
     // 生成缓存键
     const getCacheKey = () => `wallpaper-${wallpaperResolution}-${getTodayKey()}`;
+    const getBlobCacheKey = () => `blob-${wallpaperResolution}-${getTodayKey()}`;
 
-    // 从缓存中获取今天的壁纸
-    const getCachedWallpaper = () => {
+    // 混合缓存策略：优先检查高级Blob缓存，然后检查URL缓存
+    const getCachedWallpaper = async () => {
       try {
+        // 1. 首先检查高级Blob缓存（IndexedDB）
+        const blobCacheKey = getBlobCacheKey();
+        console.log('🔍 检查Blob缓存键:', blobCacheKey);
+        
+        const cachedBlobUrl = await improvedWallpaperCache.getCachedWallpaper(blobCacheKey);
+        console.log('🔍 Blob缓存结果:', cachedBlobUrl ? '找到' : '未找到');
+        if (cachedBlobUrl) {
+          console.log('⚡ 使用高级Blob缓存');
+          return { url: cachedBlobUrl, type: 'blob' };
+        }
+
+        // 2. 回退到URL缓存
         const cacheKey = getCacheKey();
+        console.log('🔍 检查URL缓存键:', cacheKey);
         const cached = localStorage.getItem(cacheKey);
         if (cached) {
           const { url, timestamp } = JSON.parse(cached);
@@ -236,7 +251,8 @@ export default function Home({ websites, setWebsites }: HomeProps) {
           const now = Date.now();
           const oneDay = 24 * 60 * 60 * 1000;
           if (now - timestamp < oneDay && url) {
-            return url;
+            console.log('📦 使用URL缓存');
+            return { url, type: 'url' };
           }
         }
       } catch (error) {
@@ -245,9 +261,10 @@ export default function Home({ websites, setWebsites }: HomeProps) {
       return null;
     };
 
-    // 缓存壁纸URL
-    const cacheWallpaper = (imageUrl: string) => {
+    // 智能缓存壁纸：同时缓存URL和Blob
+    const cacheWallpaper = async (imageUrl: string) => {
       try {
+        // 1. 缓存URL（快速回退方案）
         const cacheKey = getCacheKey();
         const cacheData = {
           url: imageUrl,
@@ -255,6 +272,20 @@ export default function Home({ websites, setWebsites }: HomeProps) {
           resolution: wallpaperResolution
         };
         localStorage.setItem(cacheKey, JSON.stringify(cacheData));
+        console.log('✅ URL缓存完成');
+        
+        // 2. 异步缓存Blob（性能增强方案）
+        const blobCacheKey = getBlobCacheKey();
+        console.log('🚀 开始异步创建Blob缓存...');
+        improvedWallpaperCache.cacheWallpaperBlob(imageUrl, blobCacheKey)
+          .then((blobUrl) => {
+            console.log('✅ 壁纸Blob已缓存，下次访问将瞬间加载');
+            console.log('🎯 Blob URL:', blobUrl);
+          })
+          .catch(error => {
+            console.warn('❌ Blob缓存失败，但URL缓存仍可用:', error);
+          });
+
         console.log('✅ 壁纸已缓存');
       } catch (error) {
         console.warn('缓存壁纸失败:', error);
@@ -288,7 +319,7 @@ export default function Home({ websites, setWebsites }: HomeProps) {
         clearTimeout(timeout);
         setBgImage(img.src);
         setBgImageLoaded(true);
-        cacheWallpaper(img.src); // 缓存实际的图片URL（重定向后的最终URL）
+        cacheWallpaper(img.src); // 智能缓存实际的图片URL
         console.log('✅ 壁纸加载完成:', img.src);
       };
       
@@ -311,17 +342,38 @@ export default function Home({ websites, setWebsites }: HomeProps) {
     };
 
     // 检查缓存，如果有效就直接使用
-    const cachedUrl = getCachedWallpaper();
-    if (cachedUrl) {
-      console.log('📦 使用缓存壁纸:', cachedUrl);
-      setBgImage(cachedUrl);
-      setBgImageLoaded(true);
-    } else {
-      // 优先使用官方 Bing 壁纸 API（所有环境）
+    getCachedWallpaper().then(cached => {
+      if (cached) {
+        console.log(`📦 使用${cached.type === 'blob' ? '高级Blob' : 'URL'}缓存:`, cached.url);
+        setBgImage(cached.url);
+        setBgImageLoaded(true);
+        
+        // 如果使用的是URL缓存，异步创建Blob缓存以提升未来的加载速度
+        if (cached.type === 'url') {
+          const blobCacheKey = getBlobCacheKey();
+          console.log('🚀 异步创建Blob缓存以提升未来性能...');
+          improvedWallpaperCache.cacheWallpaperBlob(cached.url, blobCacheKey)
+            .then((blobUrl) => {
+              console.log('✅ 异步Blob缓存创建成功！下次访问将瞬间加载');
+              console.log('🎯 Blob URL:', blobUrl);
+            })
+            .catch(error => {
+              console.warn('❌ 异步Blob缓存失败:', error);
+            });
+        }
+      } else {
+        // 优先使用官方 Bing 壁纸 API（所有环境）
+        const wallpaperUrl = getWallpaperUrl(wallpaperResolution);
+        console.log('🌐 加载官方 Bing 壁纸:', wallpaperUrl);
+        loadWallpaper(wallpaperUrl);
+      }
+    }).catch(error => {
+      console.warn('检查缓存失败:', error);
+      // 如果缓存检查失败，直接加载壁纸
       const wallpaperUrl = getWallpaperUrl(wallpaperResolution);
       console.log('🌐 加载官方 Bing 壁纸:', wallpaperUrl);
       loadWallpaper(wallpaperUrl);
-    }
+    });
   }, [wallpaperResolution]);
 
   // 优化的鼠标移动处理器 - 使用 RAF 节流
@@ -348,22 +400,26 @@ export default function Home({ websites, setWebsites }: HomeProps) {
     };
   }, [parallaxEnabled, isSettingsOpen, throttledMouseMove]);
 
-  // 预加载 favicon
+  // 预加载 favicon（已移除，使用下面的 IndexedDB 批量缓存代替）
+
+  // 批量预缓存 favicon（简化版）
   useEffect(() => {
     if (websites.length > 0) {
-      // 延迟预加载，避免影响主要内容的加载
+      // 延迟执行，避免阻塞首屏渲染
       const timer = setTimeout(() => {
-        faviconCache.preloadFavicons(
-          websites.map(website => ({
-            url: website.url,
-            favicon: website.favicon
-          }))
-        );
-      }, 1000); // 1秒后开始预加载
+        console.log('🚀 开始简单批量预缓存 favicon...');
+        faviconCache.batchCacheFaviconsToIndexedDB(websites)
+          .then(() => {
+            console.log('✅ Favicon 简单批量预缓存完成');
+          })
+          .catch(error => {
+            console.warn('❌ Favicon 简单批量预缓存失败:', error);
+          });
+      }, 2000); // 2秒后开始，确保不影响首屏渲染
 
       return () => clearTimeout(timer);
     }
-  }, [websites]);
+  }, [websites]); // 当网站数据变化时触发
 
     return (
     <>
@@ -420,7 +476,7 @@ export default function Home({ websites, setWebsites }: HomeProps) {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
         >
-          {websites.map((website, idx) => (
+          {sortedWebsites.map((website, idx) => (
             <WebsiteCard
               key={website.id}
               {...website}

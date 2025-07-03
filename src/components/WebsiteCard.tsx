@@ -1,6 +1,6 @@
 
 import { motion } from 'framer-motion';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 
 // ...回退，移除全局拖拽类型声明...
 import { useDrag, useDrop } from 'react-dnd';
@@ -28,7 +28,7 @@ export function WebsiteCard({ id, name, url, favicon, tags, visitCount, note, in
   const [showEditModal, setShowEditModal] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const { cardOpacity } = useTransparency();
-  const { faviconUrl } = useFavicon(url, favicon);
+  const { faviconUrl, isLoading, error } = useFavicon(url, favicon);
 
   // 长按拖拽实现
   const [canDrag, setCanDrag] = useState(false);
@@ -124,14 +124,27 @@ export function WebsiteCard({ id, name, url, favicon, tags, visitCount, note, in
         <div className="h-full flex flex-col pt-3 select-none" style={{ pointerEvents: isDragging ? 'none' : undefined }}>
           {/* 网站图标和名称区域 */}
           <div className="flex flex-col items-center px-2 select-none">
-            <div className="w-11 h-11 mb-1 rounded-md overflow-hidden select-none">
-            <img 
+            <div className="w-11 h-11 mb-1 rounded-md overflow-hidden select-none relative">
+              <img 
                 src={faviconUrl}
                 alt={`${name} favicon`} 
                 className="w-full h-full object-contain select-none"
                 loading="lazy"
                 draggable="false"
               />
+              {/* 简化的缓存状态指示器 */}
+              {isLoading && (
+                <div className="absolute top-0 right-0 w-2 h-2 bg-yellow-400 rounded-full animate-pulse" 
+                     title="加载中..."></div>
+              )}
+              {!isLoading && error && (
+                <div className="absolute top-0 right-0 w-2 h-2 bg-red-400 rounded-full" 
+                     title="加载失败"></div>
+              )}
+              {!isLoading && !error && faviconUrl !== '/icon/icon.jpg' && (
+                <div className="absolute top-0 right-0 w-2 h-2 bg-green-400 rounded-full" 
+                     title="缓存成功"></div>
+              )}
             </div>
              <h3 className="text-xs font-medium text-white text-center line-clamp-2 px-2 mt-1 select-none">{name}</h3>
            </div>

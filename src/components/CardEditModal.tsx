@@ -28,7 +28,7 @@ interface CardEditModalProps {
   onDelete?: (id: string) => void;
 }
 
-export default function CardEditModal({ id, name, url, favicon, tags, note, onClose, onSave, onDelete }: CardEditModalProps) {
+export default function CardEditModal({ id, name, url, favicon, tags: _, note, onClose, onSave, onDelete }: CardEditModalProps) {
   const [formData, setFormData] = useState({
     name,
     url,
@@ -58,10 +58,39 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
       setAutoFetching(true);
       const domain = new URL(formData.url).hostname;
       
+      // 清除该域名的 favicon 缓存，确保获取最新图标
+      const extractDomain = (url: string) => {
+        try {
+          return new URL(url).hostname.replace(/^www\./, '');
+        } catch {
+          return url.replace(/^(https?:\/\/)?(www\.)?/, '').split('/')[0];
+        }
+      };
+      
+      const cacheDomain = extractDomain(formData.url);
+      console.log('🧹 清除域名缓存:', cacheDomain);
+      
+      // 清除旧的缓存
+      try {
+        const cacheKey = 'favicon-cache-simple';
+        const cached = localStorage.getItem(cacheKey);
+        if (cached) {
+          const cacheData = JSON.parse(cached);
+          delete cacheData[cacheDomain];
+          localStorage.setItem(cacheKey, JSON.stringify(cacheData));
+        }
+      } catch (error) {
+        console.warn('清除缓存失败:', error);
+      }
+      
+      // 生成新的 favicon URL，添加时间戳确保不被缓存
+      const timestamp = Date.now();
+      const newFaviconUrl = `https://www.google.com/s2/favicons?domain=${formData.url}&sz=64&t=${timestamp}`;
+      
       // 自动获取favicon
       setFormData(prev => ({
         ...prev,
-        favicon: `https://www.google.com/s2/favicons?domain=${formData.url}`
+        favicon: newFaviconUrl
       }));
 
       // 自动获取网站名
@@ -76,6 +105,8 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
         delete newErrors.url;
         return newErrors;
       });
+      
+      console.log('✅ 自动获取完成，新图标:', newFaviconUrl);
     } catch (error) {
       console.error('自动获取信息失败:', error);
       setErrors({ url: '无法解析该网址，请检查格式是否正确' });
@@ -100,6 +131,32 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
       // 提取标签并清理备注
       const newTags = extractTags(formData.note || '');
       const cleanedNote = removeTagsFromNote(formData.note || '');
+      
+      // 如果 favicon 发生了变化，清除缓存
+      if (formData.favicon !== favicon) {
+        console.log('🔄 Favicon 已更改，清除缓存');
+        const extractDomain = (url: string) => {
+          try {
+            return new URL(url).hostname.replace(/^www\./, '');
+          } catch {
+            return url.replace(/^(https?:\/\/)?(www\.)?/, '').split('/')[0];
+          }
+        };
+        
+        const cacheDomain = extractDomain(formData.url);
+        try {
+          const cacheKey = 'favicon-cache-simple';
+          const cached = localStorage.getItem(cacheKey);
+          if (cached) {
+            const cacheData = JSON.parse(cached);
+            delete cacheData[cacheDomain];
+            localStorage.setItem(cacheKey, JSON.stringify(cacheData));
+            console.log('🧹 已清除域名缓存:', cacheDomain);
+          }
+        } catch (error) {
+          console.warn('清除缓存失败:', error);
+        }
+      }
       
       // 保存逻辑
       onSave({

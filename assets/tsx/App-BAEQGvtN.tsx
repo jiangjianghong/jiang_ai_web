@@ -44,10 +44,18 @@ function AppContent() {
     setWallpaperResolution 
   } = useTransparency();
   
-  // 优先使用轻量级初始数据，避免首屏同步读取大量存储数据
+  // 优先直接读取缓存数据，避免显示默认数据的闪烁
   const [websites, setWebsites] = useState<WebsiteData[]>(() => {
-    // 首屏只显示基础数据，避免同步读取存储
-    return mockWebsites.slice(0, 6); // 只显示前6个网站，减少首屏渲染负担
+    // 首屏直接尝试读取缓存，避免先显示默认数据导致的闪烁
+    try {
+      const saved = storage.getItem<WebsiteData[]>('websites');
+      if (saved && saved.length > 0) {
+        return saved; // 直接返回缓存的用户数据
+      }
+    } catch (error) {
+      console.warn('读取缓存数据失败，使用默认数据:', error);
+    }
+    return mockWebsites; // 只在没有缓存时才使用默认数据
   });
 
   const [showSyncModal, setShowSyncModal] = useState(false);
@@ -64,20 +72,23 @@ function AppContent() {
     return () => clearTimeout(timer);
   }, []);
 
-  // 延迟加载完整的本地数据 - 避免循环更新
+  // 延迟加载云端数据检查和其他非关键操作
   useEffect(() => {
     if (isFirstRenderComplete) {
-      const saved = storage.getItem<WebsiteData[]>('websites');
-      if (saved && saved.length > 0) {
-        // 静默加载本地数据
-        setWebsites(saved);
-      } else {
-        // 使用默认数据并保存
-        setWebsites(mockWebsites);
-        storage.setItem('websites', mockWebsites); // 立即保存避免后续循环
+      // 如果当前是默认数据，再次检查是否有缓存数据
+      // 这是为了防止存储权限问题导致初始化时读取失败
+      if (websites === mockWebsites || websites.length === mockWebsites.length) {
+        const saved = storage.getItem<WebsiteData[]>('websites');
+        if (saved && saved.length > 0 && JSON.stringify(saved) !== JSON.stringify(websites)) {
+          console.log('🔄 延迟检查发现缓存数据，更新显示');
+          setWebsites(saved);
+        } else if (!saved || saved.length === 0) {
+          // 确保有默认数据并保存
+          storage.setItem('websites', websites);
+        }
       }
     }
-  }, [isFirstRenderComplete]); // 移除 storage 依赖避免循环
+  }, [isFirstRenderComplete, storage]); // 保留 storage 依赖，但增加条件检查避免循环
 
   // 持久化到存储管理器 - 但跳过初始化阶段
   useEffect(() => {

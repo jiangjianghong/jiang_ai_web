@@ -310,15 +310,10 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
                   <button
                     key={option.value}
                     onClick={() => setWallpaperResolution(option.value as WallpaperResolution)}
-                    disabled={window.innerHeight > window.innerWidth && option.value !== 'mobile'}
-                    className={`p-3 rounded-lg border-2 transition-all text-left select-none ${
+                    className={`p-3 rounded-lg border-2 transition-all text-left select-none cursor-pointer ${
                       wallpaperResolution === option.value
                         ? 'border-blue-500 bg-blue-50 text-blue-700'
                         : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
-                    } ${
-                      window.innerHeight > window.innerWidth && option.value !== 'mobile'
-                        ? 'opacity-50 cursor-not-allowed'
-                        : 'cursor-pointer'
                     }`}
                   >
                     <div className="font-medium text-sm">{option.label}</div>
@@ -327,10 +322,7 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
                 ))}
               </div>
               <p className="text-xs text-gray-500 select-none">
-                {window.innerHeight > window.innerWidth 
-                  ? '检测到竖屏设备，已自动选择竖屏壁纸' 
-                  : '更改分辨率后会重新加载壁纸并更新缓存'
-                }
+                更改分辨率后会重新加载壁纸并更新缓存
               </p>
             </div>
           </div>

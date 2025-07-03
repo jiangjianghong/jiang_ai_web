@@ -187,6 +187,7 @@ export default function Home({ websites, setWebsites }: HomeProps) {
   useEffect(() => {
     // 根据分辨率设置获取对应的壁纸URL
     const getWallpaperUrl = (resolution: string) => {
+      // 使用官方可靠的Bing壁纸API
       const wallpapers = {
         '4k': 'https://bing.img.run/uhd.php',
         '1080p': 'https://bing.img.run/1920x1080.php',
@@ -258,7 +259,7 @@ export default function Home({ websites, setWebsites }: HomeProps) {
       setBgImageLoaded(false);
       
       const img = new Image();
-      // 只有在主要API时才设置crossOrigin
+      // 恢复 crossOrigin 设置，官方 Bing API 应该支持 CORS
       if (!isFallback) {
         img.crossOrigin = 'anonymous';
       }
@@ -267,10 +268,16 @@ export default function Home({ websites, setWebsites }: HomeProps) {
       const timeout = setTimeout(() => {
         img.onload = null;
         img.onerror = null;
-        console.warn('⏰ 壁纸加载超时，使用占位背景');
-        setBgImage('');
-        setBgImageLoaded(true);
-      }, 8000); // 8秒超时
+        console.warn('⏰ 壁纸加载超时，使用备用壁纸');
+        // 超时时使用备用壁纸而非空背景
+        if (!isFallback) {
+          const fallbackUrl = getFallbackWallpaperUrl();
+          loadWallpaper(fallbackUrl, true);
+        } else {
+          setBgImage('');
+          setBgImageLoaded(true);
+        }
+      }, 6000); // 减少到6秒超时
       
       img.onload = () => {
         clearTimeout(timeout);
@@ -298,27 +305,17 @@ export default function Home({ websites, setWebsites }: HomeProps) {
       img.src = apiUrl;
     };
 
-    // 检查环境，在localhost使用备用壁纸优先
-    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    
     // 检查缓存，如果有效就直接使用
     const cachedUrl = getCachedWallpaper();
     if (cachedUrl) {
-      console.log('📦 使用缓存壁纸');
+      console.log('📦 使用缓存壁纸:', cachedUrl);
       setBgImage(cachedUrl);
       setBgImageLoaded(true);
     } else {
-      if (isLocalhost) {
-        // 开发环境：直接使用备用壁纸，避免CORS问题
-        console.log('🏠 开发环境，使用备用壁纸');
-        const fallbackUrl = getFallbackWallpaperUrl();
-        loadWallpaper(fallbackUrl, true);
-      } else {
-        // 生产环境：使用Bing壁纸
-        const wallpaperUrl = getWallpaperUrl(wallpaperResolution);
-        console.log('🌐 生产环境，加载Bing壁纸:', wallpaperUrl);
-        loadWallpaper(wallpaperUrl);
-      }
+      // 优先使用官方 Bing 壁纸 API（所有环境）
+      const wallpaperUrl = getWallpaperUrl(wallpaperResolution);
+      console.log('🌐 加载官方 Bing 壁纸:', wallpaperUrl);
+      loadWallpaper(wallpaperUrl);
     }
   }, [wallpaperResolution]);
 

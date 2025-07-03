@@ -28,8 +28,8 @@ export function UserProfileProvider({ children }: UserProfileProviderProps) {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // 获取显示名称
-  const displayName = userProfile?.displayName || currentUser?.email?.split('@')[0] || '用户';
+  // 获取显示名称（只用云端 profile，云端没有时显示“用户”）
+  const displayName = userProfile?.displayName || '用户';
 
   // 更新显示名称
   const updateDisplayName = async (name: string): Promise<boolean> => {
@@ -75,7 +75,7 @@ export function UserProfileProvider({ children }: UserProfileProviderProps) {
           if (profile) {
             setUserProfile(profile);
           } else {
-            // 如果没有资料，创建默认资料
+            // 仅首次注册时创建 profile，之后不再 fallback
             const defaultName = currentUser.email?.split('@')[0] || '用户';
             await saveUserProfile(currentUser, defaultName);
             const newProfile = await getUserProfile(currentUser);
@@ -90,8 +90,8 @@ export function UserProfileProvider({ children }: UserProfileProviderProps) {
         setUserProfile(null);
       }
     };
-
     loadUserProfile();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser]);
 
   const value: UserProfileContextType = {

@@ -298,6 +298,9 @@ export default function Home({ websites, setWebsites }: HomeProps) {
       img.src = apiUrl;
     };
 
+    // 检查环境，在localhost使用备用壁纸优先
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    
     // 检查缓存，如果有效就直接使用
     const cachedUrl = getCachedWallpaper();
     if (cachedUrl) {
@@ -305,10 +308,17 @@ export default function Home({ websites, setWebsites }: HomeProps) {
       setBgImage(cachedUrl);
       setBgImageLoaded(true);
     } else {
-      // 没有缓存，加载新壁纸
-      const wallpaperUrl = getWallpaperUrl(wallpaperResolution);
-      console.log('🌐 加载新壁纸:', wallpaperUrl);
-      loadWallpaper(wallpaperUrl);
+      if (isLocalhost) {
+        // 开发环境：直接使用备用壁纸，避免CORS问题
+        console.log('🏠 开发环境，使用备用壁纸');
+        const fallbackUrl = getFallbackWallpaperUrl();
+        loadWallpaper(fallbackUrl, true);
+      } else {
+        // 生产环境：使用Bing壁纸
+        const wallpaperUrl = getWallpaperUrl(wallpaperResolution);
+        console.log('🌐 生产环境，加载Bing壁纸:', wallpaperUrl);
+        loadWallpaper(wallpaperUrl);
+      }
     }
   }, [wallpaperResolution]);
 

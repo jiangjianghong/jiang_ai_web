@@ -12,7 +12,7 @@ export function useResourcePreloader(enabled: boolean = true) {
       return;
     }
 
-    console.log('🚀 开始预加载资源...');
+    // 静默开始预加载资源
     // 预加载 FontAwesome 字体
     const fontAwesomeUrls = [
       'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/webfonts/fa-solid-900.woff2',

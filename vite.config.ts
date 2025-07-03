@@ -75,6 +75,11 @@ export default defineConfig({
   
   // 开发服务器配置
   server: {
+    // WebSocket HMR 配置
+    hmr: {
+      port: 3001, // 使用不同端口避免冲突
+      host: 'localhost'
+    },
     // 设置正确的MIME类型和缓存头
     headers: {
       'X-Content-Type-Options': 'nosniff',

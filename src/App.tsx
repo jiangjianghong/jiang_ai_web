@@ -112,7 +112,7 @@ function AppContent() {
     if (!shouldEnableCloudSync) return;
     
     if (currentUser && currentUser.emailVerified && cloudSettings) {
-      console.log('🎨 应用云端设置:', cloudSettings);
+      // 静默应用云端设置
       
       // 应用各种设置
       if (typeof cloudSettings.cardOpacity === 'number') {
@@ -162,7 +162,7 @@ function AppContent() {
       }
 
       setSyncProcessed(true);
-      console.log(`✅ 数据同步完成 (${choice}):`, finalData.length, '个网站');
+      // 静默记录同步完成
     } catch (error) {
       console.error('❌ 数据同步失败:', error);
     }

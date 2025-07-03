@@ -8,8 +8,7 @@ import "./index.css";
 const isLocalhost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
 const basename = isLocalhost ? undefined : "/jiang_ai_web";
 
-console.log('🚀 main.tsx 开始执行');
-console.log('🌐 当前环境:', { isLocalhost, basename });
+// 简化日志输出
 
 // 错误边界处理
 const ErrorFallback = ({ error }: { error: Error }) => (
@@ -44,18 +43,14 @@ const ErrorFallback = ({ error }: { error: Error }) => (
 );
 
 try {
-  console.log('🎯 获取root元素');
   const rootElement = document.getElementById("root");
   
   if (!rootElement) {
     throw new Error('无法找到id为"root"的元素');
   }
   
-  console.log('✅ root元素找到，创建React根');
   const root = createRoot(rootElement);
 
-  console.log('🎯 开始渲染React应用');
-  
   // 渲染应用
   root.render(
     <StrictMode>
@@ -65,8 +60,6 @@ try {
       </BrowserRouter>
     </StrictMode>
   );
-
-  console.log('✅ React应用渲染完成');
 
 } catch (error) {
   console.error('❌ React应用初始化失败:', error);

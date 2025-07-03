@@ -158,12 +158,10 @@ export default function Home({ websites, setWebsites }: HomeProps) {
     };
 
     const loadWallpaper = (url: string) => {
-      console.log('加载Bing壁纸:', url);
       setBgImageLoaded(false);
       
       const img = new Image();
       img.onload = () => {
-        console.log('Bing壁纸加载成功:', img.src);
         setBgImage(img.src);
         setBgImageLoaded(true);
         cacheWallpaper(img.src);
@@ -180,12 +178,11 @@ export default function Home({ websites, setWebsites }: HomeProps) {
 
     // 直接加载对应分辨率的Bing壁纸
     const wallpaperUrl = getWallpaperUrl(wallpaperResolution);
-    console.log('当前分辨率设置:', wallpaperResolution, '对应URL:', wallpaperUrl);
     
     // 检查缓存
     const cachedUrl = getCachedWallpaper();
     if (cachedUrl && cachedUrl === wallpaperUrl) {
-      console.log('使用缓存的壁纸:', cachedUrl);
+      // 静默使用缓存
       setBgImage(cachedUrl);
       setBgImageLoaded(true);
     } else {

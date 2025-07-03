@@ -93,7 +93,10 @@ export function useAutoSync(websites: WebsiteData[]) {
 
     // 简化日志，避免频繁输出
     if (process.env.NODE_ENV === 'development') {
-      console.log('🔄 检测到数据变化，更新同步策略');
+      // 只在数据真正变化时输出日志，避免噪音
+      if (lastSyncDataRef.current !== '') {
+        console.log('🔄 检测到数据变化，更新同步策略');
+      }
     }
     const now = Date.now();
     

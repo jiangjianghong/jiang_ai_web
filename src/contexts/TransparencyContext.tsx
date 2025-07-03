@@ -20,12 +20,16 @@ const TransparencyContext = createContext<TransparencyContextType | undefined>(u
 export function TransparencyProvider({ children }: { children: ReactNode }) {
   const [cardOpacity, setCardOpacity] = useState(() => {
     const saved = localStorage.getItem('cardOpacity');
-    return saved ? parseFloat(saved) : 0.1;
+    let value = saved ? parseFloat(saved) : 0.1; // 默认值设置为 0.1
+    if (value > 1) value = value / 100; // 兼容旧数据
+    return Math.max(0.05, Math.min(1, value)); // 限制范围
   });
   
   const [searchBarOpacity, setSearchBarOpacity] = useState(() => {
     const saved = localStorage.getItem('searchBarOpacity');
-    return saved ? parseFloat(saved) : 0.1;
+    let value = saved ? parseFloat(saved) : 0.1; // 默认值设置为 0.1
+    if (value > 1) value = value / 100; // 兼容旧数据
+    return Math.max(0.05, Math.min(1, value)); // 限制范围
   });
 
   const [parallaxEnabled, setParallaxEnabled] = useState(() => {

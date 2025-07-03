@@ -504,8 +504,8 @@ export function SearchBar(_props: SearchBarProps = {}) {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="输入内容..."
-              className="backdrop-blur-md border border-white/20 rounded-full pl-4 py-2 text-white placeholder-white/60 focus:outline-none focus:ring-1 focus:ring-white/30 text-base transition-all duration-200 pr-12 w-full ml-3"
+              placeholder="🧸搜点啥捏..."
+              className="backdrop-blur-md border border-white/20 rounded-full pl-4 py-2 text-white placeholder-white/60 outline-none text-base transition-all duration-200 pr-12 w-full ml-3"
               style={{
                 backgroundColor: `rgba(255, 255, 255, ${searchBarOpacity})`,
                 minWidth: '4rem',

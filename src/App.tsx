@@ -2,7 +2,6 @@ import { Routes, Route } from "react-router-dom";
 import Home from "@/pages/Home";
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { mockWebsites } from '@/lib/mockData';
 import { TransparencyProvider, useTransparency } from '@/contexts/TransparencyContext';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { SyncProvider } from '@/contexts/SyncContext';
@@ -16,15 +15,19 @@ import { usePageTitle } from '@/hooks/usePageTitle';
 import { useResourcePreloader } from '@/hooks/useResourcePreloader';
 import CookieConsent from '@/components/CookieConsent';
 import PrivacySettings from '@/components/PrivacySettings';
-import { useStorage } from '@/lib/storageManager';
+import { useWebsiteData } from '@/hooks/useWebsiteData';
+import { useStableArrayLength } from '@/hooks/useArrayComparison';
 
 // 内部应用组件，可以使用认证上下文
 function AppContent() {
   // 使用页面标题hook
   usePageTitle();
   
-  // 存储管理
-  const storage = useStorage();
+  // 使用统一的网站数据管理
+  const { 
+    websites, 
+    setWebsites
+  } = useWebsiteData();
   
   const { currentUser } = useAuth();
   
@@ -44,20 +47,6 @@ function AppContent() {
     setWallpaperResolution 
   } = useTransparency();
   
-  // 优先直接读取缓存数据，避免显示默认数据的闪烁
-  const [websites, setWebsites] = useState<WebsiteData[]>(() => {
-    // 首屏直接尝试读取缓存，避免先显示默认数据导致的闪烁
-    try {
-      const saved = storage.getItem<WebsiteData[]>('websites');
-      if (saved && saved.length > 0) {
-        return saved; // 直接返回缓存的用户数据
-      }
-    } catch (error) {
-      console.warn('读取缓存数据失败，使用默认数据:', error);
-    }
-    return mockWebsites; // 只在没有缓存时才使用默认数据
-  });
-
   const [showSyncModal, setShowSyncModal] = useState(false);
   const [syncProcessed, setSyncProcessed] = useState(false);
   const [showPrivacySettings, setShowPrivacySettings] = useState(false);
@@ -72,38 +61,16 @@ function AppContent() {
     return () => clearTimeout(timer);
   }, []);
 
-  // 延迟加载云端数据检查和其他非关键操作
-  useEffect(() => {
-    if (isFirstRenderComplete) {
-      // 如果当前是默认数据，再次检查是否有缓存数据
-      // 这是为了防止存储权限问题导致初始化时读取失败
-      if (websites === mockWebsites || websites.length === mockWebsites.length) {
-        const saved = storage.getItem<WebsiteData[]>('websites');
-        if (saved && saved.length > 0 && JSON.stringify(saved) !== JSON.stringify(websites)) {
-          console.log('🔄 延迟检查发现缓存数据，更新显示');
-          setWebsites(saved);
-        } else if (!saved || saved.length === 0) {
-          // 确保有默认数据并保存
-          storage.setItem('websites', websites);
-        }
-      }
-    }
-  }, [isFirstRenderComplete, storage]); // 保留 storage 依赖，但增加条件检查避免循环
-
-  // 持久化到存储管理器 - 但跳过初始化阶段
-  useEffect(() => {
-    if (isFirstRenderComplete) {
-      storage.setItem('websites', websites);
-    }
-  }, [websites, storage, isFirstRenderComplete]);
+  // 使用优化的数组长度比较，避免频繁重新执行
+  const stableWebsitesLength = useStableArrayLength(websites);
 
   // 检查是否需要显示数据同步对话框（延迟到云同步启用后）
   useEffect(() => {
     if (!shouldEnableCloudSync) return;
     
     if (currentUser && currentUser.emailVerified && hasCloudData && cloudWebsites && !syncProcessed) {
-      // 检查本地数据是否与云端数据不同
-      const localCount = websites.length;
+      // 优化的数组比较逻辑
+      const localCount = stableWebsitesLength;
       const cloudCount = cloudWebsites.length;
       
       if (localCount > 0 && cloudCount > 0 && localCount !== cloudCount) {
@@ -116,7 +83,7 @@ function AppContent() {
         setSyncProcessed(true);
       }
     }
-  }, [shouldEnableCloudSync, currentUser, hasCloudData, cloudWebsites, websites.length, syncProcessed]);
+  }, [shouldEnableCloudSync, currentUser, hasCloudData, cloudWebsites, stableWebsitesLength, syncProcessed, setWebsites]);
 
   // 应用云端设置（延迟到云同步启用后）
   useEffect(() => {

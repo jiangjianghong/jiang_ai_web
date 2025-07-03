@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { WebsiteCard } from '@/components/WebsiteCard';
 import { SearchBar } from '@/components/SearchBar';
 import { AnimatedCat } from '@/components/AnimatedCat';
@@ -11,6 +11,7 @@ import { useAutoSync } from '@/hooks/useAutoSync';
 import Settings from '@/pages/Settings';
 import EmailVerificationBanner from '@/components/EmailVerificationBanner';
 import { faviconCache } from '@/lib/faviconCache';
+import { useRAFThrottledMouseMove } from '@/hooks/useRAFThrottle';
 
 interface HomeProps {
   websites: any[];
@@ -317,7 +318,17 @@ export default function Home({ websites, setWebsites }: HomeProps) {
     }
   }, [wallpaperResolution]);
 
-  // 监听鼠标移动 - 根据视差开关决定是否启用
+  // 优化的鼠标移动处理器 - 使用 RAF 节流
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    setMousePosition({ x: e.clientX, y: e.clientY });
+  }, []);
+
+  const throttledMouseMove = useRAFThrottledMouseMove(
+    handleMouseMove,
+    parallaxEnabled && !isSettingsOpen
+  );
+
+  // 监听鼠标移动 - 使用 RAF 节流优化性能
   useEffect(() => {
     // 如果视差被禁用或设置页面打开，不添加鼠标监听器
     if (!parallaxEnabled || isSettingsOpen) {
@@ -325,15 +336,11 @@ export default function Home({ websites, setWebsites }: HomeProps) {
       return;
     }
 
-    const handleMouseMove = (e: MouseEvent) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
-    };
-
-    window.addEventListener('mousemove', handleMouseMove, { passive: true });
+    window.addEventListener('mousemove', throttledMouseMove, { passive: true });
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mousemove', throttledMouseMove);
     };
-  }, [parallaxEnabled, isSettingsOpen]);
+  }, [parallaxEnabled, isSettingsOpen, throttledMouseMove]);
 
   // 预加载 favicon
   useEffect(() => {

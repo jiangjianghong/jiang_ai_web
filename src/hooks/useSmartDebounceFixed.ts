@@ -57,11 +57,3 @@ export function useSmartDebounce<T extends (...args: any[]) => any>(
 
   return debouncedCallback;
 }
-
-  // 组件卸载时清理
-  useEffect(() => {
-    return cleanup;
-  }, [cleanup]);
-
-  return cleanup;
-}

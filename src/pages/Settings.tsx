@@ -6,18 +6,31 @@ import SyncStatsCards from '@/components/SyncStatsCards';
 import AuthForm from '@/components/AuthForm';
 import UserNameEditor from '@/components/UserNameEditor';
 import PrivacySettings from '@/components/PrivacySettings';
+import ConfirmModal from '@/components/ConfirmModal';
 import { useTransparency, WallpaperResolution } from '@/contexts/TransparencyContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { WebsiteData } from '@/lib/firebaseSync';
+import { useDataManager } from '@/hooks/useDataManager';
 
 interface SettingsProps {
   onClose: () => void;
-  websites: any[];
-  setWebsites: (websites: any[]) => void;
+  websites: WebsiteData[];
+  setWebsites: (websites: WebsiteData[]) => void;
 }
 
 export default function Settings({ onClose, websites, setWebsites }: SettingsProps) {
   const [showAddCardModal, setShowAddCardModal] = useState(false);
   const [showPrivacySettings, setShowPrivacySettings] = useState(false);
+  const [showImportConfirm, setShowImportConfirm] = useState(false);
+  const [pendingImportFile, setPendingImportFile] = useState<File | null>(null);
+  
+  // 使用统一的数据管理Hook
+  const { 
+    exportAllData, 
+    importAllData, 
+    isExporting, 
+    isImporting 
+  } = useDataManager(websites, setWebsites);
   const { 
     cardOpacity, 
     searchBarOpacity, 
@@ -60,39 +73,9 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
     setShowAddCardModal(false);
   };
 
-  // 导出所有用户数据
-  const exportData = () => {
-    try {
-      const allData = {
-        websites,
-        settings: {
-          cardOpacity,
-          searchBarOpacity,
-          parallaxEnabled,
-          wallpaperResolution,
-          theme: localStorage.getItem('theme') || 'light'
-        },
-        exportTime: new Date().toISOString(),
-        version: '1.0'
-      };
-
-      const dataStr = JSON.stringify(allData, null, 2);
-      const dataBlob = new Blob([dataStr], { type: 'application/json' });
-      const url = URL.createObjectURL(dataBlob);
-      
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `炫酷收藏夹_导出数据_${new Date().toISOString().split('T')[0]}.json`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-      
-      alert('数据导出成功！');
-    } catch (error) {
-      console.error('导出数据失败:', error);
-      alert('导出数据失败，请重试！');
-    }
+  // 导出所有用户数据 - 使用统一的数据管理Hook
+  const exportData = async () => {
+    await exportAllData();
   };
 
   // 导入用户数据
@@ -100,75 +83,60 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // 确认导入前的警告
-    const confirmed = confirm(
-      '⚠️ 导入数据前请注意：\n\n' +
-      '• 导入会完全覆盖当前所有数据\n' +
-      '• 包括所有网站卡片、透明度设置、主题等\n' +
-      '• 建议先导出当前数据作为备份\n\n' +
-      '确定要继续导入吗？'
-    );
-
-    if (!confirmed) {
-      // 清空 input 值，以便下次可以选择同一个文件
+    // 验证文件大小 (限制为5MB)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      alert('文件过大！请选择小于5MB的文件。');
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const content = e.target?.result as string;
-        const importedData = JSON.parse(content);
-
-        // 验证数据格式
-        if (!importedData.websites || !Array.isArray(importedData.websites)) {
-          throw new Error('无效的数据格式：缺少网站数据');
-        }
-
-        // 导入网站数据
-        setWebsites(importedData.websites);
-
-        // 导入设置数据
-        if (importedData.settings) {
-          const { 
-            cardOpacity: newCardOpacity, 
-            searchBarOpacity: newSearchBarOpacity, 
-            parallaxEnabled: newParallaxEnabled,
-            wallpaperResolution: newWallpaperResolution,
-            theme 
-          } = importedData.settings;
-          
-          if (typeof newCardOpacity === 'number') setCardOpacity(newCardOpacity);
-          if (typeof newSearchBarOpacity === 'number') setSearchBarOpacity(newSearchBarOpacity);
-          if (typeof newParallaxEnabled === 'boolean') setParallaxEnabled(newParallaxEnabled);
-          if (newWallpaperResolution && ['4k', '1080p', '720p', 'mobile'].includes(newWallpaperResolution)) {
-            setWallpaperResolution(newWallpaperResolution as WallpaperResolution);
-          }
-          if (theme) localStorage.setItem('theme', theme);
-        }
-
-        alert('数据导入成功！页面将刷新以应用新设置。');
-        // 刷新页面以确保所有设置生效
-        window.location.reload();
-      } catch (error) {
-        console.error('导入数据失败:', error);
-        alert('导入数据失败：文件格式不正确或数据损坏！');
+    // 验证文件类型
+    if (!file.type.includes('json') && !file.name.endsWith('.json')) {
+      alert('请选择JSON格式的文件！');
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
       }
-    };
+      return;
+    }
 
-    reader.onerror = () => {
-      alert('读取文件失败！');
-    };
-
-    reader.readAsText(file);
+    // 设置待导入文件并显示确认对话框
+    setPendingImportFile(file);
+    setShowImportConfirm(true);
     
     // 清空 input 值，以便下次可以选择同一个文件
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+  };
+
+  // 确认导入数据 - 使用统一的数据管理Hook
+  const confirmImportData = async () => {
+    if (!pendingImportFile || isImporting) return;
+
+    const result = await importAllData(pendingImportFile);
+    
+    if (result.success) {
+      const details = result.details;
+      let message = '数据导入成功！';
+      
+      if (details?.websitesImported) {
+        message += `导入了 ${details.websitesImported} 个网站。`;
+      }
+      if (details?.settingsApplied && details.settingsApplied.length > 0) {
+        message += `应用了设置：${details.settingsApplied.join('、')}。`;
+      }
+      message += '页面将刷新以应用新设置。';
+      
+      alert(message);
+      window.location.reload();
+    } else {
+      alert(result.message);
+    }
+    
+    setPendingImportFile(null);
   };
 
   return (
@@ -249,7 +217,7 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
               <input
                 type="range"
                 min="0.05"
-                max="0.3"
+                max="1" // 提高最大值到 1
                 step="0.01"
                 value={cardOpacity}
                 onChange={(e) => setCardOpacity(parseFloat(e.target.value))}
@@ -265,7 +233,7 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
               <input
                 type="range"
                 min="0.05"
-                max="0.3"
+                max="1" // 提高最大值到 1
                 step="0.01"
                 value={searchBarOpacity}
                 onChange={(e) => setSearchBarOpacity(parseFloat(e.target.value))}
@@ -344,16 +312,42 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
             <div className="grid grid-cols-2 gap-3 select-none">
               <button
                 onClick={exportData}
-                className="px-3 py-2 bg-green-500 hover:bg-green-600 text-white rounded-md transition-colors text-sm select-none"
+                disabled={isExporting}
+                className={`px-3 py-2 rounded-md transition-colors text-sm select-none ${
+                  isExporting 
+                    ? 'bg-gray-400 cursor-not-allowed text-white' 
+                    : 'bg-green-500 hover:bg-green-600 text-white'
+                }`}
               >
-                <i className="fa-solid fa-download mr-1 select-none"></i>导出
+                {isExporting ? (
+                  <>
+                    <i className="fa-solid fa-spinner fa-spin mr-1 select-none"></i>导出中
+                  </>
+                ) : (
+                  <>
+                    <i className="fa-solid fa-download mr-1 select-none"></i>导出
+                  </>
+                )}
               </button>
               
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="px-3 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-md transition-colors text-sm select-none"
+                disabled={isImporting}
+                className={`px-3 py-2 rounded-md transition-colors text-sm select-none ${
+                  isImporting 
+                    ? 'bg-gray-400 cursor-not-allowed text-white' 
+                    : 'bg-orange-500 hover:bg-orange-600 text-white'
+                }`}
               >
-                <i className="fa-solid fa-upload mr-1 select-none"></i>导入
+                {isImporting ? (
+                  <>
+                    <i className="fa-solid fa-spinner fa-spin mr-1 select-none"></i>导入中
+                  </>
+                ) : (
+                  <>
+                    <i className="fa-solid fa-upload mr-1 select-none"></i>导入
+                  </>
+                )}
               </button>
             </div>
             
@@ -402,6 +396,27 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
           onClose={() => setShowPrivacySettings(false)}
         />
       )}
+
+      {/* 导入确认对话框 */}
+      <ConfirmModal
+        isOpen={showImportConfirm}
+        onClose={() => {
+          setShowImportConfirm(false);
+          setPendingImportFile(null);
+        }}
+        onConfirm={confirmImportData}
+        title="确认导入数据"
+        message="⚠️ 导入数据前请注意：
+
+• 导入会完全覆盖当前所有数据
+• 包括所有网站卡片、透明度设置、主题等
+• 建议先导出当前数据作为备份
+
+确定要继续导入吗？"
+        confirmText="确定导入"
+        cancelText="取消"
+        type="warning"
+      />
     </div>
   );
 }

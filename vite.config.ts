@@ -37,6 +37,9 @@ export default defineConfig({
   
   // 构建优化配置
   build: {
+    // 复制.htaccess文件到构建目录
+    copyPublicDir: true,
+    
     // 启用文件名哈希，确保缓存失效
     rollupOptions: {
       output: {

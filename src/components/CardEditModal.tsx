@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { z } from 'zod';
+import { uploadFaviconToStorage } from '@/lib/faviconUpload';
 
 const websiteSchema = z.object({
   name: z.string().min(1, '网站名不能为空'),
@@ -37,6 +38,7 @@ export default function CardEditModal({ id, name, url, favicon, tags: _, note, o
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [autoFetching, setAutoFetching] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const extractTags = (text: string) => {
     const tagRegex = /\{([^}]+)\}/g;
@@ -115,9 +117,12 @@ export default function CardEditModal({ id, name, url, favicon, tags: _, note, o
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
     try {
+      setUploading(true);
+      
       const result = websiteSchema.safeParse(formData);
       if (!result.success) {
         const newErrors: Record<string, string> = {};
@@ -131,6 +136,22 @@ export default function CardEditModal({ id, name, url, favicon, tags: _, note, o
       // 提取标签并清理备注
       const newTags = extractTags(formData.note || '');
       const cleanedNote = removeTagsFromNote(formData.note || '');
+      
+      // 只有当图标发生变化时才上传到 Firebase Storage
+      let finalFaviconUrl = formData.favicon;
+      
+      if (formData.favicon !== favicon) {
+        console.log('🔄 图标已变更，开始上传到数据库...');
+        try {
+          finalFaviconUrl = await uploadFaviconToStorage(formData.favicon, id);
+          console.log('✅ 图标上传完成:', finalFaviconUrl);
+        } catch (uploadError) {
+          console.warn('⚠️ 图标上传失败，使用原始URL:', uploadError);
+          // 上传失败不阻止保存，继续使用原始URL
+        }
+      } else {
+        console.log('📋 图标未变更，跳过上传');
+      }
       
       // 如果 favicon 发生了变化，清除缓存
       if (formData.favicon !== favicon) {
@@ -163,15 +184,17 @@ export default function CardEditModal({ id, name, url, favicon, tags: _, note, o
         id,
         name: formData.name,
         url: formData.url,
-        favicon: formData.favicon,
+        favicon: finalFaviconUrl, // 使用上传后的URL
         tags: newTags, // 只保留新标签
         note: cleanedNote
       });
 
-      
       onClose();
     } catch (error) {
       console.error('保存失败:', error);
+      setErrors({ submit: '保存失败，请重试' });
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -330,11 +353,27 @@ export default function CardEditModal({ id, name, url, favicon, tags: _, note, o
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 select-none"
+                  disabled={uploading}
+                  className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed select-none"
                 >
-                  保存
+                  {uploading ? (
+                    <>
+                      <i className="fa-solid fa-spinner fa-spin mr-2"></i>
+                      上传中...
+                    </>
+                  ) : (
+                    '保存'
+                  )}
                 </button>
               </div>
+              
+              {/* 保存错误提示 */}
+              {errors.submit && (
+                <p className="text-red-500 text-sm text-center select-none">
+                  {errors.submit}
+                </p>
+              )}
+              
               {onDelete && (
                 <button
                   type="button"

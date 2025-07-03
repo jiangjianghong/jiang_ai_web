@@ -132,7 +132,7 @@ export function WebsiteCard({ id, name, url, favicon, tags, visitCount, note, in
                 loading="lazy"
                 draggable="false"
               />
-              {/* 简化的缓存状态指示器 */}
+              {/* 简化的状态指示器 - 仅显示加载和错误状态 */}
               {isLoading && (
                 <div className="absolute top-0 right-0 w-2 h-2 bg-yellow-400 rounded-full animate-pulse" 
                      title="加载中..."></div>
@@ -140,10 +140,6 @@ export function WebsiteCard({ id, name, url, favicon, tags, visitCount, note, in
               {!isLoading && error && (
                 <div className="absolute top-0 right-0 w-2 h-2 bg-red-400 rounded-full" 
                      title="加载失败"></div>
-              )}
-              {!isLoading && !error && faviconUrl !== '/icon/icon.jpg' && (
-                <div className="absolute top-0 right-0 w-2 h-2 bg-green-400 rounded-full" 
-                     title="缓存成功"></div>
               )}
             </div>
              <h3 className="text-xs font-medium text-white text-center line-clamp-2 px-2 mt-1 select-none">{name}</h3>

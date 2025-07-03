@@ -148,7 +148,8 @@
             addLog(`📡 正在测试: ${testUrl}`);
             
             const img = new Image();
-            img.crossOrigin = 'anonymous';
+            // 移除 crossOrigin 避免 CORS 问题
+            // img.crossOrigin = 'anonymous';
             
             const timeout = setTimeout(() => {
                 addLog('⏰ 请求超时（6秒）');

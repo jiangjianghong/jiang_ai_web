@@ -259,10 +259,8 @@ export default function Home({ websites, setWebsites }: HomeProps) {
       setBgImageLoaded(false);
       
       const img = new Image();
-      // 恢复 crossOrigin 设置，官方 Bing API 应该支持 CORS
-      if (!isFallback) {
-        img.crossOrigin = 'anonymous';
-      }
+      // 不设置 crossOrigin，避免 CORS 问题
+      // img.crossOrigin = 'anonymous';
       
       // 超时处理
       const timeout = setTimeout(() => {
@@ -284,7 +282,7 @@ export default function Home({ websites, setWebsites }: HomeProps) {
         setBgImage(img.src);
         setBgImageLoaded(true);
         cacheWallpaper(img.src); // 缓存实际的图片URL（重定向后的最终URL）
-        console.log('✅ 壁纸加载完成');
+        console.log('✅ 壁纸加载完成:', img.src);
       };
       
       img.onerror = () => {

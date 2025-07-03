@@ -209,34 +209,34 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
           <div className="space-y-4 select-none">
             <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider select-none">外观设置</h3>
             
-            {/* 卡片透明度控制 */}
+            {/* 搜索框不透明度控制（在上） */}
             <div className="space-y-2 select-none">
               <label className="text-sm font-medium text-gray-700 select-none">
-                卡片透明度 ({Math.round(cardOpacity * 100)}%)
+                搜索框不透明度 ({Math.round(searchBarOpacity * 100)}%)
               </label>
               <input
                 type="range"
                 min="0.05"
-                max="1" // 提高最大值到 1
+                max="0.5"
                 step="0.01"
-                value={cardOpacity}
-                onChange={(e) => setCardOpacity(parseFloat(e.target.value))}
+                value={searchBarOpacity}
+                onChange={(e) => setSearchBarOpacity(parseFloat(e.target.value))}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
               />
             </div>
 
-            {/* 搜索框透明度控制 */}
+            {/* 卡片不透明度控制（在下） */}
             <div className="space-y-2 select-none">
               <label className="text-sm font-medium text-gray-700 select-none">
-                搜索框透明度 ({Math.round(searchBarOpacity * 100)}%)
+                卡片不透明度 ({Math.round(cardOpacity * 100)}%)
               </label>
               <input
                 type="range"
                 min="0.05"
-                max="1" // 提高最大值到 1
+                max="0.5"
                 step="0.01"
-                value={searchBarOpacity}
-                onChange={(e) => setSearchBarOpacity(parseFloat(e.target.value))}
+                value={cardOpacity}
+                onChange={(e) => setCardOpacity(parseFloat(e.target.value))}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
               />
             </div>

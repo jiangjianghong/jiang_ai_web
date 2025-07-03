@@ -222,42 +222,57 @@ export default function PrivacySettings({ isOpen, onClose }: PrivacySettingsProp
               </div>
             </div>
 
-            {/* 数据管理操作 */}
-            <div className="border-t pt-4">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                <i className="fa-solid fa-wrench text-gray-600"></i>
-                数据管理操作
-              </h3>
-              
-              <div className="space-y-3">
-                <button
-                  onClick={handleExportData}
-                  disabled={consentStatus !== 'accepted'}
-                  className="w-full p-3 bg-blue-100 hover:bg-blue-200 disabled:bg-gray-100 disabled:text-gray-400 text-blue-800 rounded-lg transition-colors text-left"
-                >
-                  <div className="flex items-center gap-3">
-                    <i className="fa-solid fa-download"></i>
-                    <div>
-                      <div className="font-medium">导出我的数据</div>
-                      <div className="text-sm opacity-75">下载包含所有个人数据的JSON文件</div>
-                    </div>
+          {/* 数据管理操作 */}
+          <div className="border-t pt-4">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+              <i className="fa-solid fa-wrench text-gray-600"></i>
+              数据管理操作
+            </h3>
+            <div className="space-y-3">
+              <button
+                onClick={handleExportData}
+                disabled={consentStatus !== 'accepted'}
+                className="w-full p-3 bg-blue-100 hover:bg-blue-200 disabled:bg-gray-100 disabled:text-gray-400 text-blue-800 rounded-lg transition-colors text-left"
+              >
+                <div className="flex items-center gap-3">
+                  <i className="fa-solid fa-download"></i>
+                  <div>
+                    <div className="font-medium">导出我的数据</div>
+                    <div className="text-sm opacity-75">下载包含所有个人数据的JSON文件</div>
                   </div>
-                </button>
-                
-                <button
-                  onClick={handleClearAllData}
-                  className="w-full p-3 bg-red-100 hover:bg-red-200 text-red-800 rounded-lg transition-colors text-left"
-                >
-                  <div className="flex items-center gap-3">
-                    <i className="fa-solid fa-trash"></i>
-                    <div>
-                      <div className="font-medium">清除所有数据</div>
-                      <div className="text-sm opacity-75">删除所有非必要的本地存储数据</div>
-                    </div>
+                </div>
+              </button>
+              <button
+                onClick={handleClearAllData}
+                className="w-full p-3 bg-red-100 hover:bg-red-200 text-red-800 rounded-lg transition-colors text-left"
+              >
+                <div className="flex items-center gap-3">
+                  <i className="fa-solid fa-trash"></i>
+                  <div>
+                    <div className="font-medium">清除所有数据</div>
+                    <div className="text-sm opacity-75">删除所有非必要的本地存储数据</div>
                   </div>
-                </button>
-              </div>
+                </div>
+              </button>
             </div>
+            {/* 使用教程入口 */}
+            <div className="mt-6">
+              <h3 className="text-lg font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                <i className="fa-solid fa-book-open text-blue-500"></i>
+                使用教程
+              </h3>
+              <p className="text-sm text-gray-600 mb-3">详细了解本主页的全部功能与技巧。</p>
+              <a
+                href="/tutorial.html"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium shadow transition-colors"
+              >
+                <i className="fa-solid fa-graduation-cap"></i>
+                打开使用教程
+              </a>
+            </div>
+          </div>
           </div>
 
           {/* 底部 */}

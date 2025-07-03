@@ -366,12 +366,24 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
           {/* 隐私与Cookie管理 - 放在最下面 */}
           <div className="space-y-4 select-none">
             <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider select-none">隐私与Cookie</h3>
-            <button
-              onClick={() => setShowPrivacySettings(true)}
-              className="w-full px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md transition-colors select-none"
-            >
-              <i className="fa-solid fa-shield-halved mr-2 select-none"></i>隐私设置
-            </button>
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={() => setShowPrivacySettings(true)}
+                className="w-full px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md transition-colors select-none"
+              >
+                <i className="fa-solid fa-shield-halved mr-2 select-none"></i>隐私设置
+              </button>
+              <a
+                href="/tutorial.html"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-md transition-colors flex items-center justify-center gap-2 font-medium select-none border border-blue-200"
+                style={{ textDecoration: 'none' }}
+              >
+                <i className="fa-solid fa-graduation-cap"></i>
+                使用教程
+              </a>
+            </div>
           </div>
         </div>
       </motion.div>

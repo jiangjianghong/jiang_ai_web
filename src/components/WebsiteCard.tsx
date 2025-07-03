@@ -1,8 +1,13 @@
+
 import { motion } from 'framer-motion';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
+
+// ...回退，移除全局拖拽类型声明...
+import { useDrag, useDrop } from 'react-dnd';
 import CardEditModal from './CardEditModal';
 import { useTransparency } from '@/contexts/TransparencyContext';
 import { useFavicon } from '@/hooks/useFavicon';
+
 
 interface WebsiteCardProps {
   id: string;
@@ -12,21 +17,65 @@ interface WebsiteCardProps {
   tags: string[];
   visitCount: number;
   note?: string;
+  index: number;
+  moveCard: (dragIndex: number, hoverIndex: number) => void;
   onSave: (data: any) => void;
   onDelete?: (id: string) => void;
 }
 
-export function WebsiteCard({ id, name, url, favicon, tags, visitCount, note, onSave, onDelete }: WebsiteCardProps) {
+
+export function WebsiteCard({ id, name, url, favicon, tags, visitCount, note, index, moveCard, onSave, onDelete }: WebsiteCardProps) {
   const [showEditModal, setShowEditModal] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const { cardOpacity } = useTransparency();
-  
-  // 使用 favicon 缓存 hook
   const { faviconUrl } = useFavicon(url, favicon);
+
+  // 长按拖拽实现
+  const [canDrag, setCanDrag] = useState(false);
+  const longPressTimer = useRef<NodeJS.Timeout | null>(null);
+
+  const [{ isDragging }, drag] = useDrag({
+    type: 'WEBSITE_CARD',
+    item: { id, index },
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging(),
+    }),
+    canDrag: () => canDrag,
+  });
+
+  const [, drop] = useDrop({
+    accept: 'WEBSITE_CARD',
+    hover(item: { id: string; index: number }) {
+      if (!cardRef.current) return;
+      const dragIndex = item.index;
+      const hoverIndex = index;
+      if (dragIndex === hoverIndex) return;
+      moveCard(dragIndex, hoverIndex);
+      item.index = hoverIndex;
+    },
+  });
+
+  drop(cardRef);
+  drag(cardRef);
+
+  // 长按逻辑
+  const handlePointerDown = () => {
+    if (isDragging) return;
+    longPressTimer.current = setTimeout(() => {
+      setCanDrag(true);
+    }, 1000); // 1秒
+  };
+
+  const clearLongPress = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+    setCanDrag(false);
+  };
 
   // 处理卡片点击，增加访问次数统计
   const handleCardClick = () => {
-    // 更新访问次数和最后访问时间
     onSave({
       id,
       name,
@@ -37,8 +86,6 @@ export function WebsiteCard({ id, name, url, favicon, tags, visitCount, note, on
       visitCount: (visitCount || 0) + 1,
       lastVisit: new Date().toISOString().split('T')[0]
     });
-    
-    // 打开网址
     window.open(url, '_blank');
   };
 
@@ -46,14 +93,21 @@ export function WebsiteCard({ id, name, url, favicon, tags, visitCount, note, on
     <>
       <motion.div
         ref={cardRef}
-        className="w-32 h-32 rounded-xl cursor-pointer shadow-lg backdrop-blur-md border border-white/20 overflow-hidden relative group select-none"
+        className={`w-32 h-32 rounded-xl shadow-lg backdrop-blur-md border border-white/20 overflow-hidden relative group select-none ${canDrag ? 'cursor-grabbing' : 'cursor-pointer'}`}
         style={{
           backgroundColor: `rgba(255, 255, 255, ${cardOpacity})`,
+          opacity: isDragging ? 0.5 : 1,
         }}
+        // 回退：不做全局抖动动画
+        transition={{ type: "spring", stiffness: 300, damping: 15 }}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.98 }}
-        transition={{ type: "spring", stiffness: 300, damping: 15 }}
         onClick={handleCardClick}
+        onPointerDown={handlePointerDown}
+        onPointerUp={clearLongPress}
+        onPointerLeave={clearLongPress}
+        onPointerCancel={clearLongPress}
+        draggable={false}
       >
         {/* 设置按钮 */}
         <div className="absolute bottom-0.5 right-0.5 z-11">
@@ -67,18 +121,19 @@ export function WebsiteCard({ id, name, url, favicon, tags, visitCount, note, on
             <i className="fa-solid fa-gear text-xs select-none"></i>
           </button>
         </div>
-        <div className="h-full flex flex-col pt-3">
+        <div className="h-full flex flex-col pt-3 select-none" style={{ pointerEvents: isDragging ? 'none' : undefined }}>
           {/* 网站图标和名称区域 */}
           <div className="flex flex-col items-center px-2 select-none">
-            <div className="w-11 h-11 mb-1 rounded-md overflow-hidden select-none"> {/* 恢复原始图标大小 */}
-              <img 
+            <div className="w-11 h-11 mb-1 rounded-md overflow-hidden select-none">
+            <img 
                 src={faviconUrl}
                 alt={`${name} favicon`} 
                 className="w-full h-full object-contain select-none"
                 loading="lazy"
+                draggable="false"
               />
             </div>
-             <h3 className="text-xs font-medium text-white text-center line-clamp-2 px-2 mt-1 select-none">{name}</h3> {/* 恢复原始字体大小 */}
+             <h3 className="text-xs font-medium text-white text-center line-clamp-2 px-2 mt-1 select-none">{name}</h3>
            </div>
             {/* 备注区域 */}
             <div className="px-2 mb-1 select-none">

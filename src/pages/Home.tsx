@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { WebsiteCard } from '@/components/WebsiteCard';
 import { SearchBar } from '@/components/SearchBar';
 import { AnimatedCat } from '@/components/AnimatedCat';
-import { useDragAndDrop } from '@/hooks/useDragAndDrop';
+// 拖拽逻辑已迁移到 WebsiteCard
 import { motion } from 'framer-motion';
 import { useTransparency } from '@/contexts/TransparencyContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -26,7 +26,13 @@ export default function Home({ websites, setWebsites }: HomeProps) {
   // 启用自动同步
   useAutoSync(websites);
   
-  const { drag, drop, isDragging } = useDragAndDrop(websites, setWebsites);
+  // 拖拽排序逻辑
+  const moveCard = (dragIndex: number, hoverIndex: number) => {
+    const newWebsites = [...websites];
+    const [removed] = newWebsites.splice(dragIndex, 1);
+    newWebsites.splice(hoverIndex, 0, removed);
+    setWebsites(newWebsites);
+  };
   const [bgImage, setBgImage] = useState('');
   const [bgImageLoaded, setBgImageLoaded] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -414,22 +420,17 @@ export default function Home({ websites, setWebsites }: HomeProps) {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
         >
-          {sortedWebsites.map((website) => (
-             <motion.div 
+          {websites.map((website, idx) => (
+            <WebsiteCard
               key={website.id}
-              ref={(node) => drag(drop(node))}
-              style={{ opacity: isDragging ? 0.5 : 1 }}
-              layout
-              transition={{ type: "spring", stiffness: 350, damping: 25 }}
-            >
-              <WebsiteCard 
-                {...website} 
-                onSave={handleSaveCard}
-                onDelete={(id) => {
-                  setWebsites(websites.filter(card => card.id !== id));
-                }}
-              />
-            </motion.div>
+              {...website}
+              index={idx}
+              moveCard={moveCard}
+              onSave={handleSaveCard}
+              onDelete={(id) => {
+                setWebsites(websites.filter(card => card.id !== id));
+              }}
+            />
           ))}
         </motion.div>
       </div>

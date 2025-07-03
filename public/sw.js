@@ -1,5 +1,5 @@
 // 简单的Service Worker for 缓存优化
-const CACHE_NAME = 'jiang-ai-web-v2';
+const CACHE_NAME = 'jiang-ai-web-v3';
 
 // 动态获取正确的路径前缀
 const getBasePath = () => {
@@ -11,7 +11,7 @@ const basePath = getBasePath();
 const STATIC_CACHE_URLS = [
   `${basePath}/`,
   `${basePath}/index.html`,
-  `${basePath}/icon/icon.jpg`,
+  // 移除可能不存在的资源，避免缓存失败
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css'
 ];
 

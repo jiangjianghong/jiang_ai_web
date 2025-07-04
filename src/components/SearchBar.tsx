@@ -41,7 +41,7 @@ export function SearchBar(_props: SearchBarProps = {}) {
   const [hoveredEmojiIdx, setHoveredEmojiIdx] = useState<number | null>(null);
   const [showEngineTooltip, setShowEngineTooltip] = useState(false);
   const searchBarRef = useRef<HTMLFormElement>(null);
-  const { searchBarOpacity } = useTransparency();
+  const { searchBarOpacity, searchBarColor } = useTransparency();
   
   const engineList = [
     { key: 'bing', label: 'Bing', icon: <i className="fa-brands fa-microsoft text-blue-400"></i> },
@@ -530,7 +530,7 @@ export function SearchBar(_props: SearchBarProps = {}) {
               placeholder="🧸搜点啥捏..."
               className="backdrop-blur-md border border-white/20 rounded-full pl-4 py-2 text-white placeholder-white/60 outline-none text-base transition-all duration-200 pr-12 w-full ml-3"
               style={{
-                backgroundColor: `rgba(255, 255, 255, ${searchBarOpacity})`,
+                backgroundColor: `rgba(${searchBarColor}, ${searchBarOpacity})`,
                 minWidth: '4rem',
                 maxWidth: '100%'
               }}

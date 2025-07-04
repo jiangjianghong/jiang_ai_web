@@ -7,6 +7,7 @@ import AuthForm from '@/components/AuthForm';
 import UserNameEditor from '@/components/UserNameEditor';
 import PrivacySettings from '@/components/PrivacySettings';
 import ConfirmModal from '@/components/ConfirmModal';
+import { ColorPicker } from '@/components/ColorPicker';
 import { useTransparency, WallpaperResolution } from '@/contexts/TransparencyContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { WebsiteData } from '@/lib/firebaseSync';
@@ -36,11 +37,15 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
     searchBarOpacity, 
     parallaxEnabled, 
     wallpaperResolution,
+    cardColor,
+    searchBarColor,
     setCardOpacity, 
     setSearchBarOpacity, 
     setParallaxEnabled,
     setWallpaperResolution,
-    setIsSettingsOpen
+    setIsSettingsOpen,
+    setCardColor,
+    setSearchBarColor,
   } = useTransparency();
   const { currentUser, logout } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -225,6 +230,13 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
               />
             </div>
 
+            {/* 搜索框颜色选择 */}
+            <ColorPicker
+              label="搜索框颜色"
+              selectedColor={searchBarColor}
+              onChange={setSearchBarColor}
+            />
+
             {/* 卡片不透明度控制（在下） */}
             <div className="space-y-2 select-none">
               <label className="text-sm font-medium text-gray-700 select-none">
@@ -240,6 +252,13 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
               />
             </div>
+
+            {/* 卡片颜色选择 */}
+            <ColorPicker
+              label="卡片颜色"
+              selectedColor={cardColor}
+              onChange={setCardColor}
+            />
 
             {/* 视差效果开关 */}
             <div className="space-y-2 select-none">

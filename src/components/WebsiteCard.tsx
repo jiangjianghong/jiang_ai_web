@@ -26,7 +26,7 @@ export function WebsiteCard({ id, name, url, favicon, tags, visitCount, note, in
   const [clickAnimation, setClickAnimation] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
-  const { cardOpacity } = useTransparency();
+  const { cardOpacity, cardColor } = useTransparency();
   const { faviconUrl, isLoading, error } = useFavicon(url, favicon);
   const { isMobile, getCardClasses } = useResponsiveLayout();
 
@@ -132,7 +132,7 @@ export function WebsiteCard({ id, name, url, favicon, tags, visitCount, note, in
         className={`${getCardClasses()} relative rounded-lg`}
         style={{ 
           opacity: isDragging ? 0.5 : 1,
-          backgroundColor: `rgba(255, 255, 255, ${cardOpacity})`,
+          backgroundColor: `rgba(${cardColor}, ${cardOpacity})`,
           backdropFilter: 'blur(10px)',
           border: '1px solid rgba(255, 255, 255, 0.2)',
           transform: clickAnimation && isMobile ? 'scale(0.95)' : 'scale(1)',

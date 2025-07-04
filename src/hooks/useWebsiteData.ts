@@ -44,7 +44,10 @@ export function useWebsiteData(options: UseWebsiteDataOptions = {}): UseWebsiteD
             site.id && site.name && site.url
           );
           if (validWebsites.length > 0) {
-            console.log(`✅ 从缓存加载了 ${validWebsites.length} 个网站`);
+            // 只在开发环境下显示日志，避免生产环境重复日志
+            if (process.env.NODE_ENV === 'development') {
+              console.log(`✅ 从缓存加载了 ${validWebsites.length} 个网站`);
+            }
             return validWebsites;
           }
         }

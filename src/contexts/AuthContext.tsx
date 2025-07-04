@@ -15,6 +15,7 @@ import {
   createNetworkStatusListener,
   isOnline
 } from '@/lib/firebaseTimeout';
+import { firebaseConnectionManager } from '@/lib/firebaseConnectionManager';
 
 interface AuthContextType {
   currentUser: User | null;
@@ -26,6 +27,7 @@ interface AuthContextType {
   reloadUser: () => Promise<void>;
   loading: boolean;
   isNetworkOnline: boolean;
+  isFirebaseConnected: boolean;
   error: string | null;
 }
 
@@ -47,6 +49,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isNetworkOnline, setIsNetworkOnline] = useState(isOnline());
+  const [isFirebaseConnected, setIsFirebaseConnected] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // 清除错误
@@ -132,12 +135,44 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   useEffect(() => {
+    // 设置较短的超时时间，如果Firebase连接失败则快速进入离线模式
+    const timeoutId = setTimeout(() => {
+      if (loading) {
+        console.warn('Firebase连接超时，进入离线模式');
+        setLoading(false);
+        setError('当前处于离线模式，部分功能可能不可用');
+      }
+    }, 2000); // 2秒超时
+
     const unsubscribe = onAuthStateChanged(auth, (user) => {
+      clearTimeout(timeoutId);
       setCurrentUser(user);
       setLoading(false);
+      // 如果成功连接Firebase，清除离线模式错误
+      if (error?.includes('离线模式')) {
+        setError(null);
+      }
     });
 
-    return unsubscribe;
+    return () => {
+      clearTimeout(timeoutId);
+      unsubscribe();
+    };
+  }, []);
+
+  // Firebase连接状态监听
+  useEffect(() => {
+    const cleanup = firebaseConnectionManager.addListener((isConnected) => {
+      setIsFirebaseConnected(isConnected);
+      
+      if (!isConnected) {
+        setError('Firebase服务暂时不可用，部分功能可能受限');
+      } else if (error?.includes('Firebase')) {
+        setError(null);
+      }
+    });
+
+    return cleanup;
   }, []);
 
   // 网络状态监听
@@ -170,12 +205,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
     reloadUser,
     loading,
     isNetworkOnline,
+    isFirebaseConnected,
     error
   };
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 }

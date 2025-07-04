@@ -99,7 +99,7 @@ class FaviconCacheManager {
   }
 
   /**
-   * 尝试加载 favicon（简化版）
+   * 尝试加载 favicon（网络优化版）
    */
   private async tryLoadFavicon(urls: string[]): Promise<string> {
     for (const url of urls) {
@@ -109,18 +109,19 @@ class FaviconCacheManager {
           img.onload = () => resolve();
           img.onerror = () => reject();
           img.src = url;
-          // 2秒超时
-          setTimeout(() => reject(), 2000);
+          // 缩短超时时间到1秒，快速失败
+          setTimeout(() => reject(new Error('超时')), 1000);
         });
         console.log(`✅ Favicon 加载成功: ${url}`);
         return url;
-      } catch {
-        console.log(`❌ Favicon 加载失败: ${url}`);
+      } catch (error) {
+        console.log(`❌ Favicon 加载失败: ${url} (${error})`);
         continue;
       }
     }
     
     // 返回默认图标
+    console.log(`🔄 所有 favicon 尝试失败，使用默认图标`);
     return '/icon/icon.jpg';
   }
 
@@ -139,15 +140,22 @@ class FaviconCacheManager {
   }
 
   /**
-   * 异步获取 favicon URL（简化版）
+   * 异步获取 favicon URL（离线优先版）
    */
   async getFavicon(originalUrl: string, faviconUrl: string): Promise<string> {
     const domain = this.extractDomain(originalUrl);
     
-    // 检查缓存
+    // 优先检查缓存
     const cached = this.getCachedFavicon(originalUrl);
     if (cached) {
+      console.log(`📁 使用缓存 favicon: ${domain} -> ${cached}`);
       return cached;
+    }
+
+    // 如果网络不可用，直接返回默认图标
+    if (!navigator.onLine) {
+      console.log(`🔌 网络不可用，使用默认图标: ${domain}`);
+      return '/icon/icon.jpg';
     }
 
     // 检查是否正在加载

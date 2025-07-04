@@ -1,5 +1,7 @@
-// 简单的Service Worker for 缓存优化
-const CACHE_NAME = 'jiang-ai-web-v3';
+// 离线优先的Service Worker for 炫酷收藏夹
+const CACHE_NAME = 'jiang-ai-web-v4-offline';
+const STATIC_CACHE_NAME = 'static-v4';
+const DYNAMIC_CACHE_NAME = 'dynamic-v4';
 
 // 动态获取正确的路径前缀
 const getBasePath = () => {
@@ -11,14 +13,23 @@ const basePath = getBasePath();
 const STATIC_CACHE_URLS = [
   `${basePath}/`,
   `${basePath}/index.html`,
-  // 移除可能不存在的资源，避免缓存失败
+  `${basePath}/offline-test.html`,
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css'
+];
+
+// 不应该缓存的URL模式
+const SKIP_CACHE_PATTERNS = [
+  /googleapis\.com/,
+  /firebase/,
+  /google\.com.*s2\/favicons/,
+  /identitytoolkit/
 ];
 
 // 安装事件 - 缓存核心资源
 self.addEventListener('install', (event) => {
+  console.log('Service Worker: 安装中...');
   event.waitUntil(
-    caches.open(CACHE_NAME)
+    caches.open(STATIC_CACHE_NAME)
       .then((cache) => {
         console.log('Service Worker: 缓存核心资源');
         return cache.addAll(STATIC_CACHE_URLS);
@@ -32,11 +43,12 @@ self.addEventListener('install', (event) => {
 
 // 激活事件 - 清理旧缓存
 self.addEventListener('activate', (event) => {
+  console.log('Service Worker: 激活中...');
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
+          if (cacheName !== STATIC_CACHE_NAME && cacheName !== DYNAMIC_CACHE_NAME) {
             console.log('Service Worker: 删除旧缓存', cacheName);
             return caches.delete(cacheName);
           }

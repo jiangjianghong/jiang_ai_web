@@ -8,6 +8,7 @@ import {
   sendEmailVerification,
   reload as firebaseReload
 } from 'firebase/auth';
+import { firebaseConnectionManager } from './firebaseConnectionManager';
 
 // 网络状态检测
 export const isOnline = () => navigator.onLine;
@@ -16,16 +17,19 @@ export const isOnline = () => navigator.onLine;
 export function withTimeout<T>(promise: Promise<T>, timeoutMs: number = 10000): Promise<T> {
   return new Promise((resolve, reject) => {
     const timeoutId = setTimeout(() => {
+      firebaseConnectionManager.recordFailure(new Error(`操作超时 (${timeoutMs}ms)`));
       reject(new Error(`操作超时 (${timeoutMs}ms)`));
     }, timeoutMs);
 
     promise
       .then((result) => {
         clearTimeout(timeoutId);
+        firebaseConnectionManager.recordSuccess();
         resolve(result);
       })
       .catch((error) => {
         clearTimeout(timeoutId);
+        firebaseConnectionManager.recordFailure(error);
         reject(error);
       });
   });

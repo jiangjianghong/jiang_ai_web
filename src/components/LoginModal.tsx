@@ -11,11 +11,14 @@ export default function LoginModal({ onClose }: LoginModalProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [localError, setLocalError] = useState('');
   const [showVerificationMessage, setShowVerificationMessage] = useState(false);
   const [verificationEmail, setVerificationEmail] = useState('');
 
-  const { login, register, loginWithGoogle, sendVerificationEmail, reloadUser } = useAuth();
+  const { login, register, loginWithGoogle, sendVerificationEmail, reloadUser, error: authError, isNetworkOnline } = useAuth();
+
+  // 组合错误显示：优先显示本地验证错误，然后是认证错误
+  const displayError = localError || authError;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -7,6 +7,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { SyncProvider } from '@/contexts/SyncContext';
 import { UserProfileProvider } from '@/contexts/UserProfileContext';
 import DataSyncModal from '@/components/DataSyncModal';
+import NetworkStatus from '@/components/NetworkStatus';
 import { useCloudData } from '@/hooks/useCloudData';
 import { useAuth } from '@/contexts/AuthContext';
 import { saveUserWebsites, WebsiteData } from '@/lib/firebaseSync';
@@ -186,6 +187,9 @@ function AppContent() {
           onClose={() => setShowPrivacySettings(false)}
         />
       )}
+
+      {/* 网络状态监控 */}
+      <NetworkStatus />
     </>
   );
 }

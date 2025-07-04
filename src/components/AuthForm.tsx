@@ -12,46 +12,49 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [localError, setLocalError] = useState('');
   const [showVerificationMessage, setShowVerificationMessage] = useState(false);
   const [verificationEmail, setVerificationEmail] = useState('');
 
-  const { login, register, loginWithGoogle, sendVerificationEmail } = useAuth();
+  const { login, register, loginWithGoogle, sendVerificationEmail, error: authError, isNetworkOnline } = useAuth();
+
+  // 组合错误显示：优先显示本地验证错误，然后是认证错误
+  const displayError = localError || authError;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!email || !password) {
-      setError('请填写完整信息');
+      setLocalError('请填写完整信息');
       return;
     }
 
     if (!isLogin && !displayName.trim()) {
-      setError('请输入用户名');
+      setLocalError('请输入用户名');
       return;
     }
 
     // 验证邮箱格式
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      setError('请输入有效的邮箱地址');
+      setLocalError('请输入有效的邮箱地址');
       return;
     }
 
     // 验证用户名格式（注册时）
     if (!isLogin) {
       if (displayName.length < 2 || displayName.length > 20) {
-        setError('用户名长度需在2-20个字符之间');
+        setLocalError('用户名长度需在2-20个字符之间');
         return;
       }
       if (!/^[a-zA-Z0-9\u4e00-\u9fa5_-]+$/.test(displayName)) {
-        setError('用户名只能包含字母、数字、中文、下划线和短横线');
+        setLocalError('用户名只能包含字母、数字、中文、下划线和短横线');
         return;
       }
     }
 
     setLoading(true);
-    setError('');
+    setLocalError('');
 
     try {
       if (isLogin) {
@@ -70,36 +73,7 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
       }
     } catch (error: any) {
       console.error('认证失败:', error);
-      
-      const errorCode = error.code;
-      switch (errorCode) {
-        case 'auth/user-not-found':
-          setError('用户不存在，请检查邮箱或注册新账号');
-          break;
-        case 'auth/wrong-password':
-          setError('密码错误，请重试');
-          break;
-        case 'auth/email-already-in-use':
-          setError('邮箱已被注册，请登录或使用其他邮箱');
-          break;
-        case 'auth/weak-password':
-          setError('密码强度不够，至少需要6位字符');
-          break;
-        case 'auth/invalid-email':
-          setError('邮箱格式不正确');
-          break;
-        case 'auth/network-request-failed':
-          setError('网络连接失败，请检查网络连接后重试。如果问题持续，可能是防火墙阻止了 Firebase 服务。');
-          break;
-        case 'auth/too-many-requests':
-          setError('请求过于频繁，请稍后再试');
-          break;
-        case 'auth/invalid-credential':
-          setError('登录凭据无效，请检查邮箱和密码');
-          break;
-        default:
-          setError(isLogin ? '登录失败，请重试' : '注册失败，请重试');
-      }
+      // 错误处理现在由AuthContext统一管理，这里不需要特殊处理
     } finally {
       setLoading(false);
     }
@@ -107,14 +81,14 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
 
   const handleGoogleLogin = async () => {
     setLoading(true);
-    setError('');
+    setLocalError('');
     
     try {
       await loginWithGoogle();
       onSuccess();
     } catch (error: any) {
       console.error('Google登录失败:', error);
-      setError('Google登录失败，请重试');
+      // Google登录的错误也由AuthContext统一处理
     } finally {
       setLoading(false);
     }
@@ -183,9 +157,16 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
         </p>
       </div>
 
-      {error && (
+      {displayError && (
         <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-          {error}
+          {displayError}
+        </div>
+      )}
+
+      {!isNetworkOnline && (
+        <div className="mb-4 p-3 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded flex items-center space-x-2">
+          <i className="fa-solid fa-wifi-slash"></i>
+          <span>网络连接不可用，请检查网络设置</span>
         </div>
       )}
 
@@ -241,7 +222,7 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
 
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || !isNetworkOnline}
           className="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white py-2 px-4 rounded-md transition-colors"
         >
           {loading ? '处理中...' : (isLogin ? '登录' : '注册')}
@@ -260,7 +241,7 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
 
         <button
           onClick={handleGoogleLogin}
-          disabled={loading}
+          disabled={loading || !isNetworkOnline}
           className="mt-4 w-full bg-red-500 hover:bg-red-600 disabled:bg-gray-400 text-white py-2 px-4 rounded-md transition-colors flex items-center justify-center"
         >
           <i className="fab fa-google mr-2"></i>

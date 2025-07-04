@@ -1,9 +1,26 @@
+import { useState, useEffect } from 'react';
 import './AnimatedCat.css';
 
 export function AnimatedCat() {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    // 10秒后显示小猫
+    const timer = setTimeout(() => {
+      setIsVisible(true);
+    }, 10000); // 10秒延迟
+
+    return () => clearTimeout(timer);
+  }, []);
+
   const handleCatClick = () => {
     window.open('https://github.com/jiangjianghong', '_blank');
   };
+
+  // 如果还不可见，不渲染任何内容
+  if (!isVisible) {
+    return null;
+  }
 
   return (
     <div className="cat-container">

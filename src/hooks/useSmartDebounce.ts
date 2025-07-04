@@ -1,4 +1,4 @@
-import { useRef, useCallback } from 'react';
+import { useRef, useCallback, useEffect } from 'react';
 
 /**
  * 智能防抖 hook - 支持带参数的函数
@@ -10,7 +10,7 @@ export function useSmartDebounce<T extends (...args: any[]) => any>(
   callback: T,
   delay: number,
   maxDelay?: number
-): (...args: Parameters<T>) => void {
+): [(...args: Parameters<T>) => void, () => void] {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastCallTimeRef = useRef<number>(0);
   const firstCallTimeRef = useRef<number>(0);
@@ -55,13 +55,10 @@ export function useSmartDebounce<T extends (...args: any[]) => any>(
     }, actualDelay);
   }, [callback, delay, maxDelay, cleanup]);
 
-  return debouncedCallback;
-}
-
   // 组件卸载时清理
   useEffect(() => {
     return cleanup;
   }, [cleanup]);
 
-  return cleanup;
+  return [debouncedCallback, cleanup];
 }

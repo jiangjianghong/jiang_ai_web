@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import CardEditModal from './CardEditModal';
 import { useTransparency } from '@/contexts/TransparencyContext';
@@ -22,13 +22,27 @@ interface WebsiteCardProps {
 
 export function WebsiteCard({ id, name, url, favicon, tags, visitCount, note, index, moveCard, onSave, onDelete }: WebsiteCardProps) {
   const [showEditModal, setShowEditModal] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
   const [clickAnimation, setClickAnimation] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
   const { cardOpacity } = useTransparency();
-  const { faviconUrl, isLoading, error } = useFavicon(url, favicon);
+  const { faviconUrl, isLoading } = useFavicon(url, favicon);
   const { isMobile, getCardClasses } = useResponsiveLayout();
+
+  // 缓存样式计算以避免每次渲染重新计算
+  const cardStyle = useMemo(() => ({
+    opacity: 1, // 移除拖拽透明度，交给framer-motion处理
+    backgroundColor: `rgba(255, 255, 255, ${cardOpacity})`,
+    backdropFilter: cardOpacity < 0.8 ? 'blur(10px)' : 'none', // 条件性应用blur
+    border: '1px solid rgba(255, 255, 255, 0.2)',
+  }), [cardOpacity]);
+
+  // 优化动画配置
+  const animationVariants = useMemo(() => ({
+    initial: { opacity: 0, y: 10 }, // 减少初始偏移
+    animate: { opacity: 1, y: 0 },
+    exit: { opacity: 0, y: -10 }
+  }), []);
 
   const [{ isDragging }, drag] = useDrag({
     type: 'WEBSITE_CARD',
@@ -69,17 +83,13 @@ export function WebsiteCard({ id, name, url, favicon, tags, visitCount, note, in
     };
   }, []);
 
-  // 处理卡片悬停效果（简化版）
+  // 处理卡片悬停效果（简化版）- 移除状态管理，使用CSS
   const handleMouseEnter = () => {
-    if (!isMobile && !isDragging) {
-      setIsHovered(true);
-    }
+    // 移除状态设置，使用纯CSS处理悬停效果
   };
 
   const handleMouseLeave = () => {
-    if (!isMobile) {
-      setIsHovered(false);
-    }
+    // 移除状态设置，使用纯CSS处理悬停效果
   };
 
   // 处理卡片点击动画
@@ -129,14 +139,12 @@ export function WebsiteCard({ id, name, url, favicon, tags, visitCount, note, in
     <>
       {/* 简化的卡片容器 - 保留圆角 */}
       <motion.div 
-        className={`${getCardClasses()} relative rounded-lg`}
+        className={`${getCardClasses()} relative rounded-lg ${!isMobile ? 'hover:shadow-xl hover:ring-2 hover:ring-white/30' : ''}`}
         style={{ 
+          ...cardStyle,
           opacity: isDragging ? 0.5 : 1,
-          backgroundColor: `rgba(255, 255, 255, ${cardOpacity})`,
-          backdropFilter: 'blur(10px)',
-          border: '1px solid rgba(255, 255, 255, 0.2)',
           transform: clickAnimation && isMobile ? 'scale(0.95)' : 'scale(1)',
-          transition: isMobile ? 'transform 0.2s ease' : 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          transition: isMobile ? 'transform 0.15s ease-out' : 'box-shadow 0.2s ease-out, transform 0.2s ease-out', // 优化过渡
         }}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
@@ -147,10 +155,13 @@ export function WebsiteCard({ id, name, url, favicon, tags, visitCount, note, in
         onClick={handleCardClick}
         whileTap={isMobile ? { scale: 0.95 } : {}}
         whileHover={!isMobile ? { scale: 1.02, y: -2 } : {}}
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
+        variants={animationVariants}
+        initial="initial"
+        animate="animate"
+        exit="exit"
+        transition={{ duration: 0.2, ease: "easeOut" }}
         ref={cardRef}
+        layout={false} // 禁用布局动画以提高性能
       >
         {/* 设置按钮 */}
         <div className={`absolute ${isMobile ? 'top-1 right-1' : 'bottom-0.5 right-0.5'} z-10`}>
@@ -160,8 +171,8 @@ export function WebsiteCard({ id, name, url, favicon, tags, visitCount, note, in
               setShowEditModal(true);
             }}
             className={`p-1 text-white/50 hover:text-white select-none transition-all duration-200 ${
-              isMobile ? 'text-xs bg-black/20 rounded-full' : ''
-            } ${isHovered && !isMobile ? 'opacity-100' : isMobile ? 'opacity-70' : 'opacity-0'}`}
+              isMobile ? 'text-xs bg-black/20 rounded-full opacity-70' : 'opacity-0 hover:opacity-100'
+            }`}
           >
             <i className="fa-solid fa-gear text-xs select-none"></i>
           </button>
@@ -177,15 +188,17 @@ export function WebsiteCard({ id, name, url, favicon, tags, visitCount, note, in
                 className="w-full h-full object-contain select-none"
                 loading="lazy"
                 draggable="false"
+                onLoad={() => {}} // 移除不必要的onLoad处理
+                style={{ 
+                  imageRendering: 'auto',
+                  backfaceVisibility: 'hidden', // 提高渲染性能
+                  transform: 'translate3d(0,0,0)' // 启用硬件加速
+                }}
               />
-              {/* 状态指示器 */}
-              {isLoading && (
-                <div className={`absolute top-0 right-0 ${isMobile ? 'w-1.5 h-1.5' : 'w-2 h-2'} bg-yellow-400 rounded-full animate-pulse`} 
+              {/* 简化状态指示器 */}
+              {isLoading && !isMobile && (
+                <div className="absolute top-0 right-0 w-2 h-2 bg-yellow-400 rounded-full opacity-70" 
                      title="加载中..."></div>
-              )}
-              {!isLoading && error && (
-                <div className={`absolute top-0 right-0 ${isMobile ? 'w-1.5 h-1.5' : 'w-2 h-2'} bg-red-400 rounded-full`} 
-                     title="加载失败"></div>
               )}
             </div>
             <h3 className={`${isMobile ? 'text-[0.65rem]' : 'text-xs'} font-medium text-white text-center line-clamp-2 px-2 mt-1 select-none`}>
@@ -231,22 +244,6 @@ export function WebsiteCard({ id, name, url, favicon, tags, visitCount, note, in
           {/* 占位空间，保持卡片高度一致 */}
           <div className="flex-1"></div>
         </div>
-
-        {/* 悬停效果边框 */}
-        {!isMobile && isHovered && (
-          <div className="absolute inset-0 rounded-lg ring-2 ring-white/30 pointer-events-none transition-opacity duration-300" />
-        )}
-
-        {/* 悬停时的阴影效果 */}
-        {!isMobile && isHovered && (
-          <div
-            className="absolute inset-0 rounded-lg pointer-events-none"
-            style={{
-              boxShadow: '0 8px 25px rgba(0,0,0,0.2)',
-              zIndex: -1,
-            }}
-          />
-        )}
       </motion.div>
 
       {showEditModal && (

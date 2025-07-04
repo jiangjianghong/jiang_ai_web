@@ -13,6 +13,7 @@ import EmailVerificationBanner from '@/components/EmailVerificationBanner';
 import { faviconCache } from '@/lib/faviconCache';
 import { improvedWallpaperCache } from '@/lib/cacheManager';
 import { useRAFThrottledMouseMove } from '@/hooks/useRAFThrottle';
+import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 
 interface HomeProps {
   websites: any[];
@@ -23,6 +24,11 @@ export default function Home({ websites, setWebsites }: HomeProps) {
   const { parallaxEnabled, wallpaperResolution, isSettingsOpen } = useTransparency();
   const { currentUser } = useAuth();
   const { displayName } = useUserProfile();
+  const { 
+    isMobile, 
+    getGridClasses, 
+    getSearchBarLayout
+  } = useResponsiveLayout();
   
   // 启用自动同步
   useAutoSync(websites);
@@ -34,6 +40,7 @@ export default function Home({ websites, setWebsites }: HomeProps) {
     newWebsites.splice(hoverIndex, 0, removed);
     setWebsites(newWebsites);
   };
+
   const [bgImage, setBgImage] = useState('');
   const [bgImageLoaded, setBgImageLoaded] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -163,33 +170,6 @@ export default function Home({ websites, setWebsites }: HomeProps) {
         card.id === updatedCard.id ? { ...card, ...updatedCard } : card
       )
     );
-  };
-
-  // 计算视差变换 - 基于博客思路优化
-  const calculateParallaxTransform = () => {
-    // 如果视差被禁用或设置页面打开，返回默认值
-    if (!parallaxEnabled || isSettingsOpen || !mousePosition.x || !mousePosition.y) {
-      return 'translate(0px, 0px)'; // 默认无偏移
-    }
-
-    const windowWidth = window.innerWidth;
-    const windowHeight = window.innerHeight;
-    
-    // 旋转角度系数
-    const range = 20;
-    
-    // 旋转公式（返回-10 ~ 10，保留1位小数）
-    const calcValue = (a: number, b: number) => (a / b * range - range / 2).toFixed(1);
-    
-    // 通过 calcValue 根据鼠标当前位置和容器宽高比计算得出的值
-    const xValue = parseFloat(calcValue(mousePosition.x, windowWidth));
-    const yValue = parseFloat(calcValue(mousePosition.y, windowHeight));
-    
-    // 背景图偏移（使用更小的系数让移动更微妙）
-    const translateX = -xValue * 0.4;
-    const translateY = -yValue * 0.4;
-    
-    return `translate(${translateX}px, ${translateY}px)`;
   };
 
   useEffect(() => {
@@ -421,33 +401,56 @@ export default function Home({ websites, setWebsites }: HomeProps) {
     }
   }, [websites]); // 当网站数据变化时触发
 
-    return (
+  // 响应式布局配置
+  const getResponsiveClasses = () => {
+    const searchBarLayout = getSearchBarLayout();
+    const gridClasses = getGridClasses();
+    
+    return {
+      container: `relative min-h-screen ${isMobile ? 'pt-[25vh]' : 'pt-[33vh]'}`,
+      searchContainer: searchBarLayout.containerClass,
+      cardContainer: `${isMobile ? 'pt-8 pb-4' : 'pt-16 pb-8'} px-4 max-w-6xl mx-auto`,
+      gridLayout: gridClasses,
+      userInfo: isMobile 
+        ? 'fixed top-2 right-2 z-40 scale-90' 
+        : 'fixed top-4 right-4 z-40',
+      settingsButton: isMobile 
+        ? 'fixed bottom-2 right-2 z-[9999] p-2 bg-white/10 rounded-full backdrop-blur-sm' 
+        : 'fixed bottom-4 right-4 z-[9999]'
+    };
+  };
+
+  const classes = getResponsiveClasses();
+
+  return (
     <>
       {/* 邮箱验证横幅 */}
       <EmailVerificationBanner />
       
-      {/* 壁纸背景层 */}
+      {/* 壁纸背景层 - 响应式优化 */}
       <div 
         className="fixed top-0 left-0 w-full h-full -z-10"
         style={{ 
-          backgroundImage: bgImage ? `url(${bgImage})` : 'none',
+          backgroundImage: bgImage ? `url(${bgImage})` : undefined,
           backgroundSize: 'cover',
-          backgroundPosition: 'center center',
+          backgroundPosition: isMobile ? 'center center' : 'center top',
           backgroundRepeat: 'no-repeat',
-          transform: calculateParallaxTransform(),
-          transition: 'transform 0.1s ease-out, filter 1.2s ease-out',
-          opacity: bgImageLoaded && bgImage ? 1 : 0,
-          backgroundColor: '#1e293b', // 更深的占位背景色（slate-800）
-          filter: bgImageLoaded && bgImage ? 'brightness(1)' : 'brightness(0.3)' // "天亮了"效果：从暗到亮
+          filter: bgImageLoaded ? 'none' : 'blur(2px)',
+          transform: !isSettingsOpen && parallaxEnabled && !isMobile && mousePosition ? 
+            `translate(${mousePosition.x * 0.02}px, ${mousePosition.y * 0.02}px) scale(1.05)` : 
+            'translate(0px, 0px) scale(1)',
+          transition: 'filter 1.5s ease-out, transform 0.3s ease-out',
         }}
       />
-      
-      {/* 天亮渐变遮罩层 - 营造"黎明"效果 */}
+
+      {/* 渐变遮罩层 - 响应式调整 */}
       {bgImage && (
         <div 
-          className="fixed top-0 left-0 w-full h-full -z-9"
+          className="fixed top-0 left-0 w-full h-full -z-10"
           style={{
-            background: 'linear-gradient(to bottom, rgba(30, 41, 59, 0.7) 0%, rgba(30, 41, 59, 0.3) 50%, rgba(30, 41, 59, 0.1) 100%)',
+            background: isMobile 
+              ? 'linear-gradient(to bottom, rgba(30, 41, 59, 0.6) 0%, rgba(30, 41, 59, 0.4) 50%, rgba(30, 41, 59, 0.2) 100%)'
+              : 'linear-gradient(to bottom, rgba(30, 41, 59, 0.7) 0%, rgba(30, 41, 59, 0.3) 50%, rgba(30, 41, 59, 0.1) 100%)',
             opacity: bgImageLoaded ? 0 : 1,
             transition: 'opacity 1.5s ease-out',
             pointerEvents: 'none'
@@ -455,92 +458,94 @@ export default function Home({ websites, setWebsites }: HomeProps) {
         />
       )}
       
-      {/* 壁纸加载指示器 - 简化版本 */}
+      {/* 壁纸加载指示器 - 响应式位置 */}
       {!bgImageLoaded && bgImage && (
-        <div className="fixed top-4 left-4 z-40 bg-black/30 backdrop-blur-sm rounded-lg px-4 py-2">
+        <div className={`fixed ${isMobile ? 'top-2 left-2' : 'top-4 left-4'} z-40 bg-black/30 backdrop-blur-sm rounded-lg px-4 py-2`}>
           <div className="text-white/90 text-sm font-medium flex items-center space-x-2">
             <div className="animate-pulse rounded-full h-2 w-2 bg-white/70"></div>
-            <span>壁纸加载中</span>
+            <span className={isMobile ? 'text-xs' : 'text-sm'}>壁纸加载中</span>
           </div>
         </div>
       )}
       
-      <div className="relative min-h-screen pt-[33vh]">
-    
-      <SearchBar />
-      
-      <div className="pt-16 pb-8 px-4 max-w-6xl mx-auto">
-        <motion.div 
-          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-x-3 gap-y-8"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          {sortedWebsites.map((website, idx) => (
-            <WebsiteCard
-              key={website.id}
-              {...website}
-              index={idx}
-              moveCard={moveCard}
-              onSave={handleSaveCard}
-              onDelete={(id) => {
-                setWebsites(websites.filter(card => card.id !== id));
-              }}
-            />
-          ))}
-        </motion.div>
-      </div>
-
-      {showSettings && (
-        <Settings 
-          onClose={() => setShowSettings(false)}
-          websites={websites}
-          setWebsites={setWebsites}
-        />
-      )}
-
-      {/* 用户信息显示 - 仅在邮箱已验证时显示 */}
-      {currentUser && currentUser.emailVerified && (
-        <div className="fixed top-4 right-4 z-40">
-          <button
-            onClick={handleUserNameClick}
-            className="bg-white/20 backdrop-blur-sm rounded-lg px-3 py-2 flex items-center space-x-2 hover:bg-white/30 transition-colors cursor-pointer"
-          >
-            <i className="fa-solid fa-user text-white/80"></i>
-            <span className="text-white/90 text-sm font-medium">
-              {displayName}
-            </span>
-          </button>
-          
-          {/* 问候语气泡 */}
-          {showGreeting && (
-            <div className={`absolute top-full right-0 mt-2 bg-white/95 backdrop-blur-sm rounded-lg px-4 py-3 shadow-lg border border-white/20 transition-opacity duration-300 ${showGreeting ? 'opacity-100' : 'opacity-0'}`}>
-              <p className="text-gray-800 text-sm font-medium whitespace-nowrap">
-                {clickCount >= 10 ? (
-                  <>
-                    <span className="text-red-500">😠</span> 别点啦！
-                  </>
-                ) : (
-                  `你好鸭，"${displayName}"，今天也要开心哦！`
-                )}
-              </p>
-              <div className="absolute -top-2 right-4 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-white/95"></div>
-            </div>
-          )}
+      <div className={classes.container}>
+        <div className={classes.searchContainer}>
+          <SearchBar />
         </div>
-      )}
+        
+        <div className={classes.cardContainer}>
+          <motion.div 
+            className={classes.gridLayout}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+          >
+            {sortedWebsites.map((website, idx) => (
+              <WebsiteCard
+                key={website.id}
+                {...website}
+                index={idx}
+                moveCard={moveCard}
+                onSave={handleSaveCard}
+                onDelete={(id) => {
+                  setWebsites(websites.filter(card => card.id !== id));
+                }}
+              />
+            ))}
+          </motion.div>
+        </div>
 
-      <div className="fixed bottom-4 right-4 z-[9999]">
-        <button
-          onClick={() => setShowSettings(true)}
-          className="p-2 text-white/70 hover:text-white transition-colors"
-          aria-label="设置"
-        >
-          <i className="fa-solid fa-sliders text-lg"></i>
-        </button>
-      </div>
+        {showSettings && (
+          <Settings 
+            onClose={() => setShowSettings(false)}
+            websites={websites}
+            setWebsites={setWebsites}
+          />
+        )}
 
-      <AnimatedCat />
+        {/* 用户信息显示 - 响应式调整 */}
+        {currentUser && currentUser.emailVerified && (
+          <div className={classes.userInfo}>
+            <button
+              onClick={handleUserNameClick}
+              className={`bg-white/20 backdrop-blur-sm rounded-lg ${isMobile ? 'px-2 py-1' : 'px-3 py-2'} flex items-center space-x-2 hover:bg-white/30 transition-colors cursor-pointer`}
+            >
+              <i className={`fa-solid fa-user text-white/80 ${isMobile ? 'text-xs' : ''}`}></i>
+              <span className={`text-white/90 ${isMobile ? 'text-xs' : 'text-sm'} font-medium ${isMobile && displayName.length > 8 ? 'max-w-[60px] truncate' : ''}`}>
+                {displayName}
+              </span>
+            </button>
+            
+            {/* 问候语气泡 - 响应式调整 */}
+            {showGreeting && !isMobile && (
+              <div className={`absolute top-full right-0 mt-2 bg-white/95 backdrop-blur-sm rounded-lg px-4 py-3 shadow-lg border border-white/20 transition-opacity duration-300 ${showGreeting ? 'opacity-100' : 'opacity-0'}`}>
+                <p className="text-gray-800 text-sm font-medium whitespace-nowrap">
+                  {clickCount >= 10 ? (
+                    <>
+                      <span className="text-red-500">😠</span> 别点啦！
+                    </>
+                  ) : (
+                    `你好鸭，"${displayName}"，今天也要开心哦！`
+                  )}
+                </p>
+                <div className="absolute -top-2 right-4 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-white/95"></div>
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className={classes.settingsButton}>
+          <button
+            onClick={() => setShowSettings(true)}
+            className={`${isMobile ? 'p-2' : 'p-2'} text-white/70 hover:text-white transition-colors`}
+            aria-label="设置"
+          >
+            <i className={`fa-solid fa-sliders ${isMobile ? 'text-base' : 'text-lg'}`}></i>
+          </button>
+        </div>
+
+        {/* 动画猫 - 仅在非移动端显示 */}
+        {!isMobile && <AnimatedCat />}
       </div>
     </>
   );

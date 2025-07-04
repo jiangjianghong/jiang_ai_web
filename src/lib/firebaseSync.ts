@@ -47,7 +47,35 @@ export interface UserProfile {
   updatedAt: any;
 }
 
-// 保存用户设置到 Firestore
+// 网络重试工具函数
+const retryAsync = async <T>(
+  fn: () => Promise<T>,
+  maxRetries: number = 3,
+  delay: number = 1000
+): Promise<T> => {
+  let lastError: Error;
+  
+  for (let i = 0; i <= maxRetries; i++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error as Error;
+      
+      if (i === maxRetries) {
+        throw lastError;
+      }
+      
+      // 指数退避延迟
+      const waitTime = delay * Math.pow(2, i);
+      console.log(`🔄 同步失败，${waitTime}ms后重试 (${i + 1}/${maxRetries + 1})`);
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+    }
+  }
+  
+  throw lastError!;
+};
+
+// 保存用户设置到 Firestore - 带重试机制
 export const saveUserSettings = async (
   user: User, 
   settings: UserSettings, 
@@ -56,11 +84,13 @@ export const saveUserSettings = async (
   try {
     callbacks?.onSyncStart?.();
     
-    const userSettingsRef = doc(db, 'userSettings', user.uid);
-    await setDoc(userSettingsRef, {
-      ...settings,
-      lastSync: serverTimestamp()
-    }, { merge: true });
+    await retryAsync(async () => {
+      const userSettingsRef = doc(db, 'userSettings', user.uid);
+      await setDoc(userSettingsRef, {
+        ...settings,
+        lastSync: serverTimestamp()
+      }, { merge: true });
+    });
     
     console.log('用户设置已同步到云端');
     callbacks?.onSyncSuccess?.('设置已同步到云端');
@@ -101,10 +131,12 @@ export const saveUserWebsites = async (
   try {
     callbacks?.onSyncStart?.();
     
-    const userWebsitesRef = doc(db, 'userWebsites', user.uid);
-    await setDoc(userWebsitesRef, {
-      websites,
-      lastSync: serverTimestamp()
+    await retryAsync(async () => {
+      const userWebsitesRef = doc(db, 'userWebsites', user.uid);
+      await setDoc(userWebsitesRef, {
+        websites,
+        lastSync: serverTimestamp()
+      });
     });
     
     console.log('网站数据已同步到云端');
@@ -137,28 +169,56 @@ export const getUserWebsites = async (user: User): Promise<WebsiteData[] | null>
   }
 };
 
-// 合并本地和云端数据
+// 合并本地和云端数据 - 改进版本，避免数据丢失
 export const mergeWebsiteData = (localData: WebsiteData[], cloudData: WebsiteData[]): WebsiteData[] => {
   const merged: { [key: string]: WebsiteData } = {};
   
   // 先添加本地数据
   localData.forEach(item => {
-    merged[item.id] = item;
+    merged[item.id] = { ...item };
   });
   
-  // 再添加云端数据，如果访问次数更高则替换
+  // 智能合并云端数据
   cloudData.forEach(item => {
     const existing = merged[item.id];
-    if (!existing || item.visitCount > existing.visitCount) {
-      merged[item.id] = item;
+    if (!existing) {
+      // 如果本地没有，直接使用云端数据
+      merged[item.id] = { ...item };
+    } else {
+      // 比较最后访问时间，选择更新的数据作为基础
+      const localTime = new Date(existing.lastVisit || '2000-01-01').getTime();
+      const cloudTime = new Date(item.lastVisit || '2000-01-01').getTime();
+      
+      let finalData: WebsiteData;
+      
+      if (cloudTime > localTime) {
+        // 云端数据更新，使用云端数据作为基础
+        finalData = { ...item };
+      } else if (localTime > cloudTime) {
+        // 本地数据更新，使用本地数据作为基础
+        finalData = { ...existing };
+      } else {
+        // 时间相同，使用访问次数更高的
+        finalData = item.visitCount > existing.visitCount ? { ...item } : { ...existing };
+      }
+      
+      // 保留较高的访问次数（累积值）
+      finalData.visitCount = Math.max(existing.visitCount || 0, item.visitCount || 0);
+      
+      // 保留最新的访问时间
+      finalData.lastVisit = localTime > cloudTime ? existing.lastVisit : item.lastVisit;
+      
+      merged[item.id] = finalData;
     }
   });
   
   return Object.values(merged);
 };
 
-// 自动同步数据（防抖处理）- 增强版本
+// 自动同步数据（防抖处理）- 增强版本，带重试机制
 let syncTimeout: NodeJS.Timeout | null = null;
+let retryCount = 0;
+const maxRetries = 3;
 
 export const autoSync = (
   user: User, 
@@ -182,14 +242,34 @@ export const autoSync = (
       const failed = results.filter(result => result.status === 'rejected');
       
       if (failed.length === 0) {
+        retryCount = 0; // 重置重试计数器
         callbacks?.onSyncSuccess?.('数据已静默同步到云端');
       } else {
-        callbacks?.onSyncError?.(`${failed.length} 个数据同步失败`);
+        if (retryCount < maxRetries) {
+          retryCount++;
+          console.log(`🔄 同步部分失败，${retryCount}/${maxRetries} 次重试中...`);
+          // 指数退避重试
+          setTimeout(() => {
+            autoSync(user, websites, settings, callbacks);
+          }, 1000 * Math.pow(2, retryCount - 1));
+        } else {
+          retryCount = 0;
+          callbacks?.onSyncError?.(`${failed.length} 个数据同步失败，已重试 ${maxRetries} 次`);
+        }
       }
     } catch (error) {
-      callbacks?.onSyncError?.('同步过程中发生错误: ' + (error as Error).message);
+      if (retryCount < maxRetries) {
+        retryCount++;
+        console.log(`🔄 同步异常，${retryCount}/${maxRetries} 次重试中...`);
+        setTimeout(() => {
+          autoSync(user, websites, settings, callbacks);
+        }, 1000 * Math.pow(2, retryCount - 1));
+      } else {
+        retryCount = 0;
+        callbacks?.onSyncError?.('同步过程中发生错误: ' + (error as Error).message);
+      }
     }
-  }, 3000); // 3秒延迟，用户停止操作后快速同步
+  }, 5000); // 5秒延迟，用户停止操作后快速同步
 };
 
 // 保存用户资料到 Firestore

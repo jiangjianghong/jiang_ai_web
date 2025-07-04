@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 export interface SyncStatus {
   isOnline: boolean;
@@ -48,13 +48,33 @@ export function SyncProvider({ children }: SyncProviderProps) {
   };
 
   // 监听网络状态变化
-  window.addEventListener('online', () => {
-    updateSyncStatus({ isOnline: true });
-  });
+  useEffect(() => {
+    const handleOnline = () => {
+      updateSyncStatus({ isOnline: true, syncError: null });
+      console.log('🌐 网络已连接，同步功能恢复');
+    };
 
-  window.addEventListener('offline', () => {
-    updateSyncStatus({ isOnline: false });
-  });
+    const handleOffline = () => {
+      updateSyncStatus({ 
+        isOnline: false, 
+        syncError: '网络连接断开，同步功能暂停',
+        syncInProgress: false 
+      });
+      console.log('📴 网络连接断开，同步功能暂停');
+    };
+
+    // 添加网络监听器
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    // 初始化网络状态
+    updateSyncStatus({ isOnline: navigator.onLine });
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   const value: SyncContextType = {
     syncStatus,

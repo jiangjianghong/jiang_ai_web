@@ -17,6 +17,7 @@ import { useResourcePreloader } from '@/hooks/useResourcePreloader';
 import CookieConsent from '@/components/CookieConsent';
 import PrivacySettings from '@/components/PrivacySettings';
 import { useStorage } from '@/lib/storageManager';
+import { areDataDifferent } from '@/lib/syncUtils';
 
 // 内部应用组件，可以使用认证上下文
 function AppContent() {
@@ -61,11 +62,11 @@ function AppContent() {
   // 检查是否需要显示数据同步对话框
   useEffect(() => {
     if (currentUser && currentUser.emailVerified && hasCloudData && cloudWebsites && !syncProcessed) {
-      // 检查本地数据是否与云端数据不同
+      // 使用优化的数据比较函数
       const localCount = websites.length;
       const cloudCount = cloudWebsites.length;
       
-      if (localCount > 0 && cloudCount > 0 && localCount !== cloudCount) {
+      if (localCount > 0 && cloudCount > 0 && areDataDifferent(websites, cloudWebsites)) {
         setShowSyncModal(true);
       } else if (cloudCount > 0 && localCount === 0) {
         // 本地无数据，直接使用云端数据
@@ -75,7 +76,7 @@ function AppContent() {
         setSyncProcessed(true);
       }
     }
-  }, [currentUser, hasCloudData, cloudWebsites, websites.length, syncProcessed]);
+  }, [currentUser, hasCloudData, cloudWebsites, websites.length, syncProcessed, websites]);
 
   // 应用云端设置
   useEffect(() => {

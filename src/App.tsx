@@ -17,6 +17,7 @@ import CookieConsent from '@/components/CookieConsent';
 import PrivacySettings from '@/components/PrivacySettings';
 import { useWebsiteData } from '@/hooks/useWebsiteData';
 import { useStableArrayLength } from '@/hooks/useArrayComparison';
+import { areDataDifferent } from '@/lib/syncUtils';
 
 // 内部应用组件，可以使用认证上下文
 function AppContent() {
@@ -69,11 +70,11 @@ function AppContent() {
     if (!shouldEnableCloudSync) return;
     
     if (currentUser && currentUser.emailVerified && hasCloudData && cloudWebsites && !syncProcessed) {
-      // 优化的数组比较逻辑
+      // 使用优化的数据比较函数
       const localCount = stableWebsitesLength;
       const cloudCount = cloudWebsites.length;
       
-      if (localCount > 0 && cloudCount > 0 && localCount !== cloudCount) {
+      if (localCount > 0 && cloudCount > 0 && areDataDifferent(websites, cloudWebsites)) {
         setShowSyncModal(true);
       } else if (cloudCount > 0 && localCount === 0) {
         // 本地无数据，直接使用云端数据
@@ -83,7 +84,7 @@ function AppContent() {
         setSyncProcessed(true);
       }
     }
-  }, [shouldEnableCloudSync, currentUser, hasCloudData, cloudWebsites, stableWebsitesLength, syncProcessed, setWebsites]);
+  }, [shouldEnableCloudSync, currentUser, hasCloudData, cloudWebsites, stableWebsitesLength, syncProcessed, setWebsites, websites]);
 
   // 应用云端设置（延迟到云同步启用后）
   useEffect(() => {

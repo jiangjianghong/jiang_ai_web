@@ -17,6 +17,16 @@ export function useAutoSync(websites: WebsiteData[]) {
 
   // 同步函数
   const performSync = useCallback((force = false) => {
+    // 检查网络连接状态
+    if (!navigator.onLine) {
+      updateSyncStatus({ 
+        syncInProgress: false,
+        syncError: '网络连接断开，无法同步数据',
+        pendingChanges: 1
+      });
+      return;
+    }
+
     // 只有登录且邮箱已验证的用户才能同步数据
     if (!currentUser || !currentUser.emailVerified) {
       if (currentUser && !currentUser.emailVerified) {
@@ -26,6 +36,18 @@ export function useAutoSync(websites: WebsiteData[]) {
           pendingChanges: 1
         });
       }
+      return;
+    }
+
+    // 检查是否有编辑模态框打开，避免在用户编辑时同步
+    const hasOpenModal = document.querySelector('[role="dialog"]') || 
+                        document.querySelector('.modal') ||
+                        document.querySelector('[data-modal]');
+    
+    if (hasOpenModal && !force) {
+      console.log('🛑 检测到编辑窗口打开，延迟同步');
+      // 延迟5秒后重试
+      setTimeout(() => performSync(false), 5000);
       return;
     }
 
@@ -113,8 +135,8 @@ export function useAutoSync(websites: WebsiteData[]) {
 
     // 计算距离首次变化的时间
     const timeSinceFirstChange = now - lastChangeTimeRef.current;
-    const maxWaitTime = 30000; // 30秒最大等待时间
-    const debounceTime = 3000; // 3秒防抖时间
+    const maxWaitTime = 45000; // 45秒最大等待时间，给用户更多编辑时间
+    const debounceTime = 5000; // 5秒防抖时间，避免频繁同步
 
     // 如果距离首次变化超过最大等待时间，立即同步
     if (timeSinceFirstChange >= maxWaitTime) {
@@ -128,7 +150,7 @@ export function useAutoSync(websites: WebsiteData[]) {
       return;
     }
 
-    // 设置防抖计时器：3秒后执行同步
+    // 设置防抖计时器：5秒后执行同步
     syncTimeoutRef.current = setTimeout(() => {
       performSync(false);
     }, debounceTime);

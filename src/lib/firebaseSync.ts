@@ -105,8 +105,13 @@ export const saveUserSettings = async (
 // 从 Firestore 获取用户设置
 export const getUserSettings = async (user: User): Promise<UserSettings | null> => {
   try {
+    // 添加超时机制，避免长时间等待
+    const timeoutPromise = new Promise<never>((_, reject) => 
+      setTimeout(() => reject(new Error('连接超时')), 5000)
+    );
+    
     const userSettingsRef = doc(db, 'userSettings', user.uid);
-    const docSnap = await getDoc(userSettingsRef);
+    const docSnap = await Promise.race([getDoc(userSettingsRef), timeoutPromise]);
     
     if (docSnap.exists()) {
       const data = docSnap.data();
@@ -118,6 +123,7 @@ export const getUserSettings = async (user: User): Promise<UserSettings | null> 
     }
   } catch (error) {
     console.error('获取用户设置失败:', error);
+    // 离线模式下直接返回 null，不阻塞界面
     return null;
   }
 };
@@ -152,8 +158,13 @@ export const saveUserWebsites = async (
 // 从 Firestore 获取用户网站数据
 export const getUserWebsites = async (user: User): Promise<WebsiteData[] | null> => {
   try {
+    // 添加超时机制，避免长时间等待
+    const timeoutPromise = new Promise<never>((_, reject) => 
+      setTimeout(() => reject(new Error('连接超时')), 5000)
+    );
+    
     const userWebsitesRef = doc(db, 'userWebsites', user.uid);
-    const docSnap = await getDoc(userWebsitesRef);
+    const docSnap = await Promise.race([getDoc(userWebsitesRef), timeoutPromise]);
     
     if (docSnap.exists()) {
       const data = docSnap.data();
@@ -165,6 +176,7 @@ export const getUserWebsites = async (user: User): Promise<WebsiteData[] | null>
     }
   } catch (error) {
     console.error('获取网站数据失败:', error);
+    // 离线模式下直接返回 null，不阻塞界面
     return null;
   }
 };

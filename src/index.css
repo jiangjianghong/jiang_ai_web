@@ -48,6 +48,38 @@ button, [role="button"] {
   }
 }
 
+/* 卡片入场动画 */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.3s ease-out forwards;
+}
+
+/* 为卡片设置动画延迟，创造层叠效果 */
+.animate-fade-in-up:nth-child(1) { animation-delay: 0.05s; }
+.animate-fade-in-up:nth-child(2) { animation-delay: 0.1s; }
+.animate-fade-in-up:nth-child(3) { animation-delay: 0.15s; }
+.animate-fade-in-up:nth-child(4) { animation-delay: 0.2s; }
+.animate-fade-in-up:nth-child(5) { animation-delay: 0.25s; }
+.animate-fade-in-up:nth-child(6) { animation-delay: 0.3s; }
+.animate-fade-in-up:nth-child(7) { animation-delay: 0.35s; }
+.animate-fade-in-up:nth-child(8) { animation-delay: 0.4s; }
+
+/* 优化过渡动画性能 */
+.animate-fade-in-up {
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
 .ribbon-animated {
   position: relative;
   width: 100%;

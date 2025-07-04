@@ -1,9 +1,7 @@
-import { motion } from 'framer-motion';
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect, useMemo, memo } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import CardEditModal from './CardEditModal';
 import { useTransparency } from '@/contexts/TransparencyContext';
-import { useFavicon } from '@/hooks/useFavicon';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 
 interface WebsiteCardProps {
@@ -20,29 +18,18 @@ interface WebsiteCardProps {
   onDelete?: (id: string) => void;
 }
 
-export function WebsiteCard({ id, name, url, favicon, tags, visitCount, note, index, moveCard, onSave, onDelete }: WebsiteCardProps) {
+const WebsiteCardComponent = ({ id, name, url, favicon, tags, visitCount, note, index, moveCard, onSave, onDelete }: WebsiteCardProps) => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [clickAnimation, setClickAnimation] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
+  
+  // 立即获取基础样式和设备信息，避免等待异步操作
   const { cardOpacity } = useTransparency();
-  const { faviconUrl, isLoading } = useFavicon(url, favicon);
   const { isMobile, getCardClasses } = useResponsiveLayout();
-
-  // 缓存样式计算以避免每次渲染重新计算
-  const cardStyle = useMemo(() => ({
-    opacity: 1, // 移除拖拽透明度，交给framer-motion处理
-    backgroundColor: `rgba(255, 255, 255, ${cardOpacity})`,
-    backdropFilter: cardOpacity < 0.8 ? 'blur(10px)' : 'none', // 条件性应用blur
-    border: '1px solid rgba(255, 255, 255, 0.2)',
-  }), [cardOpacity]);
-
-  // 优化动画配置
-  const animationVariants = useMemo(() => ({
-    initial: { opacity: 0, y: 10 }, // 减少初始偏移
-    animate: { opacity: 1, y: 0 },
-    exit: { opacity: 0, y: -10 }
-  }), []);
+  
+  // 使用默认图标，避免 useFavicon 的异步等待
+  const displayFavicon = favicon || '/icon/icon.jpg';
 
   const [{ isDragging }, drag] = useDrag({
     type: 'WEBSITE_CARD',
@@ -67,6 +54,16 @@ export function WebsiteCard({ id, name, url, favicon, tags, visitCount, note, in
 
   drop(cardRef);
   drag(cardRef);
+
+  // 缓存样式计算以避免每次渲染重新计算
+  const cardStyle = useMemo(() => ({
+    backgroundColor: `rgba(255, 255, 255, ${cardOpacity})`,
+    backdropFilter: cardOpacity < 0.8 ? 'blur(6px)' : 'none', // 进一步减少blur
+    border: '1px solid rgba(255, 255, 255, 0.2)',
+    opacity: isDragging ? 0.5 : 1,
+    transform: clickAnimation && isMobile ? 'scale(0.95)' : 'scale(1)',
+    transition: isMobile ? 'transform 0.1s ease-out' : 'all 0.15s ease-out', // 进一步缩短时间
+  } as React.CSSProperties), [cardOpacity, isDragging, clickAnimation, isMobile]);
 
   // 清理定时器
   const cleanupTimers = () => {
@@ -137,15 +134,10 @@ export function WebsiteCard({ id, name, url, favicon, tags, visitCount, note, in
 
   return (
     <>
-      {/* 简化的卡片容器 - 保留圆角 */}
-      <motion.div 
-        className={`${getCardClasses()} relative rounded-lg ${!isMobile ? 'hover:shadow-xl hover:ring-2 hover:ring-white/30' : ''}`}
-        style={{ 
-          ...cardStyle,
-          opacity: isDragging ? 0.5 : 1,
-          transform: clickAnimation && isMobile ? 'scale(0.95)' : 'scale(1)',
-          transition: isMobile ? 'transform 0.15s ease-out' : 'box-shadow 0.2s ease-out, transform 0.2s ease-out', // 优化过渡
-        }}
+      {/* 简化的卡片容器 - 使用纯CSS动画 */}
+      <div 
+        className={`${getCardClasses()} relative rounded-lg animate-fade-in-up ${!isMobile ? 'hover:shadow-xl hover:ring-2 hover:ring-white/30 hover:scale-105 hover:-translate-y-1' : ''}`}
+        style={cardStyle}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         onTouchStart={startLongPress}
@@ -153,15 +145,7 @@ export function WebsiteCard({ id, name, url, favicon, tags, visitCount, note, in
         onTouchMove={clearLongPress}
         onTouchCancel={clearLongPress}
         onClick={handleCardClick}
-        whileTap={isMobile ? { scale: 0.95 } : {}}
-        whileHover={!isMobile ? { scale: 1.02, y: -2 } : {}}
-        variants={animationVariants}
-        initial="initial"
-        animate="animate"
-        exit="exit"
-        transition={{ duration: 0.2, ease: "easeOut" }}
         ref={cardRef}
-        layout={false} // 禁用布局动画以提高性能
       >
         {/* 设置按钮 */}
         <div className={`absolute ${isMobile ? 'top-1 right-1' : 'bottom-0.5 right-0.5'} z-10`}>
@@ -183,23 +167,19 @@ export function WebsiteCard({ id, name, url, favicon, tags, visitCount, note, in
           <div className={`flex flex-col items-center ${isMobile ? 'px-1' : 'px-2'} select-none`}>
             <div className={`${isMobile ? 'w-8 h-8 mb-1' : 'w-11 h-11 mb-1'} rounded-md overflow-hidden select-none relative`}>
               <img 
-                src={faviconUrl}
+                src={displayFavicon}
                 alt={`${name} favicon`} 
                 className="w-full h-full object-contain select-none"
                 loading="lazy"
                 draggable="false"
-                onLoad={() => {}} // 移除不必要的onLoad处理
+                decoding="async" // 异步解码减少阻塞
                 style={{ 
                   imageRendering: 'auto',
-                  backfaceVisibility: 'hidden', // 提高渲染性能
-                  transform: 'translate3d(0,0,0)' // 启用硬件加速
+                  transform: 'translate3d(0,0,0)', // 启用硬件加速
+                  minHeight: '100%', // 防止图片加载时的高度跳动
+                  minWidth: '100%'
                 }}
               />
-              {/* 简化状态指示器 */}
-              {isLoading && !isMobile && (
-                <div className="absolute top-0 right-0 w-2 h-2 bg-yellow-400 rounded-full opacity-70" 
-                     title="加载中..."></div>
-              )}
             </div>
             <h3 className={`${isMobile ? 'text-[0.65rem]' : 'text-xs'} font-medium text-white text-center line-clamp-2 px-2 mt-1 select-none`}>
               {name}
@@ -244,7 +224,7 @@ export function WebsiteCard({ id, name, url, favicon, tags, visitCount, note, in
           {/* 占位空间，保持卡片高度一致 */}
           <div className="flex-1"></div>
         </div>
-      </motion.div>
+      </div>
 
       {showEditModal && (
         <CardEditModal
@@ -264,4 +244,19 @@ export function WebsiteCard({ id, name, url, favicon, tags, visitCount, note, in
       )}
     </>
   );
-}
+};
+
+// 使用React.memo优化性能，增加自定义比较函数
+export const WebsiteCard = memo(WebsiteCardComponent, (prevProps, nextProps) => {
+  // 只在关键props改变时重新渲染
+  return (
+    prevProps.id === nextProps.id &&
+    prevProps.name === nextProps.name &&
+    prevProps.url === nextProps.url &&
+    prevProps.favicon === nextProps.favicon &&
+    prevProps.visitCount === nextProps.visitCount &&
+    prevProps.note === nextProps.note &&
+    prevProps.index === nextProps.index &&
+    JSON.stringify(prevProps.tags) === JSON.stringify(nextProps.tags)
+  );
+});

@@ -37,10 +37,14 @@ export function useCloudData(enabled: boolean = true): UseCloudDataResult {
     setState(prev => ({ ...prev, loading: true, error: null }));
     
     try {
-      const [websites, settings] = await Promise.all([
+      // 使用 Promise.allSettled 避免一个失败影响另一个
+      const [websitesResult, settingsResult] = await Promise.allSettled([
         getUserWebsites(currentUser),
         getUserSettings(currentUser)
       ]);
+
+      const websites = websitesResult.status === 'fulfilled' ? websitesResult.value : null;
+      const settings = settingsResult.status === 'fulfilled' ? settingsResult.value : null;
 
       setState({
         cloudWebsites: websites,
@@ -53,6 +57,15 @@ export function useCloudData(enabled: boolean = true): UseCloudDataResult {
         websites: websites?.length || 0, 
         hasSettings: !!settings 
       });
+      
+      // 如果有失败的操作，记录但不阻塞界面
+      if (websitesResult.status === 'rejected') {
+        console.warn('云端网站数据加载失败，使用本地数据:', websitesResult.reason);
+      }
+      if (settingsResult.status === 'rejected') {
+        console.warn('云端设置加载失败，使用本地设置:', settingsResult.reason);
+      }
+      
     } catch (error) {
       setState(prev => ({
         ...prev,

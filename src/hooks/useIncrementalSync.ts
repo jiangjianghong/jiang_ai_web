@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { WebsiteData, UserSettings } from '@/lib/firebaseSync';
+import { WebsiteData, UserSettings } from '@/lib/supabaseSync';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface SyncState {

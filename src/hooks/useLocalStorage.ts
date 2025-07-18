@@ -82,7 +82,7 @@ export function useLocalStorage<T>(
  * 网站数据的专用Hook
  */
 export function useWebsitesStorage() {
-  return useLocalStorage<import('@/lib/firebaseSync').WebsiteData[]>('websites', []);
+  return useLocalStorage<import('@/lib/supabaseSync').WebsiteData[]>('websites', []);
 }
 
 /**

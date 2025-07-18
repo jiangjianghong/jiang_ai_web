@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { WebsiteData } from '@/lib/firebaseSync';
+import { WebsiteData } from '@/lib/supabaseSync';
 import { mockWebsites } from '@/lib/mockData';
 import { StorageManager } from '@/lib/storageManager';
 

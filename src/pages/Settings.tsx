@@ -10,7 +10,7 @@ import ConfirmModal from '@/components/ConfirmModal';
 import { ColorPicker } from '@/components/ColorPicker';
 import { useTransparency, WallpaperResolution } from '@/contexts/TransparencyContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { WebsiteData } from '@/lib/firebaseSync';
+import { WebsiteData } from '@/lib/supabaseSync';
 import { useDataManager } from '@/hooks/useDataManager';
 
 interface SettingsProps {

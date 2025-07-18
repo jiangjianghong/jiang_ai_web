@@ -9,8 +9,8 @@ import { SyncProvider } from '@/contexts/SyncContext';
 import { UserProfileProvider } from '@/contexts/UserProfileContext';
 import DataSyncModal from '@/components/DataSyncModal';
 import { useCloudData } from '@/hooks/useCloudData';
-import { useAuth } from '@/contexts/AuthContext';
-import { saveUserWebsites, WebsiteData } from '@/lib/firebaseSync';
+import { useAuth } from '@/contexts/SupabaseAuthContext';
+import { saveUserWebsites, WebsiteData } from '@/lib/supabaseSync';
 import { useState, useEffect } from 'react';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useResourcePreloader } from '@/hooks/useResourcePreloader';
@@ -61,7 +61,7 @@ function AppContent() {
 
   // 检查是否需要显示数据同步对话框
   useEffect(() => {
-    if (currentUser && currentUser.emailVerified && hasCloudData && cloudWebsites && !syncProcessed) {
+    if (currentUser && currentUser.email_confirmed_at && hasCloudData && cloudWebsites && !syncProcessed) {
       // 使用优化的数据比较函数
       const localCount = websites.length;
       const cloudCount = cloudWebsites.length;
@@ -80,7 +80,7 @@ function AppContent() {
 
   // 应用云端设置
   useEffect(() => {
-    if (currentUser && currentUser.emailVerified && cloudSettings) {
+    if (currentUser && currentUser.email_confirmed_at && cloudSettings) {
       console.log('🎨 应用云端设置:', cloudSettings);
       
       // 应用各种设置

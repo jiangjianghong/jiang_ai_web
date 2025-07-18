@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { WebsiteData } from '@/lib/firebaseSync';
+import { WebsiteData } from '@/lib/supabaseSync';
 
 interface DataSyncModalProps {
   isOpen: boolean;

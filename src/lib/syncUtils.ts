@@ -1,5 +1,5 @@
 // 同步工具函数 - 用于检测和分析数据冲突
-import { WebsiteData } from '@/lib/firebaseSync';
+import { WebsiteData } from './supabaseSync';
 
 export interface DataConflict {
   id: string;

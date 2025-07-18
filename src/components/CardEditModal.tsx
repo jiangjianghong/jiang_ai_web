@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { z } from 'zod';
-import { uploadFaviconToStorage } from '@/lib/faviconUpload';
+import { uploadFaviconToStorage } from '@/lib/supabaseFaviconUpload';
 
 const websiteSchema = z.object({
   name: z.string().min(1, '网站名不能为空'),

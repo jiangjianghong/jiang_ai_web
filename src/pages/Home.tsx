@@ -21,7 +21,12 @@ interface HomeProps {
 }
 
 export default function Home({ websites, setWebsites }: HomeProps) {
-  const { parallaxEnabled, wallpaperResolution, isSettingsOpen } = useTransparency();
+  const { parallaxEnabled, wallpaperResolution, isSettingsOpen, isSearchFocused } = useTransparency();
+  
+  // 调试信息
+  useEffect(() => {
+    console.log('Home状态:', { parallaxEnabled, isSettingsOpen, isSearchFocused });
+  }, [parallaxEnabled, isSettingsOpen, isSearchFocused]);
   const { currentUser } = useAuth();
   const { displayName } = useUserProfile();
   const { 
@@ -363,13 +368,13 @@ export default function Home({ websites, setWebsites }: HomeProps) {
 
   const throttledMouseMove = useRAFThrottledMouseMove(
     handleMouseMove,
-    parallaxEnabled && !isSettingsOpen
+    parallaxEnabled && !isSettingsOpen && !isSearchFocused
   );
 
   // 监听鼠标移动 - 使用 RAF 节流优化性能
   useEffect(() => {
     // 如果视差被禁用或设置页面打开，不添加鼠标监听器
-    if (!parallaxEnabled || isSettingsOpen) {
+    if (!parallaxEnabled || isSettingsOpen || isSearchFocused) {
       setMousePosition({ x: 0, y: 0 });
       return;
     }
@@ -378,7 +383,7 @@ export default function Home({ websites, setWebsites }: HomeProps) {
     return () => {
       window.removeEventListener('mousemove', throttledMouseMove);
     };
-  }, [parallaxEnabled, isSettingsOpen, throttledMouseMove]);
+  }, [parallaxEnabled, isSettingsOpen, isSearchFocused, throttledMouseMove]);
 
   // 预加载 favicon（已移除，使用下面的 IndexedDB 批量缓存代替）
 
@@ -436,7 +441,7 @@ export default function Home({ websites, setWebsites }: HomeProps) {
           backgroundPosition: isMobile ? 'center center' : 'center top',
           backgroundRepeat: 'no-repeat',
           filter: bgImageLoaded ? 'none' : 'blur(2px)',
-          transform: !isSettingsOpen && parallaxEnabled && !isMobile && mousePosition ? 
+          transform: !isSettingsOpen && !isSearchFocused && parallaxEnabled && !isMobile && mousePosition ? 
             `translate(${mousePosition.x * 0.02}px, ${mousePosition.y * 0.02}px) scale(1.05)` : 
             'translate(0px, 0px) scale(1)',
           transition: 'filter 1.5s ease-out, transform 0.3s ease-out',

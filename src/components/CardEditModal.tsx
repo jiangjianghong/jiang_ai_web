@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { z } from 'zod';
 import { uploadFaviconToStorage } from '@/lib/supabaseFaviconUpload';
@@ -50,6 +50,37 @@ export default function CardEditModal({ id, name, url, favicon, tags: _, note, o
     return text.replace(/\{[^}]+\}/g, '').trim();
   };
 
+  /**
+   * 获取 favicon 的备用 URL 列表（国内优化版）
+   */
+  const getFaviconUrls = (domain: string): string[] => {
+    return [
+      // 优先使用DuckDuckGo的图标服务（国内访问较稳定）
+      `https://icons.duckduckgo.com/ip3/${domain}.ico`,
+      // 备用：尝试网站自己的 favicon
+      `https://${domain}/favicon.ico`,
+      `https://${domain}/favicon.png`,
+      // 最后尝试Google服务（可能被墙）
+      `https://www.google.com/s2/favicons?domain=${domain}&sz=64`,
+      // 兜底：默认图标
+      '/icon/icon.jpg'
+    ];
+  };
+
+  /**
+   * 测试图标URL是否可用
+   */
+  const testFaviconUrl = (url: string): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(url);
+      img.onerror = () => reject(new Error(`无法加载: ${url}`));
+      img.src = url;
+      // 设置3秒超时
+      setTimeout(() => reject(new Error(`超时: ${url}`)), 3000);
+    });
+  };
+
   const handleAutoFetch = async () => {
     if (!formData.url || !formData.url.startsWith('http')) {
       setErrors({ url: '请输入有效的网址(以http://或https://开头)' });
@@ -85,9 +116,25 @@ export default function CardEditModal({ id, name, url, favicon, tags: _, note, o
         console.warn('清除缓存失败:', error);
       }
       
-      // 生成新的 favicon URL，添加时间戳确保不被缓存
-      const timestamp = Date.now();
-      const newFaviconUrl = `https://www.google.com/s2/favicons?domain=${formData.url}&sz=64&t=${timestamp}`;
+      // 尝试多个图标服务，优先使用国内访问稳定的服务
+      const faviconUrls = getFaviconUrls(cacheDomain);
+      let newFaviconUrl = '/icon/icon.jpg'; // 默认图标
+      
+      console.log('🔍 开始尝试获取图标，优先使用国内稳定服务...');
+      
+      // 逐个尝试图标URL，找到第一个可用的
+      for (const url of faviconUrls) {
+        try {
+          console.log(`⏳ 尝试: ${url}`);
+          await testFaviconUrl(url);
+          newFaviconUrl = url;
+          console.log(`✅ 图标获取成功: ${url}`);
+          break;
+        } catch (error) {
+          console.log(`❌ 图标获取失败: ${url}`);
+          continue;
+        }
+      }
       
       // 自动获取favicon
       setFormData(prev => ({
@@ -108,7 +155,7 @@ export default function CardEditModal({ id, name, url, favicon, tags: _, note, o
         return newErrors;
       });
       
-      console.log('✅ 自动获取完成，新图标:', newFaviconUrl);
+      console.log('✅ 自动获取完成，最终图标:', newFaviconUrl);
     } catch (error) {
       console.error('自动获取信息失败:', error);
       setErrors({ url: '无法解析该网址，请检查格式是否正确' });

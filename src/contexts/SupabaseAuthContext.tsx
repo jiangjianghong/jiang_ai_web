@@ -86,9 +86,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   // 清除错误
   const clearError = () => setError(null);
-  
-  // 清除成功消息
-  const clearSuccessMessage = () => setSuccessMessage(null);
 
   // 邮箱密码登录
   const login = async (email: string, password: string) => {

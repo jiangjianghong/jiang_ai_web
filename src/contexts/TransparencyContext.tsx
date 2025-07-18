@@ -24,6 +24,7 @@ interface TransparencyContextType {
   parallaxEnabled: boolean;
   wallpaperResolution: WallpaperResolution;
   isSettingsOpen: boolean;
+  isSearchFocused: boolean;
   cardColor: string; // RGB字符串
   searchBarColor: string; // RGB字符串
   setCardOpacity: (opacity: number) => void;
@@ -31,6 +32,7 @@ interface TransparencyContextType {
   setParallaxEnabled: (enabled: boolean) => void;
   setWallpaperResolution: (resolution: WallpaperResolution) => void;
   setIsSettingsOpen: (open: boolean) => void;
+  setIsSearchFocused: (focused: boolean) => void;
   setCardColor: (color: string) => void;
   setSearchBarColor: (color: string) => void;
 }
@@ -86,6 +88,7 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
   });
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('cardOpacity', cardOpacity.toString());
@@ -119,6 +122,7 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
         parallaxEnabled,
         wallpaperResolution,
         isSettingsOpen,
+        isSearchFocused,
         cardColor,
         searchBarColor,
         setCardOpacity,
@@ -126,6 +130,7 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
         setParallaxEnabled,
         setWallpaperResolution,
         setIsSettingsOpen,
+        setIsSearchFocused,
         setCardColor,
         setSearchBarColor,
       }}

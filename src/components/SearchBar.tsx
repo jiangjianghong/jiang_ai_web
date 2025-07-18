@@ -1,5 +1,5 @@
 import { useState, useRef, useLayoutEffect, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useTransparency } from '@/contexts/TransparencyContext';
 
 interface SearchBarProps {
@@ -8,27 +8,10 @@ interface SearchBarProps {
 
 export function SearchBar(_props: SearchBarProps = {}) {
   const inputRef = useRef<HTMLInputElement>(null);
-  // 全局监听空格键，未聚焦输入框时聚焦搜索框
-  useEffect(() => {
-    const handleSpaceFocus = (e: KeyboardEvent) => {
-      // 只处理空格键
-      if (e.code === 'Space' || e.key === ' ' || e.keyCode === 32) {
-        // 判断当前聚焦元素是否是输入框/textarea/可编辑内容
-        const active = document.activeElement;
-        const isInput = active && (
-          active.tagName === 'INPUT' ||
-          active.tagName === 'TEXTAREA' ||
-          (active as HTMLElement).isContentEditable
-        );
-        if (!isInput && inputRef.current) {
-          e.preventDefault(); // 阻止页面滚动
-          inputRef.current.focus();
-        }
-      }
-    };
-    window.addEventListener('keydown', handleSpaceFocus, { capture: true });
-    return () => window.removeEventListener('keydown', handleSpaceFocus, { capture: true } as any);
-  }, []);
+  const [isFocused, setIsFocused] = useState(false);
+  const { searchBarOpacity, searchBarColor, setIsSearchFocused } = useTransparency();
+  
+  // 状态变量声明移到useEffect之前
   const [searchQuery, setSearchQuery] = useState('');
   const [isHovered, setIsHovered] = useState(false);
   const [engine, setEngine] = useState<'bing' | 'google'>('bing');
@@ -41,7 +24,47 @@ export function SearchBar(_props: SearchBarProps = {}) {
   const [hoveredEmojiIdx, setHoveredEmojiIdx] = useState<number | null>(null);
   const [showEngineTooltip, setShowEngineTooltip] = useState(false);
   const searchBarRef = useRef<HTMLFormElement>(null);
-  const { searchBarOpacity, searchBarColor } = useTransparency();
+  
+  // 全局监听空格键，未聚焦输入框时聚焦搜索框
+  useEffect(() => {
+    const handleSpaceFocus = (e: KeyboardEvent) => {
+      // 只处理空格键
+      if (e.code === 'Space' || e.key === ' ' || e.keyCode === 32) {
+        // 判断当前聚焦元素是否是输入框/textarea/可编辑内容
+        const active = document.activeElement;
+        const isInput = active && (
+          active.tagName === 'INPUT' ||
+          active.tagName === 'TEXTAREA' ||
+          (active as HTMLElement).isContentEditable
+        );
+        
+        // 如果当前聚焦在搜索框上且输入框是空的，则退出聚焦状态
+        if (isInput && active === inputRef.current && searchQuery.trim() === '' && isFocused) {
+          console.log('空格键触发退出聚焦状态'); // 调试信息
+          e.preventDefault(); // 阻止输入空格
+          setIsFocused(false);
+          setIsHovered(false);
+          setIsSearchFocused(false);
+          inputRef.current?.blur(); // 失去焦点
+          console.log('设置状态: focused=false, hovered=false, searchFocused=false'); // 调试信息
+          return;
+        }
+        
+        // 如果当前不在输入框中，则聚焦搜索框
+        if (!isInput && inputRef.current) {
+          console.log('空格键触发，聚焦搜索框'); // 调试信息
+          e.preventDefault(); // 阻止页面滚动
+          inputRef.current.focus();
+          setIsFocused(true);
+          setIsHovered(true); // 添加这行让搜索框变宽
+          setIsSearchFocused(true);
+          console.log('设置状态: focused=true, hovered=true, searchFocused=true'); // 调试信息
+        }
+      }
+    };
+    window.addEventListener('keydown', handleSpaceFocus, { capture: true });
+    return () => window.removeEventListener('keydown', handleSpaceFocus, { capture: true } as any);
+  }, [setIsSearchFocused, searchQuery, isFocused]); // 添加searchQuery和isFocused依赖
   
   const engineList = [
     { key: 'bing', label: 'Bing', icon: <i className="fa-brands fa-microsoft text-blue-400"></i> },
@@ -456,7 +479,26 @@ export function SearchBar(_props: SearchBarProps = {}) {
   }, [isExpandDone, engine]);
 
   return (
-    <div className="relative left-0 right-0 z-50 flex justify-center px-4 select-none">
+    <>
+      {/* 聚焦时的背景模糊遮罩 */}
+      <AnimatePresence>
+        {isFocused && (
+          <motion.div
+            className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            onClick={() => {
+              setIsFocused(false);
+              setIsSearchFocused(false);
+              inputRef.current?.blur();
+            }}
+          />
+        )}
+      </AnimatePresence>
+      
+      <div className="relative left-0 right-0 z-50 flex justify-center px-4 select-none">
       <motion.div
         className="w-full flex justify-center"
         initial={{ opacity: 0, y: -20 }}
@@ -527,6 +569,16 @@ export function SearchBar(_props: SearchBarProps = {}) {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={handleKeyDown}
+              onFocus={() => {
+                setIsFocused(true);
+                setIsSearchFocused(true);
+              }}
+              onBlur={() => {
+                setTimeout(() => {
+                  setIsFocused(false);
+                  setIsSearchFocused(false);
+                }, 150);
+              }}
               placeholder="🧸搜点啥捏..."
               className="backdrop-blur-md border border-white/20 rounded-full pl-4 py-2 text-white placeholder-white/60 outline-none text-base transition-all duration-200 pr-12 w-full ml-3"
               style={{
@@ -678,5 +730,6 @@ export function SearchBar(_props: SearchBarProps = {}) {
         </form>
       </motion.div>
     </div>
+    </>
   );
 }

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/SupabaseAuthContext';
 
 interface AuthFormProps {
   onSuccess: () => void;
@@ -16,7 +16,7 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
   const [showVerificationMessage, setShowVerificationMessage] = useState(false);
   const [verificationEmail, setVerificationEmail] = useState('');
 
-  const { login, register, loginWithGoogle, sendVerificationEmail, error: authError, isNetworkOnline, isFirebaseConnected } = useAuth();
+  const { login, register, loginWithGoogle, sendVerificationEmail, error: authError } = useAuth();
 
   // 组合错误显示：优先显示本地验证错误，然后是认证错误
   const displayError = localError || authError;
@@ -163,20 +163,6 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
         </div>
       )}
 
-      {!isNetworkOnline && (
-        <div className="mb-4 p-3 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded flex items-center space-x-2">
-          <i className="fa-solid fa-wifi-slash"></i>
-          <span>网络连接不可用，请检查网络设置</span>
-        </div>
-      )}
-
-      {!isFirebaseConnected && isNetworkOnline && (
-        <div className="mb-4 p-3 bg-blue-100 border border-blue-400 text-blue-700 rounded flex items-center space-x-2">
-          <i className="fa-solid fa-cloud-slash"></i>
-          <span>Firebase服务异常，登录功能可能受限</span>
-        </div>
-      )}
-
       <form onSubmit={handleSubmit} className="space-y-4">
         {!isLogin && (
           <div>
@@ -229,7 +215,7 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
 
         <button
           type="submit"
-          disabled={loading || !isNetworkOnline || !isFirebaseConnected}
+          disabled={loading}
           className="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white py-2 px-4 rounded-md transition-colors"
         >
           {loading ? '处理中...' : (isLogin ? '登录' : '注册')}
@@ -248,7 +234,7 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
 
         <button
           onClick={handleGoogleLogin}
-          disabled={loading || !isNetworkOnline || !isFirebaseConnected}
+          disabled={loading}
           className="mt-4 w-full bg-red-500 hover:bg-red-600 disabled:bg-gray-400 text-white py-2 px-4 rounded-md transition-colors flex items-center justify-center"
         >
           <i className="fab fa-google mr-2"></i>

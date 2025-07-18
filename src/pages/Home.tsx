@@ -5,7 +5,7 @@ import { AnimatedCat } from '@/components/AnimatedCat';
 // 拖拽逻辑已迁移到 WebsiteCard
 import { motion } from 'framer-motion';
 import { useTransparency } from '@/contexts/TransparencyContext';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { useUserProfile } from '@/contexts/UserProfileContext';
 import { useAutoSync } from '@/hooks/useAutoSync';
 import Settings from '@/pages/Settings';
@@ -504,7 +504,7 @@ export default function Home({ websites, setWebsites }: HomeProps) {
         )}
 
         {/* 用户信息显示 - 响应式调整 */}
-        {currentUser && currentUser.emailVerified && (
+        {currentUser && currentUser.email_confirmed_at && (
           <div className={classes.userInfo}>
             <button
               onClick={handleUserNameClick}

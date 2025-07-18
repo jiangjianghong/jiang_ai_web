@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useUserProfile } from '@/contexts/UserProfileContext';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/SupabaseAuthContext';
 
 export default function UserNameEditor() {
   const { currentUser } = useAuth();
@@ -16,7 +16,7 @@ export default function UserNameEditor() {
   }, [displayName]);
 
   // 如果用户未登录或邮箱未验证，不显示编辑器
-  if (!currentUser || !currentUser.emailVerified) {
+  if (!currentUser || !currentUser.email_confirmed_at) {
     return null;
   }
 

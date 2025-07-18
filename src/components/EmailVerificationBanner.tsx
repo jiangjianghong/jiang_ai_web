@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/SupabaseAuthContext';
 
 export default function EmailVerificationBanner() {
   const { currentUser, sendVerificationEmail, reloadUser, logout } = useAuth();
@@ -8,7 +8,7 @@ export default function EmailVerificationBanner() {
   const [isCheckingVerification, setIsCheckingVerification] = useState(false);
 
   // 如果用户未登录或邮箱已验证，不显示横幅
-  if (!currentUser || currentUser.emailVerified) {
+  if (!currentUser || currentUser.email_confirmed_at) {
     return null;
   }
 

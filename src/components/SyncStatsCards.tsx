@@ -1,5 +1,5 @@
 import { useSyncStatus } from '@/contexts/SyncContext';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/SupabaseAuthContext';
 
 export default function SyncStatsCards() {
   const { syncStatus } = useSyncStatus();
@@ -35,7 +35,7 @@ export default function SyncStatsCards() {
       <div className={`bg-${statusColor}-50 rounded p-2 text-center`}>
         <div className={`font-medium text-${statusColor}-700`}>云端备份</div>
         <div className={`text-${statusColor}-600`}>
-          {currentUser.emailVerified ? getSyncStatusText() : '邮箱未验证'}
+          {currentUser.email_confirmed_at ? getSyncStatusText() : '邮箱未验证'}
         </div>
       </div>
       <div className="bg-blue-50 rounded p-2 text-center">

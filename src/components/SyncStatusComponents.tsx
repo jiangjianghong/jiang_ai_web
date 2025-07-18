@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useIncrementalSync } from '@/hooks/useIncrementalSync';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { ProgressBar, LoadingSpinner } from '@/components/MicroInteractions';
 
 interface SyncStatusDisplayProps {
@@ -13,7 +13,7 @@ export function SyncStatusDisplay({ websites, settings, className = '' }: SyncSt
   const { currentUser } = useAuth();
   const { syncState, performSync, canSync, resetSync } = useIncrementalSync(websites, settings);
 
-  if (!currentUser?.emailVerified) {
+  if (!currentUser?.email_confirmed_at) {
     return null;
   }
 

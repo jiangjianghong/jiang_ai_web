@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { WebsiteData, UserSettings } from '@/lib/supabaseSync';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/SupabaseAuthContext';
 
 interface SyncState {
   isActive: boolean;
@@ -260,7 +260,7 @@ export function useIncrementalSync(
 
   // 监控数据变化，添加到同步队列
   useEffect(() => {
-    if (!syncManagerRef.current || !currentUser?.emailVerified) return;
+    if (!syncManagerRef.current || !currentUser?.email_confirmed_at) return;
 
     const currentData = { websites, settings };
     
@@ -289,7 +289,7 @@ export function useIncrementalSync(
 
   // 执行增量同步
   const performSync = useCallback(async () => {
-    if (!syncManagerRef.current || !currentUser?.emailVerified || syncState.isActive) {
+    if (!syncManagerRef.current || !currentUser?.email_confirmed_at || syncState.isActive) {
       return;
     }
 
@@ -317,11 +317,11 @@ export function useIncrementalSync(
 
       // 上传本地变更
       setSyncState(prev => ({ ...prev, progress: 25, message: '上传本地变更...' }));
-      await uploadIncrementalChanges(currentUser.uid, localChanges);
+      await uploadIncrementalChanges(currentUser.id, localChanges);
 
       // 获取远程变更
       setSyncState(prev => ({ ...prev, progress: 50, message: '获取远程变更...' }));
-      const remoteChanges = await fetchRemoteChanges(currentUser.uid, lastSyncTime);
+      const remoteChanges = await fetchRemoteChanges(currentUser.id, lastSyncTime);
 
       // 应用远程变更并解决冲突
       setSyncState(prev => ({ ...prev, progress: 75, message: '解决冲突并应用变更...' }));
@@ -379,7 +379,7 @@ export function useIncrementalSync(
 
   // 自动同步
   useEffect(() => {
-    if (!currentUser?.emailVerified || !defaultOptions.syncInterval) return;
+    if (!currentUser?.email_confirmed_at || !defaultOptions.syncInterval) return;
 
     const interval = setInterval(() => {
       if (syncState.pendingChanges > 0) {
@@ -393,7 +393,7 @@ export function useIncrementalSync(
   return {
     syncState,
     performSync,
-    canSync: currentUser?.emailVerified && !syncState.isActive,
+    canSync: currentUser?.email_confirmed_at && !syncState.isActive,
     resetSync: () => setSyncState(prev => ({ ...prev, status: 'idle', message: '' }))
   };
 }

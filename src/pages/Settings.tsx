@@ -9,7 +9,7 @@ import PrivacySettings from '@/components/PrivacySettings';
 import ConfirmModal from '@/components/ConfirmModal';
 import { ColorPicker } from '@/components/ColorPicker';
 import { useTransparency, WallpaperResolution } from '@/contexts/TransparencyContext';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { WebsiteData } from '@/lib/supabaseSync';
 import { useDataManager } from '@/hooks/useDataManager';
 

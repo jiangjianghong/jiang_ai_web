@@ -2,7 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { Toaster } from 'sonner';
-import App from "./App.tsx";
+import MainApp from "./MainApp.tsx";
 import "./index.css";
 
 const isLocalhost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
@@ -67,7 +67,7 @@ try {
   root.render(
     <StrictMode>
       <BrowserRouter basename={basename}>
-        <App />
+        <MainApp />
         <Toaster />
       </BrowserRouter>
     </StrictMode>

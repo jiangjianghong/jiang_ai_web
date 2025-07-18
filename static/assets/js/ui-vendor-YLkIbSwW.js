@@ -1,4 +1,4 @@
-import{r as y}from"./router-vendor-CVjjmoR4.js";import{r as bo,g as xo}from"./react-vendor-BtP0CW_r.js";var ge={exports:{}},xt={};/**
+import{r as y}from"./router-vendor-BI--Uo24.js";import{r as bo,g as xo}from"./react-vendor-DyFf35aq.js";var ge={exports:{}},xt={};/**
  * @license React
  * react-jsx-runtime.production.min.js
  *

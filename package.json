@@ -11,6 +11,7 @@
     "deploy": "pnpm run build && gh-pages -d dist/static"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.52.0",
     "@tsparticles/react": "^3.0.0",
     "clsx": "^2.1.1",
     "firebase": "^11.10.0",

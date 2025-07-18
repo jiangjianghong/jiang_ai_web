@@ -1,8 +1,8 @@
 import { useEffect, useRef, useCallback } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { useSyncStatus } from '@/contexts/SyncContext';
 import { useTransparency } from '@/contexts/TransparencyContext';
-import { autoSync, UserSettings, WebsiteData } from '@/lib/firebaseSync';
+import { autoSync, UserSettings, WebsiteData } from '@/lib/supabaseSync';
 
 export function useAutoSync(websites: WebsiteData[]) {
   const { currentUser } = useAuth();
@@ -28,8 +28,8 @@ export function useAutoSync(websites: WebsiteData[]) {
     }
 
     // 只有登录且邮箱已验证的用户才能同步数据
-    if (!currentUser || !currentUser.emailVerified) {
-      if (currentUser && !currentUser.emailVerified) {
+    if (!currentUser || !currentUser.email_confirmed_at) {
+      if (currentUser && !currentUser.email_confirmed_at) {
         updateSyncStatus({ 
           syncInProgress: false,
           syncError: '请先验证邮箱才能同步数据到云端',
@@ -57,7 +57,7 @@ export function useAutoSync(websites: WebsiteData[]) {
       parallaxEnabled,
       wallpaperResolution,
       theme: localStorage.getItem('theme') || 'light',
-      lastSync: null
+      lastSync: new Date().toISOString()
     };
 
     console.log(force ? '⏰ 强制执行数据同步...' : '🚀 开始执行数据同步...');

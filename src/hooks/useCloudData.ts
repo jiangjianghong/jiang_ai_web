@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { getUserWebsites, getUserSettings, mergeWebsiteData, WebsiteData, UserSettings } from '@/lib/firebaseSync';
+import { useAuth } from '@/contexts/SupabaseAuthContext';
+import { getUserWebsites, getUserSettings, mergeWebsiteData, WebsiteData, UserSettings } from '@/lib/supabaseSync';
 
 interface CloudDataState {
   cloudWebsites: WebsiteData[] | null;
@@ -25,7 +25,7 @@ export function useCloudData(enabled: boolean = true): UseCloudDataResult {
   });
 
   const loadCloudData = async () => {
-    if (!currentUser || !currentUser.emailVerified) {
+    if (!currentUser || !currentUser.email_confirmed_at) {
       setState(prev => ({ 
         ...prev, 
         error: '需要登录且验证邮箱才能加载云端数据',
@@ -85,7 +85,7 @@ export function useCloudData(enabled: boolean = true): UseCloudDataResult {
 
   // 当用户登录状态变化时，自动加载云端数据（仅在启用时）
   useEffect(() => {
-    if (enabled && currentUser && currentUser.emailVerified) {
+    if (enabled && currentUser && currentUser.email_confirmed_at) {
       loadCloudData();
     } else {
       setState({

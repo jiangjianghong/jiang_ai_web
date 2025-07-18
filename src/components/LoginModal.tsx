@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/SupabaseAuthContext';
 
 interface LoginModalProps {
   onClose: () => void;
@@ -24,19 +24,19 @@ export default function LoginModal({ onClose }: LoginModalProps) {
     e.preventDefault();
     
     if (!email || !password) {
-      setError('请填写完整信息');
+      setLocalError('请填写完整信息');
       return;
     }
 
     // 验证邮箱格式
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      setError('请输入有效的邮箱地址');
+      setLocalError('请输入有效的邮箱地址');
       return;
     }
 
     setLoading(true);
-    setError('');
+    setLocalError('');
 
     try {
       if (isLogin) {
@@ -52,32 +52,8 @@ export default function LoginModal({ onClose }: LoginModalProps) {
       console.error('认证失败:', error);
       
       // 处理常见的 Firebase 错误
-      const errorCode = error.code;
-      switch (errorCode) {
-        case 'auth/user-not-found':
-          setError('用户不存在，请检查邮箱或注册新账号');
-          break;
-        case 'auth/wrong-password':
-          setError('密码错误，请重试');
-          break;
-        case 'auth/email-already-in-use':
-          setError('邮箱已被注册，请登录或使用其他邮箱');
-          break;
-        case 'auth/weak-password':
-          setError('密码强度不够，至少需要6位字符');
-          break;
-        case 'auth/invalid-email':
-          setError('邮箱格式不正确');
-          break;
-        case 'auth/too-many-requests':
-          setError('请求过于频繁，请稍后再试');
-          break;
-        case 'auth/invalid-credential':
-          setError('登录凭据无效，请检查邮箱和密码');
-          break;
-        default:
-          setError(isLogin ? '登录失败，请重试' : '注册失败，请重试');
-      }
+      // Supabase的错误处理已经在AuthContext中完成，这里不需要额外处理
+      setLocalError(error.message || (isLogin ? '登录失败，请重试' : '注册失败，请重试'));
     } finally {
       setLoading(false);
     }
@@ -85,14 +61,14 @@ export default function LoginModal({ onClose }: LoginModalProps) {
 
   const handleGoogleLogin = async () => {
     setLoading(true);
-    setError('');
+    setLocalError('');
     
     try {
       await loginWithGoogle();
       onClose();
     } catch (error: any) {
       console.error('Google登录失败:', error);
-      setError('Google登录失败，请重试');
+      setLocalError('Google登录失败，请重试');
     } finally {
       setLoading(false);
     }
@@ -132,9 +108,9 @@ export default function LoginModal({ onClose }: LoginModalProps) {
           </button>
         </div>
 
-        {error && (
+        {displayError && (
           <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-            {error}
+            {displayError}
           </div>
         )}
 

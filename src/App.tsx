@@ -3,14 +3,14 @@ import Home from "@/pages/Home";
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { TransparencyProvider, useTransparency } from '@/contexts/TransparencyContext';
-import { AuthProvider } from '@/contexts/AuthContext';
+import { AuthProvider } from '@/contexts/SupabaseAuthContext';
 import { SyncProvider } from '@/contexts/SyncContext';
 import { UserProfileProvider } from '@/contexts/UserProfileContext';
 import DataSyncModal from '@/components/DataSyncModal';
 import NetworkStatus from '@/components/NetworkStatus';
 import { useCloudData } from '@/hooks/useCloudData';
-import { useAuth } from '@/contexts/AuthContext';
-import { saveUserWebsites, WebsiteData } from '@/lib/firebaseSync';
+import { useAuth } from '@/contexts/SupabaseAuthContext';
+import { saveUserWebsites, WebsiteData } from '@/lib/supabaseSync';
 import { useState, useEffect } from 'react';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useResourcePreloader } from '@/hooks/useResourcePreloader';
@@ -37,7 +37,7 @@ function AppContent() {
   const [isFirstRenderComplete, setIsFirstRenderComplete] = useState(false);
   
   // 延迟启用云数据和资源预加载，避免阻塞首屏渲染
-  const shouldEnableCloudSync = isFirstRenderComplete && currentUser?.emailVerified;
+  const shouldEnableCloudSync = isFirstRenderComplete && !!currentUser?.email_confirmed_at;
   const { cloudWebsites, cloudSettings, hasCloudData, mergeWithLocalData } = useCloudData(shouldEnableCloudSync);
   
   // 在首屏渲染完成后再启用资源预加载
@@ -70,7 +70,7 @@ function AppContent() {
   useEffect(() => {
     if (!shouldEnableCloudSync) return;
     
-    if (currentUser && currentUser.emailVerified && hasCloudData && cloudWebsites && !syncProcessed) {
+    if (currentUser && currentUser.email_confirmed_at && hasCloudData && cloudWebsites && !syncProcessed) {
       // 使用优化的数据比较函数
       const localCount = stableWebsitesLength;
       const cloudCount = cloudWebsites.length;
@@ -91,7 +91,7 @@ function AppContent() {
   useEffect(() => {
     if (!shouldEnableCloudSync) return;
     
-    if (currentUser && currentUser.emailVerified && cloudSettings) {
+    if (currentUser && currentUser.email_confirmed_at && cloudSettings) {
       // 静默应用云端设置
       
       // 应用各种设置

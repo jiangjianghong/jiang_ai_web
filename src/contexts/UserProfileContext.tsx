@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { getUserProfile, saveUserProfile, UserProfile } from '@/lib/firebaseSync';
+import { useAuth } from '@/contexts/SupabaseAuthContext';
+import { getUserProfile, saveUserProfile, UserProfile } from '@/lib/supabaseSync';
 
 interface UserProfileContextType {
   userProfile: UserProfile | null;
@@ -33,7 +33,7 @@ export function UserProfileProvider({ children }: UserProfileProviderProps) {
 
   // 更新显示名称
   const updateDisplayName = async (name: string): Promise<boolean> => {
-    if (!currentUser || !currentUser.emailVerified) return false;
+    if (!currentUser || !currentUser.email_confirmed_at) return false;
     
     setLoading(true);
     try {
@@ -43,7 +43,7 @@ export function UserProfileProvider({ children }: UserProfileProviderProps) {
         setUserProfile(prev => prev ? { 
           ...prev, 
           displayName: name,
-          updatedAt: new Date()
+          updatedAt: new Date().toISOString()
         } : null);
         
         // 重新获取用户资料确保同步
@@ -68,7 +68,7 @@ export function UserProfileProvider({ children }: UserProfileProviderProps) {
   // 当用户登录状态变化时，加载用户资料
   useEffect(() => {
     const loadUserProfile = async () => {
-      if (currentUser && currentUser.emailVerified) {
+      if (currentUser && currentUser.email_confirmed_at) {
         setLoading(true);
         try {
           const profile = await getUserProfile(currentUser);

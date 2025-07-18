@@ -5,7 +5,7 @@ import { AnimatedCat } from '@/components/AnimatedCat';
 // 拖拽逻辑已迁移到 WebsiteCard
 import { motion } from 'framer-motion';
 import { useTransparency } from '@/contexts/TransparencyContext';
-import { useAuth } from '@/contexts/SupabaseAuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useUserProfile } from '@/contexts/UserProfileContext';
 import { useAutoSync } from '@/hooks/useAutoSync';
 import Settings from '@/pages/Settings';
@@ -21,12 +21,7 @@ interface HomeProps {
 }
 
 export default function Home({ websites, setWebsites }: HomeProps) {
-  const { parallaxEnabled, wallpaperResolution, isSettingsOpen, isSearchFocused } = useTransparency();
-  
-  // 调试信息
-  useEffect(() => {
-    console.log('Home状态:', { parallaxEnabled, isSettingsOpen, isSearchFocused });
-  }, [parallaxEnabled, isSettingsOpen, isSearchFocused]);
+  const { parallaxEnabled, wallpaperResolution, isSettingsOpen } = useTransparency();
   const { currentUser } = useAuth();
   const { displayName } = useUserProfile();
   const { 
@@ -192,8 +187,14 @@ export default function Home({ websites, setWebsites }: HomeProps) {
 
     // 备用壁纸URLs（用于localhost开发环境）
     const getFallbackWallpaperUrl = () => {
-      // 使用固定的渐变背景，避免网络请求
-      return ''; // 返回空字符串，让CSS渐变背景生效
+      // 使用无跨域限制的备用壁纸
+      const fallbackWallpapers = [
+        'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&h=1080&fit=crop',
+        'https://images.unsplash.com/photo-1519904981063-b0cf448d479e?w=1920&h=1080&fit=crop',
+        'https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=1920&h=1080&fit=crop'
+      ];
+      const today = new Date().getDate();
+      return fallbackWallpapers[today % fallbackWallpapers.length];
     };
 
     // 获取今天的日期字符串
@@ -362,13 +363,13 @@ export default function Home({ websites, setWebsites }: HomeProps) {
 
   const throttledMouseMove = useRAFThrottledMouseMove(
     handleMouseMove,
-    parallaxEnabled && !isSettingsOpen && !isSearchFocused
+    parallaxEnabled && !isSettingsOpen
   );
 
   // 监听鼠标移动 - 使用 RAF 节流优化性能
   useEffect(() => {
     // 如果视差被禁用或设置页面打开，不添加鼠标监听器
-    if (!parallaxEnabled || isSettingsOpen || isSearchFocused) {
+    if (!parallaxEnabled || isSettingsOpen) {
       setMousePosition({ x: 0, y: 0 });
       return;
     }
@@ -377,7 +378,7 @@ export default function Home({ websites, setWebsites }: HomeProps) {
     return () => {
       window.removeEventListener('mousemove', throttledMouseMove);
     };
-  }, [parallaxEnabled, isSettingsOpen, isSearchFocused, throttledMouseMove]);
+  }, [parallaxEnabled, isSettingsOpen, throttledMouseMove]);
 
   // 预加载 favicon（已移除，使用下面的 IndexedDB 批量缓存代替）
 
@@ -435,7 +436,7 @@ export default function Home({ websites, setWebsites }: HomeProps) {
           backgroundPosition: isMobile ? 'center center' : 'center top',
           backgroundRepeat: 'no-repeat',
           filter: bgImageLoaded ? 'none' : 'blur(2px)',
-          transform: !isSettingsOpen && !isSearchFocused && parallaxEnabled && !isMobile && mousePosition ? 
+          transform: !isSettingsOpen && parallaxEnabled && !isMobile && mousePosition ? 
             `translate(${mousePosition.x * 0.02}px, ${mousePosition.y * 0.02}px) scale(1.05)` : 
             'translate(0px, 0px) scale(1)',
           transition: 'filter 1.5s ease-out, transform 0.3s ease-out',
@@ -503,7 +504,7 @@ export default function Home({ websites, setWebsites }: HomeProps) {
         )}
 
         {/* 用户信息显示 - 响应式调整 */}
-        {currentUser && currentUser.email_confirmed_at && (
+        {currentUser && currentUser.emailVerified && (
           <div className={classes.userInfo}>
             <button
               onClick={handleUserNameClick}

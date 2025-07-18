@@ -13,7 +13,8 @@ const basePath = getBasePath();
 const STATIC_CACHE_URLS = [
   `${basePath}/`,
   `${basePath}/index.html`,
-  `${basePath}/offline-test.html`,
+  // 移除可能不存在的offline-test.html
+  // `${basePath}/offline-test.html`,
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css'
 ];
 
@@ -32,7 +33,19 @@ self.addEventListener('install', (event) => {
     caches.open(STATIC_CACHE_NAME)
       .then((cache) => {
         console.log('Service Worker: 缓存核心资源');
-        return cache.addAll(STATIC_CACHE_URLS);
+        // 逐个添加资源，避免某个资源失败导致整个缓存失败
+        return Promise.allSettled(
+          STATIC_CACHE_URLS.map(url => 
+            cache.add(url).catch(error => {
+              console.warn(`缓存失败: ${url}`, error);
+              return null;
+            })
+          )
+        );
+      })
+      .then(() => {
+        console.log('Service Worker: 核心资源缓存完成');
+        self.skipWaiting(); // 强制激活新的Service Worker
       })
       .catch((error) => {
         console.error('Service Worker: 缓存失败', error);

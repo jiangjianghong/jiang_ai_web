@@ -112,7 +112,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`
+          emailRedirectTo: window.location.origin,
+          data: {
+            // 用户元数据，会传递到邮件模板
+            app_name: '江江的网站',
+            welcome_message: '你好呀！欢迎使用江江的网站，点击下面的链接确认注册哦。祝您使用愉快！',
+            site_url: window.location.origin
+          }
         }
       });
 
@@ -133,7 +139,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (currentUser && !currentUser.email_confirmed_at) {
         const { error } = await supabase.auth.resend({
           type: 'signup',
-          email: currentUser.email!
+          email: currentUser.email!,
+          options: {
+            emailRedirectTo: window.location.origin
+          }
         });
 
         if (error) throw error;

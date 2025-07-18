@@ -12,38 +12,44 @@ export function useResourcePreloader(enabled: boolean = true) {
       return;
     }
 
-    // 静默开始预加载资源
-    // 预加载 FontAwesome 字体
-    const fontAwesomeUrls = [
-      'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/webfonts/fa-solid-900.woff2',
-      'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/webfonts/fa-regular-400.woff2',
-    ];
+    // 延迟预加载，避免阻塞首屏渲染
+    const delayedPreload = setTimeout(() => {
+      // 预连接到第三方域名
+      const preconnectDomains = [
+        'https://bing.img.run',
+        'https://source.unsplash.com',
+        'https://www.google.com',
+        'https://favicon.yandex.net',
+        'https://icons.duckduckgo.com',
+        'https://favicon.im'
+      ];
 
-    fontAwesomeUrls.forEach(url => {
-      resourcePreloader.queuePreload(url);
-    });
+      preconnectDomains.forEach(domain => {
+        const link = document.createElement('link');
+        link.rel = 'preconnect';
+        link.href = domain;
+        if (!document.head.querySelector(`link[href="${domain}"]`)) {
+          document.head.appendChild(link);
+        }
+      });
 
-    // 预连接到第三方域名
-    const preconnectDomains = [
-      'https://bing.img.run',
-      'https://source.unsplash.com',
-      'https://www.google.com',
-      'https://favicon.yandex.net',
-      'https://icons.duckduckgo.com'
-    ];
+      // 只有当页面包含图标时才预加载默认图标
+      const hasIcons = document.querySelector('.fa, .fas, .far, .fab, [class*="fa-"]');
+      if (hasIcons) {
+        // 延迟预加载FontAwesome字体（只在需要时）
+        const fontAwesomeUrls = [
+          'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/webfonts/fa-solid-900.woff2',
+        ];
 
-    preconnectDomains.forEach(domain => {
-      const link = document.createElement('link');
-      link.rel = 'preconnect';
-      link.href = domain;
-      if (!document.head.querySelector(`link[href="${domain}"]`)) {
-        document.head.appendChild(link);
+        fontAwesomeUrls.forEach(url => {
+          resourcePreloader.queuePreload(url);
+        });
       }
-    });
+    }, 2000); // 延迟2秒，确保首屏渲染完成
 
     // 清理函数
     return () => {
-      // 可以在这里做一些清理工作
+      clearTimeout(delayedPreload);
     };
   }, [enabled]);
 

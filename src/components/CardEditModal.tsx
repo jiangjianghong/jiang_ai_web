@@ -55,9 +55,11 @@ export default function CardEditModal({ id, name, url, favicon, tags: _, note, o
    */
   const getFaviconUrls = (domain: string): string[] => {
     return [
-      // 优先使用DuckDuckGo的图标服务（国内访问较稳定）
+      // 优先使用favicon.im（支持国内访问，速度快）
+      `https://favicon.im/${domain}?larger=true`,
+      // 备用：DuckDuckGo的图标服务
       `https://icons.duckduckgo.com/ip3/${domain}.ico`,
-      // 备用：尝试网站自己的 favicon
+      // 尝试网站自己的 favicon
       `https://${domain}/favicon.ico`,
       `https://${domain}/favicon.png`,
       // 最后尝试Google服务（可能被墙）

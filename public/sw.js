@@ -14,9 +14,17 @@ const STATIC_CACHE_URLS = [
   `${basePath}/`,
   `${basePath}/index.html`,
   `${basePath}/404.html`,
-  // 移除可能不存在的offline-test.html
-  // `${basePath}/offline-test.html`,
-  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css'
+  // 预缓存关键资源
+  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css',
+  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/webfonts/fa-solid-900.woff2',
+  `${basePath}/icon/icon.jpg` // 修复默认图标路径
+];
+
+// 高优先级缓存的资源类型
+const HIGH_PRIORITY_CACHE = [
+  'document',
+  'script',
+  'style'
 ];
 
 // 不应该缓存的URL模式
@@ -24,7 +32,8 @@ const SKIP_CACHE_PATTERNS = [
   /googleapis\.com/,
   /firebase/,
   /google\.com.*s2\/favicons/,
-  /identitytoolkit/
+  /identitytoolkit/,
+  /supabase\.co.*auth/ // 避免缓存认证请求
 ];
 
 // 安装事件 - 缓存核心资源

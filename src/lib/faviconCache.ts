@@ -85,15 +85,21 @@ class FaviconCacheManager {
   }
 
   /**
-   * 获取 favicon 的备用 URL 列表（简化版）
+   * 获取 favicon 的备用 URL 列表（国内优化版）
    */
   private getFaviconUrls(originalUrl: string, domain: string): string[] {
     return [
       originalUrl, // 原始 URL
+      // 优先使用favicon.im（支持国内访问，速度快）
+      `https://favicon.im/${domain}?larger=true`,
+      // 备用：DuckDuckGo的图标服务
+      `https://icons.duckduckgo.com/ip3/${domain}.ico`,
+      // 尝试网站自己的 favicon
+      `https://${domain}/favicon.ico`,
+      `https://${domain}/favicon.png`,
+      // 最后尝试Google服务（可能被墙）
       `https://www.google.com/s2/favicons?domain=${domain}&sz=64`,
       `https://www.google.com/s2/favicons?domain=${domain}&sz=32`,
-      `https://icons.duckduckgo.com/ip3/${domain}.ico`,
-      `https://${domain}/favicon.ico`,
       '/icon/icon.jpg' // 默认兜底图标
     ];
   }

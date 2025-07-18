@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { faviconCache } from '@/lib/faviconCache';
+import { isDefaultIcon } from '@/lib/iconPath';
 
 /**
  * 使用 favicon 缓存的 Hook（极简版 - 防止切换）
@@ -21,23 +22,23 @@ export function useFavicon(originalUrl: string, faviconUrl: string) {
     // 只有在以下情况才尝试缓存优化：
     // 1. faviconUrl 是默认图标
     // 2. 或者是 Google favicon 服务但没有时间戳参数（说明是旧的自动生成的）
-    const isDefaultIcon = faviconUrl === '/icon/icon.jpg';
+    const isDefaultIconUrl = isDefaultIcon(faviconUrl);
     const isOldGoogleIcon = faviconUrl.includes('google.com/s2/favicons') && !faviconUrl.includes('&t=');
     
-    if (isDefaultIcon || isOldGoogleIcon) {
+    if (isDefaultIconUrl || isOldGoogleIcon) {
       const cached = faviconCache.getCachedFavicon(originalUrl);
-      if (cached && cached !== faviconUrl && cached !== '/icon/icon.jpg') {
+      if (cached && cached !== faviconUrl && !isDefaultIcon(cached)) {
         console.log('📦 使用缓存的更好图标:', cached);
         setCurrentFaviconUrl(cached);
         return;
       }
       
       // 如果没有缓存，异步尝试获取更好的图标
-      if (isDefaultIcon) { // 只为默认图标异步获取
+      if (isDefaultIconUrl) { // 只为默认图标异步获取
         setIsLoading(true);
         faviconCache.getFavicon(originalUrl, faviconUrl)
           .then((url: string) => {
-            if (url !== faviconUrl && url !== '/icon/icon.jpg') {
+            if (url !== faviconUrl && !isDefaultIcon(url)) {
               console.log('✅ 获取到更好的图标:', url);
               setCurrentFaviconUrl(url);
             }

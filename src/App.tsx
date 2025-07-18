@@ -20,11 +20,15 @@ import PrivacySettings from '@/components/PrivacySettings';
 import { useWebsiteData } from '@/hooks/useWebsiteData';
 import { useStableArrayLength } from '@/hooks/useArrayComparison';
 import { areDataDifferent } from '@/lib/syncUtils';
+import { usePerformanceOptimization } from '@/hooks/usePerformanceOptimization';
 
 // 内部应用组件，可以使用认证上下文
 function AppContent() {
   // 使用页面标题hook
   usePageTitle();
+  
+  // 使用性能优化hook
+  usePerformanceOptimization();
   
   // 使用统一的网站数据管理
   const { 

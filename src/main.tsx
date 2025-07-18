@@ -8,6 +8,18 @@ import "./index.css";
 const isLocalhost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
 const basename = isLocalhost ? undefined : "/jiang_ai_web";
 
+// 移除加载骨架屏的函数
+const removeLoadingSkeleton = () => {
+  const skeleton = document.getElementById('loading-skeleton');
+  if (skeleton) {
+    skeleton.style.opacity = '0';
+    skeleton.style.transition = 'opacity 0.3s ease-out';
+    setTimeout(() => {
+      skeleton.remove();
+    }, 300);
+  }
+};
+
 // 简化日志输出
 
 // 错误边界处理
@@ -60,6 +72,14 @@ try {
       </BrowserRouter>
     </StrictMode>
   );
+
+  // 应用渲染完成后移除骨架屏
+  // 使用微任务确保React已完成首次渲染
+  queueMicrotask(() => {
+    requestAnimationFrame(() => {
+      removeLoadingSkeleton();
+    });
+  });
 
 } catch (error) {
   console.error('❌ React应用初始化失败:', error);

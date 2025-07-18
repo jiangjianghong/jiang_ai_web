@@ -13,6 +13,7 @@ const basePath = getBasePath();
 const STATIC_CACHE_URLS = [
   `${basePath}/`,
   `${basePath}/index.html`,
+  `${basePath}/404.html`,
   // 移除可能不存在的offline-test.html
   // `${basePath}/offline-test.html`,
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css'
@@ -95,7 +96,17 @@ self.addEventListener('fetch', (event) => {
         })
         .catch(() => {
           // 网络失败，回退到缓存
-          return caches.match(event.request);
+          return caches.match(event.request).then((cachedResponse) => {
+            if (cachedResponse) {
+              return cachedResponse;
+            }
+            // 如果没有缓存，对于SPA路由返回index.html
+            if (event.request.mode === 'navigate') {
+              return caches.match(`${basePath}/index.html`);
+            }
+            // 其他情况返回404页面
+            return caches.match(`${basePath}/404.html`);
+          });
         })
     );
     return;

@@ -192,14 +192,8 @@ export default function Home({ websites, setWebsites }: HomeProps) {
 
     // 备用壁纸URLs（用于localhost开发环境）
     const getFallbackWallpaperUrl = () => {
-      // 使用无跨域限制的备用壁纸
-      const fallbackWallpapers = [
-        'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&h=1080&fit=crop',
-        'https://images.unsplash.com/photo-1519904981063-b0cf448d479e?w=1920&h=1080&fit=crop',
-        'https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=1920&h=1080&fit=crop'
-      ];
-      const today = new Date().getDate();
-      return fallbackWallpapers[today % fallbackWallpapers.length];
+      // 使用固定的渐变背景，避免网络请求
+      return ''; // 返回空字符串，让CSS渐变背景生效
     };
 
     // 获取今天的日期字符串

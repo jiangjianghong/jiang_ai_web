@@ -130,22 +130,33 @@ export const improvedWallpaperCache = {
 
       console.log('📥 开始下载图片数据...');
       
-      // 使用支持CORS的代理服务
-      const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
-      console.log('🔄 使用CORS代理:', proxyUrl);
+      // 智能缓存策略：优先直接尝试，失败时使用代理
+      let downloadResponse: Response | null = null;
       
-      // 下载图片
-      const response = await fetch(proxyUrl, {
-        mode: 'cors',
-        headers: {
-          'Accept': 'image/*'
+      // 策略1: 直接尝试（大多数情况下可以工作）
+      try {
+        console.log('🎯 尝试直接下载:', url);
+        downloadResponse = await fetch(url, {
+          mode: 'cors',
+          headers: { 'Accept': 'image/*' }
+        });
+        
+        if (downloadResponse.ok) {
+          console.log('✅ 直接下载成功');
+        } else {
+          throw new Error(`直接下载失败: ${downloadResponse.status}`);
         }
-      });
-      
-      if (!response.ok) throw new Error(`下载失败: ${response.status} ${response.statusText}`);
+      } catch (directError) {
+        console.log('⚠️ 直接下载失败，使用回退策略');
+        
+        // 策略2: 如果直接下载失败，回退到原URL（让浏览器处理）
+        console.log('🔄 回退到原URL，跳过Blob缓存');
+        cacheManager.set(`wallpaper-source:${cacheKey}`, url, 2 * 60 * 60 * 1000);
+        return url;
+      }
       
       console.log('✅ 图片下载成功，创建Blob...');
-      const blob = await response.blob();
+      const blob = await downloadResponse.blob();
       const blobUrl = URL.createObjectURL(blob);
       
       console.log('💾 保存Blob到IndexedDB:', { 
@@ -167,8 +178,8 @@ export const improvedWallpaperCache = {
       console.error('❌ 壁纸Blob缓存失败:', error);
       console.error('📊 错误详情:', { url, cacheKey, error: error instanceof Error ? error.message : String(error) });
       
-      // CORS失败时的优雅降级：跳过Blob缓存但保持系统稳定
-      console.log('🔄 CORS失败，跳过Blob缓存但保持系统稳定');
+      // 失败时的优雅降级：跳过Blob缓存但保持系统稳定
+      console.log('🔄 缓存失败，回退到原URL');
       return url; // 回退到原始URL
     }
   },

@@ -80,7 +80,7 @@ export default defineConfig({
   server: {
     // WebSocket HMR 配置
     hmr: {
-      port: 3001, // 使用不同端口避免冲突
+      port: 3003, // 使用不同端口避免冲突
       host: 'localhost'
     },
     // 设置正确的MIME类型和缓存头

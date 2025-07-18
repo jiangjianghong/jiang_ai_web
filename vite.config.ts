@@ -32,7 +32,8 @@ function getPlugins() {
 }
 
 export default defineConfig({
-  base: process.env.NODE_ENV === 'production' ? '/jiang_ai_web/' : '/', // 仅生产环境设置 base
+  // 始终使用 /jiang_ai_web/ 作为 base，确保本地和生产资源路径一致，防止404
+  base: '/jiang_ai_web/',
   plugins: getPlugins(),
   
   // 构建优化配置

@@ -1,11 +1,13 @@
 import { useSyncStatus } from '@/contexts/SyncContext';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
+import { useTransparency } from '@/contexts/TransparencyContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useState } from 'react';
 
 export default function SyncStatusIndicator() {
   const { syncStatus } = useSyncStatus();
   const { currentUser } = useAuth();
+  const { autoSyncEnabled } = useTransparency();
   const [, setRefreshTrigger] = useState(0);
 
   // 动态刷新时间显示
@@ -69,8 +71,9 @@ export default function SyncStatusIndicator() {
     if (syncStatus.syncInProgress) return '同步中...';
     if (syncStatus.syncError) return '同步失败';
     if (!syncStatus.isOnline) return '离线模式';
+    if (!autoSyncEnabled) return '手动同步';
     if (syncStatus.pendingChanges > 0) return `${syncStatus.pendingChanges} 个更改待同步`;
-    return '已同步';
+    return '自动同步';
   };
 
   const getStatusDetail = () => {

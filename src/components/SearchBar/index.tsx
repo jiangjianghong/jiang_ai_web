@@ -24,15 +24,11 @@ export function SearchBar(_props: SearchBarProps = {}) {
   const [isLoading, setIsLoading] = useState(false);
   const searchBtnRef = useRef<HTMLButtonElement>(null);
   const [fixedPos, setFixedPos] = useState<{ left: number; top: number } | null>(null);
-  const [hoveredEmojiIdx, setHoveredEmojiIdx] = useState<number | null>(null);
   const [showEngineTooltip, setShowEngineTooltip] = useState(false);
   const searchBarRef = useRef<HTMLFormElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [isFocused, setIsFocused] = useState(false);
   const { searchBarOpacity, setIsSearchFocused } = useTransparency();
-
-  // 获取当前引擎配置
-  const currentEngine = engineList.find(e => e.key === engine) || engineList[0];
 
   // 全局监听空格键聚焦搜索框
   useEffect(() => {
@@ -94,7 +90,7 @@ export function SearchBar(_props: SearchBarProps = {}) {
     }
 
     try {
-      const results = await fetchSearchSuggestions(query, engine);
+      const results = await fetchSearchSuggestions(query);
       setSuggestions(results);
     } catch (error) {
       console.warn('获取搜索建议失败:', error);
@@ -106,16 +102,13 @@ export function SearchBar(_props: SearchBarProps = {}) {
 
   // 切换搜索引擎并触发动画
   const switchEngine = useCallback(() => {
-    const idx = engineList.findIndex(e => e.key === engine);
+    const idx = engineList.findIndex(e => e.name === engine);
     const nextEngine = engineList[(idx + 1) % engineList.length];
-    setEngine(nextEngine.key);
+    setEngine(nextEngine.name);
 
     // 触发烟花效果
     if (searchBtnRef.current) {
-      const rect = searchBtnRef.current.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
-      createFireworkEffect(centerX, centerY);
+      createFireworkEffect(searchBtnRef.current);
     }
 
     setShowEngineTooltip(false);
@@ -191,12 +184,11 @@ export function SearchBar(_props: SearchBarProps = {}) {
 
   // 引擎按钮鼠标事件
   const handleEngineMouseEnter = useCallback(() => {
-    const emojiList = ['🚀', '🔍', '✨', '🎯', '💫', '🌟', '⭐', '💎'];
-    setHoveredEmojiIdx(Math.floor(Math.random() * emojiList.length));
+    setShowEngineTooltip(true);
   }, []);
 
   const handleEngineMouseLeave = useCallback(() => {
-    setHoveredEmojiIdx(null);
+    setShowEngineTooltip(false);
   }, []);
 
   // 获取固定位置用于动画
@@ -311,11 +303,10 @@ export function SearchBar(_props: SearchBarProps = {}) {
           />
 
           <EngineButton
-            currentEngine={currentEngine}
+            engine={engine}
             onClick={switchEngine}
             onMouseEnter={handleEngineMouseEnter}
             onMouseLeave={handleEngineMouseLeave}
-            hoveredEmojiIdx={hoveredEmojiIdx}
           />
 
           <SearchButton
@@ -325,21 +316,19 @@ export function SearchBar(_props: SearchBarProps = {}) {
         </div>
 
         {/* 搜索建议 */}
-        <SearchSuggestions
-          suggestions={suggestions}
-          show={showSuggestions}
-          selectedIndex={selectedSuggestionIndex}
-          onSuggestionClick={handleSuggestionClick}
-          onMouseEnter={setSelectedSuggestionIndex}
-          searchBarRef={searchBarRef}
-        />
+        {showSuggestions && (
+          <SearchSuggestions
+            suggestions={suggestions}
+            selectedIndex={selectedSuggestionIndex}
+            onSelect={handleSuggestionClick}
+            onHover={setSelectedSuggestionIndex}
+          />
+        )}
 
         {/* 引擎选择提示 */}
         <EngineTooltip
-          currentEngine={currentEngine}
-          onEngineChange={setEngine}
+          engine={engine}
           show={showEngineTooltip}
-          onShowChange={setShowEngineTooltip}
         />
       </motion.form>
     </div>

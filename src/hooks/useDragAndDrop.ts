@@ -5,7 +5,7 @@ interface DragItem {
   index: number;
 }
 
-export function useDragAndDrop(items: any[], setItems: (items: any[]) => void) {
+export function useDragAndDrop(items: any[], setItems: (items: any[]) => void, itemIndex: number) {
   const moveItem = (dragIndex: number, hoverIndex: number) => {
     const draggedItem = items[dragIndex];
     const newItems = [...items];
@@ -31,11 +31,11 @@ export function useDragAndDrop(items: any[], setItems: (items: any[]) => void) {
 
   const [{ isDragging }, drag] = useDrag({
     type: 'WEBSITE_CARD',
-    item: (index: number) => {
-      const item = items[index];
+    item: () => {
+      const item = items[itemIndex];
       return {
         id: item?.id || '',
-        index: index
+        index: itemIndex
       };
     },
     collect: (monitor) => ({

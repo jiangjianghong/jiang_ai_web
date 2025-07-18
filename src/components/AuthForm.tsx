@@ -16,7 +16,7 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
   const [showVerificationMessage, setShowVerificationMessage] = useState(false);
   const [verificationEmail, setVerificationEmail] = useState('');
 
-  const { login, register, loginWithGoogle, sendVerificationEmail, error: authError } = useAuth();
+  const { login, register, sendVerificationEmail, error: authError } = useAuth();
 
   // 组合错误显示：优先显示本地验证错误，然后是认证错误
   const displayError = localError || authError;
@@ -74,21 +74,6 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
     } catch (error: any) {
       console.error('认证失败:', error);
       // 错误处理现在由AuthContext统一管理，这里不需要特殊处理
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleGoogleLogin = async () => {
-    setLoading(true);
-    setLocalError('');
-    
-    try {
-      await loginWithGoogle();
-      onSuccess();
-    } catch (error: any) {
-      console.error('Google登录失败:', error);
-      // Google登录的错误也由AuthContext统一处理
     } finally {
       setLoading(false);
     }
@@ -221,26 +206,6 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
           {loading ? '处理中...' : (isLogin ? '登录' : '注册')}
         </button>
       </form>
-
-      <div className="mt-4">
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300" />
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white text-gray-500">或</span>
-          </div>
-        </div>
-
-        <button
-          onClick={handleGoogleLogin}
-          disabled={loading}
-          className="mt-4 w-full bg-red-500 hover:bg-red-600 disabled:bg-gray-400 text-white py-2 px-4 rounded-md transition-colors flex items-center justify-center"
-        >
-          <i className="fab fa-google mr-2"></i>
-          使用 Google {isLogin ? '登录' : '注册'}
-        </button>
-      </div>
 
       <div className="mt-6 text-center">
         <button

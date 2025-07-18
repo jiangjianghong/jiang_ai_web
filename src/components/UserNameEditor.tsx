@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/SupabaseAuthContext';
 
 export default function UserNameEditor() {
   const { currentUser } = useAuth();
-  const { displayName, updateDisplayName, loading: profileLoading } = useUserProfile();
+  const { displayName, updateDisplayName } = useUserProfile();
   const [isEditing, setIsEditing] = useState(false);
   const [newName, setNewName] = useState(displayName);
   const [loading, setLoading] = useState(false);
@@ -63,20 +63,6 @@ export default function UserNameEditor() {
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <span className="text-sm text-gray-600">人类</span>
-        {!isEditing && (
-          <button
-            onClick={() => setIsEditing(true)}
-            className="text-xs text-blue-500 hover:text-blue-600"
-            disabled={profileLoading}
-          >
-            <i className="fa-solid fa-edit mr-1"></i>
-            编辑
-          </button>
-        )}
-      </div>
-
         {isEditing ? (
           <div className="space-y-2">
             <input
@@ -87,6 +73,7 @@ export default function UserNameEditor() {
               placeholder="请输入用户名"
               maxLength={20}
               disabled={loading}
+              autoFocus
             />
             
             {error && (
@@ -126,18 +113,27 @@ export default function UserNameEditor() {
             </p>
           </div>
         ) : (
-          <div className="flex items-center space-x-2">
-            <i className="fa-solid fa-user text-gray-400"></i>
-            <span className="text-sm font-medium text-gray-800">
-              {profileLoading ? '加载中...' : displayName}
-            </span>
+          <div className="space-y-2">
+            <button
+              onClick={() => setIsEditing(true)}
+              className="text-left hover:bg-gray-50 rounded-lg p-2 transition-colors duration-200 w-full group"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <i className="fa-solid fa-user text-blue-500 text-sm"></i>
+                  <span className="text-sm font-medium text-gray-700">{displayName || '设置用户名'}</span>
+                </div>
+                <i className="fa-solid fa-edit text-xs text-gray-400 group-hover:text-blue-500 transition-colors duration-200"></i>
+              </div>
+              <div className="text-xs text-gray-500 mt-1 pl-6">点击编辑用户名</div>
+            </button>
           </div>
         )}
 
         <div className="border-t border-gray-200 pt-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <i className="fa-solid fa-envelope text-gray-400"></i>
+              <i className="fa-solid fa-envelope text-indigo-500"></i>
               <span className="text-xs text-gray-600">{currentUser.email}</span>
             </div>
             <i className="fa-solid fa-check-circle text-green-500 text-xs" title="邮箱已验证"></i>

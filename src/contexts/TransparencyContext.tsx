@@ -27,6 +27,8 @@ interface TransparencyContextType {
   isSearchFocused: boolean;
   cardColor: string; // RGB字符串
   searchBarColor: string; // RGB字符串
+  autoSyncEnabled: boolean; // 自动同步开关
+  autoSyncInterval: number; // 自动同步间隔（秒）
   setCardOpacity: (opacity: number) => void;
   setSearchBarOpacity: (opacity: number) => void;
   setParallaxEnabled: (enabled: boolean) => void;
@@ -35,6 +37,8 @@ interface TransparencyContextType {
   setIsSearchFocused: (focused: boolean) => void;
   setCardColor: (color: string) => void;
   setSearchBarColor: (color: string) => void;
+  setAutoSyncEnabled: (enabled: boolean) => void;
+  setAutoSyncInterval: (interval: number) => void;
 }
 
 const TransparencyContext = createContext<TransparencyContextType | undefined>(undefined);
@@ -90,6 +94,18 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
+  // 自动同步设置
+  const [autoSyncEnabled, setAutoSyncEnabled] = useState(() => {
+    const saved = localStorage.getItem('autoSyncEnabled');
+    return saved ? saved === 'true' : true; // 默认开启
+  });
+
+  const [autoSyncInterval, setAutoSyncInterval] = useState(() => {
+    const saved = localStorage.getItem('autoSyncInterval');
+    const value = saved ? parseInt(saved) : 30; // 默认30秒
+    return Math.max(3, Math.min(60, value)); // 限制在3-60秒之间
+  });
+
   useEffect(() => {
     localStorage.setItem('cardOpacity', cardOpacity.toString());
   }, [cardOpacity]);
@@ -105,6 +121,14 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     localStorage.setItem('wallpaperResolution', wallpaperResolution);
   }, [wallpaperResolution]);
+
+  useEffect(() => {
+    localStorage.setItem('autoSyncEnabled', autoSyncEnabled.toString());
+  }, [autoSyncEnabled]);
+
+  useEffect(() => {
+    localStorage.setItem('autoSyncInterval', autoSyncInterval.toString());
+  }, [autoSyncInterval]);
 
   useEffect(() => {
     localStorage.setItem('cardColor', cardColor);
@@ -125,6 +149,8 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
         isSearchFocused,
         cardColor,
         searchBarColor,
+        autoSyncEnabled,
+        autoSyncInterval,
         setCardOpacity,
         setSearchBarOpacity,
         setParallaxEnabled,
@@ -133,6 +159,8 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
         setIsSearchFocused,
         setCardColor,
         setSearchBarColor,
+        setAutoSyncEnabled,
+        setAutoSyncInterval,
       }}
     >
       {children}

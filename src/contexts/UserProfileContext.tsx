@@ -46,14 +46,6 @@ export function UserProfileProvider({ children }: UserProfileProviderProps) {
           updatedAt: new Date().toISOString()
         } : null);
         
-        // 重新获取用户资料确保同步
-        setTimeout(async () => {
-          const updatedProfile = await getUserProfile(currentUser);
-          if (updatedProfile) {
-            setUserProfile(updatedProfile);
-          }
-        }, 1000);
-        
         return true;
       }
       return false;

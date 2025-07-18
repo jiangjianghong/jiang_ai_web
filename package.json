@@ -6,9 +6,9 @@
   "scripts": {
     "dev:client": "vite --host --port 3000",
     "dev": "pnpm dev:client",
-    "build:client": "vite build --outDir dist/static",
+    "build:client": "vite build",
     "build": "rimraf dist && pnpm build:client && shx cp package.json dist/ && shx touch dist/build.flag",
-    "deploy": "pnpm run build && gh-pages -d dist/static"
+    "deploy": "pnpm run build && gh-pages -d dist"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.52.0",

@@ -27,3 +27,13 @@ dist-ssr
 .env
 .env.local
 .env.production
+
+# Cloud sync temporary files
+.tmp.*
+*.temp.driveupload
+.tmp.driveupload/
+*/.tmp.driveupload/
+.sync/
+.dropbox/
+.OneDrive/
+.icloud/

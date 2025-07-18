@@ -8,6 +8,7 @@ import { SyncProvider } from '@/contexts/SyncContext';
 import { UserProfileProvider } from '@/contexts/UserProfileContext';
 import DataSyncModal from '@/components/DataSyncModal';
 import NetworkStatus from '@/components/NetworkStatus';
+import SupabaseErrorBoundary from '@/components/SupabaseErrorBoundary';
 import { useCloudData } from '@/hooks/useCloudData';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { saveUserWebsites, WebsiteData } from '@/lib/supabaseSync';
@@ -196,16 +197,18 @@ function AppContent() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <UserProfileProvider>
-        <SyncProvider>
-          <TransparencyProvider>
-            <DndProvider backend={HTML5Backend}>
-              <AppContent />
-            </DndProvider>
-          </TransparencyProvider>
-        </SyncProvider>
-      </UserProfileProvider>
-    </AuthProvider>
+    <SupabaseErrorBoundary>
+      <AuthProvider>
+        <UserProfileProvider>
+          <SyncProvider>
+            <TransparencyProvider>
+              <DndProvider backend={HTML5Backend}>
+                <AppContent />
+              </DndProvider>
+            </TransparencyProvider>
+          </SyncProvider>
+        </UserProfileProvider>
+      </AuthProvider>
+    </SupabaseErrorBoundary>
   );
 }

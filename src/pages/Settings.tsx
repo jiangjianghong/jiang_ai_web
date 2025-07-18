@@ -393,7 +393,7 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
                 <i className="fa-solid fa-shield-halved mr-2 select-none"></i>隐私设置
               </button>
               <a
-                href="/tutorial.html"
+                href={`${import.meta.env.BASE_URL}tutorial.html`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-md transition-colors flex items-center justify-center gap-2 font-medium select-none border border-blue-200"

@@ -58,7 +58,7 @@ class IncrementalSyncManager {
 
   // 获取增量同步数据
   getIncrementalChanges(): { 
-    localChanges: typeof this.syncQueue;
+    localChanges: Array<{ id: string; action: 'create' | 'update' | 'delete'; data: any; timestamp: number }>;
     lastSyncTime: number;
   } {
     return {
@@ -430,14 +430,14 @@ function detectSettingsChanges(oldSettings: UserSettings, newSettings: UserSetti
   return null;
 }
 
-// 模拟API函数 - 实际实现需要连接到Firebase
-async function uploadIncrementalChanges(uid: string, changes: any[]) {
+// 模拟API函数 - 实际实现需要连接到Supabase
+async function uploadIncrementalChanges(_uid: string, changes: any[]) {
   // 实现上传逻辑
   console.log('上传增量变更:', changes);
 }
 
-async function fetchRemoteChanges(uid: string, lastSyncTime: number) {
+async function fetchRemoteChanges(_uid: string, _lastSyncTime: number) {
   // 实现获取远程变更逻辑
-  console.log('获取远程变更，自:', new Date(lastSyncTime));
+  console.log('获取远程变更，自:', new Date(_lastSyncTime));
   return [];
 }

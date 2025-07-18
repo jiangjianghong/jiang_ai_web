@@ -15,6 +15,7 @@ interface AuthContextType {
   isNetworkOnline: boolean;
   isSupabaseConnected: boolean;
   error: string | null;
+  successMessage: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -81,9 +82,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [isNetworkOnline, setIsNetworkOnline] = useState(isOnline());
   const [isSupabaseConnected, setIsSupabaseConnected] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // 清除错误
   const clearError = () => setError(null);
+  
+  // 清除成功消息
+  const clearSuccessMessage = () => setSuccessMessage(null);
 
   // 邮箱密码登录
   const login = async (email: string, password: string) => {
@@ -237,6 +242,29 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return () => subscription.unsubscribe();
   }, []);
 
+  // 检测邮箱确认成功
+  useEffect(() => {
+    const checkEmailConfirmation = () => {
+      const hash = window.location.hash;
+      const params = new URLSearchParams(hash.substring(1));
+      
+      if (params.get('type') === 'signup' && params.get('access_token')) {
+        // 邮箱确认成功
+        console.log('✅ 邮箱确认成功！');
+        // 清除URL中的hash参数
+        window.history.replaceState({}, document.title, window.location.pathname);
+        // 显示成功消息
+        setTimeout(() => {
+          setSuccessMessage('🎉 邮箱确认成功！欢迎使用江江的网站！');
+          // 3秒后清除消息
+          setTimeout(() => setSuccessMessage(null), 3000);
+        }, 1000);
+      }
+    };
+
+    checkEmailConfirmation();
+  }, []);
+
   // Supabase连接状态监听
   useEffect(() => {
     const checkConnection = async () => {
@@ -293,7 +321,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     loading,
     isNetworkOnline,
     isSupabaseConnected,
-    error
+    error,
+    successMessage
   };
 
   return (

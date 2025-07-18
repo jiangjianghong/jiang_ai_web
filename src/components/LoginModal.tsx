@@ -15,7 +15,7 @@ export default function LoginModal({ onClose }: LoginModalProps) {
   const [showVerificationMessage, setShowVerificationMessage] = useState(false);
   const [verificationEmail, setVerificationEmail] = useState('');
 
-  const { login, register, loginWithGoogle, sendVerificationEmail, reloadUser, error: authError, isNetworkOnline } = useAuth();
+  const { login, register, loginWithGoogle, sendVerificationEmail, reloadUser, error: authError, successMessage, isNetworkOnline } = useAuth();
 
   // 组合错误显示：优先显示本地验证错误，然后是认证错误
   const displayError = localError || authError;
@@ -111,6 +111,12 @@ export default function LoginModal({ onClose }: LoginModalProps) {
         {displayError && (
           <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
             {displayError}
+          </div>
+        )}
+
+        {successMessage && (
+          <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
+            {successMessage}
           </div>
         )}
 

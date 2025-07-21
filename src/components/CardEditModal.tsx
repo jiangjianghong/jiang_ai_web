@@ -51,22 +51,42 @@ export default function CardEditModal({ id, name, url, favicon, tags: _, note, o
   };
 
   /**
-   * 获取 favicon 的备用 URL 列表（国内优化版）
+   * 获取 favicon 的备用 URL 列表（代理优先，支持降级）
    */
   const getFaviconUrls = (domain: string): string[] => {
+    // 代理服务前缀
+    const proxyPrefix = 'https://api.allorigins.win/raw?url=';
+    
     return [
-      // 优先使用favicon.im（支持国内访问，速度快）
+      // 使用代理访问 favicon.im（支持国内访问，速度快）
+      proxyPrefix + encodeURIComponent(`https://favicon.im/${domain}?larger=true`),
+      // 代理失败时的直接访问降级
       `https://favicon.im/${domain}?larger=true`,
+      // 直接访问Google服务（无CORS限制）
+      `https://www.google.com/s2/favicons?domain=${domain}&sz=64`,
+      `https://www.google.com/s2/favicons?domain=${domain}&sz=32`,
       // 备用：DuckDuckGo的图标服务
       `https://icons.duckduckgo.com/ip3/${domain}.ico`,
       // 尝试网站自己的 favicon
       `https://${domain}/favicon.ico`,
       `https://${domain}/favicon.png`,
-      // 最后尝试Google服务（可能被墙）
-      `https://www.google.com/s2/favicons?domain=${domain}&sz=64`,
       // 兜底：默认图标
       '/icon/icon.jpg'
     ];
+  };
+
+  /**
+   * 处理 favicon URL，检测并通过代理访问有 CORS 问题的 URL
+   */
+  const processeFaviconUrl = (url: string): string => {
+    const proxyPrefix = 'https://api.allorigins.win/raw?url=';
+    
+    // 检查是否是需要代理的URL
+    if (url.includes('favicon.im')) {
+      return proxyPrefix + encodeURIComponent(url);
+    }
+    
+    return url;
   };
 
   /**

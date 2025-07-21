@@ -12,6 +12,7 @@ import { useSyncStatus } from '@/contexts/SyncContext';
 import { useUserProfile } from '@/contexts/UserProfileContext';
 import { WebsiteData, UserSettings, saveUserSettings, getUserSettings, saveUserWebsites, getUserWebsites } from '@/lib/supabaseSync';
 import { useDataManager } from '@/hooks/useDataManager';
+import { faviconCache } from '@/lib/faviconCache';
 
 interface SettingsProps {
   onClose: () => void;
@@ -30,6 +31,8 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
   const [newName, setNewName] = useState('');
   const [nameError, setNameError] = useState('');
   const [nameLoading, setNameLoading] = useState(false);
+  const [isFixingIcons, setIsFixingIcons] = useState(false);
+  const [fixIconsMessage, setFixIconsMessage] = useState('');
   
   // 使用统一的数据管理Hook
   const { 
@@ -202,6 +205,38 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
     }
     
     setPendingImportFile(null);
+  };
+
+  // 一键修复图标
+  const handleFixIcons = async () => {
+    if (isFixingIcons) return;
+    
+    setIsFixingIcons(true);
+    setFixIconsMessage('正在清除图标缓存并重新下载...');
+    
+    try {
+      // 清空所有favicon缓存
+      await faviconCache.clearCache();
+      console.log('✅ 图标缓存已清空');
+      
+      // 延迟一下让用户看到提示
+      setTimeout(() => {
+        setFixIconsMessage('✅ 图标缓存已清空，页面将刷新');
+        
+        // 再延迟一下后刷新页面重新加载图标
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      }, 500);
+      
+    } catch (error) {
+      console.error('修复图标失败:', error);
+      setFixIconsMessage('❌ 修复失败，请重试');
+      setTimeout(() => {
+        setFixIconsMessage('');
+        setIsFixingIcons(false);
+      }, 3000);
+    }
   };
 
   // 手动同步到云端
@@ -877,6 +912,34 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
                   <i className="fa-solid fa-graduation-cap select-none"></i>
                   <span className="select-none">使用教程</span>
                 </a>
+              </div>
+              
+              {/* 图标修复功能 */}
+              <div className="pt-3 border-t border-gray-100">
+                <div className="text-center space-y-2">
+                  <p className="text-xs text-gray-500 select-none">
+                    图标显示不正确？<button 
+                      onClick={handleFixIcons}
+                      disabled={isFixingIcons}
+                      className="text-blue-500 hover:text-blue-600 underline ml-1 disabled:text-gray-400 disabled:no-underline"
+                    >
+                      点击修复
+                    </button>
+                  </p>
+                  
+                  {fixIconsMessage && (
+                    <div className={`text-xs px-3 py-2 rounded-lg ${
+                      fixIconsMessage.includes('✅') ? 'text-green-700 bg-green-50 border border-green-200' : 
+                      fixIconsMessage.includes('❌') ? 'text-red-700 bg-red-50 border border-red-200' : 
+                      'text-blue-700 bg-blue-50 border border-blue-200'
+                    }`}>
+                      {isFixingIcons && !fixIconsMessage.includes('✅') && !fixIconsMessage.includes('❌') && (
+                        <i className="fa-solid fa-spinner fa-spin mr-1"></i>
+                      )}
+                      {fixIconsMessage}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>

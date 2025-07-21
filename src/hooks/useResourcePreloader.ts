@@ -16,10 +16,10 @@ export function useResourcePreloader(enabled: boolean = true) {
     const delayedPreload = setTimeout(() => {
       // 预连接到第三方域名
       const preconnectDomains = [
-        'https://bing.img.run',
+        'https://api.allorigins.win',
+        'https://www.bing.com',
         'https://source.unsplash.com',
         'https://www.google.com',
-        'https://favicon.yandex.net',
         'https://icons.duckduckgo.com',
         'https://favicon.im'
       ];

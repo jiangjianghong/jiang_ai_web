@@ -6,7 +6,9 @@ import MainApp from "./MainApp.tsx";
 import "./index.css";
 
 const isLocalhost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
-const basename = isLocalhost ? undefined : "/jiang_ai_web";
+// 检查当前路径是否包含 /jiang_ai_web/
+const hasBasePath = window.location.pathname.startsWith('/jiang_ai_web');
+const basename = hasBasePath ? "/jiang_ai_web" : undefined;
 
 // 移除加载骨架屏的函数
 const removeLoadingSkeleton = () => {

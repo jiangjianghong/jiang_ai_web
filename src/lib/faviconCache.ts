@@ -1,75 +1,81 @@
 /**
- * Favicon 缓存管理工具（简化版）
- * 提供简单可靠的 favicon 缓存功能
+ * Favicon 文件缓存管理工具
+ * 使用 IndexedDB 缓存真正的图标文件，而非 URL
  */
 
-interface FaviconCacheItem {
-  url: string;
-  cachedUrl: string;
+import { indexedDBCache } from './indexedDBCache';
+
+interface FaviconMetadata {
+  domain: string;
+  originalUrl: string;
   timestamp: number;
   expiry: number;
+  size: number;
+  type: string;
 }
 
 interface FaviconCacheStorage {
-  [domain: string]: FaviconCacheItem;
+  [domain: string]: FaviconMetadata;
 }
 
 class FaviconCacheManager {
-  private cacheKey = 'favicon-cache-simple';
-  private defaultExpiry = 7 * 24 * 60 * 60 * 1000; // 7天缓存
-  private cache: FaviconCacheStorage = {};
+  private metadataKey = 'favicon-metadata';
+  private defaultExpiry = 7 * 24 * 60 * 60 * 1000; // 7天缓存（减少频繁更新）
+  private metadata: FaviconCacheStorage = {};
   private loadingPromises: Map<string, Promise<string>> = new Map();
 
   constructor() {
-    this.loadCache();
+    this.loadMetadata();
   }
 
   /**
-   * 从 localStorage 加载缓存
+   * 从 localStorage 加载元数据
    */
-  private loadCache(): void {
+  private loadMetadata(): void {
     try {
-      const cached = localStorage.getItem(this.cacheKey);
+      const cached = localStorage.getItem(this.metadataKey);
       if (cached) {
-        this.cache = JSON.parse(cached);
-        this.cleanExpiredCache();
+        this.metadata = JSON.parse(cached);
+        this.cleanExpiredMetadata();
       }
     } catch (error) {
-      console.warn('加载 favicon 缓存失败:', error);
-      this.cache = {};
+      console.warn('加载 favicon 元数据失败:', error);
+      this.metadata = {};
     }
   }
 
   /**
-   * 保存缓存到 localStorage
+   * 保存元数据到 localStorage
    */
-  private saveCache(): void {
+  private saveMetadata(): void {
     try {
-      localStorage.setItem(this.cacheKey, JSON.stringify(this.cache));
+      localStorage.setItem(this.metadataKey, JSON.stringify(this.metadata));
     } catch (error) {
-      console.warn('保存 favicon 缓存失败:', error);
+      console.warn('保存 favicon 元数据失败:', error);
     }
   }
 
   /**
-   * 清理过期缓存
+   * 清理过期的元数据
    */
-  private cleanExpiredCache(): void {
+  private cleanExpiredMetadata(): void {
     const now = Date.now();
     const toDelete: string[] = [];
 
-    for (const [domain, item] of Object.entries(this.cache)) {
+    for (const [domain, item] of Object.entries(this.metadata)) {
       if (now > item.expiry) {
         toDelete.push(domain);
+        // 同时清理 IndexedDB 中的文件
+        this.deleteFaviconFile(domain).catch(console.warn);
       }
     }
 
     toDelete.forEach(domain => {
-      delete this.cache[domain];
+      delete this.metadata[domain];
     });
 
     if (toDelete.length > 0) {
-      this.saveCache();
+      this.saveMetadata();
     }
   }
 
@@ -85,76 +91,175 @@ class FaviconCacheManager {
   }
 
   /**
-   * 获取 favicon 的备用 URL 列表（国内优化版）
+   * 生成 favicon 缓存键
+   */
+  private getFaviconCacheKey(domain: string): string {
+    return `favicon-file:${domain}`;
+  }
+
+  /**
+   * 获取 favicon 的备用 URL 列表（代理优先，支持降级）
    */
   private getFaviconUrls(originalUrl: string, domain: string): string[] {
+    // 代理服务前缀
+    const proxyPrefix = 'https://api.allorigins.win/raw?url=';
+    
+    // 检查原始URL是否是favicon.im，如果是则通过代理访问
+    let processedOriginalUrl = originalUrl;
+    if (originalUrl.includes('favicon.im')) {
+      processedOriginalUrl = proxyPrefix + encodeURIComponent(originalUrl);
+      console.log(`🔄 检测到favicon.im URL，使用代理: ${originalUrl} -> ${processedOriginalUrl}`);
+    }
+    
     return [
-      originalUrl, // 原始 URL
-      // 优先使用favicon.im（支持国内访问，速度快）
+      processedOriginalUrl, // 处理后的原始 URL（可能是代理）
+      // 如果原始URL是代理，添加直接访问作为降级
+      ...(originalUrl.includes('favicon.im') ? [originalUrl] : []),
+      // 使用代理访问 favicon.im（支持国内访问，速度快）
+      proxyPrefix + encodeURIComponent(`https://favicon.im/${domain}?larger=true`),
+      // 代理失败时的直接访问降级
       `https://favicon.im/${domain}?larger=true`,
+      // 直接访问Google服务（无CORS限制）
+      `https://www.google.com/s2/favicons?domain=${domain}&sz=64`,
+      `https://www.google.com/s2/favicons?domain=${domain}&sz=32`,
       // 备用：DuckDuckGo的图标服务
       `https://icons.duckduckgo.com/ip3/${domain}.ico`,
       // 尝试网站自己的 favicon
       `https://${domain}/favicon.ico`,
-      `https://${domain}/favicon.png`,
-      // 最后尝试Google服务（可能被墙）
-      `https://www.google.com/s2/favicons?domain=${domain}&sz=64`,
-      `https://www.google.com/s2/favicons?domain=${domain}&sz=32`,
-      '/icon/icon.jpg' // 默认兜底图标
+      `https://${domain}/favicon.png`
     ];
   }
 
   /**
-   * 尝试加载 favicon（网络优化版）
+   * 下载并缓存 favicon 文件
    */
-  private async tryLoadFavicon(urls: string[]): Promise<string> {
+  private async downloadAndCacheFavicon(urls: string[], domain: string): Promise<string> {
     for (const url of urls) {
       try {
-        await new Promise<void>((resolve, reject) => {
-          const img = new Image();
-          img.onload = () => resolve();
-          img.onerror = () => reject();
-          img.src = url;
-          // 缩短超时时间到1秒，快速失败
-          setTimeout(() => reject(new Error('超时')), 1000);
+        console.log(`🔄 尝试下载 favicon: ${domain} -> ${url}`);
+        
+        // 添加超时控制
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5秒超时
+        
+        const response = await fetch(url, {
+          mode: 'cors',
+          headers: {
+            'Accept': 'image/*'
+          },
+          signal: controller.signal
         });
-        console.log(`✅ Favicon 加载成功: ${url}`);
-        return url;
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const blob = await response.blob();
+        
+        // 验证是否为有效图片
+        if (!blob.type.startsWith('image/') || blob.size < 100) {
+          throw new Error('无效的图片文件');
+        }
+
+        // 保存到 IndexedDB
+        const cacheKey = this.getFaviconCacheKey(domain);
+        await indexedDBCache.set(cacheKey, blob, this.defaultExpiry);
+
+        // 保存元数据
+        this.metadata[domain] = {
+          domain,
+          originalUrl: url,
+          timestamp: Date.now(),
+          expiry: Date.now() + this.defaultExpiry,
+          size: blob.size,
+          type: blob.type
+        };
+        this.saveMetadata();
+
+        // 创建 Blob URL
+        const blobUrl = URL.createObjectURL(blob);
+        console.log(`✅ Favicon 文件缓存成功: ${domain} (${(blob.size / 1024).toFixed(1)}KB)`);
+        
+        return blobUrl;
       } catch (error) {
-        console.log(`❌ Favicon 加载失败: ${url} (${error})`);
+        console.log(`❌ Favicon 下载失败: ${domain} -> ${url} (${error})`);
+        
+        // 如果是代理URL失败，记录并继续尝试直接URL
+        if (url.includes('api.allorigins.win')) {
+          console.log(`🔄 代理服务失败，将尝试直接访问`);
+        }
         continue;
       }
     }
     
-    // 返回默认图标
-    console.log(`🔄 所有 favicon 尝试失败，使用默认图标`);
+    // 所有尝试失败，返回默认图标
+    console.log(`🔄 所有 favicon 尝试失败，使用默认图标: ${domain}`);
     return '/icon/icon.jpg';
   }
 
   /**
-   * 获取缓存的 favicon URL
+   * 从缓存中获取 favicon 文件
    */
-  getCachedFavicon(url: string): string | null {
-    const domain = this.extractDomain(url);
-    const cached = this.cache[domain];
-    
-    if (cached && Date.now() < cached.expiry) {
-      return cached.cachedUrl;
+  private async getCachedFaviconFile(domain: string): Promise<string | null> {
+    try {
+      // 检查元数据
+      const meta = this.metadata[domain];
+      if (!meta || Date.now() > meta.expiry) {
+        return null;
+      }
+
+      // 从 IndexedDB 获取文件
+      const cacheKey = this.getFaviconCacheKey(domain);
+      const blob = await indexedDBCache.get(cacheKey);
+      
+      if (blob) {
+        console.log(`📁 使用缓存 favicon 文件: ${domain} (${(blob.size / 1024).toFixed(1)}KB)`);
+        return URL.createObjectURL(blob);
+      }
+    } catch (error) {
+      console.warn(`读取 favicon 缓存失败: ${domain}`, error);
     }
     
     return null;
   }
 
   /**
-   * 异步获取 favicon URL（离线优先版）
+   * 删除 favicon 文件缓存
+   */
+  private async deleteFaviconFile(domain: string): Promise<void> {
+    try {
+      const cacheKey = this.getFaviconCacheKey(domain);
+      await indexedDBCache.delete(cacheKey);
+      console.log(`🗑️ 删除过期 favicon 缓存: ${domain}`);
+    } catch (error) {
+      console.warn(`删除 favicon 缓存失败: ${domain}`, error);
+    }
+  }
+
+  /**
+   * 获取缓存的 favicon URL（同步检查）
+   */
+  getCachedFavicon(url: string): string | null {
+    const domain = this.extractDomain(url);
+    const meta = this.metadata[domain];
+    
+    if (meta && Date.now() < meta.expiry) {
+      // 有有效的缓存元数据，返回原始URL表示已缓存
+      return meta.originalUrl;
+    }
+    
+    return null;
+  }
+
+  /**
+   * 异步获取 favicon（文件缓存优先版）
    */
   async getFavicon(originalUrl: string, faviconUrl: string): Promise<string> {
     const domain = this.extractDomain(originalUrl);
     
-    // 优先检查缓存
-    const cached = this.getCachedFavicon(originalUrl);
+    // 优先检查文件缓存
+    const cached = await this.getCachedFaviconFile(domain);
     if (cached) {
-      console.log(`📁 使用缓存 favicon: ${domain} -> ${cached}`);
       return cached;
     }
 
@@ -169,8 +274,8 @@ class FaviconCacheManager {
       return this.loadingPromises.get(domain)!;
     }
 
-    // 开始加载
-    const loadingPromise = this.loadFavicon(originalUrl, faviconUrl, domain);
+    // 开始下载和缓存
+    const loadingPromise = this.loadAndCacheFavicon(originalUrl, faviconUrl, domain);
     this.loadingPromises.set(domain, loadingPromise);
 
     try {
@@ -182,58 +287,45 @@ class FaviconCacheManager {
   }
 
   /**
-   * 加载 favicon 并缓存（简化版）
+   * 下载并缓存 favicon（简化版）
    */
-  private async loadFavicon(originalUrl: string, faviconUrl: string, domain: string): Promise<string> {
+  private async loadAndCacheFavicon(originalUrl: string, faviconUrl: string, domain: string): Promise<string> {
     const urls = this.getFaviconUrls(faviconUrl, domain);
     
     try {
-      const workingUrl = await this.tryLoadFavicon(urls);
-      
-      // 缓存成功的 URL
-      this.cache[domain] = {
-        url: originalUrl,
-        cachedUrl: workingUrl,
-        timestamp: Date.now(),
-        expiry: Date.now() + this.defaultExpiry
-      };
-      
-      this.saveCache();
-      return workingUrl;
+      const result = await this.downloadAndCacheFavicon(urls, domain);
+      return result;
     } catch (error) {
       console.warn(`获取 favicon 失败: ${domain}`, error);
-      // 返回默认图标
       return '/icon/icon.jpg';
     }
   }
 
   /**
-   * 增强的获取 favicon 方法（简化版）
+   * 增强的获取 favicon 方法（使用文件缓存）
    */
   async getFaviconWithIndexedDB(originalUrl: string, faviconUrl: string): Promise<string> {
-    // 直接使用简化版的获取方法
     return this.getFavicon(originalUrl, faviconUrl);
   }
 
   /**
-   * 混合缓存策略（简化版）
+   * 文件缓存策略
    */
   async getFaviconWithHybridCache(originalUrl: string, faviconUrl: string): Promise<string> {
-    // 直接使用简化版的获取方法
     return this.getFavicon(originalUrl, faviconUrl);
   }
 
   /**
-   * 批量缓存 favicon（简化版）
+   * 批量缓存 favicon（文件缓存版）
    */
   async batchCacheFaviconsToIndexedDB(websites: Array<{ url: string; favicon: string }>): Promise<void> {
-    console.log(`🚀 开始简单批量缓存 ${websites.length} 个 favicon`);
+    console.log(`🚀 开始批量文件缓存 ${websites.length} 个 favicon`);
     
     let successCount = 0;
     let skipCount = 0;
     let errorCount = 0;
     
-    const BATCH_SIZE = 2;
+    const BATCH_SIZE = 3; // 减少并发数，避免过多网络请求
     
     for (let i = 0; i < websites.length; i += BATCH_SIZE) {
       const batch = websites.slice(i, i + BATCH_SIZE);
@@ -242,30 +334,30 @@ class FaviconCacheManager {
         const domain = this.extractDomain(site.url);
         
         try {
-          // 检查是否已缓存
-          const cached = this.getCachedFavicon(site.url);
+          // 检查是否已有文件缓存
+          const cached = await this.getCachedFaviconFile(domain);
           if (cached) {
             skipCount++;
             return;
           }
           
-          // 添加延迟
-          const delay = (index + 1) * 500;
+          // 添加延迟避免请求过于频繁
+          const delay = (index + 1) * 800;
           await new Promise(resolve => setTimeout(resolve, delay));
           
           console.log(`🔄 [${i + index + 1}/${websites.length}] 处理: ${domain}`);
           
           const result = await this.getFavicon(site.url, site.favicon);
-          if (result) {
+          if (result && result !== '/icon/icon.jpg') {
             successCount++;
-            console.log(`✅ 缓存成功: ${domain}`);
+            console.log(`✅ 文件缓存成功: ${domain}`);
           } else {
             errorCount++;
           }
           
         } catch (error) {
           errorCount++;
-          console.warn(`❌ 批量缓存失败: ${domain}`, error);
+          console.warn(`❌ 批量文件缓存失败: ${domain}`, error);
         }
       });
       
@@ -273,23 +365,28 @@ class FaviconCacheManager {
       
       // 批次间停顿
       if (i + BATCH_SIZE < websites.length) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 1500));
       }
     }
     
-    console.log(`✅ 简单批量 favicon 缓存完成:`);
+    console.log(`✅ 批量 favicon 文件缓存完成:`);
     console.log(`   成功: ${successCount}, 跳过: ${skipCount}, 失败: ${errorCount}`);
   }
 
   /**
    * 清理所有缓存
    */
-  clearCache(): void {
-    this.cache = {};
+  async clearCache(): Promise<void> {
+    // 清理所有文件缓存
+    for (const domain of Object.keys(this.metadata)) {
+      await this.deleteFaviconFile(domain);
+    }
+    
+    this.metadata = {};
     this.loadingPromises.clear();
     
     try {
-      localStorage.removeItem(this.cacheKey);
+      localStorage.removeItem(this.metadataKey);
     } catch (error) {
       console.warn('清理 favicon 缓存失败:', error);
     }
@@ -298,20 +395,19 @@ class FaviconCacheManager {
   /**
    * 获取缓存统计信息
    */
-  getCacheStats(): { total: number; expired: number; size: string } {
+  getCacheStats(): { total: number; expired: number; totalSize: string } {
     const now = Date.now();
-    const total = Object.keys(this.cache).length;
-    const expired = Object.values(this.cache).filter(item => now > item.expiry).length;
+    const total = Object.keys(this.metadata).length;
+    const expired = Object.values(this.metadata).filter(item => now > item.expiry).length;
     
-    let size = '0 KB';
-    try {
-      const sizeBytes = new Blob([JSON.stringify(this.cache)]).size;
-      size = `${(sizeBytes / 1024).toFixed(1)} KB`;
-    } catch {
-      // ignore
-    }
+    const totalSize = Object.values(this.metadata)
+      .reduce((sum, item) => sum + (item.size || 0), 0);
+    
+    const sizeStr = totalSize > 1024 * 1024 
+      ? `${(totalSize / 1024 / 1024).toFixed(1)} MB`
+      : `${(totalSize / 1024).toFixed(1)} KB`;
 
-    return { total, expired, size };
+    return { total, expired, totalSize: sizeStr };
   }
 }
 

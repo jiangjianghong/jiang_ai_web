@@ -64,6 +64,54 @@ setInterval(() => {
   cacheManager.cleanup();
 }, 60000); // 每分钟清理一次
 
+// 图标缓存优化
+export const optimizedFaviconFetcher = async (url: string): Promise<string> => {
+  const cacheKey = `favicon:${url}`;
+  const cached = cacheManager.get<string>(cacheKey);
+  
+  if (cached) {
+    return cached;
+  }
+
+  try {
+    const domain = new URL(url).hostname;
+    
+    // 按优先级尝试不同的favicon服务
+    const faviconSources = [
+      `https://www.google.com/s2/favicons?domain=${domain}&sz=32`,
+      `https://favicon.yandex.net/favicon/v2/${domain}?size=32`,
+      `https://icons.duckduckgo.com/ip3/${domain}.ico`,
+      `https://${domain}/favicon.ico`
+    ];
+
+    for (const faviconUrl of faviconSources) {
+      try {
+        // 尝试加载图片来验证URL是否有效
+        await new Promise((resolve, reject) => {
+          const img = new Image();
+          img.onload = resolve;
+          img.onerror = reject;
+          img.src = faviconUrl;
+        });
+        
+        // 缓存成功的URL
+        cacheManager.set(cacheKey, faviconUrl, 24 * 60 * 60 * 1000); // 24小时
+        return faviconUrl;
+      } catch {
+        continue;
+      }
+    }
+
+    // 如果都失败了，返回默认图标
+    const defaultIcon = '/icon/icon.jpg';
+    cacheManager.set(cacheKey, defaultIcon, 60 * 60 * 1000); // 1小时
+    return defaultIcon;
+    
+  } catch (error) {
+    console.error('获取favicon失败:', error);
+    return '/icon/icon.jpg';
+  }
+};
 
 // 改进的背景图片缓存 - 使用 IndexedDB 持久化存储
 export const improvedWallpaperCache = {
@@ -106,8 +154,11 @@ export const improvedWallpaperCache = {
         size: `${(blob.size / 1024 / 1024).toFixed(2)}MB` 
       });
       
-      // 保存到 IndexedDB (24小时，每天更新)
-      await indexedDBCache.set(fullCacheKey, blob, 24 * 60 * 60 * 1000);
+      // 保存到 IndexedDB (2小时)
+      await indexedDBCache.set(fullCacheKey, blob, 2 * 60 * 60 * 1000);
+      
+      // 也缓存原始URL用于引用
+      cacheManager.set(`wallpaper-source:${cacheKey}`, url, 2 * 60 * 60 * 1000);
       
       console.log('🔍 IndexedDB缓存验证: ✅ 成功');
       
@@ -122,6 +173,22 @@ export const improvedWallpaperCache = {
     }
   },
 
+  // 预加载当日壁纸
+  async preloadTodayWallpapers(): Promise<void> {
+    const today = new Date().toDateString();
+    const wallpaperSources = [
+      { url: 'https://bing.img.run/uhd.php', key: `bing-${today}` },
+      { url: 'https://bing.img.run/1920x1080.php', key: `bing-hd-${today}` },
+      { url: 'https://source.unsplash.com/1920x1080/?nature', key: `unsplash-${today}` }
+    ];
+
+    // 并发预加载，但限制并发数
+    const results = await Promise.allSettled(
+      wallpaperSources.map(({ url, key }) => this.cacheWallpaperBlob(url, key))
+    );
+
+    console.log('📷 壁纸预加载完成:', results.filter(r => r.status === 'fulfilled').length, '/', results.length);
+  },
 
   // 获取缓存的壁纸
   async getCachedWallpaper(cacheKey: string): Promise<string | null> {
@@ -157,3 +224,26 @@ export const improvedWallpaperCache = {
   }
 };
 
+// 背景图片预加载和缓存 - 保留原有的简单版本用于兼容
+export const preloadBackgroundImages = () => {
+  // 使用改进的缓存机制
+  improvedWallpaperCache.preloadTodayWallpapers().catch(console.error);
+  
+  // 原有的简单缓存（用于快速回退）
+  const wallpapers = [
+    'https://bing.img.run/uhd.php',
+    'https://bing.img.run/1920x1080.php',
+    'https://source.unsplash.com/1920x1080/?nature'
+  ];
+
+  wallpapers.forEach((url, index) => {
+    setTimeout(() => {
+      const img = new Image();
+      img.src = url;
+      img.onload = () => {
+        // 标记为已验证的URL
+        cacheManager.set(`wallpaper-verified:${index}`, url, 60 * 60 * 1000);
+      };
+    }, index * 100);
+  });
+};

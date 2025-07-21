@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(code --version)",
+      "Bash(where code)",
+      "Bash(claude settings set editor.command \"C:\\Users\\19404\\AppData\\Local\\Programs\\Microsoft VS Code\\bin\\code\")",
+      "Bash(claude-code settings --help)",
+      "Bash(claude config set editor.command \"C:\\Users\\19404\\AppData\\Local\\Programs\\Microsoft VS Code\\bin\\code\")",
+      "Bash(claude config set:*)",
+      "Bash(claude config get editorMode)",
+      "Bash(claude config get:*)",
+      "Bash(claude config list:*)",
+      "Bash(claude --permission-mode bypassPermissions)"
+    ],
+    "deny": []
+  }
+}

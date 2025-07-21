@@ -29,25 +29,38 @@ interface CardEditModalProps {
   onDelete?: (id: string) => void;
 }
 
-export default function CardEditModal({ id, name, url, favicon, tags: _, note, onClose, onSave, onDelete }: CardEditModalProps) {
+export default function CardEditModal({ id, name, url, favicon, tags, note, onClose, onSave, onDelete }: CardEditModalProps) {
   const [formData, setFormData] = useState({
     name,
     url,
     favicon,
     note: note || '',
   });
+  const [formTags, setFormTags] = useState<string[]>(tags || []);
+  const [newTag, setNewTag] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [autoFetching, setAutoFetching] = useState(false);
   const [uploading, setUploading] = useState(false);
 
-  const extractTags = (text: string) => {
-    const tagRegex = /\{([^}]+)\}/g;
-    const matches = text.match(tagRegex) || [];
-    return matches.map(tag => tag.replace(/\{|\}/g, '').trim());
+  // 添加标签
+  const handleAddTag = () => {
+    if (newTag.trim() && formTags.length < 2 && !formTags.includes(newTag.trim())) {
+      setFormTags([...formTags, newTag.trim()]);
+      setNewTag('');
+    }
   };
 
-  const removeTagsFromNote = (text: string) => {
-    return text.replace(/\{[^}]+\}/g, '').trim();
+  // 删除标签
+  const handleRemoveTag = (index: number) => {
+    setFormTags(formTags.filter((_, i) => i !== index));
+  };
+
+  // 处理回车键添加标签
+  const handleTagKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleAddTag();
+    }
   };
 
   /**
@@ -202,9 +215,8 @@ export default function CardEditModal({ id, name, url, favicon, tags: _, note, o
         return;
       }
 
-      // 提取标签并清理备注
-      const newTags = extractTags(formData.note || '');
-      const cleanedNote = removeTagsFromNote(formData.note || '');
+      // 使用独立的标签，不从备注中提取
+      const cleanedNote = formData.note || '';
       
       // 只有当图标发生变化时才上传到 Firebase Storage
       let finalFaviconUrl = formData.favicon;
@@ -254,7 +266,7 @@ export default function CardEditModal({ id, name, url, favicon, tags: _, note, o
         name: formData.name,
         url: formData.url,
         favicon: finalFaviconUrl, // 使用上传后的URL
-        tags: newTags, // 只保留新标签
+        tags: formTags, // 使用独立的标签
         note: cleanedNote
       });
 
@@ -392,14 +404,68 @@ export default function CardEditModal({ id, name, url, favicon, tags: _, note, o
             {errors.favicon && <p className="mt-1 text-sm text-red-500 select-none">{errors.favicon}</p>}
           </div>
 
+          {/* 独立的标签编辑区域 */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1 select-none">
-                 备注 (使用{}标记标签，如: 备注内容 {'工作'} {'代码'})
+              标签 (最多2个)
             </label>
-            <div className="text-xs text-gray-500 mb-1 select-none">
-              花括号{}内的内容会被识别为标签
+            <div className="space-y-2">
+              {/* 现有标签显示 */}
+              {formTags.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {formTags.map((tag, index) => (
+                    <span
+                      key={index}
+                      className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
+                    >
+                      {tag}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveTag(index)}
+                        className="hover:bg-blue-200 rounded-full p-0.5 transition-colors"
+                      >
+                        <i className="fa-solid fa-times text-xs"></i>
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+              
+              {/* 添加新标签 */}
+              {formTags.length < 2 && (
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newTag}
+                    onChange={(e) => setNewTag(e.target.value)}
+                    onKeyDown={handleTagKeyDown}
+                    className="flex-1 px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="输入标签名称..."
+                    maxLength={10}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddTag}
+                    disabled={!newTag.trim() || formTags.includes(newTag.trim())}
+                    className="px-3 py-2 bg-blue-500 text-white text-sm rounded-md hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                  >
+                    添加
+                  </button>
+                </div>
+              )}
+              
+              <div className="text-xs text-gray-500">
+                {formTags.length === 0 && "为网站添加分类标签，便于管理"}
+                {formTags.length === 1 && "还可以添加1个标签"}
+                {formTags.length === 2 && "已达到标签数量上限"}
+              </div>
             </div>
+          </div>
 
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1 select-none">
+              备注
+            </label>
             <textarea
               name="note"
               value={formData.note}

@@ -1,15 +1,29 @@
 import { useState, useRef, useLayoutEffect, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTransparency } from '@/contexts/TransparencyContext';
+import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 
-interface SearchBarProps {
-  // 不再需要websites参数
+interface WebsiteData {
+  id: string;
+  name: string;
+  url: string;
+  favicon: string;
+  tags: string[];
+  visitCount: number;
+  lastVisit: string;
+  note?: string;
 }
 
-export function SearchBar(_props: SearchBarProps = {}) {
+interface SearchBarProps {
+  websites?: WebsiteData[];
+}
+
+export function SearchBar(props: SearchBarProps = {}) {
+  const { websites = [] } = props;
   const inputRef = useRef<HTMLInputElement>(null);
   const [isFocused, setIsFocused] = useState(false);
   const { searchBarOpacity, searchBarColor, setIsSearchFocused } = useTransparency();
+  const { isMobile } = useResponsiveLayout();
   
   // 状态变量声明移到useEffect之前
   const [searchQuery, setSearchQuery] = useState('');
@@ -17,6 +31,7 @@ export function SearchBar(_props: SearchBarProps = {}) {
   const [engine, setEngine] = useState<'bing' | 'google'>('bing');
   const [isExpandDone, setIsExpandDone] = useState(false);
   const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [websiteSuggestions, setWebsiteSuggestions] = useState<WebsiteData[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
   const searchBtnRef = useRef<HTMLButtonElement>(null);
@@ -403,46 +418,215 @@ export function SearchBar(_props: SearchBarProps = {}) {
     return [...new Set(suggestions)];
   };
 
+  // 搜索网站卡片 - 智能匹配算法
+  const searchWebsites = (query: string): WebsiteData[] => {
+    if (!query.trim() || websites.length === 0) return [];
+    
+    const queryLower = query.toLowerCase();
+    const matches: Array<{ website: WebsiteData; score: number; matchType: string }> = [];
+    
+    websites.forEach(website => {
+      let score = 0;
+      let matchType = '';
+      
+      // 提取URL域名
+      const domain = (() => {
+        try {
+          return new URL(website.url).hostname.replace(/^www\./, '');
+        } catch {
+          return website.url.replace(/^(https?:\/\/)?(www\.)?/, '').split('/')[0];
+        }
+      })();
+      
+      // 1. 网站名称匹配 (权重最高)
+      if (website.name.toLowerCase().includes(queryLower)) {
+        score += 100;
+        matchType = '网站名称';
+        // 完全匹配加分
+        if (website.name.toLowerCase() === queryLower) {
+          score += 50;
+        }
+        // 开头匹配加分
+        if (website.name.toLowerCase().startsWith(queryLower)) {
+          score += 30;
+        }
+      }
+      
+      // 2. 标签匹配 (权重高)
+      const matchingTags = website.tags.filter(tag => 
+        tag.toLowerCase().includes(queryLower)
+      );
+      if (matchingTags.length > 0) {
+        score += 80 * matchingTags.length;
+        matchType = matchType || '标签';
+        // 完全匹配标签加分
+        if (matchingTags.some(tag => tag.toLowerCase() === queryLower)) {
+          score += 40;
+        }
+      }
+      
+      // 3. 域名匹配 (权重中等)
+      if (domain.toLowerCase().includes(queryLower)) {
+        score += 60;
+        matchType = matchType || '域名';
+        // 域名开头匹配加分
+        if (domain.toLowerCase().startsWith(queryLower)) {
+          score += 20;
+        }
+      }
+      
+      // 4. 备注匹配 (权重较低)
+      if (website.note && website.note.toLowerCase().includes(queryLower)) {
+        score += 40;
+        matchType = matchType || '备注';
+      }
+      
+      // 5. 访问频率加权 (常用网站优先)
+      score += Math.min(website.visitCount * 2, 20);
+      
+      // 6. 模糊匹配加分 (处理输入错误)
+      const similarity = calculateSimilarity(queryLower, website.name.toLowerCase());
+      if (similarity > 0.6) {
+        score += similarity * 30;
+        matchType = matchType || '模糊匹配';
+      }
+      
+      if (score > 0) {
+        matches.push({ website, score, matchType });
+      }
+    });
+    
+    // 按分数排序并返回前5个
+    return matches
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 5)
+      .map(match => ({
+        ...match.website,
+        matchType: match.matchType
+      }));
+  };
+  
+  // 计算字符串相似度 (简化版Levenshtein距离)
+  const calculateSimilarity = (str1: string, str2: string): number => {
+    const len1 = str1.length;
+    const len2 = str2.length;
+    
+    if (len1 === 0) return len2 === 0 ? 1 : 0;
+    if (len2 === 0) return 0;
+    
+    const matrix = Array(len1 + 1).fill(null).map(() => Array(len2 + 1).fill(null));
+    
+    for (let i = 0; i <= len1; i++) {
+      matrix[i][0] = i;
+    }
+    
+    for (let j = 0; j <= len2; j++) {
+      matrix[0][j] = j;
+    }
+    
+    for (let i = 1; i <= len1; i++) {
+      for (let j = 1; j <= len2; j++) {
+        const cost = str1[i - 1] === str2[j - 1] ? 0 : 1;
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j] + 1,
+          matrix[i][j - 1] + 1,
+          matrix[i - 1][j - 1] + cost
+        );
+      }
+    }
+    
+    const distance = matrix[len1][len2];
+    return 1 - distance / Math.max(len1, len2);
+  };
+
   // 监听搜索查询变化，更新建议（添加防抖）
   useEffect(() => {
     const debounceTimer = setTimeout(() => {
       if (searchQuery.trim()) {
-        generateSuggestions(searchQuery).then((newSuggestions) => {
-          setSuggestions(newSuggestions);
-          setShowSuggestions(newSuggestions.length > 0);
+        // 同时搜索网站和生成搜索建议
+        const matchedWebsites = searchWebsites(searchQuery);
+        setWebsiteSuggestions(matchedWebsites);
+        
+        // 只有在没有网站匹配时才显示搜索引擎建议
+        if (matchedWebsites.length === 0) {
+          generateSuggestions(searchQuery).then((newSuggestions) => {
+            setSuggestions(newSuggestions);
+            setShowSuggestions(newSuggestions.length > 0);
+            setSelectedSuggestionIndex(-1);
+          });
+        } else {
+          setSuggestions([]);
+          setShowSuggestions(true);
           setSelectedSuggestionIndex(-1);
-        });
+        }
       } else {
         setSuggestions([]);
+        setWebsiteSuggestions([]);
         setShowSuggestions(false);
         setSelectedSuggestionIndex(-1);
       }
-    }, 500); // 增加到500ms防抖，给API更多时间
+    }, 300); // 减少到300ms，网站搜索不需要API调用
 
     return () => clearTimeout(debounceTimer);
-  }, [searchQuery]);
+  }, [searchQuery, websites]);
 
-  const handleSearch = (e: React.FormEvent, suggestionQuery?: string) => {
+  const handleSearch = (e: React.FormEvent, suggestionQuery?: string, website?: WebsiteData) => {
     e.preventDefault();
-    const queryToSearch = suggestionQuery || (selectedSuggestionIndex >= 0 && suggestions[selectedSuggestionIndex] 
-      ? suggestions[selectedSuggestionIndex].query 
-      : searchQuery);
-      
+    
+    // 如果是网站建议，直接打开网站
+    if (website) {
+      window.open(website.url, '_blank');
+      setSearchQuery('');
+      setShowSuggestions(false);
+      setWebsiteSuggestions([]);
+      return;
+    }
+    
+    // 处理选中的建议
+    const totalSuggestions = websiteSuggestions.length + suggestions.length;
+    if (selectedSuggestionIndex >= 0 && selectedSuggestionIndex < totalSuggestions) {
+      if (selectedSuggestionIndex < websiteSuggestions.length) {
+        // 选中的是网站建议
+        const selectedWebsite = websiteSuggestions[selectedSuggestionIndex];
+        window.open(selectedWebsite.url, '_blank');
+        setSearchQuery('');
+        setShowSuggestions(false);
+        setWebsiteSuggestions([]);
+        return;
+      } else {
+        // 选中的是搜索引擎建议
+        const suggestionIndex = selectedSuggestionIndex - websiteSuggestions.length;
+        const queryToSearch = suggestions[suggestionIndex]?.query || searchQuery;
+        if (queryToSearch.trim()) {
+          window.open(getSearchUrl(engine, queryToSearch), '_blank');
+          setSearchQuery('');
+          setShowSuggestions(false);
+          setWebsiteSuggestions([]);
+        }
+        return;
+      }
+    }
+    
+    // 默认搜索
+    const queryToSearch = suggestionQuery || searchQuery;
     if (queryToSearch.trim()) {
       window.open(getSearchUrl(engine, queryToSearch), '_blank');
       setSearchQuery('');
       setShowSuggestions(false);
+      setWebsiteSuggestions([]);
     }
   };
 
   // 处理键盘导航
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    const totalSuggestions = websiteSuggestions.length + suggestions.length;
+    
     switch (e.key) {
       case 'ArrowDown':
-        if (!showSuggestions) return;
+        if (!showSuggestions || totalSuggestions === 0) return;
         e.preventDefault();
         setSelectedSuggestionIndex(prev => 
-          prev < suggestions.length - 1 ? prev + 1 : prev
+          prev < totalSuggestions - 1 ? prev + 1 : prev
         );
         break;
       case 'ArrowUp':
@@ -452,6 +636,7 @@ export function SearchBar(_props: SearchBarProps = {}) {
         break;
       case 'Escape':
         setShowSuggestions(false);
+        setWebsiteSuggestions([]);
         setSelectedSuggestionIndex(-1);
         break;
       case 'Tab':
@@ -529,8 +714,8 @@ export function SearchBar(_props: SearchBarProps = {}) {
           }}
         >
           <motion.div
-            animate={{ width: isHovered ? 520 : 340 }}
-            initial={{ width: 340 }}
+            animate={{ width: isHovered ? (isMobile ? 320 : 520) : (isMobile ? 280 : 340) }}
+            initial={{ width: isMobile ? 280 : 340 }}
             transition={{ type: 'tween', duration: 0.28, ease: 'easeInOut' }}
             style={{ display: 'flex', alignItems: 'center', position: 'relative' }}
             onAnimationComplete={() => { if (isHovered) setIsExpandDone(true); }}
@@ -604,41 +789,186 @@ export function SearchBar(_props: SearchBarProps = {}) {
             </button>
 
             {/* 搜索建议列表 */}
-            {showSuggestions && suggestions.length > 0 && (
+            {showSuggestions && (websiteSuggestions.length > 0 || suggestions.length > 0) && (
               <motion.div
-                className="absolute top-full left-0 right-0 mt-2 backdrop-blur-md rounded-lg shadow-lg border border-white/20 z-50 overflow-hidden max-h-60 overflow-y-auto"
+                className={`absolute top-full left-0 right-0 mt-2 backdrop-blur-md rounded-lg shadow-lg border border-white/20 z-50 overflow-hidden overflow-y-auto ${
+                  isMobile ? 'max-h-60' : 'max-h-80'
+                }`}
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.2 }}
                 style={{ 
                   pointerEvents: 'auto',
-                  backgroundColor: `rgba(255, 255, 255, 0.9)` // 更白的背景
+                  backgroundColor: `rgba(255, 255, 255, 0.95)` // 更清晰的背景
+                }}
+                onMouseEnter={() => {
+                  if (shrinkTimeout.current) {
+                    clearTimeout(shrinkTimeout.current);
+                    shrinkTimeout.current = null;
+                  }
+                }}
+                onMouseLeave={() => {
+                  // 延迟隐藏，给用户时间移动鼠标
+                  if (shrinkTimeout.current) clearTimeout(shrinkTimeout.current);
+                  shrinkTimeout.current = setTimeout(() => {
+                    setShowSuggestions(false);
+                    setWebsiteSuggestions([]);
+                  }, 200);
                 }}
               >
-                {suggestions.map((suggestion, index) => (
-                  <div
-                    key={suggestion.id}
-                    className={`px-4 py-3 cursor-pointer transition-colors border-b border-white/10 last:border-b-0 select-none ${
-                      index === selectedSuggestionIndex 
-                        ? 'bg-blue-500/20 text-gray-800' 
-                        : 'hover:bg-white/50 text-gray-700'
-                    }`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSearchQuery(suggestion.text);
-                      handleSearch(e as any, suggestion.query);
-                    }}
-                    onMouseEnter={() => setSelectedSuggestionIndex(index)}
-                    onMouseDown={(e) => e.preventDefault()} // 防止失去焦点
-                  >
-                    <div className="flex items-center gap-3 select-none">
-                      <i className="fa-solid fa-magnifying-glass text-gray-400 text-sm w-4 select-none"></i>
-                      <div className="flex-1 min-w-0 select-none">
-                        <div className="font-medium text-sm truncate select-none">{suggestion.text}</div>
+                {/* 网站建议部分 */}
+                {websiteSuggestions.length > 0 && (
+                  <div className="border-b border-gray-200/50">
+                    <div className={`${isMobile ? 'px-3 py-1.5' : 'px-4 py-2'} bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100`}>
+                      <div className="flex items-center gap-2">
+                        <i className="fa-solid fa-globe text-blue-500 text-sm"></i>
+                        <span className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium text-blue-700`}>网站建议</span>
                       </div>
                     </div>
+                    {websiteSuggestions.map((website, index) => {
+                      const isSelected = index === selectedSuggestionIndex;
+                      return (
+                        <div
+                          key={website.id}
+                          className={`${isMobile ? 'px-3 py-2' : 'px-4 py-3'} cursor-pointer transition-all duration-200 border-b border-gray-100/50 last:border-b-0 select-none ${
+                            isSelected 
+                              ? 'bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border-blue-200' 
+                              : 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50'
+                          }`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSearch(e as any, undefined, website);
+                          }}
+                          onMouseEnter={() => setSelectedSuggestionIndex(index)}
+                          onMouseDown={(e) => e.preventDefault()}
+                        >
+                          <div className={`flex items-center ${isMobile ? 'gap-2' : 'gap-3'} select-none`}>
+                            {/* 网站图标 */}
+                            <div className={`${isMobile ? 'w-6 h-6' : 'w-8 h-8'} rounded-lg overflow-hidden bg-white shadow-sm border border-gray-200/50 flex-shrink-0`}>
+                              <img 
+                                src={website.favicon} 
+                                alt={website.name}
+                                className="w-full h-full object-contain"
+                                loading="lazy"
+                                draggable="false"
+                              />
+                            </div>
+                            
+                            {/* 网站信息 */}
+                            <div className="flex-1 min-w-0">
+                              <div className={`flex items-center gap-2 ${isMobile ? 'mb-0.5' : 'mb-1'}`}>
+                                <h4 className={`font-medium text-gray-800 ${isMobile ? 'text-xs' : 'text-sm'} truncate`}>{website.name}</h4>
+                                {(website as any).matchType && !isMobile && (
+                                  <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full font-medium">
+                                    {(website as any).matchType}
+                                  </span>
+                                )}
+                              </div>
+                              
+                              {/* URL和标签 */}
+                              <div className={`flex items-center gap-1 ${isMobile ? 'text-[10px]' : 'text-xs'} text-gray-500`}>
+                                <span className={`truncate ${isMobile ? 'max-w-[120px]' : 'max-w-[200px]'}`}>
+                                  {(() => {
+                                    try {
+                                      return new URL(website.url).hostname;
+                                    } catch {
+                                      return website.url;
+                                    }
+                                  })()}
+                                </span>
+                                
+                                {/* 标签显示 */}
+                                {website.tags.length > 0 && !isMobile && (
+                                  <>
+                                    <span>•</span>
+                                    <div className="flex gap-1">
+                                      {website.tags.slice(0, 2).map((tag, tagIndex) => (
+                                        <span 
+                                          key={tagIndex}
+                                          className="px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded text-xs"
+                                        >
+                                          {tag}
+                                        </span>
+                                      ))}
+                                      {website.tags.length > 2 && (
+                                        <span className="text-gray-400">+{website.tags.length - 2}</span>
+                                      )}
+                                    </div>
+                                  </>
+                                )}
+                                
+                                {/* 访问次数 */}
+                                {website.visitCount > 0 && !isMobile && (
+                                  <>
+                                    <span>•</span>
+                                    <span className="text-green-600">{website.visitCount}次访问</span>
+                                  </>
+                                )}
+                              </div>
+                              
+                              {/* 备注显示 */}
+                              {website.note && (
+                                <div className="mt-1 text-xs text-gray-600 truncate">
+                                  {website.note}
+                                </div>
+                              )}
+                            </div>
+                            
+                            {/* 快捷键提示 */}
+                            <div className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded">
+                              Enter
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                ))}
+                )}
+                
+                {/* 搜索引擎建议部分 */}
+                {suggestions.length > 0 && (
+                  <div>
+                    {websiteSuggestions.length > 0 && (
+                      <div className="px-4 py-2 bg-gradient-to-r from-gray-50 to-slate-50 border-b border-gray-100">
+                        <div className="flex items-center gap-2">
+                          <i className="fa-solid fa-magnifying-glass text-gray-500 text-sm"></i>
+                          <span className="text-sm font-medium text-gray-700">搜索建议</span>
+                        </div>
+                      </div>
+                    )}
+                    {suggestions.map((suggestion, index) => {
+                      const adjustedIndex = index + websiteSuggestions.length;
+                      const isSelected = adjustedIndex === selectedSuggestionIndex;
+                      return (
+                        <div
+                          key={suggestion.id}
+                          className={`px-4 py-3 cursor-pointer transition-colors border-b border-gray-100/50 last:border-b-0 select-none ${
+                            isSelected 
+                              ? 'bg-blue-500/10 text-gray-800' 
+                              : 'hover:bg-gray-50 text-gray-700'
+                          }`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSearchQuery(suggestion.text);
+                            handleSearch(e as any, suggestion.query);
+                          }}
+                          onMouseEnter={() => setSelectedSuggestionIndex(adjustedIndex)}
+                          onMouseDown={(e) => e.preventDefault()}
+                        >
+                          <div className="flex items-center gap-3 select-none">
+                            <i className="fa-solid fa-magnifying-glass text-gray-400 text-sm w-4 select-none"></i>
+                            <div className="flex-1 min-w-0 select-none">
+                              <div className="font-medium text-sm truncate select-none">{suggestion.text}</div>
+                            </div>
+                            <div className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded">
+                              Enter
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </motion.div>
             )}
             {/* 悬停时显示的表情（fixed定位，圆心为放大镜按钮绝对中心） */}

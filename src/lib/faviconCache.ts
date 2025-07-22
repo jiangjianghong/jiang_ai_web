@@ -4,7 +4,6 @@
  */
 
 import { indexedDBCache } from './indexedDBCache';
-import { getProxyUrl } from './pathUtils';
 
 interface FaviconMetadata {
   domain: string;
@@ -99,19 +98,24 @@ class FaviconCacheManager {
   }
 
   /**
-   * 获取 favicon 的备用 URL 列表（使用favicon.im通过CORS代理）
+   * 获取 favicon 的备用 URL 列表（使用可靠的服务）
    */
   private getFaviconUrls(originalUrl: string, domain: string): string[] {
     return [
-      // 优先使用 Vercel 代理访问 favicon.im（最可靠）
-      getProxyUrl(`https://favicon.im/${domain}?larger=true&size=64`),
-      getProxyUrl(`https://favicon.im/${domain}?larger=true&size=32`),
-      
-      // 备用：直接访问
-      `https://favicon.im/${domain}?larger=true&size=64`,
+      // 优先使用不需要代理的服务
       `https://www.google.com/s2/favicons?domain=${domain}&sz=64`,
+      `https://www.google.com/s2/favicons?domain=${domain}&sz=32`,
       
-      // 最后使用原始 URL（如果提供）
+      // DuckDuckGo favicon 服务
+      `https://icons.duckduckgo.com/ip3/${domain}.ico`,
+      
+      // 尝试网站自己的 favicon
+      `https://${domain}/favicon.ico`,
+      
+      // 使用公共CORS代理服务访问 favicon.im（作为备用）
+      `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://favicon.im/${domain}?larger=true&size=32`)}`,
+      
+      // 如果提供了原始 URL 且不是 favicon.im，也尝试一下
       ...(originalUrl && !originalUrl.includes('favicon.im') ? [originalUrl] : [])
     ];
   }

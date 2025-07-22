@@ -14,9 +14,9 @@ import WorkspaceModal from '@/components/Workspace/WorkspaceModal';
 import { useWorkspace } from '@/contexts/WorkspaceContext';
 import { faviconCache } from '@/lib/faviconCache';
 import { improvedWallpaperCache } from '@/lib/cacheManager';
+import { indexedDBCache } from '@/lib/indexedDBCache';
 import { useRAFThrottledMouseMove } from '@/hooks/useRAFThrottle';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
-import { getProxyUrl } from '@/lib/pathUtils';
 
 interface HomeProps {
   websites: any[];
@@ -88,6 +88,29 @@ export default function Home({ websites, setWebsites }: HomeProps) {
     });
   }, []); // 只在组件挂载时执行一次
 
+  // 开发环境下提供缓存清理功能
+  useEffect(() => {
+    if (import.meta.env.DEV) {
+      // 在全局对象上暴露清理函数，方便调试
+      (window as any).clearWallpaperCache = async () => {
+        try {
+          const getTodayKey = () => {
+            const today = new Date();
+            return today.toISOString().split('T')[0];
+          };
+          const blobCacheKey = `blob-${wallpaperResolution}-${getTodayKey()}`;
+          const fullCacheKey = `wallpaper-blob:${blobCacheKey}`;
+          await indexedDBCache.delete(fullCacheKey);
+          console.log('🗑️ 壁纸缓存已清理:', fullCacheKey);
+          window.location.reload();
+        } catch (error) {
+          console.error('清理缓存失败:', error);
+        }
+      };
+      console.log('🔧 开发模式：可使用 clearWallpaperCache() 清理壁纸缓存');
+    }
+  }, [wallpaperResolution]);
+
 
   // 根据访问次数自动排序卡片
   const sortedWebsites = [...websites].sort((a, b) => {
@@ -140,9 +163,9 @@ export default function Home({ websites, setWebsites }: HomeProps) {
     // 使用代理服务获取 Bing 官方壁纸信息
     const getBingWallpaperInfo = async () => {
       try {
-        // 使用Vercel代理服务避免 CORS 问题
+        // 使用公共CORS代理服务避免 CORS 问题
         const bingApiUrl = 'https://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1&mkt=zh-CN';
-        const proxyUrl = getProxyUrl(bingApiUrl);
+        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(bingApiUrl)}`;
         const response = await fetch(proxyUrl);
         const data = await response.json();
         return data.images[0];
@@ -222,9 +245,9 @@ export default function Home({ websites, setWebsites }: HomeProps) {
       console.log('🖼️ 加载壁纸，分辨率:', wallpaperResolution);
       setBgImageLoaded(false);
       
-      // 如果URL需要代理访问，使用Vercel代理
+      // 如果URL需要代理访问，使用公共CORS代理
       const proxyUrl = apiUrl.includes('bing.com') 
-        ? getProxyUrl(apiUrl)
+        ? `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`
         : apiUrl;
       
       console.log('🔄 壁纸代理URL:', proxyUrl);

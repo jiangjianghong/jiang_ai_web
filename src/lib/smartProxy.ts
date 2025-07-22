@@ -14,8 +14,8 @@ interface ProxyConfig {
 class SmartProxyManager {
   private proxies: ProxyConfig[] = [
     {
-      name: 'Vercel代理',
-      url: getApiPath('/api/proxy'),
+      name: 'allorigins',
+      url: 'https://api.allorigins.win/raw',
       priority: 1,
       available: true,
       speed: 0,
@@ -95,25 +95,55 @@ class SmartProxyManager {
     return available.length > 0 ? available[0] : null;
   }
 
-  // 使用Vercel代理发送请求
+  // 使用最佳可用代理发送请求
   async request(targetUrl: string, options: RequestInit = {}): Promise<Response> {
-    const proxy = this.proxies[0]; // 只使用Vercel代理
-    const proxyUrl = this.buildProxyUrl(proxy.url, targetUrl);
-    console.log(`🔄 使用代理: ${proxy.name}`);
+    const availableProxies = this.proxies.filter(p => p.available);
+    
+    if (availableProxies.length === 0) {
+      throw new Error('没有可用的代理服务器');
+    }
 
-    const response = await fetch(proxyUrl, {
-      ...options,
-      headers: {
-        ...options.headers,
-        // 如果是Notion请求，确保传递认证头
-        ...(targetUrl.includes('api.notion.com') && options.headers && {
-          'Authorization': (options.headers as any)['Authorization'],
-          'Content-Type': 'application/json'
-        })
+    let lastError: Error | null = null;
+
+    // 按优先级尝试每个可用的代理
+    for (const proxy of availableProxies) {
+      try {
+        const proxyUrl = this.buildProxyUrl(proxy.url, targetUrl);
+        console.log(`🔄 使用代理: ${proxy.name}`);
+
+        const response = await fetch(proxyUrl, {
+          ...options,
+          headers: {
+            ...options.headers,
+            // 如果是Notion请求，确保传递认证头
+            ...(targetUrl.includes('api.notion.com') && options.headers && {
+              'Authorization': (options.headers as any)['Authorization'],
+              'Content-Type': 'application/json',
+              'Notion-Version': '2022-06-28'
+            })
+          }
+        });
+
+        // 如果请求成功，更新代理状态并返回响应
+        if (response.ok) {
+          proxy.available = true;
+          proxy.lastCheck = Date.now();
+          console.log(`✅ 代理请求成功: ${proxy.name}`);
+          return response;
+        } else {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+      } catch (error) {
+        console.warn(`❌ 代理 ${proxy.name} 失败:`, error.message);
+        proxy.available = false;
+        proxy.lastCheck = Date.now();
+        lastError = error;
+        continue;
       }
-    });
+    }
 
-    return response;
+    // 所有代理都失败了
+    throw lastError || new Error('所有代理服务器都不可用');
   }
 
   // 获取代理状态

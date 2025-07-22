@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { faviconCache } from '@/lib/faviconCache';
 import { isDefaultIcon } from '@/lib/iconPath';
-import { getProxyUrl } from '@/lib/pathUtils';
 
 /**
  * 使用 favicon 缓存的 Hook（极简版 - 防止切换）
@@ -27,11 +26,14 @@ export function useFavicon(originalUrl: string, faviconUrl: string) {
         return url; // 直接返回原URL，不使用代理
       }
       
-      // 智能代理选择：根据重试次数选择不同代理
+      // 智能代理选择：根据重试次数选择不同的可靠服务
+      const domain = extractDomain(originalUrl);
       const proxies = [
-        getProxyUrl(url), // Vercel代理
+        `https://www.google.com/s2/favicons?domain=${domain}&sz=64`, // Google Favicon服务（优先）
+        `https://www.google.com/s2/favicons?domain=${domain}&sz=32`, // Google Favicon服务（小尺寸）
+        `https://icons.duckduckgo.com/ip3/${domain}.ico`, // DuckDuckGo服务
         url, // 直接访问
-        `https://www.google.com/s2/favicons?domain=${extractDomain(originalUrl)}&sz=64` // Google Favicon服务
+        `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}` // 公共代理（备用）
       ];
       
       const selectedProxy = proxies[retryCount % proxies.length];

@@ -1,6 +1,5 @@
 // Notion API 客户端
 import { smartProxy } from './smartProxy';
-import { getProxyUrl } from './pathUtils';
 
 interface NotionPage {
   id: string;
@@ -87,9 +86,9 @@ export class NotionClient {
           return data;
         }
 
-        // 对于POST和GET请求，统一使用Vercel代理
-        const proxyUrl = getProxyUrl(targetUrl);
-        console.log('- Vercel代理请求URL:', proxyUrl);
+        // 使用公共CORS代理服务
+        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
+        console.log('- 公共代理请求URL:', proxyUrl);
         
         const response = await fetch(proxyUrl, {
           method: options.method || 'GET',
@@ -143,47 +142,69 @@ export class NotionClient {
       }
     }
 
-    // 智能代理模式 - 自动选择最佳代理
-    console.log('- 智能代理请求URL:', targetUrl);
+    // 使用公共CORS代理服务作为默认方案
+    console.log('- 使用公共CORS代理请求URL:', targetUrl);
 
     try {
-      // 使用智能代理管理器
-      const response = await smartProxy.request(targetUrl, {
-        method: options.method || 'GET',
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json',
-          'Notion-Version': '2022-06-28',
-        },
-        ...(options.body && { body: options.body }),
-      });
+      // 尝试多个公共CORS代理服务
+      const proxyServices = [
+        `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`,
+        `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`,
+      ];
 
-      console.log('📡 响应状态:', response.status, response.statusText);
+      let lastError: Error | null = null;
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ Notion API错误详情:');
-        console.error('状态码:', response.status);
-        console.error('响应内容:', errorText);
-        
-        throw new Error(`Notion API error: ${response.status} ${response.statusText}`);
+      for (const proxyUrl of proxyServices) {
+        try {
+          console.log('🔄 尝试代理服务:', proxyUrl.split('?')[0]);
+          
+          const response = await fetch(proxyUrl, {
+            method: options.method || 'GET',
+            headers: {
+              'Authorization': `Bearer ${this.apiKey}`,
+              'Content-Type': 'application/json',
+              'Notion-Version': '2022-06-28',
+            },
+            ...(options.body && { body: options.body }),
+          });
+
+          console.log('📡 响应状态:', response.status, response.statusText);
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error('❌ Notion API错误详情:');
+            console.error('状态码:', response.status);
+            console.error('响应内容:', errorText);
+            
+            // 提供更具体的错误信息
+            if (response.status === 400) {
+              throw new Error('请求格式错误。可能是API密钥格式不正确或数据库ID无效');
+            } else if (response.status === 401) {
+              throw new Error('API密钥无效或已过期，请检查配置');
+            } else if (response.status === 404) {
+              throw new Error('数据库不存在或Integration未被添加到数据库');
+            } else {
+              throw new Error(`Notion API error: ${response.status} ${response.statusText}`);
+            }
+          }
+
+          const data = await response.json();
+          console.log('✅ 公共代理请求成功');
+          return data;
+        } catch (error) {
+          console.warn(`❌ 代理服务失败: ${proxyUrl.split('?')[0]}`, error.message);
+          lastError = error;
+          continue;
+        }
       }
 
-      const data = await response.json();
-      console.log('✅ 智能代理请求成功');
-      return data;
+      // 所有代理都失败了
+      throw lastError || new Error('所有CORS代理服务都不可用');
     } catch (error) {
-      console.error('❌ 智能代理请求失败:', error);
+      console.error('❌ 公共代理请求失败:', error);
       
-      if (error.message.includes('没有可用的代理')) {
-        throw new Error(`所有代理服务器都不可用。
-
-建议解决方案：
-1. 🔄 刷新页面重试
-2. 检查网络连接
-3. 使用浏览器CORS插件作为临时方案
-
-代理状态: ${JSON.stringify(smartProxy.getStatus(), null, 2)}`);
+      if (error.message.includes('Failed to fetch')) {
+        throw new Error('无法连接到代理服务器。建议：\n1. 检查网络连接\n2. 尝试使用浏览器CORS插件\n3. 稍后重试');
       }
       
       throw error;

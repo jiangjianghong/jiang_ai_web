@@ -37,3 +37,5 @@ dist-ssr
 .dropbox/
 .OneDrive/
 .icloud/
+
+.vercel

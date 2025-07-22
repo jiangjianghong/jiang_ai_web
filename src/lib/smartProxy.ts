@@ -19,30 +19,6 @@ class SmartProxyManager {
       available: true,
       speed: 0,
       lastCheck: 0
-    },
-    {
-      name: 'Supabase代理', 
-      url: 'https://wxheqargopbsrruootyr.supabase.co/functions/v1/universal-proxy',
-      priority: 2,
-      available: true,
-      speed: 0,
-      lastCheck: 0
-    },
-    {
-      name: 'AllOrigins代理',
-      url: 'https://api.allorigins.win/get',
-      priority: 3,
-      available: true,
-      speed: 0,
-      lastCheck: 0
-    },
-    {
-      name: 'CORS Proxy',
-      url: 'https://corsproxy.io',
-      priority: 4,
-      available: true,
-      speed: 0,
-      lastCheck: 0
     }
   ];
 
@@ -118,61 +94,25 @@ class SmartProxyManager {
     return available.length > 0 ? available[0] : null;
   }
 
-  // 使用最佳代理发送请求
+  // 使用Vercel代理发送请求
   async request(targetUrl: string, options: RequestInit = {}): Promise<Response> {
-    // 定期检查代理状态（每5分钟）
-    const now = Date.now();
-    const shouldCheck = this.proxies.some(p => now - p.lastCheck > 5 * 60 * 1000);
-    
-    if (shouldCheck) {
-      await this.checkAllProxies();
-    }
-
-    const proxy = this.getBestProxy();
-    if (!proxy) {
-      throw new Error('没有可用的代理服务器');
-    }
-
+    const proxy = this.proxies[0]; // 只使用Vercel代理
     const proxyUrl = this.buildProxyUrl(proxy.url, targetUrl);
     console.log(`🔄 使用代理: ${proxy.name}`);
 
-    try {
-      const response = await fetch(proxyUrl, {
-        ...options,
-        headers: {
-          ...options.headers,
-          // 如果是Notion请求，确保传递认证头
-          ...(targetUrl.includes('api.notion.com') && options.headers && {
-            'Authorization': (options.headers as any)['Authorization'],
-            'Content-Type': 'application/json'
-          })
-        }
-      });
-
-      if (!response.ok && proxy.name === 'AllOrigins代理') {
-        // AllOrigins 特殊处理
-        const data = await response.json();
-        if (data.contents) {
-          return new Response(data.contents, {
-            status: data.status || 200,
-            headers: { 'Content-Type': 'application/json' }
-          });
-        }
+    const response = await fetch(proxyUrl, {
+      ...options,
+      headers: {
+        ...options.headers,
+        // 如果是Notion请求，确保传递认证头
+        ...(targetUrl.includes('api.notion.com') && options.headers && {
+          'Authorization': (options.headers as any)['Authorization'],
+          'Content-Type': 'application/json'
+        })
       }
+    });
 
-      return response;
-    } catch (error) {
-      // 标记当前代理为不可用，尝试下一个
-      proxy.available = false;
-      console.warn(`❌ ${proxy.name} 请求失败，尝试下一个代理`);
-      
-      const nextProxy = this.getBestProxy();
-      if (nextProxy && nextProxy !== proxy) {
-        return this.request(targetUrl, options);
-      }
-      
-      throw error;
-    }
+    return response;
   }
 
   // 获取代理状态
@@ -191,6 +131,3 @@ class SmartProxyManager {
 
 // 导出单例
 export const smartProxy = new SmartProxyManager();
-
-// 自动初始化检测
-smartProxy.checkAllProxies().catch(console.error);

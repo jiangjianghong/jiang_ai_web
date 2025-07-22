@@ -1,7 +1,7 @@
 // Vercel Serverless Function - 通用CORS代理
 // 针对中国网络环境优化，无需备案
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   // 设置CORS头
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
@@ -29,7 +29,9 @@ export default async function handler(req, res) {
       'bing.img.run',
       'bing.com',
       's2.googleusercontent.com',
-      'api.allorigins.win'
+      'api.allorigins.win',
+      'httpbin.org', // 测试用
+      'corsproxy.io'
     ];
     
     const targetDomain = new URL(targetUrl).hostname;

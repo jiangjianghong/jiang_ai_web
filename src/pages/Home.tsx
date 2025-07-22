@@ -222,6 +222,13 @@ export default function Home({ websites, setWebsites }: HomeProps) {
       console.log('🖼️ 加载壁纸，分辨率:', wallpaperResolution);
       setBgImageLoaded(false);
       
+      // 如果URL需要代理访问，使用Vercel代理
+      const proxyUrl = apiUrl.includes('bing.com') 
+        ? `/api/proxy?url=${encodeURIComponent(apiUrl)}`
+        : apiUrl;
+      
+      console.log('🔄 壁纸代理URL:', proxyUrl);
+      
       const img = new Image();
       
       // 超时处理
@@ -231,24 +238,24 @@ export default function Home({ websites, setWebsites }: HomeProps) {
         console.warn('⏰ 壁纸加载超时');
         setBgImage('');
         setBgImageLoaded(true);
-      }, 10000); // 10秒超时
+      }, 15000); // 延长到15秒超时
       
       img.onload = () => {
         clearTimeout(timeout);
-        setBgImage(img.src);
+        setBgImage(proxyUrl);
         setBgImageLoaded(true);
-        cacheWallpaper(img.src); // 缓存实际的图片URL
-        console.log('✅ 壁纸加载完成:', img.src);
+        cacheWallpaper(proxyUrl); // 缓存代理URL
+        console.log('✅ 壁纸加载完成:', proxyUrl);
       };
       
       img.onerror = () => {
         clearTimeout(timeout);
-        console.warn('❌ 壁纸加载失败');
+        console.warn('❌ 壁纸加载失败:', proxyUrl);
         setBgImage('');
         setBgImageLoaded(true);
       };
       
-      img.src = apiUrl;
+      img.src = proxyUrl;
     };
 
     // 主要逻辑：优先使用本地缓存，无缓存时才加载新壁纸

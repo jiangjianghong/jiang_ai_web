@@ -102,13 +102,13 @@ class FaviconCacheManager {
    */
   private getFaviconUrls(originalUrl: string, domain: string): string[] {
     return [
-      // 优先使用 allorigins 代理访问 favicon.im（稳定可靠）
-      `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://favicon.im/${domain}?larger=true&size=64`)}`,
-      `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://favicon.im/${domain}?larger=true&size=32`)}`,
+      // 优先使用 Vercel 代理访问 favicon.im（最可靠）
+      `/api/proxy?url=${encodeURIComponent(`https://favicon.im/${domain}?larger=true&size=64`)}`,
+      `/api/proxy?url=${encodeURIComponent(`https://favicon.im/${domain}?larger=true&size=32`)}`,
       
-      // 备用：使用 corsproxy.io
+      // 备用：使用其他代理
+      `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://favicon.im/${domain}?larger=true&size=64`)}`,
       `https://corsproxy.io/?${encodeURIComponent(`https://favicon.im/${domain}?larger=true&size=64`)}`,
-      `https://corsproxy.io/?${encodeURIComponent(`https://favicon.im/${domain}?larger=true&size=32`)}`,
       
       // 最后使用原始 URL（如果提供）
       ...(originalUrl && !originalUrl.includes('favicon.im') ? [originalUrl] : [])

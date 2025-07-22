@@ -15,10 +15,10 @@ export function useFavicon(originalUrl: string, faviconUrl: string) {
 
   // 处理 favicon URL，检测并通过代理访问有 CORS 问题的 URL
   const processeFaviconUrl = (url: string): string => {
-    const proxyPrefix = 'https://api.allorigins.win/raw?url=';
+    const proxyPrefix = '/api/proxy?url=';
     
     // 检查是否是需要代理的URL
-    if (url.includes('favicon.im') && !url.includes('api.allorigins.win')) {
+    if (url.includes('favicon.im') && !url.includes('/api/proxy')) {
       // 先检查是否已有缓存，如果有缓存则不需要代理
       const cached = faviconCache.getCachedFavicon(originalUrl);
       
@@ -28,7 +28,7 @@ export function useFavicon(originalUrl: string, faviconUrl: string) {
         return url; // 直接返回原URL，不使用代理
       }
       
-      console.log(`🔄 检测到favicon.im URL，优先尝试代理: ${url}`);
+      console.log(`🔄 检测到favicon.im URL，使用Vercel代理: ${url}`);
       return proxyPrefix + encodeURIComponent(url);
     }
     

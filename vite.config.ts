@@ -87,7 +87,7 @@ export default defineConfig({
     // 代理配置 - 将API请求转发到本地代理服务器
     proxy: {
       '/jiang_ai_web/api': {
-        target: 'http://localhost:3001',
+        target: 'http://localhost:3002',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/jiang_ai_web\/api/, '/api'),
         configure: (proxy, options) => {

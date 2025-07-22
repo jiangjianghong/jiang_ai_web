@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { z } from 'zod';
 import { uploadFaviconToStorage } from '@/lib/supabaseFaviconUpload';
+import { getApiPath } from '@/lib/pathUtils';
 
 const websiteSchema = z.object({
   name: z.string().min(1, '网站名不能为空'),
@@ -67,11 +68,11 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
    * 获取 favicon 的备用 URL 列表（代理优先，支持降级）
    */
   const getFaviconUrls = (domain: string): string[] => {
-    // 代理服务前缀
-    const proxyPrefix = 'https://api.allorigins.win/raw?url=';
+    // 使用Vercel代理服务
+    const proxyPrefix = getApiPath('/api/proxy') + '?url=';
     
     return [
-      // 使用代理访问 favicon.im（支持国内访问，速度快）
+      // 使用Vercel代理访问 favicon.im（支持国内访问，速度快）
       proxyPrefix + encodeURIComponent(`https://favicon.im/${domain}?larger=true`),
       // 代理失败时的直接访问降级
       `https://favicon.im/${domain}?larger=true`,
@@ -92,7 +93,7 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
    * 处理 favicon URL，检测并通过代理访问有 CORS 问题的 URL
    */
   const processeFaviconUrl = (url: string): string => {
-    const proxyPrefix = 'https://api.allorigins.win/raw?url=';
+    const proxyPrefix = getApiPath('/api/proxy') + '?url=';
     
     // 检查是否是需要代理的URL
     if (url.includes('favicon.im')) {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { useWorkspace } from '@/contexts/WorkspaceContext';
+import NotionGuide from './NotionGuide';
 
 interface WorkspaceSettingsProps {
   onClose: () => void;
@@ -8,38 +8,34 @@ interface WorkspaceSettingsProps {
 }
 
 export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSettingsProps) {
-  const { configureNotion, testConnection, clearConfiguration, isConfigured } = useWorkspace();
+  const { configureNotion, testConnection, clearConfiguration, isConfigured, getConfiguration } = useWorkspace();
   
   const [apiKey, setApiKey] = useState('');
   const [databaseId, setDatabaseId] = useState('');
-  const [corsProxy, setCorsProxy] = useState('enabled'); // 使用标记来启用代理
-  const [customProxyUrl, setCustomProxyUrl] = useState('');
+  // Vercel 代理已内置，无需配置
   const [isTestingConnection, setIsTestingConnection] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
-  const [showAdvanced, setShowAdvanced] = useState(true); // 默认显示高级设置
+  const [showGuide, setShowGuide] = useState(false);
+  // 简化设置，直接显示网络连接状态
   
   // 加载现有配置
   useEffect(() => {
-    // 这里可以从 workspaceManager 获取现有配置
-    // 但出于安全考虑，不显示 API 密钥
-  }, []);
+    const config = getConfiguration();
+    if (config) {
+      // 自动填充上次保存的配置
+      setApiKey(config.apiKey || '');
+      setDatabaseId(config.databaseId || '');
+      console.log('✅ 已加载保存的工作空间配置');
+    }
+  }, [getConfiguration]);
 
   // 验证表单
   const isFormValid = apiKey.trim().length > 0 && databaseId.trim().length > 0;
 
-  // 获取代理配置
+  // 直接使用 Vercel 代理
   const getProxyConfig = () => {
-    switch (corsProxy) {
-      case 'enabled':
-        return 'enabled'; // 使用 corsproxy.io
-      case 'supabase':
-        return customProxyUrl || undefined;
-      case 'custom':
-        return customProxyUrl || undefined;
-      default:
-        return undefined; // 直连
-    }
+    return 'enabled'; // 始终使用 Vercel 代理
   };
 
   // 处理连接测试
@@ -103,6 +99,11 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
     }
   };
 
+  // 如果显示指南，渲染指南组件
+  if (showGuide) {
+    return <NotionGuide onClose={() => setShowGuide(false)} />;
+  }
+
   return (
     <div className="h-full flex flex-col">
       {/* 设置头部 */}
@@ -121,14 +122,24 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
             </div>
           </div>
 
-          {isConfigured && (
+          <div className="flex items-center space-x-2">
             <button
-              onClick={handleClearConfiguration}
-              className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors text-sm font-medium"
+              onClick={() => setShowGuide(true)}
+              className="px-3 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors text-sm font-medium flex items-center space-x-1"
             >
-              清除配置
+              <i className="fa-solid fa-book text-xs"></i>
+              <span>设置指南</span>
             </button>
-          )}
+            
+            {isConfigured && (
+              <button
+                onClick={handleClearConfiguration}
+                className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors text-sm font-medium"
+              >
+                清除配置
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -136,20 +147,38 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
       <div className="flex-1 overflow-y-auto p-6">
         <div className="max-w-2xl mx-auto space-y-6">
           {/* 配置说明 */}
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-            <div className="flex items-start space-x-3">
-              <i className="fa-solid fa-info-circle text-blue-500 mt-0.5"></i>
-              <div>
-                <h4 className="font-medium text-blue-900 mb-2">如何配置 Notion 工作空间？</h4>
-                <ol className="text-sm text-blue-800 space-y-1 list-decimal list-inside">
-                  <li>访问 <a href="https://www.notion.so/my-integrations" target="_blank" rel="noopener" className="underline hover:text-blue-900">Notion Integrations</a> 创建新集成</li>
-                  <li>复制生成的 API 密钥</li>
-                  <li>在你的 Notion 数据库页面点击"Share"并添加你的集成</li>
-                  <li>复制数据库 URL 中的 32 位数据库 ID</li>
-                </ol>
+          {!isConfigured && (
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+              <div className="flex items-start space-x-3">
+                <i className="fa-solid fa-rocket text-blue-500 mt-0.5"></i>
+                <div className="flex-1">
+                  <h4 className="font-medium text-blue-900 mb-2">首次配置 Notion 工作空间</h4>
+                  <p className="text-sm text-blue-800 mb-3">
+                    需要创建 Notion Integration 并获取 API 密钥。我们为您准备了详细的设置指南。
+                  </p>
+                  <button
+                    onClick={() => setShowGuide(true)}
+                    className="inline-flex items-center space-x-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                  >
+                    <i className="fa-solid fa-book text-xs"></i>
+                    <span>查看完整设置指南</span>
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
+          )}
+
+          {isConfigured && (
+            <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+              <div className="flex items-center space-x-3">
+                <i className="fa-solid fa-check-circle text-green-500"></i>
+                <div>
+                  <h4 className="font-medium text-green-900">工作空间已配置</h4>
+                  <p className="text-sm text-green-800 mt-1">您可以修改下方的配置信息或重新测试连接。</p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* 基础配置 */}
           <div className="space-y-4">
@@ -192,143 +221,26 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
 
           {/* 高级配置 */}
           <div>
-            <button
-              onClick={() => setShowAdvanced(!showAdvanced)}
-              className="flex items-center space-x-2 text-sm text-gray-600 hover:text-gray-800"
-            >
-              <i className={`fa-solid ${showAdvanced ? 'fa-chevron-down' : 'fa-chevron-right'} text-xs`}></i>
-              <span>高级配置</span>
-            </button>
-
-            {showAdvanced && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                className="mt-4 space-y-4"
-              >
-                {/* CORS 代理设置 */}
-                <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <label className="block text-sm font-medium text-gray-700">
-                      CORS 解决方案
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => setCorsProxy(corsProxy === 'enabled' ? '' : 'enabled')}
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-all duration-200 ${
-                        corsProxy === 'enabled' ? 'bg-blue-500 shadow-lg shadow-blue-200' : 'bg-gray-300'
-                      }`}
-                    >
-                      <span
-                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 shadow-sm ${
-                          corsProxy === 'enabled' ? 'translate-x-6' : 'translate-x-1'
-                        }`}
-                      />
-                    </button>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="radio"
-                        id="proxy-enabled"
-                        name="corsProxy"
-                        checked={corsProxy === 'enabled'}
-                        onChange={() => setCorsProxy('enabled')}
-                        className="text-blue-600"
-                      />
-                      <label htmlFor="proxy-enabled" className="text-sm text-gray-700">
-                        使用公共代理 (corsproxy.io)
-                      </label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="radio"
-                        id="proxy-supabase"
-                        name="corsProxy"
-                        checked={corsProxy === 'supabase'}
-                        onChange={() => setCorsProxy('supabase')}
-                        className="text-blue-600"
-                      />
-                      <label htmlFor="proxy-supabase" className="text-sm text-gray-700">
-                        使用 Supabase Edge Functions（推荐）
-                      </label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="radio"
-                        id="proxy-custom"
-                        name="corsProxy"
-                        checked={corsProxy !== 'enabled' && corsProxy !== ''}
-                        onChange={() => setCorsProxy('custom')}
-                        className="text-blue-600"
-                      />
-                      <label htmlFor="proxy-custom" className="text-sm text-gray-700">
-                        使用自定义代理服务器
-                      </label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="radio"
-                        id="proxy-disabled"
-                        name="corsProxy"
-                        checked={corsProxy === ''}
-                        onChange={() => setCorsProxy('')}
-                        className="text-blue-600"
-                      />
-                      <label htmlFor="proxy-disabled" className="text-sm text-gray-700">
-                        直连（需要特殊浏览器设置）
-                      </label>
-                    </div>
-                  </div>
-                  
-                  {corsProxy === 'supabase' && (
-                    <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                      <p className="text-sm text-blue-800 mb-2">
-                        <strong>Supabase 配置步骤：</strong>
-                      </p>
-                      <ol className="text-xs text-blue-700 space-y-1 list-decimal list-inside">
-                        <li>创建 Supabase 项目</li>
-                        <li>部署 Edge Function 代理</li>
-                        <li>在下方输入您的 Function URL</li>
-                      </ol>
-                      <input
-                        type="url"
-                        placeholder="https://your-project.supabase.co/functions/v1/notion-proxy"
-                        value={customProxyUrl}
-                        onChange={(e) => setCustomProxyUrl(e.target.value)}
-                        className="w-full mt-2 px-3 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                      />
-                    </div>
-                  )}
-                  
-                  {corsProxy === 'custom' && (
-                    <div className="mt-3">
-                      <input
-                        type="url"
-                        placeholder="https://your-proxy-server.com/api/notion"
-                        value={customProxyUrl}
-                        onChange={(e) => setCustomProxyUrl(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                      />
-                      <p className="mt-1 text-xs text-gray-500">
-                        输入您的自定义代理服务器地址
-                      </p>
-                    </div>
-                  )}
-                  
-                  {corsProxy !== 'enabled' && (
-                    <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
-                      <p className="text-xs text-red-700">
-                        <strong>警告：</strong> 禁用代理后，浏览器会阻止直接访问 Notion API（CORS 错误）。
-                        <br />除非使用特殊启动参数或服务器环境，否则连接会失败。
-                        <br /><strong>强烈建议保持代理启用。</strong>
-                      </p>
-                    </div>
-                  )}
+            {/* 网络连接状态 */}
+            <div className="mt-4">
+              <div className="flex items-center mb-3">
+                <i className="fa-solid fa-shield-alt text-blue-500 mr-2"></i>
+                <label className="block text-sm font-medium text-gray-700">
+                  网络连接
+                </label>
+              </div>
+              <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                <div className="flex items-center space-x-2">
+                  <i className="fa-solid fa-check-circle text-green-500"></i>
+                  <span className="text-sm text-green-800 font-medium">
+                    已启用 Vercel 代理
+                  </span>
                 </div>
-              </motion.div>
-            )}
+                <p className="text-sm text-green-700 mt-1">
+                  自动解决 CORS 跨域问题，无需额外配置
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* 错误信息 */}

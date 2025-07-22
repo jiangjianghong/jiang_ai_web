@@ -84,6 +84,22 @@ export default defineConfig({
       port: 3003, // 使用不同端口避免冲突
       host: 'localhost'
     },
+    // 代理配置 - 将API请求转发到本地代理服务器
+    proxy: {
+      '/jiang_ai_web/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/jiang_ai_web\/api/, '/api'),
+        configure: (proxy, options) => {
+          proxy.on('error', (err, req, res) => {
+            console.log('代理错误:', err);
+          });
+          proxy.on('proxyReq', (proxyReq, req, res) => {
+            console.log('代理请求:', req.method, req.url, '->', proxyReq.path);
+          });
+        }
+      }
+    },
     // 设置正确的MIME类型和缓存头
     headers: {
       'X-Content-Type-Options': 'nosniff',

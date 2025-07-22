@@ -4,6 +4,7 @@
  */
 
 import { indexedDBCache } from './indexedDBCache';
+import { getProxyUrl } from './pathUtils';
 
 interface FaviconMetadata {
   domain: string;
@@ -103,12 +104,12 @@ class FaviconCacheManager {
   private getFaviconUrls(originalUrl: string, domain: string): string[] {
     return [
       // 优先使用 Vercel 代理访问 favicon.im（最可靠）
-      `/api/proxy?url=${encodeURIComponent(`https://favicon.im/${domain}?larger=true&size=64`)}`,
-      `/api/proxy?url=${encodeURIComponent(`https://favicon.im/${domain}?larger=true&size=32`)}`,
+      getProxyUrl(`https://favicon.im/${domain}?larger=true&size=64`),
+      getProxyUrl(`https://favicon.im/${domain}?larger=true&size=32`),
       
-      // 备用：使用其他代理
-      `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://favicon.im/${domain}?larger=true&size=64`)}`,
-      `https://corsproxy.io/?${encodeURIComponent(`https://favicon.im/${domain}?larger=true&size=64`)}`,
+      // 备用：直接访问
+      `https://favicon.im/${domain}?larger=true&size=64`,
+      `https://www.google.com/s2/favicons?domain=${domain}&sz=64`,
       
       // 最后使用原始 URL（如果提供）
       ...(originalUrl && !originalUrl.includes('favicon.im') ? [originalUrl] : [])

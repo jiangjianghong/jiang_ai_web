@@ -1,4 +1,5 @@
 import { indexedDBCache } from './indexedDBCache';
+import { getProxyUrl } from './pathUtils';
 
 // 轻量级缓存工具
 class CacheManager {
@@ -82,9 +83,9 @@ export const improvedWallpaperCache = {
 
       console.log('📥 开始下载图片数据...');
       
-      // 使用支持CORS的代理服务
-      const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
-      console.log('🔄 使用CORS代理:', proxyUrl);
+      // 使用Vercel代理服务
+      const proxyUrl = getProxyUrl(url);
+      console.log('🔄 使用Vercel代理:', proxyUrl);
       
       // 下载图片
       const response = await fetch(proxyUrl, {

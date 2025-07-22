@@ -38,6 +38,7 @@ interface WorkspaceContextType {
   testConnection: () => Promise<boolean>;
   clearConfiguration: () => void;
   refreshItems: () => Promise<void>;
+  getConfiguration: () => WorkspaceConfig | null;
 }
 
 const WorkspaceContext = createContext<WorkspaceContextType | undefined>(undefined);
@@ -166,6 +167,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     testConnection,
     clearConfiguration,
     refreshItems,
+    getConfiguration: () => workspaceManager.getConfig(),
   };
 
   return (

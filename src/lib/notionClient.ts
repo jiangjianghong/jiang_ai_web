@@ -1,5 +1,6 @@
 // Notion API 客户端
 import { smartProxy } from './smartProxy';
+import { getProxyUrl } from './pathUtils';
 
 interface NotionPage {
   id: string;
@@ -86,93 +87,50 @@ export class NotionClient {
           return data;
         }
 
-        // 对于POST请求，我们需要使用不同的代理策略
-        if (options.method === 'POST') {
-          
-          // 备用：使用corsproxy.io
-          const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(targetUrl);
-          console.log('- POST代理请求URL:', proxyUrl);
-          
-          const response = await fetch(proxyUrl, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${this.apiKey}`,
-              'Content-Type': 'application/json',
-              'Notion-Version': '2022-06-28',
-            },
-            body: options.body,
-          });
-          
-          console.log('📡 POST代理响应状态:', response.status, response.statusText);
-          
-          if (!response.ok) {
-            const errorText = await response.text();
-            console.error('❌ POST代理请求失败:', errorText);
-            throw new Error(`代理请求失败: ${response.status} ${response.statusText}`);
-          }
-          
-          const data = await response.json();
-          console.log('✅ POST代理请求成功');
-          return data;
-        }
+        // 对于POST和GET请求，统一使用Vercel代理
+        const proxyUrl = getProxyUrl(targetUrl);
+        console.log('- Vercel代理请求URL:', proxyUrl);
         
-        // GET请求使用allorigins
-        const encodedUrl = encodeURIComponent(targetUrl);
-        const proxyUrl = `https://api.allorigins.win/get?url=${encodedUrl}`;
-
-        console.log('- GET代理请求URL:', proxyUrl);
-        
-        // 使用简单的GET请求，不传递自定义头部以避免CORS问题
-        const response = await fetch(proxyUrl);
-        console.log('📡 代理响应状态:', response.status, response.statusText);
+        const response = await fetch(proxyUrl, {
+          method: options.method || 'GET',
+          headers: {
+            'Authorization': `Bearer ${this.apiKey}`,
+            'Content-Type': 'application/json',
+            'Notion-Version': '2022-06-28',
+          },
+          ...(options.body && { body: options.body }),
+        });
+        console.log('📡 Vercel代理响应状态:', response.status, response.statusText);
         
         if (!response.ok) {
-          throw new Error(`代理请求失败: ${response.status} ${response.statusText}`);
-        }
-        
-        // 检查响应是否为空
-        const responseText = await response.text();
-        if (!responseText) {
-          throw new Error('代理返回空响应');
-        }
-        
-        const proxyData = JSON.parse(responseText);
-        console.log('- 代理返回状态:', proxyData.status);
-        
-        if (!proxyData.contents) {
-          throw new Error('代理未返回内容数据');
-        }
-        
-        // 解析实际的API响应
-        let apiResponse;
-        try {
-          apiResponse = JSON.parse(proxyData.contents);
-        } catch (parseError) {
-          console.error('API响应内容:', proxyData.contents);
-          throw new Error('无法解析API响应内容');
-        }
-        
-        // 检查API状态
-        if (proxyData.status && proxyData.status >= 400) {
-          console.error('❌ Notion API错误详情:', {
-            status: proxyData.status,
-            contents: proxyData.contents
-          });
+          const errorText = await response.text();
+          console.error('❌ Vercel代理请求失败:', errorText);
           
-          // 尝试提供更具体的错误信息
-          if (proxyData.status === 400) {
+          // 提供更具体的错误信息
+          if (response.status === 400) {
             throw new Error('请求格式错误。可能是API密钥格式不正确或数据库ID无效');
-          } else if (proxyData.status === 401) {
+          } else if (response.status === 401) {
             throw new Error('API密钥无效或已过期，请检查配置');
-          } else if (proxyData.status === 404) {
+          } else if (response.status === 404) {
             throw new Error('数据库不存在或Integration未被添加到数据库');
           } else {
-            throw new Error(`Notion API错误 ${proxyData.status}: ${apiResponse?.message || proxyData.contents || '未知错误'}`);
+            throw new Error(`Vercel代理请求失败: ${response.status} ${response.statusText}`);
           }
         }
         
-        console.log('✅ 代理请求成功');
-        return apiResponse;
+        // 检查响应内容类型
+        const contentType = response.headers.get('content-type') || '';
+        console.log('响应内容类型:', contentType);
+        
+        if (!contentType.includes('application/json')) {
+          const text = await response.text();
+          console.error('收到非JSON响应:', text.substring(0, 200));
+          throw new Error('服务器返回了非JSON响应，可能是认证失败或配置错误');
+        }
+        
+        const data = await response.json();
+        console.log('✅ Vercel代理请求成功');
+        return data;
         
       } catch (error) {
         console.error('❌ 代理请求失败:', error);

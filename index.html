@@ -93,9 +93,9 @@
     
     <script type="module" src="/src/main.tsx"></script>
     
-    <!-- Service Worker 注册 -->
+    <!-- Service Worker 注册（仅在生产环境） -->
     <script>
-      if ('serviceWorker' in navigator) {
+      if ('serviceWorker' in navigator && window.location.hostname !== 'localhost') {
         window.addEventListener('load', () => {
           // 强制使用带时间戳的路径避免缓存问题
           const timestamp = Date.now();

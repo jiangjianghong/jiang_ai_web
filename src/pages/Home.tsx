@@ -16,6 +16,7 @@ import { faviconCache } from '@/lib/faviconCache';
 import { improvedWallpaperCache } from '@/lib/cacheManager';
 import { useRAFThrottledMouseMove } from '@/hooks/useRAFThrottle';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
+import { getProxyUrl } from '@/lib/pathUtils';
 
 interface HomeProps {
   websites: any[];
@@ -139,13 +140,12 @@ export default function Home({ websites, setWebsites }: HomeProps) {
     // 使用代理服务获取 Bing 官方壁纸信息
     const getBingWallpaperInfo = async () => {
       try {
-        // 使用代理服务避免 CORS 问题
-        const proxyUrl = 'https://api.allorigins.win/get?url=';
+        // 使用Vercel代理服务避免 CORS 问题
         const bingApiUrl = 'https://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1&mkt=zh-CN';
-        const response = await fetch(proxyUrl + encodeURIComponent(bingApiUrl));
+        const proxyUrl = getProxyUrl(bingApiUrl);
+        const response = await fetch(proxyUrl);
         const data = await response.json();
-        const bingData = JSON.parse(data.contents);
-        return bingData.images[0];
+        return data.images[0];
       } catch (error) {
         console.warn('获取 Bing API 失败:', error);
         return null;
@@ -224,7 +224,7 @@ export default function Home({ websites, setWebsites }: HomeProps) {
       
       // 如果URL需要代理访问，使用Vercel代理
       const proxyUrl = apiUrl.includes('bing.com') 
-        ? `/api/proxy?url=${encodeURIComponent(apiUrl)}`
+        ? getProxyUrl(apiUrl)
         : apiUrl;
       
       console.log('🔄 壁纸代理URL:', proxyUrl);
@@ -320,19 +320,29 @@ export default function Home({ websites, setWebsites }: HomeProps) {
 
   // 预加载 favicon（已移除，使用下面的 IndexedDB 批量缓存代替）
 
-  // 批量预缓存 favicon（简化版）
+  // 智能预缓存 favicon（避免冗余）
   useEffect(() => {
     if (websites.length > 0) {
       // 延迟执行，避免阻塞首屏渲染
       const timer = setTimeout(() => {
-        console.log('🚀 开始简单批量预缓存 favicon...');
-        faviconCache.batchCacheFaviconsToIndexedDB(websites)
-          .then(() => {
-            console.log('✅ Favicon 简单批量预缓存完成');
-          })
-          .catch(error => {
-            console.warn('❌ Favicon 简单批量预缓存失败:', error);
-          });
+        // 检查是否有未缓存的favicon
+        const uncachedWebsites = websites.filter(website => {
+          const cached = faviconCache.getCachedFavicon(website.url);
+          return !cached;
+        });
+
+        if (uncachedWebsites.length > 0) {
+          console.log(`🚀 开始批量预缓存 ${uncachedWebsites.length} 个未缓存的 favicon...`);
+          faviconCache.batchCacheFaviconsToIndexedDB(uncachedWebsites)
+            .then(() => {
+              console.log('✅ Favicon 批量预缓存完成');
+            })
+            .catch(error => {
+              console.warn('❌ Favicon 批量预缓存失败:', error);
+            });
+        } else {
+          console.log('📦 所有 favicon 均已缓存，跳过批量预缓存');
+        }
       }, 2000); // 2秒后开始，确保不影响首屏渲染
 
       return () => clearTimeout(timer);

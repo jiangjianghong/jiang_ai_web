@@ -19,9 +19,16 @@ export function useAutoSync(websites: WebsiteData[]) {
   // 用于存储上次同步的数据指纹，避免重复同步
   const lastSyncDataRef = useRef<string>('');
   const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const syncInProgressRef = useRef<boolean>(false);
 
   // 同步函数
   const performSync = useCallback((force = false) => {
+    // 防止并发同步
+    if (syncInProgressRef.current && !force) {
+      console.log('🔒 同步正在进行中，跳过重复请求');
+      return;
+    }
+
     // 检查网络连接状态
     if (!navigator.onLine) {
       updateSyncStatus({ 
@@ -66,6 +73,9 @@ export function useAutoSync(websites: WebsiteData[]) {
     };
 
     console.log(force ? '⏰ 强制执行数据同步...' : '🚀 开始执行数据同步...');
+    
+    // 标记同步进行中
+    syncInProgressRef.current = true;
 
     // 自动同步数据
     autoSync(currentUser, websites, settings, {
@@ -84,6 +94,9 @@ export function useAutoSync(websites: WebsiteData[]) {
         });
         lastSyncDataRef.current = currentDataFingerprint;
         
+        // 重置同步状态
+        syncInProgressRef.current = false;
+        
         updateSyncStatus({ 
           syncInProgress: false, 
           lastSyncTime: new Date(),
@@ -93,6 +106,9 @@ export function useAutoSync(websites: WebsiteData[]) {
         console.log('✅ 同步成功:', message);
       },
       onSyncError: (error) => {
+        // 重置同步状态
+        syncInProgressRef.current = false;
+        
         updateSyncStatus({ 
           syncInProgress: false, 
           syncError: error,
@@ -128,7 +144,7 @@ export function useAutoSync(websites: WebsiteData[]) {
 
     // 简化日志，避免频繁输出
     if (process.env.NODE_ENV === 'development') {
-      if (lastSyncDataRef.current !== '') {
+      if (lastSyncDataRef.current !== '' && !syncInProgressRef.current) {
         console.log(`🔄 检测到数据变化，将在 ${autoSyncInterval}s 后同步`);
       }
     }

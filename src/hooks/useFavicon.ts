@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { faviconCache } from '@/lib/faviconCache';
 import { isDefaultIcon } from '@/lib/iconPath';
+import { getProxyUrl } from '@/lib/pathUtils';
 
 /**
  * 使用 favicon 缓存的 Hook（极简版 - 防止切换）
@@ -13,12 +14,10 @@ export function useFavicon(originalUrl: string, faviconUrl: string) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(false);
 
-  // 处理 favicon URL，检测并通过代理访问有 CORS 问题的 URL
-  const processeFaviconUrl = (url: string): string => {
-    const proxyPrefix = '/api/proxy?url=';
-    
+  // 处理 favicon URL，智能代理切换
+  const processeFaviconUrl = (url: string, retryCount: number = 0): string => {
     // 检查是否是需要代理的URL
-    if (url.includes('favicon.im') && !url.includes('/api/proxy')) {
+    if (url.includes('favicon.im')) {
       // 先检查是否已有缓存，如果有缓存则不需要代理
       const cached = faviconCache.getCachedFavicon(originalUrl);
       
@@ -28,8 +27,16 @@ export function useFavicon(originalUrl: string, faviconUrl: string) {
         return url; // 直接返回原URL，不使用代理
       }
       
-      console.log(`🔄 检测到favicon.im URL，使用Vercel代理: ${url}`);
-      return proxyPrefix + encodeURIComponent(url);
+      // 智能代理选择：根据重试次数选择不同代理
+      const proxies = [
+        getProxyUrl(url), // Vercel代理
+        url, // 直接访问
+        `https://www.google.com/s2/favicons?domain=${extractDomain(originalUrl)}&sz=64` // Google Favicon服务
+      ];
+      
+      const selectedProxy = proxies[retryCount % proxies.length];
+      console.log(`🔄 图标代理 (尝试${retryCount + 1}): ${selectedProxy}`);
+      return selectedProxy;
     }
     
     return url;
@@ -44,65 +51,75 @@ export function useFavicon(originalUrl: string, faviconUrl: string) {
     }
   };
 
-  // 添加降级处理函数
-  const getFallbackUrl = (url: string): string | null => {
-    const proxyPrefix = 'https://api.allorigins.win/raw?url=';
-    
-    // 如果当前是代理URL且失败了，返回直接URL
-    if (url.includes('api.allorigins.win') && url.includes('favicon.im')) {
-      try {
-        const decodedUrl = decodeURIComponent(url.replace(proxyPrefix, ''));
-        console.log(`🔄 代理失败，降级到直接访问: ${decodedUrl}`);
-        return decodedUrl;
-      } catch (error) {
-        console.warn('URL解码失败:', error);
-      }
+  // 智能重试加载图标
+  const retryLoadFavicon = (url: string, retryCount: number = 0): void => {
+    if (retryCount >= 4) {
+      console.warn('🚨 图标加载重试次数过多，放弃加载:', originalUrl);
+      setError(true);
+      return;
     }
     
-    return null;
+    const processedUrl = processeFaviconUrl(url, retryCount);
+    
+    // 使用 Image 对象测试加载
+    const testImg = new Image();
+    testImg.onload = () => {
+      console.log(`✅ 图标加载成功 (尝试${retryCount + 1}):`, processedUrl);
+      setCurrentFaviconUrl(processedUrl);
+      setError(false);
+    };
+    
+    testImg.onerror = () => {
+      console.warn(`❌ 图标加载失败 (尝试${retryCount + 1}):`, processedUrl);
+      // 短暂延迟后重试下一个代理
+      setTimeout(() => retryLoadFavicon(url, retryCount + 1), 500);
+    };
+    
+    testImg.src = processedUrl;
   };
 
   useEffect(() => {
-    // 处理传入的 faviconUrl，如果是有 CORS 问题的 URL 则使用代理
-    const processedFaviconUrl = processeFaviconUrl(faviconUrl);
-    setCurrentFaviconUrl(processedFaviconUrl);
     setError(false);
     setIsLoading(false);
     
     // 智能缓存策略：只有在以下情况才尝试缓存优化
-    // 1. faviconUrl 是默认图标（需要替换）
-    // 2. 或者是 Google favicon 服务但没有时间戳参数（说明是旧的自动生成的）
     const isDefaultIconUrl = isDefaultIcon(faviconUrl);
-    const isOldGoogleIcon = faviconUrl.includes('google.com/s2/favicons') && !faviconUrl.includes('&t=');
     
     // 先检查是否有缓存
     const cached = faviconCache.getCachedFavicon(originalUrl);
     
     if (cached && !isDefaultIcon(cached)) {
-      // 有有效缓存，直接使用
+      // 有有效缓存，使用智能重试加载缓存的图标
       console.log('📦 使用缓存图标:', originalUrl);
-      setCurrentFaviconUrl(processeFaviconUrl(cached));
+      retryLoadFavicon(cached);
       return;
     }
     
-    // 只有默认图标才尝试异步获取更好的图标（避免过度请求）
+    // 如果是默认图标，尝试获取更好的图标
     if (isDefaultIconUrl && !cached) {
       setIsLoading(true);
       faviconCache.getFavicon(originalUrl, faviconUrl)
         .then((url: string) => {
           if (url !== faviconUrl && !isDefaultIcon(url)) {
             console.log('✅ 获取到更好的图标:', url);
-            setCurrentFaviconUrl(processeFaviconUrl(url));
+            retryLoadFavicon(url);
+          } else {
+            // 使用默认图标
+            retryLoadFavicon(faviconUrl);
           }
           setError(false);
         })
         .catch((err: any) => {
           console.warn('Favicon 优化失败:', err);
-          setError(true);
+          // 失败时使用原始URL
+          retryLoadFavicon(faviconUrl);
         })
         .finally(() => {
           setIsLoading(false);
         });
+    } else {
+      // 直接使用传入的图标URL
+      retryLoadFavicon(faviconUrl);
     }
   }, [originalUrl, faviconUrl]);
 

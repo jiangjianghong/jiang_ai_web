@@ -1,5 +1,6 @@
 // 智能代理管理器 - 自动选择最快的可用代理
 // 针对中国网络环境优化
+import { getApiPath } from './pathUtils';
 
 interface ProxyConfig {
   name: string;
@@ -14,7 +15,7 @@ class SmartProxyManager {
   private proxies: ProxyConfig[] = [
     {
       name: 'Vercel代理',
-      url: '/api/proxy',
+      url: getApiPath('/api/proxy'),
       priority: 1,
       available: true,
       speed: 0,

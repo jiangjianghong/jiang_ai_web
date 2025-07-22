@@ -50,11 +50,25 @@ module.exports = async function handler(req, res) {
 
     // Notion API特殊处理
     if (targetDomain === 'api.notion.com') {
-      const authHeader = req.headers.authorization || req.headers['x-api-key'];
+      // 检查多种可能的认证头格式
+      const authHeader = req.headers.authorization || 
+                        req.headers['Authorization'] || 
+                        req.headers['x-api-key'] ||
+                        req.headers['X-Api-Key'];
+      
+      console.log('Notion请求头检查:', { 
+        authHeader: authHeader ? `${authHeader.substring(0, 20)}...` : 'null',
+        method: req.method,
+        allHeaders: Object.keys(req.headers)
+      });
+      
       if (authHeader) {
         headers['Authorization'] = authHeader;
         headers['Content-Type'] = 'application/json';
         headers['Notion-Version'] = '2022-06-28';
+        console.log('设置Notion认证头成功');
+      } else {
+        console.warn('缺少Notion认证头, 可用头部:', Object.keys(req.headers));
       }
     }
 
@@ -77,19 +91,38 @@ module.exports = async function handler(req, res) {
     }
 
     // 发送请求
+    console.log('发送请求到:', targetUrl, '选项:', JSON.stringify(fetchOptions, null, 2));
     const response = await fetch(targetUrl, fetchOptions);
     const contentType = response.headers.get('content-type') || '';
+    console.log('收到响应:', { status: response.status, contentType });
 
     // 处理不同类型响应
     if (contentType.includes('application/json')) {
       const data = await response.json();
+      console.log('返回JSON数据:', data);
+      // 保持原始状态码和设置正确的响应头
+      res.setHeader('Content-Type', 'application/json');
       return res.status(response.status).json(data);
     } else if (contentType.startsWith('image/')) {
       const buffer = await response.arrayBuffer();
       res.setHeader('Content-Type', contentType);
+      console.log('返回图片数据，大小:', buffer.byteLength);
       return res.status(response.status).send(Buffer.from(buffer));
     } else {
       const text = await response.text();
+      console.log('返回文本数据，长度:', text.length, '前100字符:', text.substring(0, 100));
+      
+      // 如果期望JSON但收到HTML，说明有错误
+      if (targetDomain === 'api.notion.com' && text.trim().startsWith('<!')) {
+        console.error('Notion API返回HTML而不是JSON，可能是认证失败');
+        return res.status(401).json({ 
+          error: 'Notion API认证失败',
+          message: 'API密钥可能无效或已过期',
+          details: text.substring(0, 200)
+        });
+      }
+      
+      res.setHeader('Content-Type', contentType || 'text/plain');
       return res.status(response.status).send(text);
     }
 

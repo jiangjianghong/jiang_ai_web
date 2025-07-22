@@ -16,7 +16,6 @@ export function useResourcePreloader(enabled: boolean = true) {
     const delayedPreload = setTimeout(() => {
       // 预连接到第三方域名
       const preconnectDomains = [
-        'https://api.allorigins.win',
         'https://www.bing.com',
         'https://source.unsplash.com',
         'https://www.google.com',

@@ -98,35 +98,20 @@ class FaviconCacheManager {
   }
 
   /**
-   * 获取 favicon 的备用 URL 列表（代理优先，支持降级）
+   * 获取 favicon 的备用 URL 列表（使用favicon.im通过CORS代理）
    */
   private getFaviconUrls(originalUrl: string, domain: string): string[] {
-    // 代理服务前缀
-    const proxyPrefix = 'https://api.allorigins.win/raw?url=';
-    
-    // 检查原始URL是否是favicon.im，如果是则通过代理访问
-    let processedOriginalUrl = originalUrl;
-    if (originalUrl.includes('favicon.im')) {
-      processedOriginalUrl = proxyPrefix + encodeURIComponent(originalUrl);
-      console.log(`🔄 检测到favicon.im URL，使用代理: ${originalUrl} -> ${processedOriginalUrl}`);
-    }
-    
     return [
-      processedOriginalUrl, // 处理后的原始 URL（可能是代理）
-      // 如果原始URL是代理，添加直接访问作为降级
-      ...(originalUrl.includes('favicon.im') ? [originalUrl] : []),
-      // 使用代理访问 favicon.im（支持国内访问，速度快）
-      proxyPrefix + encodeURIComponent(`https://favicon.im/${domain}?larger=true`),
-      // 代理失败时的直接访问降级
-      `https://favicon.im/${domain}?larger=true`,
-      // 直接访问Google服务（无CORS限制）
-      `https://www.google.com/s2/favicons?domain=${domain}&sz=64`,
-      `https://www.google.com/s2/favicons?domain=${domain}&sz=32`,
-      // 备用：DuckDuckGo的图标服务
-      `https://icons.duckduckgo.com/ip3/${domain}.ico`,
-      // 尝试网站自己的 favicon
-      `https://${domain}/favicon.ico`,
-      `https://${domain}/favicon.png`
+      // 优先使用 allorigins 代理访问 favicon.im（稳定可靠）
+      `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://favicon.im/${domain}?larger=true&size=64`)}`,
+      `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://favicon.im/${domain}?larger=true&size=32`)}`,
+      
+      // 备用：使用 corsproxy.io
+      `https://corsproxy.io/?${encodeURIComponent(`https://favicon.im/${domain}?larger=true&size=64`)}`,
+      `https://corsproxy.io/?${encodeURIComponent(`https://favicon.im/${domain}?larger=true&size=32`)}`,
+      
+      // 最后使用原始 URL（如果提供）
+      ...(originalUrl && !originalUrl.includes('favicon.im') ? [originalUrl] : [])
     ];
   }
 
@@ -144,8 +129,10 @@ class FaviconCacheManager {
         
         const response = await fetch(url, {
           mode: 'cors',
+          credentials: 'omit',
           headers: {
-            'Accept': 'image/*'
+            'Accept': 'image/*,*/*;q=0.8',
+            'User-Agent': 'Mozilla/5.0 (compatible; FaviconBot/1.0)'
           },
           signal: controller.signal
         });
@@ -341,8 +328,8 @@ class FaviconCacheManager {
             return;
           }
           
-          // 添加延迟避免请求过于频繁
-          const delay = (index + 1) * 800;
+          // 添加延迟避免请求过于频繁，减少429错误
+          const delay = (index + 1) * 1200; // 增加延迟到1.2秒
           await new Promise(resolve => setTimeout(resolve, delay));
           
           console.log(`🔄 [${i + index + 1}/${websites.length}] 处理: ${domain}`);

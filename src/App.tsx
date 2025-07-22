@@ -6,6 +6,7 @@ import { TransparencyProvider, useTransparency } from '@/contexts/TransparencyCo
 import { AuthProvider } from '@/contexts/SupabaseAuthContext';
 import { SyncProvider } from '@/contexts/SyncContext';
 import { UserProfileProvider } from '@/contexts/UserProfileContext';
+import { WorkspaceProvider } from '@/contexts/WorkspaceContext';
 import DataSyncModal from '@/components/DataSyncModal';
 import NetworkStatus from '@/components/NetworkStatus';
 import SupabaseErrorBoundary from '@/components/SupabaseErrorBoundary';
@@ -206,9 +207,11 @@ export default function App() {
         <UserProfileProvider>
           <SyncProvider>
             <TransparencyProvider>
-              <DndProvider backend={HTML5Backend}>
-                <AppContent />
-              </DndProvider>
+              <WorkspaceProvider>
+                <DndProvider backend={HTML5Backend}>
+                  <AppContent />
+                </DndProvider>
+              </WorkspaceProvider>
             </TransparencyProvider>
           </SyncProvider>
         </UserProfileProvider>

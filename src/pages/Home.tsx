@@ -10,6 +10,8 @@ import { useUserProfile } from '@/contexts/UserProfileContext';
 import { useAutoSync } from '@/hooks/useAutoSync';
 import Settings from '@/pages/Settings';
 import EmailVerificationBanner from '@/components/EmailVerificationBanner';
+import WorkspaceModal from '@/components/Workspace/WorkspaceModal';
+import { useWorkspace } from '@/contexts/WorkspaceContext';
 import { faviconCache } from '@/lib/faviconCache';
 import { improvedWallpaperCache } from '@/lib/cacheManager';
 import { useRAFThrottledMouseMove } from '@/hooks/useRAFThrottle';
@@ -24,6 +26,7 @@ export default function Home({ websites, setWebsites }: HomeProps) {
   const { parallaxEnabled, wallpaperResolution, isSettingsOpen } = useTransparency();
   const { currentUser } = useAuth();
   const { displayName } = useUserProfile();
+  const { isWorkspaceOpen, setIsWorkspaceOpen } = useWorkspace();
   const { 
     isMobile, 
     getGridClasses, 
@@ -342,6 +345,9 @@ export default function Home({ websites, setWebsites }: HomeProps) {
       userInfo: isMobile 
         ? 'fixed top-2 right-2 z-40 scale-90' 
         : 'fixed top-4 right-4 z-40',
+      workspaceButton: isMobile 
+        ? 'fixed top-2 left-2 z-40 scale-90' 
+        : 'fixed top-4 left-4 z-40',
       settingsButton: isMobile 
         ? 'fixed bottom-2 right-2 z-[9999] p-2 bg-white/10 rounded-full backdrop-blur-sm' 
         : 'fixed bottom-4 right-4 z-[9999]'
@@ -431,6 +437,22 @@ export default function Home({ websites, setWebsites }: HomeProps) {
           />
         )}
 
+        {/* 工作空间触发按钮 - 响应式调整 */}
+        <div className={classes.workspaceButton}>
+          <button
+            onClick={() => setIsWorkspaceOpen(true)}
+            className={`bg-white/20 backdrop-blur-sm rounded-lg ${isMobile ? 'px-2 py-1' : 'px-3 py-2'} flex items-center space-x-2 hover:bg-white/30 transition-colors cursor-pointer group`}
+            title="工作空间"
+          >
+            <i className={`fa-solid fa-briefcase text-white/80 group-hover:text-white transition-colors ${isMobile ? 'text-xs' : ''}`}></i>
+            {!isMobile && (
+              <span className="text-white/90 text-sm font-medium group-hover:text-white transition-colors">
+                工作空间
+              </span>
+            )}
+          </button>
+        </div>
+
         {/* 用户信息显示 - 响应式调整 */}
         {currentUser && currentUser.email_confirmed_at && (
           <div className={classes.userInfo}>
@@ -474,6 +496,12 @@ export default function Home({ websites, setWebsites }: HomeProps) {
 
         {/* 动画猫 - 仅在非移动端显示 */}
         {!isMobile && <AnimatedCat />}
+        
+        {/* 工作空间模态框 */}
+        <WorkspaceModal 
+          isOpen={isWorkspaceOpen}
+          onClose={() => setIsWorkspaceOpen(false)}
+        />
       </div>
     </>
   );

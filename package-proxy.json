@@ -1,0 +1,15 @@
+{
+  "name": "notion-proxy",
+  "version": "1.0.0",
+  "description": "本地Notion API代理服务器",
+  "main": "local-proxy.js",
+  "scripts": {
+    "start": "node local-proxy.js",
+    "proxy": "node local-proxy.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "http-proxy-middleware": "^2.0.6",
+    "cors": "^2.8.5"
+  }
+}

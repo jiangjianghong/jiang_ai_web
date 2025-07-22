@@ -7,6 +7,7 @@ import { TransparencyProvider } from '@/contexts/TransparencyContext';
 import { AuthProvider } from '@/contexts/SupabaseAuthContext';
 import { SyncProvider } from '@/contexts/SyncContext';
 import { UserProfileProvider } from '@/contexts/UserProfileContext';
+import { WorkspaceProvider } from '@/contexts/WorkspaceContext';
 import { WebsiteData } from '@/lib/supabaseSync';
 import { useState, useEffect } from 'react';
 import { usePageTitle } from '@/hooks/usePageTitle';
@@ -74,7 +75,9 @@ export default function MainApp() {
         <AuthProvider>
           <SyncProvider>
             <UserProfileProvider>
-              <AppContent />
+              <WorkspaceProvider>
+                <AppContent />
+              </WorkspaceProvider>
             </UserProfileProvider>
           </SyncProvider>
         </AuthProvider>

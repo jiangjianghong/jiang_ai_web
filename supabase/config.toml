@@ -1,0 +1,23 @@
+# Supabase 配置文件
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[auth]
+enabled = true
+port = 54324
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["https://localhost:3000"]
+
+[functions]
+enabled = true
+port = 54325
+
+[db]
+enabled = true
+port = 54322
+shadow_port = 54320
+major_version = 15

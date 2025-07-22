@@ -418,9 +418,9 @@ export function SearchBar(props: SearchBarProps = {}) {
     return [...new Set(suggestions)];
   };
 
-  // 搜索网站卡片 - 智能匹配算法
+  // 搜索网站卡片 - 智能匹配算法（添加相关性阈值和限制数量）
   const searchWebsites = (query: string): WebsiteData[] => {
-    if (!query.trim() || websites.length === 0) return [];
+    if (!query.trim() || websites.length === 0 || query.trim().length < 2) return [];
     
     const queryLower = query.toLowerCase();
     const matches: Array<{ website: WebsiteData; score: number; matchType: string }> = [];
@@ -465,8 +465,8 @@ export function SearchBar(props: SearchBarProps = {}) {
         }
       }
       
-      // 3. 域名匹配 (权重中等)
-      if (domain.toLowerCase().includes(queryLower)) {
+      // 3. 域名匹配 (权重中等) - 提高匹配标准
+      if (domain.toLowerCase().includes(queryLower) && queryLower.length >= 3) {
         score += 60;
         matchType = matchType || '域名';
         // 域名开头匹配加分
@@ -475,8 +475,8 @@ export function SearchBar(props: SearchBarProps = {}) {
         }
       }
       
-      // 4. 备注匹配 (权重较低)
-      if (website.note && website.note.toLowerCase().includes(queryLower)) {
+      // 4. 备注匹配 (权重较低) - 提高匹配标准
+      if (website.note && website.note.toLowerCase().includes(queryLower) && queryLower.length >= 3) {
         score += 40;
         matchType = matchType || '备注';
       }
@@ -484,22 +484,24 @@ export function SearchBar(props: SearchBarProps = {}) {
       // 5. 访问频率加权 (常用网站优先)
       score += Math.min(website.visitCount * 2, 20);
       
-      // 6. 模糊匹配加分 (处理输入错误)
+      // 6. 模糊匹配加分 (处理输入错误) - 提高相似度阈值
       const similarity = calculateSimilarity(queryLower, website.name.toLowerCase());
-      if (similarity > 0.6) {
+      if (similarity > 0.7 && queryLower.length >= 3) {
         score += similarity * 30;
         matchType = matchType || '模糊匹配';
       }
       
-      if (score > 0) {
+      // 设置最低分数阈值，提高匹配相关性
+      const MIN_SCORE_THRESHOLD = 80;
+      if (score >= MIN_SCORE_THRESHOLD) {
         matches.push({ website, score, matchType });
       }
     });
     
-    // 按分数排序并返回前5个
+    // 按分数排序并限制为最多3个
     return matches
       .sort((a, b) => b.score - a.score)
-      .slice(0, 5)
+      .slice(0, 3)
       .map(match => ({
         ...match.website,
         matchType: match.matchType
@@ -539,7 +541,7 @@ export function SearchBar(props: SearchBarProps = {}) {
     return 1 - distance / Math.max(len1, len2);
   };
 
-  // 监听搜索查询变化，更新建议（添加防抖）
+  // 监听搜索查询变化，更新建议（优化逻辑：同时显示网站卡片和搜索建议）
   useEffect(() => {
     const debounceTimer = setTimeout(() => {
       if (searchQuery.trim()) {
@@ -547,25 +549,20 @@ export function SearchBar(props: SearchBarProps = {}) {
         const matchedWebsites = searchWebsites(searchQuery);
         setWebsiteSuggestions(matchedWebsites);
         
-        // 只有在没有网站匹配时才显示搜索引擎建议
-        if (matchedWebsites.length === 0) {
-          generateSuggestions(searchQuery).then((newSuggestions) => {
-            setSuggestions(newSuggestions);
-            setShowSuggestions(newSuggestions.length > 0);
-            setSelectedSuggestionIndex(-1);
-          });
-        } else {
-          setSuggestions([]);
-          setShowSuggestions(true);
+        // 总是生成搜索建议，与网站卡片并存
+        generateSuggestions(searchQuery).then((newSuggestions) => {
+          setSuggestions(newSuggestions);
+          // 只要有任一类型的建议就显示下拉框
+          setShowSuggestions(matchedWebsites.length > 0 || newSuggestions.length > 0);
           setSelectedSuggestionIndex(-1);
-        }
+        });
       } else {
         setSuggestions([]);
         setWebsiteSuggestions([]);
         setShowSuggestions(false);
         setSelectedSuggestionIndex(-1);
       }
-    }, 300); // 减少到300ms，网站搜索不需要API调用
+    }, 300);
 
     return () => clearTimeout(debounceTimer);
   }, [searchQuery, websites]);

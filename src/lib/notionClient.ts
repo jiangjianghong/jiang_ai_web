@@ -1,4 +1,6 @@
 // Notion API 客户端
+import { smartProxy } from './smartProxy';
+
 interface NotionPage {
   id: string;
   properties: {
@@ -50,7 +52,7 @@ export class NotionClient {
     
     console.log('🔍 Notion API 请求详情:');
     console.log('- 目标URL:', targetUrl);
-    console.log('- 使用代理:', !!this.corsProxy);
+    console.log('- 使用智能代理:', !this.corsProxy);
     console.log('- API Key前缀:', this.apiKey.substring(0, 15) + '...');
     console.log('- 请求方法:', options.method || 'GET');
 
@@ -183,21 +185,19 @@ export class NotionClient {
       }
     }
 
-    // 直连模式 - 使用简化的请求头
-    console.log('- 直连请求URL:', targetUrl);
+    // 智能代理模式 - 自动选择最佳代理
+    console.log('- 智能代理请求URL:', targetUrl);
 
     try {
-      // 尝试使用最简化的请求避免预检请求
-      const response = await fetch(targetUrl, {
+      // 使用智能代理管理器
+      const response = await smartProxy.request(targetUrl, {
         method: options.method || 'GET',
         headers: {
           'Authorization': `Bearer ${this.apiKey}`,
-          // 移除可能触发预检的头部
-          ...(options.method === 'POST' && { 'Content-Type': 'application/json' }),
+          'Content-Type': 'application/json',
+          'Notion-Version': '2022-06-28',
         },
         ...(options.body && { body: options.body }),
-        mode: 'cors', // 明确设置CORS模式
-        cache: 'no-cache',
       });
 
       console.log('📡 响应状态:', response.status, response.statusText);
@@ -212,21 +212,20 @@ export class NotionClient {
       }
 
       const data = await response.json();
-      console.log('✅ 直连请求成功');
+      console.log('✅ 智能代理请求成功');
       return data;
     } catch (error) {
-      console.error('❌ 直连请求失败:', error);
+      console.error('❌ 智能代理请求失败:', error);
       
-      if (error.message.includes('Failed to fetch') || error.name === 'TypeError') {
-        throw new Error(`无法直连Notion API，需要使用代理。
+      if (error.message.includes('没有可用的代理')) {
+        throw new Error(`所有代理服务器都不可用。
 
 建议解决方案：
-1. ✅ 启用代理设置（在工作空间设置中）
-2. 或使用Chrome开发者模式：
-   "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe" --disable-web-security --user-data-dir="c:/temp/chrome"
-3. 或部署到服务器环境
+1. 🔄 刷新页面重试
+2. 检查网络连接
+3. 使用浏览器CORS插件作为临时方案
 
-直连模式仅在特殊环境下可用。`);
+代理状态: ${JSON.stringify(smartProxy.getStatus(), null, 2)}`);
       }
       
       throw error;

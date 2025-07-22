@@ -23,11 +23,11 @@ serve(async (req) => {
     
     console.log(`代理请求: ${method} ${notionUrl}`)
 
-    // 获取请求头
-    const authHeader = req.headers.get('authorization')
+    // 获取请求头 - 支持多种认证方式
+    const authHeader = req.headers.get('authorization') || req.headers.get('x-api-key')
     if (!authHeader) {
       return new Response(
-        JSON.stringify({ error: '缺少 Authorization 头部' }), 
+        JSON.stringify({ error: '缺少 Authorization 或 API Key 头部' }), 
         { 
           status: 401, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 

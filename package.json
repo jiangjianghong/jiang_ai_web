@@ -8,7 +8,9 @@
     "dev": "pnpm dev:client",
     "build:client": "vite build",
     "build": "rimraf dist && pnpm build:client && shx cp package.json dist/ && shx touch dist/build.flag",
-    "deploy": "pnpm run build && gh-pages -d dist"
+    "deploy": "pnpm run build && gh-pages -d dist",
+    "vercel-build": "vite build",
+    "preview": "vite preview"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.52.0",

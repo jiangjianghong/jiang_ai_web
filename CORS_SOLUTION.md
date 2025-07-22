@@ -53,8 +53,8 @@ Edge浏览器的CORS策略相对宽松，可以尝试：
 ## 🎯 当前配置信息
 
 ```
-API Token: ntn_w68325529954PrySK2idOmrMnzjejjTMkDisxH2NwbObw0
-Database ID: 22b197407c238188ace9fe148487a853
+API Token: 
+Database ID: 
 ```
 
 ## 🔧 测试步骤

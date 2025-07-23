@@ -26,25 +26,22 @@ export function useFavicon(originalUrl: string, faviconUrl: string) {
         return url; // 直接返回原URL，不使用代理
       }
       
-      // 使用 Supabase favicon 服务或备用服务
+      // 仅使用 Supabase favicon 服务
       const domain = extractDomain(originalUrl);
       const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL || '').replace(/\/$/, '');
       
       let proxies: string[];
       
       if (supabaseUrl) {
-        // 优先使用 Supabase 统一 favicon 服务
+        // 仅使用 Supabase favicon 服务
         proxies = [
           `${supabaseUrl}/functions/v1/favicon-service?domain=${encodeURIComponent(domain)}&size=64`,
           `${supabaseUrl}/functions/v1/favicon-service?domain=${encodeURIComponent(domain)}&size=32`,
         ];
       } else {
-        // 备用方案：使用多个外部服务
-        proxies = [
-          `https://corsproxy.io/?${encodeURIComponent(`https://www.google.com/s2/favicons?domain=${domain}&sz=64`)}`,
-          `https://icon.horse/icon/${domain}`,
-          `https://favicons.githubusercontent.com/${domain}`,
-        ];
+        // 没有 Supabase 配置时，不使用任何代理
+        console.warn('⚠️ Supabase URL 未配置，无法获取图标');
+        proxies = [];
       }
       
       const selectedProxy = proxies[retryCount % proxies.length];
@@ -66,13 +63,22 @@ export function useFavicon(originalUrl: string, faviconUrl: string) {
 
   // 智能重试加载图标
   const retryLoadFavicon = (url: string, retryCount: number = 0): void => {
-    if (retryCount >= 4) {
-      console.warn('🚨 图标加载重试次数过多，放弃加载:', originalUrl);
-      setError(true);
+    const processedUrl = processeFaviconUrl(url, retryCount);
+    
+    // 如果没有可用的代理URL，直接使用原始URL或默认图标
+    if (!processedUrl || processedUrl === url) {
+      console.log('📦 使用原始图标URL:', url);
+      setCurrentFaviconUrl(url);
+      setError(false);
       return;
     }
     
-    const processedUrl = processeFaviconUrl(url, retryCount);
+    if (retryCount >= 2) { // 减少重试次数，因为只有Supabase服务
+      console.warn('🚨 Supabase图标服务重试次数过多，使用原始URL:', originalUrl);
+      setCurrentFaviconUrl(url);
+      setError(false);
+      return;
+    }
     
     // 使用 Image 对象测试加载
     const testImg = new Image();
@@ -84,7 +90,7 @@ export function useFavicon(originalUrl: string, faviconUrl: string) {
     
     testImg.onerror = () => {
       console.warn(`❌ 图标加载失败 (尝试${retryCount + 1}):`, processedUrl);
-      // 短暂延迟后重试下一个代理
+      // 短暂延迟后重试下一个Supabase服务
       setTimeout(() => retryLoadFavicon(url, retryCount + 1), 500);
     };
     

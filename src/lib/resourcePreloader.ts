@@ -7,7 +7,7 @@ class ResourcePreloader {
   private preloadedResources = new Set<string>();
   private preloadQueue: string[] = [];
   private isProcessing = false;
-  private maxConcurrent = 3; // 最大并发预加载数量
+  private maxConcurrent = 6; // 最大并发预加载数量（提升并发度）
 
   /**
    * 预加载图片资源
@@ -67,29 +67,29 @@ class ResourcePreloader {
 
     try {
       // 使用 requestIdleCallback 在浏览器空闲时预加载
-      if ('requestIdleCallback' in window) {
-        await new Promise<void>((resolve) => {
-          requestIdleCallback(() => {
-            this.processBatch();
-            resolve();
+        if ('requestIdleCallback' in window) {
+          await new Promise<void>((resolve) => {
+            requestIdleCallback(() => {
+              this.processBatch();
+              resolve();
+            }, { timeout: 100 }); // 添加超时确保及时执行
           });
-        });
-      } else {
-        // 降级方案：使用 setTimeout
-        await new Promise<void>((resolve) => {
-          setTimeout(() => {
-            this.processBatch();
-            resolve();
-          }, 16); // ~1 frame
-        });
-      }
+        } else {
+          // 降级方案：使用 setTimeout
+          await new Promise<void>((resolve) => {
+            setTimeout(() => {
+              this.processBatch();
+              resolve();
+            }, 8); // 减少延迟，约0.5帧
+          });
+        }
     } finally {
       this.isProcessing = false;
       
       // 如果还有待处理的资源，继续处理
-      if (this.preloadQueue.length > 0) {
-        setTimeout(() => this.processQueue(), 100);
-      }
+        if (this.preloadQueue.length > 0) {
+          setTimeout(() => this.processQueue(), 50); // 减少处理间隔
+        }
     }
   }
 

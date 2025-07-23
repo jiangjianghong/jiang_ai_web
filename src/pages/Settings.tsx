@@ -768,6 +768,27 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
               <p className="text-xs text-gray-500 bg-gray-50 p-2 rounded select-none">
                 💡 更改分辨率后会重新加载壁纸并更新缓存
               </p>
+              
+              {/* 壁纸问题修复提示 */}
+              <div className="pt-3 border-t border-gray-100">
+                <div className="text-center">
+                  <p className="text-xs text-gray-500 select-none">
+                    壁纸显示不正确？<button 
+                      onClick={() => {
+                        // 清除壁纸缓存并刷新页面
+                        if (window.confirm('这将清除壁纸缓存并刷新页面，确定继续吗？')) {
+                          localStorage.removeItem('wallpaper-cache');
+                          localStorage.removeItem('wallpaper-url');
+                          window.location.reload();
+                        }
+                      }}
+                      className="text-blue-500 hover:text-blue-600 underline ml-1"
+                    >
+                      清除缓存
+                    </button>
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
           

@@ -98,24 +98,19 @@ class FaviconCacheManager {
   }
 
   /**
-   * 获取 favicon 的 URL（使用 Supabase 统一服务）
+   * 获取 favicon 的 URL（仅使用 Supabase 服务）
    */
   private getFaviconUrls(originalUrl: string, domain: string): string[] {
     // 获取 Supabase URL（从环境变量）
     const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL || '').replace(/\/$/, '');
     
     if (!supabaseUrl) {
-      console.warn('Supabase URL 未配置，使用备用服务');
-      // 如果没有Supabase配置，回退到之前的逻辑
-      return [
-        `https://corsproxy.io/?${encodeURIComponent(`https://www.google.com/s2/favicons?domain=${domain}&sz=64`)}`,
-        `https://icon.horse/icon/${domain}`,
-        `https://favicons.githubusercontent.com/${domain}`,
-      ];
+      console.warn('⚠️ Supabase URL 未配置，无法获取图标');
+      return [];
     }
 
     return [
-      // 使用 Supabase Favicon 服务（优先）
+      // 仅使用 Supabase Favicon 服务
       `${supabaseUrl}/functions/v1/favicon-service?domain=${encodeURIComponent(domain)}&size=64`,
       `${supabaseUrl}/functions/v1/favicon-service?domain=${encodeURIComponent(domain)}&size=32`,
     ];

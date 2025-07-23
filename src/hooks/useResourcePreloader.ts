@@ -44,7 +44,7 @@ export function useResourcePreloader(enabled: boolean = true) {
           resourcePreloader.queuePreload(url);
         });
       }
-    }, 2000); // 延迟2秒，确保首屏渲染完成
+    }, 500); // 延迟500ms，平衡首屏渲染和资源预加载
 
     // 清理函数
     return () => {

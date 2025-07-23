@@ -23,14 +23,18 @@
     <!-- 预连接到重要的第三方域名 - 使用国内可访问的CDN -->
     <link rel="preconnect" href="https://cdn.bootcdn.net" />
     <link rel="preconnect" href="https://unpkg.com" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
+    <link rel="preconnect" href="https://lib.baomitu.com" />
     
     <!-- 使用多个备用CDN加载FontAwesome -->
     <script>
-      // 动态加载FontAwesome，支持多个CDN备选
+      // 动态加载FontAwesome，支持多个CDN备选（按速度排序）
       const fontAwesomeCDNs = [
+        'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
         'https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css',
-        'https://unpkg.com/@fortawesome/fontawesome-free@6.4.0/css/all.min.css',
-        'https://lib.baomitu.com/font-awesome/6.4.0/css/all.min.css'
+        'https://lib.baomitu.com/font-awesome/6.4.0/css/all.min.css',
+        'https://unpkg.com/@fortawesome/fontawesome-free@6.4.0/css/all.min.css'
       ];
       
       function loadFontAwesome(urls, index = 0) {
@@ -46,6 +50,15 @@
         
         link.onload = () => {
           console.log('✅ FontAwesome加载成功:', urls[index]);
+          // 预加载字体文件以提升渲染速度
+          const fontUrl = urls[index].replace('/css/all.min.css', '/webfonts/fa-solid-900.woff2');
+          const fontLink = document.createElement('link');
+          fontLink.rel = 'preload';
+          fontLink.as = 'font';
+          fontLink.type = 'font/woff2';
+          fontLink.crossOrigin = 'anonymous';
+          fontLink.href = fontUrl;
+          document.head.appendChild(fontLink);
         };
         
         link.onerror = () => {
@@ -83,6 +96,10 @@
     <!-- DNS预取常用域名 -->
     <link rel="dns-prefetch" href="//cdn.bootcdn.net" />
     <link rel="dns-prefetch" href="//unpkg.com" />
+    <link rel="dns-prefetch" href="//fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="//cdnjs.cloudflare.com" />
+    <link rel="dns-prefetch" href="//lib.baomitu.com" />
+    <link rel="dns-prefetch" href="//api.github.com" />
     
     <!-- 预连接Supabase -->
     <link rel="preconnect" href="https://wxheqargopbsrruootyr.supabase.co" />
@@ -119,6 +136,10 @@
           background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
           min-height: 100vh;
           overflow-x: hidden;
+          /* 优化字体渲染 */
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+          text-rendering: optimizeLegibility;
         }
         
         #root {
@@ -130,7 +151,22 @@
         #loading-skeleton {
           will-change: opacity;
           backface-visibility: hidden;
+          transform: translateZ(0); /* 启用硬件加速 */
         }
+        
+        /* 预设常用类避免布局抖动 */
+        .flex { display: flex; }
+        .items-center { align-items: center; }
+        .justify-center { justify-content: center; }
+        .w-full { width: 100%; }
+        .h-full { height: 100%; }
+        .absolute { position: absolute; }
+        .relative { position: relative; }
+        .fixed { position: fixed; }
+        .z-10 { z-index: 10; }
+        .opacity-0 { opacity: 0; }
+        .opacity-100 { opacity: 1; }
+        .transition-opacity { transition-property: opacity; transition-duration: 0.3s; }
       </style>
     </div>
     

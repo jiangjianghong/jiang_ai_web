@@ -38,7 +38,7 @@ export const usePerformanceOptimization = () => {
     };
 
     // 延迟测量性能，确保所有资源加载完成
-    const timer = setTimeout(measurePerformance, 1000);
+    const timer = setTimeout(measurePerformance, 500);
 
     return () => clearTimeout(timer);
   }, []);
@@ -50,17 +50,20 @@ export const usePerformanceOptimization = () => {
       return import('react').then(({ lazy }) => lazy(importFn));
     },
     
-    // 预加载关键资源（改为DNS预连接，避免未使用警告）
+    // 预加载关键资源（使用高优先级预加载）
     preloadImage: (src: string) => {
-      // 使用Image对象预加载而不是link preload，避免未使用警告
+      // 使用Image对象预加载，提供更好的缓存控制
       const img = new Image();
+      img.loading = 'eager'; // 高优先级加载
+      img.decoding = 'async'; // 异步解码避免阻塞
       img.src = src;
-      // 可选：如果需要link preload，确保资源会被立即使用
-      // const link = document.createElement('link');
-      // link.rel = 'preload';
-      // link.as = 'image';
-      // link.href = src;
-      // document.head.appendChild(link);
+      
+      // 对于关键图片，同时使用link preload
+      const link = document.createElement('link');
+      link.rel = 'preload';
+      link.as = 'image';
+      link.href = src;
+      document.head.appendChild(link);
     },
     
     // 优化scroll性能

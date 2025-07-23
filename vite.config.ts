@@ -142,5 +142,10 @@ export default defineConfig({
       'Cache-Control': 'public, max-age=31536000, immutable',
       'Expires': '', // 清空Expires头，使用Cache-Control
     }
-  }
+  },
+  
+  // 实验性功能配置（当前版本暂无可用选项）
+  // experimental: {
+  //   // 未来可能的实验性功能
+  // }
 });

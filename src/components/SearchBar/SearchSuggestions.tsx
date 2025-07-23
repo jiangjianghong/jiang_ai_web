@@ -126,14 +126,30 @@ export async function fetchSearchSuggestions(query: string, workspaceItems?: any
   try {
     const suggestions: Suggestion[] = [];
     
+    // 调试：打印工作空间数据
+    console.log('🔍 搜索建议 - 查询:', query);
+    console.log('🔍 搜索建议 - 工作空间数据:', workspaceItems);
+    
     // 搜索工作空间内容
     if (workspaceItems && workspaceItems.length > 0) {
+      console.log('🔍 开始搜索工作空间项目...');
+      
       const workspaceSuggestions = workspaceItems
-        .filter(item => 
-          item.title?.toLowerCase().includes(query.toLowerCase()) ||
-          item.description?.toLowerCase().includes(query.toLowerCase()) ||
-          item.url?.toLowerCase().includes(query.toLowerCase())
-        )
+        .filter(item => {
+          const matchTitle = item.title?.toLowerCase().includes(query.toLowerCase());
+          const matchDescription = item.description?.toLowerCase().includes(query.toLowerCase());
+          const matchUrl = item.url?.toLowerCase().includes(query.toLowerCase());
+          const isMatch = matchTitle || matchDescription || matchUrl;
+          
+          console.log(`🔍 检查项目: ${item.title}, 匹配: ${isMatch}`, {
+            title: item.title,
+            matchTitle,
+            matchDescription,
+            matchUrl
+          });
+          
+          return isMatch;
+        })
         .slice(0, 3) // 限制工作空间建议数量
         .map(item => ({
           text: item.title || item.url,
@@ -145,7 +161,10 @@ export async function fetchSearchSuggestions(query: string, workspaceItems?: any
           workspaceId: item.id
         }));
       
+      console.log('🔍 工作空间建议结果:', workspaceSuggestions);
       suggestions.push(...workspaceSuggestions);
+    } else {
+      console.log('🔍 无工作空间数据或数据为空');
     }
     
     // 添加搜索建议（限制数量，为工作空间建议留出空间）

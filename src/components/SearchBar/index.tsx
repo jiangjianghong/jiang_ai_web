@@ -31,6 +31,11 @@ export function SearchBar(_props: SearchBarProps = {}) {
   const [isFocused, setIsFocused] = useState(false);
   const { searchBarOpacity, setIsSearchFocused } = useTransparency();
   const { workspaceItems } = useWorkspace();
+  
+  // 调试：监控工作空间数据变化
+  useEffect(() => {
+    console.log('🔍 SearchBar - 工作空间数据更新:', workspaceItems);
+  }, [workspaceItems]);
 
   // 全局监听空格键聚焦搜索框
   useEffect(() => {

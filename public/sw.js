@@ -24,12 +24,10 @@ const STATIC_CACHE_URLS = [
   `${basePath}/index.html`
 ];
 
-// 可选缓存URL（这些文件可能不存在）- 使用国内CDN
+// 可选缓存URL（这些文件可能不存在）- 移除外部FontAwesome依赖
 const OPTIONAL_CACHE_URLS = [
   `${basePath}/404.html`,
-  `${basePath}/icon/icon.jpg`,
-  'https://lf26-cdn-tos.bytecdntp.com/obj/static/font-awesome/6.2.0/css/all.min.css',
-  'https://lf26-cdn-tos.bytecdntp.com/obj/static/font-awesome/6.2.0/webfonts/fa-solid-900.woff2'
+  `${basePath}/icon/icon.jpg`
 ];
 
 // 高优先级缓存的资源类型

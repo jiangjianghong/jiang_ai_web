@@ -21,25 +21,68 @@
     </script>
     
     <!-- 预连接到重要的第三方域名 - 使用国内可访问的CDN -->
-    <link rel="preconnect" href="https://lf26-cdn-tos.bytecdntp.com" />
     <link rel="preconnect" href="https://cdn.bootcdn.net" />
     <link rel="preconnect" href="https://unpkg.com" />
     
-    <!-- 使用国内CDN加载FontAwesome -->
-    <link rel="preload" href="https://lf26-cdn-tos.bytecdntp.com/obj/static/font-awesome/6.2.0/css/all.min.css" as="style" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'" />
-    <noscript><link rel="stylesheet" href="https://lf26-cdn-tos.bytecdntp.com/obj/static/font-awesome/6.2.0/css/all.min.css" crossorigin="anonymous"></noscript>
-    
-    <!-- 备用CDN -->
-    <style>
-      /* 如果外部字体加载失败，使用系统字体 */
-      .fa, .fas, .far, .fal, .fab {
-        font-family: 'Font Awesome 6 Free', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+    <!-- 使用多个备用CDN加载FontAwesome -->
+    <script>
+      // 动态加载FontAwesome，支持多个CDN备选
+      const fontAwesomeCDNs = [
+        'https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css',
+        'https://unpkg.com/@fortawesome/fontawesome-free@6.4.0/css/all.min.css',
+        'https://lib.baomitu.com/font-awesome/6.4.0/css/all.min.css'
+      ];
+      
+      function loadFontAwesome(urls, index = 0) {
+        if (index >= urls.length) {
+          console.warn('所有FontAwesome CDN都无法加载，使用系统图标');
+          return;
+        }
+        
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = urls[index];
+        link.crossOrigin = 'anonymous';
+        
+        link.onload = () => {
+          console.log('✅ FontAwesome加载成功:', urls[index]);
+        };
+        
+        link.onerror = () => {
+          console.log('❌ FontAwesome加载失败:', urls[index]);
+          loadFontAwesome(urls, index + 1);
+        };
+        
+        document.head.appendChild(link);
       }
+      
+      loadFontAwesome(fontAwesomeCDNs);
+    </script>
+    
+    <!-- 备用样式 - 如果FontAwesome失败，使用Unicode符号 -->
+    <style>
+      /* 基本图标备选方案 */
+      .fa-search:before { content: "🔍"; }
+      .fa-home:before { content: "🏠"; }
+      .fa-user:before { content: "👤"; }
+      .fa-cog:before, .fa-gear:before { content: "⚙️"; }
+      .fa-plus:before { content: "➕"; }
+      .fa-minus:before { content: "➖"; }
+      .fa-edit:before { content: "✏️"; }
+      .fa-trash:before { content: "🗑️"; }
+      .fa-save:before { content: "💾"; }
+      .fa-download:before { content: "⬇️"; }
+      .fa-upload:before { content: "⬆️"; }
+      .fa-link:before { content: "🔗"; }
+      .fa-check:before { content: "✅"; }
+      .fa-times:before, .fa-close:before { content: "❌"; }
+      .fa-heart:before { content: "❤️"; }
+      .fa-star:before { content: "⭐"; }
     </style>
     
-    <!-- DNS预取常用域名 - 移除被墙的域名 -->
-    <link rel="dns-prefetch" href="//lf26-cdn-tos.bytecdntp.com" />
+    <!-- DNS预取常用域名 -->
     <link rel="dns-prefetch" href="//cdn.bootcdn.net" />
+    <link rel="dns-prefetch" href="//unpkg.com" />
     
     <!-- 预连接Supabase -->
     <link rel="preconnect" href="https://wxheqargopbsrruootyr.supabase.co" />

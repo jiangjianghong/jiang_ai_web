@@ -83,7 +83,7 @@ export function useSettingsManager(): UseSettingsManagerReturn {
     };
   }, []);
 
-  // 导入并应用设置
+  // 导入并应用设置（原子操作）
   const importSettings = useCallback((settings: any): { success: boolean; appliedSettings: string[] } => {
     const validation = validateSettings(settings);
     const appliedSettings: string[] = [];
@@ -93,36 +93,82 @@ export function useSettingsManager(): UseSettingsManagerReturn {
       return { success: false, appliedSettings: [] };
     }
 
+    // 准备所有要应用的设置
+    const settingsToApply: Array<{ key: string; value: string; label: string }> = [];
+    
+    if (typeof settings.cardOpacity === 'number') {
+      settingsToApply.push({
+        key: 'cardOpacity',
+        value: settings.cardOpacity.toString(),
+        label: '卡片透明度'
+      });
+    }
+
+    if (typeof settings.searchBarOpacity === 'number') {
+      settingsToApply.push({
+        key: 'searchBarOpacity',
+        value: settings.searchBarOpacity.toString(),
+        label: '搜索框透明度'
+      });
+    }
+
+    if (typeof settings.parallaxEnabled === 'boolean') {
+      settingsToApply.push({
+        key: 'parallaxEnabled',
+        value: JSON.stringify(settings.parallaxEnabled),
+        label: '视差效果'
+      });
+    }
+
+    if (settings.wallpaperResolution && ['4k', '1080p', '720p', 'mobile'].includes(settings.wallpaperResolution)) {
+      settingsToApply.push({
+        key: 'wallpaperResolution',
+        value: settings.wallpaperResolution,
+        label: '壁纸分辨率'
+      });
+    }
+
+    if (settings.theme && ['light', 'dark'].includes(settings.theme)) {
+      settingsToApply.push({
+        key: 'theme',
+        value: settings.theme,
+        label: '主题'
+      });
+    }
+
+    // 备份当前设置以便回滚
+    const backupSettings: Array<{ key: string; value: string | null }> = [];
+    settingsToApply.forEach(setting => {
+      backupSettings.push({
+        key: setting.key,
+        value: localStorage.getItem(setting.key)
+      });
+    });
+
     try {
-      // 应用有效的设置
-      if (typeof settings.cardOpacity === 'number') {
-        localStorage.setItem('cardOpacity', settings.cardOpacity.toString());
-        appliedSettings.push('卡片透明度');
-      }
-
-      if (typeof settings.searchBarOpacity === 'number') {
-        localStorage.setItem('searchBarOpacity', settings.searchBarOpacity.toString());
-        appliedSettings.push('搜索框透明度');
-      }
-
-      if (typeof settings.parallaxEnabled === 'boolean') {
-        localStorage.setItem('parallaxEnabled', JSON.stringify(settings.parallaxEnabled));
-        appliedSettings.push('视差效果');
-      }
-
-      if (settings.wallpaperResolution && ['4k', '1080p', '720p', 'mobile'].includes(settings.wallpaperResolution)) {
-        localStorage.setItem('wallpaperResolution', settings.wallpaperResolution);
-        appliedSettings.push('壁纸分辨率');
-      }
-
-      if (settings.theme && ['light', 'dark'].includes(settings.theme)) {
-        localStorage.setItem('theme', settings.theme);
-        appliedSettings.push('主题');
-      }
+      // 原子性应用所有设置
+      settingsToApply.forEach(setting => {
+        localStorage.setItem(setting.key, setting.value);
+        appliedSettings.push(setting.label);
+      });
 
       return { success: true, appliedSettings };
     } catch (error) {
-      console.error('应用设置失败:', error);
+      console.error('应用设置失败，正在回滚:', error);
+      
+      // 回滚到之前的状态
+      try {
+        backupSettings.forEach(backup => {
+          if (backup.value !== null) {
+            localStorage.setItem(backup.key, backup.value);
+          } else {
+            localStorage.removeItem(backup.key);
+          }
+        });
+      } catch (rollbackError) {
+        console.error('回滚失败:', rollbackError);
+      }
+      
       return { success: false, appliedSettings: [] };
     }
   }, [validateSettings]);

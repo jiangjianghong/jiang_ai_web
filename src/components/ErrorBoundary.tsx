@@ -11,6 +11,9 @@ interface State {
 }
 
 export class ErrorBoundary extends Component<Props, State> {
+  private unhandledRejectionHandler?: (event: PromiseRejectionEvent) => void;
+  private errorHandler?: (event: ErrorEvent) => void;
+
   constructor(props: Props) {
     super(props);
     this.state = { hasError: false, error: null };
@@ -18,6 +21,41 @@ export class ErrorBoundary extends Component<Props, State> {
 
   static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };
+  }
+
+  componentDidMount() {
+    // 监听未处理的Promise rejections
+    this.unhandledRejectionHandler = (event: PromiseRejectionEvent) => {
+      console.error('未处理的Promise rejection:', event.reason);
+      
+      // 将异步错误转换为同步错误，触发错误边界
+      const error = event.reason instanceof Error ? event.reason : new Error(String(event.reason));
+      this.setState({ hasError: true, error });
+      
+      // 阻止默认的控制台错误输出
+      event.preventDefault();
+    };
+
+    // 监听全局JavaScript错误
+    this.errorHandler = (event: ErrorEvent) => {
+      console.error('全局JavaScript错误:', event.error);
+      
+      const error = event.error instanceof Error ? event.error : new Error(event.message);
+      this.setState({ hasError: true, error });
+    };
+
+    window.addEventListener('unhandledrejection', this.unhandledRejectionHandler);
+    window.addEventListener('error', this.errorHandler);
+  }
+
+  componentWillUnmount() {
+    // 清理事件监听器
+    if (this.unhandledRejectionHandler) {
+      window.removeEventListener('unhandledrejection', this.unhandledRejectionHandler);
+    }
+    if (this.errorHandler) {
+      window.removeEventListener('error', this.errorHandler);
+    }
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { getUserWebsites, getUserSettings, mergeWebsiteData, WebsiteData, UserSettings } from '@/lib/supabaseSync';
 
@@ -23,8 +23,19 @@ export function useCloudData(enabled: boolean = true): UseCloudDataResult {
     loading: false,
     error: null
   });
+  
+  // 使用ref跟踪加载状态，避免useEffect循环
+  const loadingRef = useRef(false);
+  const lastUserIdRef = useRef<string | null>(null);
+  const hasInitialLoadRef = useRef(false);
 
-  const loadCloudData = async () => {
+  const loadCloudData = useCallback(async () => {
+    // 防止重复加载
+    if (loadingRef.current) {
+      console.log('⏸️ 已有加载任务进行中，跳过重复加载');
+      return;
+    }
+    
     console.log('🔍 loadCloudData 被调用:', {
       hasUser: !!currentUser,
       userId: currentUser?.id,
@@ -43,6 +54,7 @@ export function useCloudData(enabled: boolean = true): UseCloudDataResult {
     }
 
     console.log('🚀 开始加载云端数据...');
+    loadingRef.current = true;
     setState(prev => ({ ...prev, loading: true, error: null }));
     
     try {
@@ -71,6 +83,8 @@ export function useCloudData(enabled: boolean = true): UseCloudDataResult {
         loading: false,
         error: null
       });
+      
+      hasInitialLoadRef.current = true;
 
       console.log('✅ 云端数据加载完成:', { 
         websites: websites?.length || 0, 
@@ -92,8 +106,10 @@ export function useCloudData(enabled: boolean = true): UseCloudDataResult {
         loading: false,
         error: '加载云端数据失败: ' + (error as Error).message
       }));
+    } finally {
+      loadingRef.current = false;
     }
-  };
+  }, [currentUser]);
 
   const mergeWithLocalData = (localWebsites: WebsiteData[]): WebsiteData[] => {
     if (!state.cloudWebsites) {
@@ -104,23 +120,34 @@ export function useCloudData(enabled: boolean = true): UseCloudDataResult {
 
   // 当用户登录状态变化时，自动加载云端数据（仅在启用时）
   useEffect(() => {
+    const currentUserId = currentUser?.id;
+    const isEmailConfirmed = !!currentUser?.email_confirmed_at;
+    
     console.log('🔍 useCloudData useEffect 触发:', {
       enabled,
       hasUser: !!currentUser,
-      emailConfirmed: !!currentUser?.email_confirmed_at,
-      userId: currentUser?.id
+      emailConfirmed: isEmailConfirmed,
+      userId: currentUserId,
+      lastUserId: lastUserIdRef.current
     });
     
-    if (enabled && currentUser && currentUser.email_confirmed_at) {
-      console.log('👤 检测到用户登录状态变化，开始加载云端数据...');
-      // 每次登录都重置状态并重新加载
-      setState({
-        cloudWebsites: null,
-        cloudSettings: null,
-        loading: false,
-        error: null
-      });
-      loadCloudData();
+    // 检查用户是否发生变化
+    const userChanged = lastUserIdRef.current !== currentUserId;
+    
+    if (enabled && currentUser && isEmailConfirmed) {
+      if (userChanged || !hasInitialLoadRef.current) {
+        console.log('👤 检测到用户登录状态变化，开始加载云端数据...');
+        // 重置状态
+        setState({
+          cloudWebsites: null,
+          cloudSettings: null,
+          loading: false,
+          error: null
+        });
+        hasInitialLoadRef.current = false;
+        loadCloudData();
+      }
+      lastUserIdRef.current = currentUserId || null;
     } else if (!currentUser) {
       console.log('👤 用户已登出或未登录，清除云端数据缓存');
       setState({
@@ -129,22 +156,16 @@ export function useCloudData(enabled: boolean = true): UseCloudDataResult {
         loading: false,
         error: null
       });
+      lastUserIdRef.current = null;
+      hasInitialLoadRef.current = false;
     } else {
       console.log('⏸️ 云端数据加载条件不满足:', {
         enabled,
         hasUser: !!currentUser,
-        emailConfirmed: !!currentUser?.email_confirmed_at
+        emailConfirmed: isEmailConfirmed
       });
     }
-  }, [currentUser?.id, currentUser?.email_confirmed_at, enabled]);
-  
-  // 首次登录检测
-  useEffect(() => {
-    if (enabled && currentUser && currentUser.email_confirmed_at && !state.loading && !state.cloudWebsites && !state.error) {
-      console.log('🆕 检测到可能是首次登录，主动加载云端数据...');
-      loadCloudData();
-    }
-  }, [enabled, currentUser, state.loading, state.cloudWebsites, state.error]);
+  }, [currentUser?.id, currentUser?.email_confirmed_at, enabled, loadCloudData]);
 
   return {
     ...state,

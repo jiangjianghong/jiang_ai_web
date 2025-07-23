@@ -3,7 +3,9 @@ import { indexedDBCache } from './indexedDBCache';
 // 轻量级缓存工具
 class CacheManager {
   private static instance: CacheManager;
-  private cache = new Map<string, { data: any; timestamp: number; ttl: number }>();
+  private cache = new Map<string, { data: any; timestamp: number; ttl: number; lastAccessed: number }>();
+  private readonly MAX_CACHE_SIZE = 100; // 最大缓存项数量
+  private readonly MAX_MEMORY_SIZE = 50 * 1024 * 1024; // 50MB内存限制
 
   static getInstance(): CacheManager {
     if (!CacheManager.instance) {
@@ -12,12 +14,69 @@ class CacheManager {
     return CacheManager.instance;
   }
 
+  // 估算数据大小（字节）
+  private estimateSize(data: any): number {
+    try {
+      return JSON.stringify(data).length * 2; // 粗略估算（UTF-16）
+    } catch {
+      return 1024; // 默认1KB
+    }
+  }
+
+  // 获取当前内存使用量
+  private getCurrentMemoryUsage(): number {
+    let totalSize = 0;
+    for (const item of this.cache.values()) {
+      totalSize += this.estimateSize(item.data);
+    }
+    return totalSize;
+  }
+
+  // LRU淘汰策略
+  private evictLRU(): void {
+    if (this.cache.size === 0) return;
+    
+    let oldestKey = '';
+    let oldestTime = Date.now();
+    
+    for (const [key, item] of this.cache.entries()) {
+      if (item.lastAccessed < oldestTime) {
+        oldestTime = item.lastAccessed;
+        oldestKey = key;
+      }
+    }
+    
+    if (oldestKey) {
+      this.cache.delete(oldestKey);
+      console.log(`🗑️ LRU淘汰缓存项: ${oldestKey}`);
+    }
+  }
+
+  // 容量控制
+  private enforceCapacityLimits(): void {
+    // 检查数量限制
+    while (this.cache.size >= this.MAX_CACHE_SIZE) {
+      this.evictLRU();
+    }
+    
+    // 检查内存限制
+    while (this.getCurrentMemoryUsage() > this.MAX_MEMORY_SIZE && this.cache.size > 0) {
+      this.evictLRU();
+    }
+  }
+
   // 设置缓存
   set(key: string, data: any, ttl: number = 5 * 60 * 1000): void {
+    const now = Date.now();
+    
+    // 先执行容量控制
+    this.enforceCapacityLimits();
+    
     this.cache.set(key, {
       data,
-      timestamp: Date.now(),
-      ttl
+      timestamp: now,
+      ttl,
+      lastAccessed: now
     });
   }
 
@@ -31,6 +90,9 @@ class CacheManager {
       this.cache.delete(key);
       return null;
     }
+
+    // 更新访问时间（LRU策略）
+    item.lastAccessed = now;
 
     return item.data;
   }
@@ -67,6 +129,29 @@ setInterval(() => {
 
 // 改进的背景图片缓存 - 使用 IndexedDB 持久化存储
 export const improvedWallpaperCache = {
+  // 最大存储容量（100MB）
+  MAX_STORAGE_SIZE: 100 * 1024 * 1024,
+  
+  // 检查并清理存储空间
+  async enforceStorageLimit(): Promise<void> {
+    try {
+      const stats = await indexedDBCache.getStats();
+      if (stats.totalSize > this.MAX_STORAGE_SIZE) {
+        console.log(`🗑️ 存储空间超限 (${(stats.totalSize / 1024 / 1024).toFixed(2)}MB > ${(this.MAX_STORAGE_SIZE / 1024 / 1024).toFixed(2)}MB)，开始清理...`);
+        await indexedDBCache.cleanup();
+        
+        // 如果清理后仍然超限，删除最旧的壁纸缓存
+        const newStats = await indexedDBCache.getStats();
+        if (newStats.totalSize > this.MAX_STORAGE_SIZE) {
+          console.log('🧹 执行强制清理最旧的壁纸缓存...');
+          // 这里可以实现更精细的清理策略
+        }
+      }
+    } catch (error) {
+      console.warn('存储容量检查失败:', error);
+    }
+  },
+
   // 缓存图片blob数据到 IndexedDB
   async cacheWallpaperBlob(url: string, cacheKey: string): Promise<string> {
     try {
@@ -79,6 +164,9 @@ export const improvedWallpaperCache = {
         console.log('✨ 发现已有IndexedDB缓存:', fullCacheKey);
         return URL.createObjectURL(existingBlob);
       }
+      
+      // 检查存储容量
+      await this.enforceStorageLimit();
 
       console.log('📥 开始下载图片数据...');
       

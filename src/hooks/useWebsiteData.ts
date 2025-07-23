@@ -32,6 +32,23 @@ export function useWebsiteData(options: UseWebsiteDataOptions = {}): UseWebsiteD
   const [error, setError] = useState<string | null>(null);
   const [isFirstLoad, setIsFirstLoad] = useState(true);
 
+  // 严格的数据验证函数
+  const validateWebsiteData = useCallback((website: any): website is WebsiteData => {
+    if (!website) return false;
+    if (!website.id || typeof website.id !== 'string') return false;
+    if (!website.name || typeof website.name !== 'string') return false;
+    if (!website.url || typeof website.url !== 'string') return false;
+    
+    // URL 格式验证
+    try {
+      new URL(website.url);
+    } catch (e) {
+      return false;
+    }
+    
+    return true;
+  }, []);
+
   // 安全的缓存读取函数
   const loadFromCache = useCallback((): WebsiteData[] => {
     try {
@@ -39,10 +56,8 @@ export function useWebsiteData(options: UseWebsiteDataOptions = {}): UseWebsiteD
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          // 验证数据结构
-          const validWebsites = parsed.filter(site => 
-            site.id && site.name && site.url
-          );
+          // 使用严格的数据验证
+          const validWebsites = parsed.filter(validateWebsiteData);
           if (validWebsites.length > 0) {
             // 只在开发环境下显示日志，避免生产环境重复日志
             if (process.env.NODE_ENV === 'development') {
@@ -95,7 +110,7 @@ export function useWebsiteData(options: UseWebsiteDataOptions = {}): UseWebsiteD
     }, syncDelay);
 
     return () => clearTimeout(timer);
-  }, [enableAutoSync, syncDelay, isFirstLoad, loadFromCache, websites]);
+  }, [enableAutoSync, syncDelay, isFirstLoad, loadFromCache]); // 移除websites依赖避免循环
 
   // 自动保存到缓存
   useEffect(() => {
@@ -164,13 +179,8 @@ export function useWebsiteData(options: UseWebsiteDataOptions = {}): UseWebsiteD
         return { success: false, message: '无效的数据格式：缺少网站数据' };
       }
 
-      // 验证和清理数据
-      const validWebsites = data.websites.filter((site: any) => {
-        return site.id && site.name && site.url && 
-               typeof site.id === 'string' && 
-               typeof site.name === 'string' && 
-               typeof site.url === 'string';
-      }).map((site: any) => ({
+      // 使用严格的数据验证和清理数据
+      const validWebsites = data.websites.filter(validateWebsiteData).map((site: any) => ({
         ...site,
         visitCount: typeof site.visitCount === 'number' ? site.visitCount : 0,
         lastVisit: site.lastVisit || new Date().toISOString().split('T')[0],

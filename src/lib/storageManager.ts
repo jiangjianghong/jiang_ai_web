@@ -1,6 +1,9 @@
 // 存储管理工具 - 根据用户Cookie同意状态管理数据存储
 export class StorageManager {
   private static instance: StorageManager;
+  private consentCache: 'accepted' | 'declined' | 'pending' | null = null;
+  private cacheTimestamp: number = 0;
+  private readonly CACHE_DURATION = 1000; // 1秒缓存
 
   static getInstance(): StorageManager {
     if (!StorageManager.instance) {
@@ -9,26 +12,53 @@ export class StorageManager {
     return StorageManager.instance;
   }
 
-  // 检查用户是否同意Cookie使用
-  hasConsent(): boolean {
+  // 刷新同意状态缓存
+  private refreshConsentCache(): 'accepted' | 'declined' | 'pending' {
     try {
       const consent = localStorage.getItem('cookie-consent');
-      return consent === 'accepted';
+      if (consent === 'accepted') {
+        this.consentCache = 'accepted';
+      } else if (consent === 'declined') {
+        this.consentCache = 'declined';
+      } else {
+        this.consentCache = 'pending';
+      }
+      this.cacheTimestamp = Date.now();
+      return this.consentCache;
     } catch {
-      return false;
+      this.consentCache = 'pending';
+      this.cacheTimestamp = Date.now();
+      return 'pending';
     }
   }
 
-  // 检查Cookie同意状态
-  getConsentStatus(): 'accepted' | 'declined' | 'pending' {
-    try {
-      const consent = localStorage.getItem('cookie-consent');
-      if (consent === 'accepted') return 'accepted';
-      if (consent === 'declined') return 'declined';
-      return 'pending';
-    } catch {
-      return 'pending';
+  // 检查用户是否同意Cookie使用（带缓存）
+  hasConsent(): boolean {
+    const now = Date.now();
+    if (!this.consentCache || (now - this.cacheTimestamp) > this.CACHE_DURATION) {
+      this.refreshConsentCache();
     }
+    return this.consentCache === 'accepted';
+  }
+
+  // 更新同意状态并刷新缓存
+  updateConsentStatus(status: 'accepted' | 'declined'): void {
+    try {
+      localStorage.setItem('cookie-consent', status);
+      this.consentCache = status;
+      this.cacheTimestamp = Date.now();
+    } catch (error) {
+      console.error('更新同意状态失败:', error);
+    }
+  }
+
+  // 检查Cookie同意状态（带缓存）
+  getConsentStatus(): 'accepted' | 'declined' | 'pending' {
+    const now = Date.now();
+    if (!this.consentCache || (now - this.cacheTimestamp) > this.CACHE_DURATION) {
+      return this.refreshConsentCache();
+    }
+    return this.consentCache;
   }
 
   // 安全的localStorage设置

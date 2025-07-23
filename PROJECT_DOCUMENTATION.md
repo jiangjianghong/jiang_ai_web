@@ -900,6 +900,63 @@ function handleError(error: any): AppError {
 
 ## 10. 版本更新记录
 
+### v1.2.1 (2024-12-19) - 系统稳定性全面提升
+
+#### 🔧 关键问题修复
+
+**P0 优先级问题修复**
+1. **数据验证逻辑统一** (`useWebsiteData.ts`)
+   - 实现严格的 `validateWebsiteData` 函数
+   - 统一 `loadFromCache` 和 `importData` 的验证逻辑
+   - 添加URL格式验证，确保数据完整性
+
+2. **StorageManager 竞态条件解决** (`storageManager.ts`)
+   - 实现状态缓存机制，避免频繁localStorage访问
+   - 添加 `consentCache` 和缓存时间控制
+   - 优化 `hasConsent` 和 `getConsentStatus` 方法性能
+
+3. **设置管理原子操作** (`useSettingsManager.ts`)
+   - 重构 `importSettings` 函数，实现原子操作
+   - 添加回滚机制，确保操作失败时数据一致性
+   - 防止设置导入过程中的数据损坏
+
+**P1 优先级问题修复**
+4. **缓存容量控制** (`cacheManager.ts`)
+   - 实现完整的容量限制：100项缓存，50MB内存
+   - 添加LRU淘汰策略和自动清理机制
+   - 为壁纸缓存添加100MB存储限制
+
+5. **异步错误处理增强** (`ErrorBoundary.tsx`)
+   - 添加全局 `unhandledrejection` 和 `error` 事件监听
+   - 将异步错误转换为同步错误统一处理
+   - 确保组件卸载时的事件监听器清理
+
+6. **云数据加载优化** (`useCloudData.ts`)
+   - 使用 `useRef` 防止重复加载和无限循环
+   - 优化useEffect依赖，稳定函数引用
+   - 添加加载状态跟踪和用户ID变化检测
+
+7. **内存泄漏防护** (`useWebsiteData.ts`)
+   - 修复useEffect依赖问题，确保定时器正确清理
+   - 优化缓存一致性检查的依赖管理
+
+#### 🛡️ 系统稳定性提升
+
+**数据安全保障**
+- 多层数据验证机制
+- 原子操作确保数据一致性
+- 防止无效数据污染系统
+
+**性能优化**
+- 缓存容量智能管理
+- 内存使用效率提升
+- 减少不必要的重复操作
+
+**错误处理完善**
+- 全面的异步错误捕获
+- 统一的错误处理策略
+- 友好的用户体验保障
+
 ### v1.2.0 (2024-12-19) - 数据同步安全性增强
 
 #### 🔧 核心修复
@@ -987,4 +1044,4 @@ function handleError(error: any): AppError {
 
 **文档维护**: 本文档由项目开发团队编写和维护  
 **最后更新**: 2024年12月19日  
-**版本**: v1.2.0
+**版本**: v1.2.1

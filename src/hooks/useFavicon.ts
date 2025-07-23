@@ -26,22 +26,30 @@ export function useFavicon(originalUrl: string, faviconUrl: string) {
         return url; // 直接返回原URL，不使用代理
       }
       
-      // 仅使用 Supabase favicon 服务
+      // 混合架构：公开镜像源 + Supabase 跨域代理
       const domain = extractDomain(originalUrl);
       const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL || '').replace(/\/$/, '');
       
-      let proxies: string[];
+      let proxies: string[] = [];
       
+      // 直接使用公开镜像源（优先，速度快）
+      proxies.push(
+        `https://favicon.im/${domain}?larger=true`,
+        `https://favicon.im/${domain}`,
+        `https://www.google.com/s2/favicons?domain=${domain}&sz=64`,
+        `https://www.google.com/s2/favicons?domain=${domain}&sz=32`
+      );
+      
+      // Supabase 作为跨域代理（当直接访问失败时）
       if (supabaseUrl) {
-        // 仅使用 Supabase favicon 服务
-        proxies = [
+        proxies.push(
           `${supabaseUrl}/functions/v1/favicon-service?domain=${encodeURIComponent(domain)}&size=64`,
-          `${supabaseUrl}/functions/v1/favicon-service?domain=${encodeURIComponent(domain)}&size=32`,
-        ];
-      } else {
-        // 没有 Supabase 配置时，不使用任何代理
-        console.warn('⚠️ Supabase URL 未配置，无法获取图标');
-        proxies = [];
+          `${supabaseUrl}/functions/v1/favicon-service?domain=${encodeURIComponent(domain)}&size=32`
+        );
+      }
+      
+      if (proxies.length === 0) {
+        console.warn('⚠️ 没有可用的 favicon 服务');
       }
       
       const selectedProxy = proxies[retryCount % proxies.length];
@@ -73,8 +81,8 @@ export function useFavicon(originalUrl: string, faviconUrl: string) {
       return;
     }
     
-    if (retryCount >= 2) { // 减少重试次数，因为只有Supabase服务
-      console.warn('🚨 Supabase图标服务重试次数过多，使用原始URL:', originalUrl);
+    if (retryCount >= 6) { // 增加重试次数，支持公开镜像源 + Supabase 代理
+      console.warn('🚨 所有图标服务重试次数过多，使用原始URL:', originalUrl);
       setCurrentFaviconUrl(url);
       setError(false);
       return;

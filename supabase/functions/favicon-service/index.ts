@@ -1,7 +1,7 @@
-// Favicon Service - 基于Supabase的统一favicon获取和缓存服务
-// 替代外部镜像服务，避免被墙问题
+// Favicon Service - 基于Supabase的跨域代理和缓存服务
+// 作为公开镜像源的备用方案，解决跨域限制和缓存问题
 
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { serve } from "https://deno.land/std@0.224.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 
@@ -13,10 +13,10 @@ const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const supabase = createClient(supabaseUrl, supabaseKey)
 
 // Favicon源列表（按优先级排序）
+// 优先使用 favicon.im（国内访问友好），移除网站根目录检查
 const FAVICON_SOURCES = [
-  (domain: string) => `https://${domain}/favicon.ico`,
-  (domain: string) => `https://${domain}/favicon.png`,
-  (domain: string) => `https://${domain}/apple-touch-icon.png`,
+  (domain: string) => `https://favicon.im/${domain}?larger=true`,
+  (domain: string) => `https://favicon.im/${domain}`,
   (domain: string) => `https://www.google.com/s2/favicons?domain=${domain}&sz=64`,
   (domain: string) => `https://www.google.com/s2/favicons?domain=${domain}&sz=32`,
 ]

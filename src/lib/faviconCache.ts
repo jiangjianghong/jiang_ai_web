@@ -98,22 +98,33 @@ class FaviconCacheManager {
   }
 
   /**
-   * 获取 favicon 的 URL（仅使用 Supabase 服务）
+   * 获取 favicon 的 URL（混合架构：公开镜像源 + Supabase 跨域代理）
    */
   private getFaviconUrls(originalUrl: string, domain: string): string[] {
-    // 获取 Supabase URL（从环境变量）
-    const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL || '').replace(/\/$/, '');
+    const urls: string[] = [];
     
-    if (!supabaseUrl) {
-      console.warn('⚠️ Supabase URL 未配置，无法获取图标');
-      return [];
+    // 直接使用公开镜像源（可能有跨域限制）
+    urls.push(
+      `https://favicon.im/${domain}?larger=true`,
+      `https://favicon.im/${domain}`,
+      `https://www.google.com/s2/favicons?domain=${domain}&sz=64`,
+      `https://www.google.com/s2/favicons?domain=${domain}&sz=32`
+    );
+    
+    // Supabase 作为跨域代理和缓存服务（当直接访问失败时）
+    const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL || '').replace(/\/$/, '');
+    if (supabaseUrl) {
+      urls.push(
+        `${supabaseUrl}/functions/v1/favicon-service?domain=${encodeURIComponent(domain)}&size=64`,
+        `${supabaseUrl}/functions/v1/favicon-service?domain=${encodeURIComponent(domain)}&size=32`
+      );
     }
-
-    return [
-      // 仅使用 Supabase Favicon 服务
-      `${supabaseUrl}/functions/v1/favicon-service?domain=${encodeURIComponent(domain)}&size=64`,
-      `${supabaseUrl}/functions/v1/favicon-service?domain=${encodeURIComponent(domain)}&size=32`,
-    ];
+    
+    if (urls.length === 0) {
+      console.warn('⚠️ 没有可用的 favicon 服务');
+    }
+    
+    return urls;
   }
 
   /**

@@ -7,17 +7,13 @@ extra_search_path = ["public", "extensions"]
 max_rows = 1000
 
 [auth]
-enabled = true
-port = 54324
 site_url = "http://localhost:3000"
 additional_redirect_urls = ["https://localhost:3000"]
 
-[functions]
-enabled = true
-port = 54325
+[functions.favicon-service]
+verify_jwt = false
 
 [db]
-enabled = true
 port = 54322
 shadow_port = 54320
 major_version = 15

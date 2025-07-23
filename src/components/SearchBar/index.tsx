@@ -1,6 +1,7 @@
 import { useState, useRef, useLayoutEffect, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTransparency } from '@/contexts/TransparencyContext';
+import { useWorkspace } from '@/contexts/WorkspaceContext';
 import { useSmartDebounce } from '@/hooks/useSmartDebounceFixed';
 
 // 子组件导入
@@ -29,6 +30,7 @@ export function SearchBar(_props: SearchBarProps = {}) {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [isFocused, setIsFocused] = useState(false);
   const { searchBarOpacity, setIsSearchFocused } = useTransparency();
+  const { workspaceItems } = useWorkspace();
 
   // 全局监听空格键聚焦搜索框
   useEffect(() => {
@@ -90,13 +92,13 @@ export function SearchBar(_props: SearchBarProps = {}) {
     }
 
     try {
-      const results = await fetchSearchSuggestions(query);
+      const results = await fetchSearchSuggestions(query, workspaceItems);
       setSuggestions(results);
     } catch (error) {
       console.warn('获取搜索建议失败:', error);
       setSuggestions([]);
     }
-  }, [engine]);
+  }, [workspaceItems]);
 
   const debouncedFetchSuggestions = useSmartDebounce(fetchSuggestionsWithDebounce, 300, 1000);
 
@@ -177,9 +179,16 @@ export function SearchBar(_props: SearchBarProps = {}) {
 
   // 处理建议点击
   const handleSuggestionClick = useCallback((suggestion: Suggestion) => {
-    setSearchQuery(suggestion.text);
-    handleSearch(suggestion.text);
-    setShowSuggestions(false);
+    if (suggestion.type === 'workspace' && suggestion.url) {
+      // 工作空间项目直接打开 URL
+      window.open(suggestion.url, '_blank');
+      setShowSuggestions(false);
+    } else {
+      // 搜索建议执行搜索
+      setSearchQuery(suggestion.text);
+      handleSearch(suggestion.text);
+      setShowSuggestions(false);
+    }
   }, [handleSearch]);
 
   // 引擎按钮鼠标事件

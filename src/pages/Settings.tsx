@@ -848,7 +848,10 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
                     </>
                   ) : (
                     <>
-                      <i className="fa-solid fa-download select-none"></i>
+                      <svg className="w-4 h-4 select-none" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" />
+                        <path d="M12,11L16,15H13V19H11V15H8L12,11Z" />
+                      </svg>
                       <span className="select-none">导出数据</span>
                     </>
                   )}
@@ -860,7 +863,7 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
                   className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 select-none ${
                     isImporting 
                       ? 'bg-gray-400 cursor-not-allowed text-white' 
-                      : 'bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg shadow-orange-200'
+                      : 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg shadow-blue-200'
                   }`}
                 >
                   {isImporting ? (
@@ -870,7 +873,10 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
                     </>
                   ) : (
                     <>
-                      <i className="fa-solid fa-upload select-none"></i>
+                      <svg className="w-4 h-4 select-none" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" />
+                        <path d="M12,19L8,15H11V11H13V15H16L12,19Z" />
+                      </svg>
                       <span className="select-none">导入数据</span>
                     </>
                   )}

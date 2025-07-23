@@ -32,15 +32,21 @@ export function ColorPicker({ label, selectedColor, onChange }: ColorPickerProps
             {selectedColor === color.rgb && (
               <motion.div
                 className="w-full h-full flex items-center justify-center"
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ duration: 0.2 }}
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ duration: 0.3, type: "spring", stiffness: 200 }}
               >
-                <i className={`fa-solid fa-check text-sm ${
-                  color.name === '白色' || color.name === '黄色' 
-                    ? 'text-gray-700' 
-                    : 'text-white'
-                }`}></i>
+                <svg 
+                  className={`w-3.5 h-3.5 ${
+                    color.name === '白色' || color.name === '黄色' 
+                      ? 'text-gray-700' 
+                      : 'text-white'
+                  }`}
+                  fill="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+                </svg>
               </motion.div>
             )}
           </motion.button>

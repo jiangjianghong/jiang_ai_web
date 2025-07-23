@@ -98,25 +98,26 @@ class FaviconCacheManager {
   }
 
   /**
-   * 获取 favicon 的备用 URL 列表（使用公共 CORS 代理服务）
+   * 获取 favicon 的 URL（使用 Supabase 统一服务）
    */
   private getFaviconUrls(originalUrl: string, domain: string): string[] {
+    // 获取 Supabase URL（从环境变量）
+    const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL || '').replace(/\/$/, '');
+    
+    if (!supabaseUrl) {
+      console.warn('Supabase URL 未配置，使用备用服务');
+      // 如果没有Supabase配置，回退到之前的逻辑
+      return [
+        `https://corsproxy.io/?${encodeURIComponent(`https://www.google.com/s2/favicons?domain=${domain}&sz=64`)}`,
+        `https://icon.horse/icon/${domain}`,
+        `https://favicons.githubusercontent.com/${domain}`,
+      ];
+    }
+
     return [
-      // 使用 corsproxy.io 代理 Google Favicon 服务（优先）
-      `https://corsproxy.io/?${encodeURIComponent(`https://www.google.com/s2/favicons?domain=${domain}&sz=64`)}`,
-      `https://corsproxy.io/?${encodeURIComponent(`https://www.google.com/s2/favicons?domain=${domain}&sz=32`)}`,
-      
-      // 使用 api.allorigins.win 代理 DuckDuckGo favicon 服务
-      `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://icons.duckduckgo.com/ip3/${domain}.ico`)}`,
-      
-      // 使用 api.allorigins.win 代理 favicon.im
-      `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://favicon.im/${domain}?larger=true&size=32`)}`,
-      
-      // 使用 corsproxy.io 代理网站自己的 favicon
-      `https://corsproxy.io/?${encodeURIComponent(`https://${domain}/favicon.ico`)}`,
-      
-      // 如果提供了原始 URL 且不是 favicon.im，也通过代理尝试
-      ...(originalUrl && !originalUrl.includes('favicon.im') ? [`https://api.allorigins.win/raw?url=${encodeURIComponent(originalUrl)}`] : [])
+      // 使用 Supabase Favicon 服务（优先）
+      `${supabaseUrl}/functions/v1/favicon-service?domain=${encodeURIComponent(domain)}&size=64`,
+      `${supabaseUrl}/functions/v1/favicon-service?domain=${encodeURIComponent(domain)}&size=32`,
     ];
   }
 

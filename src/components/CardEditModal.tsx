@@ -65,21 +65,27 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
   };
 
   /**
-   * 获取 favicon 的备用 URL 列表（代理优先，支持降级）
+   * 获取 favicon 的备用 URL 列表（使用 Supabase 统一服务）
    */
   const getFaviconUrls = (domain: string): string[] => {
+    // 获取 Supabase URL
+    const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL || '').replace(/\/$/, '');
+    
+    if (supabaseUrl) {
+      return [
+        // 使用 Supabase favicon 服务（优先）
+        `${supabaseUrl}/functions/v1/favicon-service?domain=${encodeURIComponent(domain)}&size=64`,
+        `${supabaseUrl}/functions/v1/favicon-service?domain=${encodeURIComponent(domain)}&size=32`,
+        // 兜底：默认图标
+        '/icon/icon.jpg'
+      ];
+    }
+    
+    // 备用方案：如果没有Supabase配置
     return [
-      // 优先使用不需要代理的服务
-      `https://www.google.com/s2/favicons?domain=${domain}&sz=64`,
-      `https://www.google.com/s2/favicons?domain=${domain}&sz=32`,
-      // 备用：DuckDuckGo的图标服务
-      `https://icons.duckduckgo.com/ip3/${domain}.ico`,
-      // 尝试网站自己的 favicon
-      `https://${domain}/favicon.ico`,
-      `https://${domain}/favicon.png`,
-      // 使用公共CORS代理访问 favicon.im（作为备用）
-      `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://favicon.im/${domain}?larger=true`)}`,
-      // 兜底：默认图标
+      `https://corsproxy.io/?${encodeURIComponent(`https://www.google.com/s2/favicons?domain=${domain}&sz=64`)}`,
+      `https://icon.horse/icon/${domain}`,
+      `https://favicons.githubusercontent.com/${domain}`,
       '/icon/icon.jpg'
     ];
   };

@@ -26,15 +26,26 @@ export function useFavicon(originalUrl: string, faviconUrl: string) {
         return url; // 直接返回原URL，不使用代理
       }
       
-      // 使用公共 CORS 代理：根据重试次数选择不同的 favicon 服务
+      // 使用 Supabase favicon 服务或备用服务
       const domain = extractDomain(originalUrl);
-      const proxies = [
-        `https://corsproxy.io/?${encodeURIComponent(`https://www.google.com/s2/favicons?domain=${domain}&sz=64`)}`, // Google Favicon服务（优先）
-        `https://corsproxy.io/?${encodeURIComponent(`https://www.google.com/s2/favicons?domain=${domain}&sz=32`)}`, // Google Favicon服务（小尺寸）
-        `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://icons.duckduckgo.com/ip3/${domain}.ico`)}`, // DuckDuckGo服务
-        `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`, // 通过代理直接访问
-        `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://favicon.im/${domain}?larger=true&size=32`)}` // favicon.im服务
-      ];
+      const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL || '').replace(/\/$/, '');
+      
+      let proxies: string[];
+      
+      if (supabaseUrl) {
+        // 优先使用 Supabase 统一 favicon 服务
+        proxies = [
+          `${supabaseUrl}/functions/v1/favicon-service?domain=${encodeURIComponent(domain)}&size=64`,
+          `${supabaseUrl}/functions/v1/favicon-service?domain=${encodeURIComponent(domain)}&size=32`,
+        ];
+      } else {
+        // 备用方案：使用多个外部服务
+        proxies = [
+          `https://corsproxy.io/?${encodeURIComponent(`https://www.google.com/s2/favicons?domain=${domain}&sz=64`)}`,
+          `https://icon.horse/icon/${domain}`,
+          `https://favicons.githubusercontent.com/${domain}`,
+        ];
+      }
       
       const selectedProxy = proxies[retryCount % proxies.length];
       console.log(`🔄 图标代理 (尝试${retryCount + 1}): ${selectedProxy}`);

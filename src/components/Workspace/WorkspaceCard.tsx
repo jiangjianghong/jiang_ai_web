@@ -97,57 +97,81 @@ export default function WorkspaceCard({ item, onClick }: WorkspaceCardProps) {
         {/* 底部信息栏 */}
         <div className="px-4 py-2 bg-gray-50 border-t border-gray-100">
           <div className="flex items-center justify-between">
-            {/* 分类标签 */}
-            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-              {item.category}
-            </span>
+            {/* 分类标签 - 优化显示 */}
+            {item.category && item.category !== 'default' && item.category !== 'Default' && (
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                {item.category}
+              </span>
+            )}
+            
+            {/* 账号密码指示器 */}
+            {(item.username || item.password) && (
+              <div className="flex items-center space-x-1">
+                {item.username && (
+                  <div className="w-2 h-2 rounded-full bg-green-500" title="有账号信息"></div>
+                )}
+                {item.password && (
+                  <div className="w-2 h-2 rounded-full bg-orange-500" title="有密码信息"></div>
+                )}
+              </div>
+            )}
 
             {/* 外部链接图标 */}
-            <div className={`transition-opacity duration-200 ${isHovered ? 'opacity-100' : 'opacity-40'}`}>
+            <div className={`transition-opacity duration-200 ${isHovered ? 'opacity-100' : 'opacity-40'} ml-auto`}>
               <i className="fa-solid fa-external-link-alt text-xs text-gray-500"></i>
             </div>
           </div>
         </div>
 
-        {/* 账号密码悬停提示 */}
+        {/* 账号密码悬停提示 - 优化样式 */}
         {(item.username || item.password) && isHovered && (
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 10 }}
-            className="absolute top-2 right-2 bg-gray-800 text-white text-xs rounded-lg p-2 shadow-lg z-10 min-w-[120px]"
+            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
+            className="absolute top-2 right-2 bg-white border border-gray-200 text-gray-700 text-xs rounded-xl p-3 shadow-xl z-20 min-w-[160px] backdrop-blur-sm"
             onClick={(e) => e.stopPropagation()}
           >
-            {item.username && (
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-gray-300">账号:</span>
-                <div className="flex items-center space-x-1">
-                  <span className="font-mono">{item.username}</span>
-                  <button
-                    onClick={() => copyToClipboard(item.username!, '账号')}
-                    className="p-1 hover:bg-gray-700 rounded text-gray-300 hover:text-white"
-                    title="复制账号"
-                  >
-                    <i className="fa-solid fa-copy text-xs"></i>
-                  </button>
+            <div className="space-y-2">
+              {item.username && (
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-500 font-medium">账号</span>
+                  <div className="flex items-center space-x-2">
+                    <span className="font-mono text-gray-800 bg-gray-50 px-2 py-1 rounded-md text-xs max-w-[80px] truncate" title={item.username}>
+                      {item.username}
+                    </span>
+                    <button
+                      onClick={() => copyToClipboard(item.username!, '账号')}
+                      className="p-1.5 hover:bg-green-50 rounded-md text-green-600 hover:text-green-700 transition-colors"
+                      title="复制账号"
+                    >
+                      <i className="fa-solid fa-copy text-xs"></i>
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )}
-            {item.password && (
-              <div className="flex items-center justify-between">
-                <span className="text-gray-300">密码:</span>
-                <div className="flex items-center space-x-1">
-                  <span className="font-mono">{'•'.repeat(item.password.length)}</span>
-                  <button
-                    onClick={() => copyToClipboard(item.password!, '密码')}
-                    className="p-1 hover:bg-gray-700 rounded text-gray-300 hover:text-white"
-                    title="复制密码"
-                  >
-                    <i className="fa-solid fa-copy text-xs"></i>
-                  </button>
+              )}
+              {item.password && (
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-500 font-medium">密码</span>
+                  <div className="flex items-center space-x-2">
+                    <span className="font-mono text-gray-800 bg-gray-50 px-2 py-1 rounded-md text-xs">
+                      {'•'.repeat(Math.min(item.password.length, 8))}
+                    </span>
+                    <button
+                      onClick={() => copyToClipboard(item.password!, '密码')}
+                      className="p-1.5 hover:bg-blue-50 rounded-md text-blue-600 hover:text-blue-700 transition-colors"
+                      title="复制密码"
+                    >
+                      <i className="fa-solid fa-copy text-xs"></i>
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
+            
+            {/* 小箭头 */}
+            <div className="absolute top-3 -right-1 w-2 h-2 bg-white border-r border-b border-gray-200 transform rotate-45"></div>
           </motion.div>
         )}
 

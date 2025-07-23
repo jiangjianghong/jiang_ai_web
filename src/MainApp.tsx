@@ -2,7 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import Home from "@/pages/Home";
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { mockWebsites } from '@/lib/mockData';
+// import { mockWebsites } from '@/lib/mockData'; // 已删除
 import { TransparencyProvider } from '@/contexts/TransparencyContext';
 import { AuthProvider } from '@/contexts/SupabaseAuthContext';
 import { SyncProvider } from '@/contexts/SyncContext';
@@ -35,7 +35,7 @@ function AppContent() {
     if (saved) {
       return saved;
     }
-    return mockWebsites;
+    return []; // 使用空数组替代mockWebsites
   });
 
   const [showPrivacySettings, setShowPrivacySettings] = useState(false);

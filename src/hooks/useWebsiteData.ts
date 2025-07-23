@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { WebsiteData } from '@/lib/supabaseSync';
-import { mockWebsites } from '@/lib/mockData';
+// import { mockWebsites } from '@/lib/mockData'; // 已删除
 import { StorageManager } from '@/lib/storageManager';
 
 interface UseWebsiteDataOptions {
@@ -56,7 +56,7 @@ export function useWebsiteData(options: UseWebsiteDataOptions = {}): UseWebsiteD
       console.warn('读取缓存失败:', error);
       setError('读取本地数据失败');
     }
-    return mockWebsites;
+    return []; // 使用空数组替代mockWebsites
   }, [storage]);
 
   // 初始化网站数据

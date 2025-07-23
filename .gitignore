@@ -27,6 +27,14 @@ dist-ssr
 .env
 .env.local
 .env.production
+.env.development
+
+# Test and development files
+*test*
+*mock*
+*debug*
+*.test.*
+*.spec.*
 
 # Cloud sync temporary files
 .tmp.*

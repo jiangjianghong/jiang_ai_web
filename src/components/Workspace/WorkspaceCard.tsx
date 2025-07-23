@@ -21,6 +21,14 @@ export default function WorkspaceCard({ item, onClick }: WorkspaceCardProps) {
     return colors[colorIndex];
   };
 
+  // 检查值是否为空或null
+  const isValidValue = (value?: string) => {
+    return value && 
+           value.toLowerCase() !== 'null' && 
+           value.toLowerCase() !== 'undefined' && 
+           value.trim() !== '';
+  };
+
   // 复制到剪贴板
   const copyToClipboard = async (text: string, type: string) => {
     try {
@@ -98,19 +106,24 @@ export default function WorkspaceCard({ item, onClick }: WorkspaceCardProps) {
         <div className="px-4 py-2 bg-gray-50 border-t border-gray-100">
           <div className="flex items-center justify-between">
             {/* 分类标签 - 优化显示 */}
-            {item.category && item.category !== 'default' && item.category !== 'Default' && (
+            {item.category && 
+             item.category !== 'default' && 
+             item.category !== 'Default' && 
+             item.category !== 'null' && 
+             item.category !== 'NULL' && 
+             item.category.toLowerCase() !== 'null' && (
               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                 {item.category}
               </span>
             )}
             
             {/* 账号密码指示器 */}
-            {(item.username || item.password) && (
+            {(isValidValue(item.username) || isValidValue(item.password)) && (
               <div className="flex items-center space-x-1">
-                {item.username && (
+                {isValidValue(item.username) && (
                   <div className="w-2 h-2 rounded-full bg-green-500" title="有账号信息"></div>
                 )}
-                {item.password && (
+                {isValidValue(item.password) && (
                   <div className="w-2 h-2 rounded-full bg-orange-500" title="有密码信息"></div>
                 )}
               </div>
@@ -124,7 +137,7 @@ export default function WorkspaceCard({ item, onClick }: WorkspaceCardProps) {
         </div>
 
         {/* 账号密码悬停提示 - 优化样式 */}
-        {(item.username || item.password) && isHovered && (
+        {(isValidValue(item.username) || isValidValue(item.password)) && isHovered && (
           <motion.div
             initial={{ opacity: 0, y: 10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -134,7 +147,7 @@ export default function WorkspaceCard({ item, onClick }: WorkspaceCardProps) {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="space-y-2">
-              {item.username && (
+              {isValidValue(item.username) && (
                 <div className="flex items-center justify-between">
                   <span className="text-gray-500 font-medium">账号</span>
                   <div className="flex items-center space-x-2">
@@ -151,12 +164,12 @@ export default function WorkspaceCard({ item, onClick }: WorkspaceCardProps) {
                   </div>
                 </div>
               )}
-              {item.password && (
+              {isValidValue(item.password) && (
                 <div className="flex items-center justify-between">
                   <span className="text-gray-500 font-medium">密码</span>
                   <div className="flex items-center space-x-2">
                     <span className="font-mono text-gray-800 bg-gray-50 px-2 py-1 rounded-md text-xs">
-                      {'•'.repeat(Math.min(item.password.length, 8))}
+                      {'•'.repeat(Math.min(item.password!.length, 8))}
                     </span>
                     <button
                       onClick={() => copyToClipboard(item.password!, '密码')}

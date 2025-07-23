@@ -31,7 +31,17 @@ module.exports = async function handler(req, res) {
       's2.googleusercontent.com',
       'api.allorigins.win',
       'httpbin.org', // 测试用
-      'corsproxy.io'
+      'corsproxy.io',
+      'icons.duckduckgo.com', // DuckDuckGo favicon 服务
+      'github.com',
+      'drive.google.com',
+      'wx.mail.qq.com',
+      'mail.google.com',
+      'notion.so',
+      'aistudio.google.com',
+      'yacd.metacubex.one',
+      'bilibili.com',
+      'excalidraw.com'
     ];
     
     const targetDomain = new URL(targetUrl).hostname;
@@ -72,9 +82,12 @@ module.exports = async function handler(req, res) {
       }
     }
 
-    // 图片请求特殊处理
-    if (targetUrl.includes('.jpg') || targetUrl.includes('.png') || targetUrl.includes('.jpeg') || targetUrl.includes('bing.img.run')) {
-      headers['Accept'] = 'image/*';
+    // 图片和 favicon 请求特殊处理
+    if (targetUrl.includes('.jpg') || targetUrl.includes('.png') || targetUrl.includes('.jpeg') || 
+        targetUrl.includes('bing.img.run') || targetUrl.includes('favicon') || 
+        targetUrl.includes('.ico') || targetUrl.includes('s2/favicons')) {
+      headers['Accept'] = 'image/*,*/*;q=0.8';
+      headers['User-Agent'] = 'Mozilla/5.0 (compatible; FaviconBot/1.0)';
     }
 
     // 准备请求选项

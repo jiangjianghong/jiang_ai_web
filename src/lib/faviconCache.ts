@@ -270,7 +270,10 @@ class FaviconCacheManager {
 
     // 检查是否正在加载
     if (this.loadingPromises.has(domain)) {
-      return this.loadingPromises.get(domain)!;
+      // 等待加载完成后，重新获取缓存（避免Blob URL共享问题）
+      await this.loadingPromises.get(domain)!;
+      const newCached = await this.getCachedFaviconFile(domain);
+      return newCached || '/icon/icon.jpg';
     }
 
     // 开始下载和缓存

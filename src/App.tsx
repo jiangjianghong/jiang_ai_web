@@ -42,8 +42,8 @@ function AppContent() {
   // 延迟初始化标记
   const [isFirstRenderComplete, setIsFirstRenderComplete] = useState(false);
   
-  // 延迟启用云数据和资源预加载，避免阻塞首屏渲染
-  const shouldEnableCloudSync = isFirstRenderComplete && !!currentUser?.email_confirmed_at;
+  // 登录用户立即启用云同步，未登录用户等待首屏渲染完成
+  const shouldEnableCloudSync = currentUser?.email_confirmed_at ? true : (isFirstRenderComplete && !!currentUser?.email_confirmed_at);
   
   console.log('🔧 云同步启用条件检查:', {
     isFirstRenderComplete,

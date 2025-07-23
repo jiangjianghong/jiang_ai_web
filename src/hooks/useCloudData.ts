@@ -167,6 +167,23 @@ export function useCloudData(enabled: boolean = true): UseCloudDataResult {
     }
   }, [currentUser?.id, currentUser?.email_confirmed_at, enabled, loadCloudData]);
 
+  // 监听用户登录事件，立即触发数据加载
+  useEffect(() => {
+    const handleUserSignedIn = (event: CustomEvent) => {
+      const user = event.detail?.user;
+      if (enabled && user && user.email_confirmed_at) {
+        console.log('🚀 收到用户登录事件，立即加载云端数据');
+        // 立即触发数据加载，不等待其他条件
+        loadCloudData();
+      }
+    };
+
+    window.addEventListener('userSignedIn', handleUserSignedIn as EventListener);
+    return () => {
+      window.removeEventListener('userSignedIn', handleUserSignedIn as EventListener);
+    };
+  }, [enabled, loadCloudData]);
+
   return {
     ...state,
     loadCloudData,

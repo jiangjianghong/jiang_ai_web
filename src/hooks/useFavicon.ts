@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { faviconCache } from '@/lib/faviconCache';
 import { isDefaultIcon } from '@/lib/iconPath';
 
@@ -12,6 +12,7 @@ export function useFavicon(originalUrl: string, faviconUrl: string) {
   const [currentFaviconUrl, setCurrentFaviconUrl] = useState<string>(faviconUrl);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(false);
+  const currentBlobUrlRef = useRef<string | null>(null);
 
   // 处理 favicon URL，智能代理切换
   const processeFaviconUrl = (url: string, retryCount: number = 0): string => {
@@ -76,14 +77,14 @@ export function useFavicon(originalUrl: string, faviconUrl: string) {
     // 如果没有可用的代理URL，直接使用原始URL或默认图标
     if (!processedUrl || processedUrl === url) {
       console.log('📦 使用原始图标URL:', url);
-      setCurrentFaviconUrl(url);
+      setFaviconUrl(url);
       setError(false);
       return;
     }
     
     if (retryCount >= 6) { // 增加重试次数，支持公开镜像源 + Supabase 代理
       console.warn('🚨 所有图标服务重试次数过多，使用原始URL:', originalUrl);
-      setCurrentFaviconUrl(url);
+      setFaviconUrl(url);
       setError(false);
       return;
     }
@@ -92,7 +93,7 @@ export function useFavicon(originalUrl: string, faviconUrl: string) {
     const testImg = new Image();
     testImg.onload = () => {
       console.log(`✅ 图标加载成功 (尝试${retryCount + 1}):`, processedUrl);
-      setCurrentFaviconUrl(processedUrl);
+      setFaviconUrl(processedUrl);
       setError(false);
     };
     
@@ -105,6 +106,23 @@ export function useFavicon(originalUrl: string, faviconUrl: string) {
     testImg.src = processedUrl;
   };
 
+  // 清理Blob URL的函数
+  const cleanupBlobUrl = () => {
+    if (currentBlobUrlRef.current && currentBlobUrlRef.current.startsWith('blob:')) {
+      URL.revokeObjectURL(currentBlobUrlRef.current);
+      currentBlobUrlRef.current = null;
+    }
+  };
+
+  // 设置新的favicon URL并清理旧的Blob URL
+  const setFaviconUrl = (url: string) => {
+    cleanupBlobUrl();
+    setCurrentFaviconUrl(url);
+    if (url.startsWith('blob:')) {
+      currentBlobUrlRef.current = url;
+    }
+  };
+
   useEffect(() => {
     setError(false);
     setIsLoading(false);
@@ -112,42 +130,51 @@ export function useFavicon(originalUrl: string, faviconUrl: string) {
     // 智能缓存策略：只有在以下情况才尝试缓存优化
     const isDefaultIconUrl = isDefaultIcon(faviconUrl);
     
-    // 先检查是否有缓存
-    const cached = faviconCache.getCachedFavicon(originalUrl);
-    
-    if (cached && !isDefaultIcon(cached)) {
-      // 有有效缓存，使用智能重试加载缓存的图标
-      console.log('📦 使用缓存图标:', originalUrl);
-      retryLoadFavicon(cached);
-      return;
-    }
+    // 先检查是否有缓存（异步获取Blob URL）
+    const checkCacheAndLoad = async () => {
+      try {
+        // 首先检查同步缓存元数据
+        const cachedMeta = faviconCache.getCachedFavicon(originalUrl);
+        
+        if (cachedMeta && !isDefaultIcon(cachedMeta)) {
+          // 有缓存元数据，尝试获取Blob URL
+          console.log('📦 发现缓存元数据，获取Blob图标:', originalUrl);
+          const cachedBlobUrl = await faviconCache.getFavicon(originalUrl, faviconUrl);
+          
+          if (cachedBlobUrl && cachedBlobUrl !== '/icon/icon.jpg' && !isDefaultIcon(cachedBlobUrl)) {
+            console.log('✅ 成功获取缓存的Blob图标:', originalUrl);
+            setFaviconUrl(cachedBlobUrl);
+            setError(false);
+            return;
+          }
+        }
+        
+        // 如果没有有效缓存，使用原始图标URL
+        console.log('📦 没有缓存，使用原始图标URL:', faviconUrl);
+        retryLoadFavicon(faviconUrl);
+        
+      } catch (err) {
+        console.warn('获取缓存图标失败:', err);
+        // 失败时使用原始URL
+        retryLoadFavicon(faviconUrl);
+      }
+    };
     
     // 如果是默认图标，尝试获取更好的图标
-    if (isDefaultIconUrl && !cached) {
+    if (isDefaultIconUrl) {
       setIsLoading(true);
-      faviconCache.getFavicon(originalUrl, faviconUrl)
-        .then((url: string) => {
-          if (url !== faviconUrl && !isDefaultIcon(url)) {
-            console.log('✅ 获取到更好的图标:', url);
-            retryLoadFavicon(url);
-          } else {
-            // 使用默认图标
-            retryLoadFavicon(faviconUrl);
-          }
-          setError(false);
-        })
-        .catch((err: any) => {
-          console.warn('Favicon 优化失败:', err);
-          // 失败时使用原始URL
-          retryLoadFavicon(faviconUrl);
-        })
-        .finally(() => {
-          setIsLoading(false);
-        });
+      checkCacheAndLoad().finally(() => {
+        setIsLoading(false);
+      });
     } else {
-      // 直接使用传入的图标URL
-      retryLoadFavicon(faviconUrl);
+      // 直接使用传入的图标URL，但仍然检查缓存
+      checkCacheAndLoad();
     }
+    
+    // 清理函数
+    return () => {
+      cleanupBlobUrl();
+    };
   }, [originalUrl, faviconUrl]);
 
   return {

@@ -21,16 +21,15 @@ console.log('Service Worker 路径配置:', { basePath, hostname: self.location.
 // 静态缓存URL（核心文件）
 const STATIC_CACHE_URLS = [
   `${basePath}/`,
-  `${basePath}/index.html`,
-  // 预缓存关键资源
-  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css'
+  `${basePath}/index.html`
 ];
 
-// 可选缓存URL（这些文件可能不存在）
+// 可选缓存URL（这些文件可能不存在）- 使用国内CDN
 const OPTIONAL_CACHE_URLS = [
   `${basePath}/404.html`,
   `${basePath}/icon/icon.jpg`,
-  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/webfonts/fa-solid-900.woff2'
+  'https://lf26-cdn-tos.bytecdntp.com/obj/static/font-awesome/6.2.0/css/all.min.css',
+  'https://lf26-cdn-tos.bytecdntp.com/obj/static/font-awesome/6.2.0/webfonts/fa-solid-900.woff2'
 ];
 
 // 高优先级缓存的资源类型

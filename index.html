@@ -20,26 +20,26 @@
       }(window.location))
     </script>
     
-    <!-- 预连接到重要的第三方域名 -->
-    <link rel="preconnect" href="https://bing.img.run" />
-    <link rel="preconnect" href="https://www.google.com" />
-    <link rel="preconnect" href="https://favicon.yandex.net" />
-    <link rel="preconnect" href="https://icons.duckduckgo.com" />
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
-    <link rel="preconnect" href="https://favicon.im" />
+    <!-- 预连接到重要的第三方域名 - 使用国内可访问的CDN -->
+    <link rel="preconnect" href="https://lf26-cdn-tos.bytecdntp.com" />
+    <link rel="preconnect" href="https://cdn.bootcdn.net" />
+    <link rel="preconnect" href="https://unpkg.com" />
     
-    <!-- 预加载关键CSS（立即使用） -->
-    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" as="style" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'" />
-    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" crossorigin="anonymous"></noscript>
+    <!-- 使用国内CDN加载FontAwesome -->
+    <link rel="preload" href="https://lf26-cdn-tos.bytecdntp.com/obj/static/font-awesome/6.2.0/css/all.min.css" as="style" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'" />
+    <noscript><link rel="stylesheet" href="https://lf26-cdn-tos.bytecdntp.com/obj/static/font-awesome/6.2.0/css/all.min.css" crossorigin="anonymous"></noscript>
     
-    <!-- 字体预加载改为dns-prefetch，避免未使用警告 -->
-    <link rel="dns-prefetch" href="//cdnjs.cloudflare.com" />
+    <!-- 备用CDN -->
+    <style>
+      /* 如果外部字体加载失败，使用系统字体 */
+      .fa, .fas, .far, .fal, .fab {
+        font-family: 'Font Awesome 6 Free', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+      }
+    </style>
     
-    <!-- DNS预取常用域名 -->
-    <link rel="dns-prefetch" href="//source.unsplash.com" />
-    <link rel="dns-prefetch" href="//github.githubassets.com" />
-    <link rel="dns-prefetch" href="//bing.img.run" />
-    <link rel="dns-prefetch" href="//icons.duckduckgo.com" />
+    <!-- DNS预取常用域名 - 移除被墙的域名 -->
+    <link rel="dns-prefetch" href="//lf26-cdn-tos.bytecdntp.com" />
+    <link rel="dns-prefetch" href="//cdn.bootcdn.net" />
     
     <!-- 预连接Supabase -->
     <link rel="preconnect" href="https://wxheqargopbsrruootyr.supabase.co" />

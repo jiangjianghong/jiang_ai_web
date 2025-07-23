@@ -77,8 +77,23 @@ export function useAutoSync(websites: WebsiteData[]) {
     // 标记同步进行中
     syncInProgressRef.current = true;
 
+    // 验证网站数据有效性，避免上传空数据覆盖云端
+    const validWebsites = websites.filter(site => 
+      site.id && site.name && site.url && 
+      typeof site.id === 'string' && 
+      typeof site.name === 'string' && 
+      typeof site.url === 'string'
+    );
+    
+    // 如果没有有效数据，跳过同步
+    if (validWebsites.length === 0 && websites.length === 0) {
+      console.log('⚠️ 没有有效的网站数据，跳过自动同步');
+      syncInProgressRef.current = false;
+      return;
+    }
+    
     // 自动同步数据
-    autoSync(currentUser, websites, settings, {
+    autoSync(currentUser, validWebsites, settings, {
       onSyncStart: () => {
         updateSyncStatus({ 
           syncInProgress: true, 

@@ -88,19 +88,35 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
 }
 ```
 
-#### 3.1.2 云端同步
+#### 3.1.2 智能云端同步
 
 使用 Supabase 实现数据的云端存储和同步，主要功能包括：
 
 - 用户认证和授权
 - 数据的增删改查
+- 数据有效性验证（v1.2.0 新增）
 - 冲突检测和解决
 - 离线支持和自动重试
+- 空数据保护机制（v1.2.0 新增）
 
 核心实现在 `supabaseSync.ts` 中：
 
 ```typescript
-// 保存用户网站数据到 Supabase
+// 数据验证函数（v1.2.0 新增）
+function validateWebsiteData(websites: WebsiteData[]): WebsiteData[] {
+  return websites.filter(website => 
+    website && 
+    typeof website === 'object' &&
+    website.id && 
+    website.name && 
+    website.url &&
+    typeof website.id === 'string' &&
+    typeof website.name === 'string' &&
+    typeof website.url === 'string'
+  );
+}
+
+// 保存用户网站数据到 Supabase（已增强数据验证）
 export async function saveUserWebsites(
   userId: string,
   websites: WebsiteData[],
@@ -111,12 +127,20 @@ export async function saveUserWebsites(
   try {
     callback?.({status: 'syncing', message: '正在同步网站数据...'});
     
+    // v1.2.0: 数据验证，防止空数据覆盖云端
+    const validWebsites = validateWebsiteData(websites);
+    if (validWebsites.length === 0) {
+      console.warn('没有有效的网站数据，跳过同步');
+      callback?.({status: 'warning', message: '没有有效数据需要同步'});
+      return false;
+    }
+    
     // 使用 upsert 操作保存数据
     const { error } = await supabase
       .from('user_websites')
       .upsert({
         user_id: userId,
-        websites: websites,
+        websites: validWebsites,
         updated_at: new Date().toISOString()
       }, {
         onConflict: 'user_id'
@@ -124,7 +148,7 @@ export async function saveUserWebsites(
       
     if (error) throw error;
     
-    callback?.({status: 'success', message: '网站数据同步成功'});
+    callback?.({status: 'success', message: `成功同步 ${validWebsites.length} 个网站`});
     return true;
   } catch (error) {
     console.error('保存网站数据失败:', error);
@@ -874,6 +898,93 @@ function handleError(error: any): AppError {
 }
 ```
 
+## 10. 版本更新记录
+
+### v1.2.0 (2024-12-19) - 数据同步安全性增强
+
+#### 🔧 核心修复
+
+**数据同步安全性问题修复**
+- **问题描述**: 自动同步功能可能导致空数据覆盖云端真实数据
+- **修复方案**: 在 `App.tsx` 和 `useAutoSync.ts` 中增加数据验证机制
+- **技术实现**:
+  ```typescript
+  // 数据验证函数
+  const validWebsites = websites.filter(website => 
+    website && 
+    typeof website === 'object' &&
+    website.id && 
+    website.name && 
+    website.url &&
+    typeof website.id === 'string' &&
+    typeof website.name === 'string' &&
+    typeof website.url === 'string'
+  );
+  
+  // 只有存在有效数据时才执行同步
+  if (validWebsites.length > 0) {
+    await autoSync(validWebsites);
+  }
+  ```
+
+**智能上传逻辑优化**
+- **App.tsx 修改**: 在本地数据上传前增加有效性检查
+- **useAutoSync.ts 修改**: 在自动同步前验证数据完整性
+- **防护机制**: 防止空数组或无效数据污染云端存储
+
+#### ✨ 功能改进
+
+**同步状态反馈优化**
+- 增加更详细的同步状态提示
+- 区分不同类型的同步结果（成功、警告、错误）
+- 提供同步数据数量的具体反馈
+
+**错误处理增强**
+- 改进错误捕获和处理机制
+- 增加更友好的错误提示信息
+- 优化网络异常情况下的用户体验
+
+#### 🛡️ 安全性提升
+
+**多层数据保护**
+1. **输入验证**: 在数据进入系统前进行严格验证
+2. **同步验证**: 在数据同步前再次验证有效性
+3. **云端保护**: 防止无效数据覆盖云端真实数据
+
+**数据完整性保障**
+- 确保必要字段的存在性检查
+- 验证数据类型的正确性
+- 过滤掉损坏或不完整的数据记录
+
+#### 📊 性能优化
+
+**代码重构**
+- 优化数据处理逻辑，减少不必要的计算
+- 改进内存使用效率
+- 提升同步操作的响应速度
+
+**缓存策略优化**
+- 改进本地缓存的数据验证
+- 优化缓存失效和更新机制
+
+### v1.1.0 (2024-12-15) - 初始版本
+
+#### 🚀 核心功能
+- 网站卡片管理系统
+- 基于 Supabase 的云端同步
+- 响应式设计和动态壁纸
+- 拖拽排序和智能搜索
+- PWA 支持和离线功能
+
+#### 🏗️ 技术架构
+- React 18 + TypeScript + Vite
+- Tailwind CSS 样式系统
+- 多层缓存架构
+- CORS 代理解决方案
+- 性能监控和优化
+
 ---
 
-本文档由项目开发团队编写，最后更新于 2023 年 10 月。
+**文档维护**: 本文档由项目开发团队编写和维护  
+**最后更新**: 2024年12月19日  
+**版本**: v1.2.0

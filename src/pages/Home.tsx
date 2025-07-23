@@ -344,22 +344,45 @@ export default function Home({ websites, setWebsites }: HomeProps) {
         });
 
         if (uncachedWebsites.length > 0) {
-          console.log(`🚀 开始批量预缓存 ${uncachedWebsites.length} 个未缓存的 favicon...`);
+          console.log(`🚀 [Home] 开始批量预缓存 ${uncachedWebsites.length} 个未缓存的 favicon...`);
           faviconCache.batchCacheFaviconsToIndexedDB(uncachedWebsites)
             .then(() => {
-              console.log('✅ Favicon 批量预缓存完成');
+              console.log('✅ [Home] Favicon 批量预缓存完成');
             })
             .catch(error => {
-              console.warn('❌ Favicon 批量预缓存失败:', error);
+              console.warn('❌ [Home] Favicon 批量预缓存失败:', error);
             });
         } else {
-          console.log('📦 所有 favicon 均已缓存，跳过批量预缓存');
+          console.log('📦 [Home] 所有 favicon 均已缓存，跳过批量预缓存');
         }
-      }, 2000); // 2秒后开始，确保不影响首屏渲染
+      }, 1500); // 减少到1.5秒，更快响应数据变化
 
       return () => clearTimeout(timer);
     }
   }, [websites]); // 当网站数据变化时触发
+
+  // 监听用户登录状态变化，触发图标预缓存
+  useEffect(() => {
+    if (currentUser && currentUser.email_confirmed_at && websites.length > 0) {
+      // 用户登录后，检查是否需要预缓存图标
+      const timer = setTimeout(() => {
+        console.log('👤 用户登录状态变化，检查图标缓存需求...');
+        const uncachedWebsites = websites.filter(website => {
+          const cached = faviconCache.getCachedFavicon(website.url);
+          return !cached;
+        });
+
+        if (uncachedWebsites.length > 0) {
+          console.log(`🚀 [登录后] 开始预缓存 ${uncachedWebsites.length} 个图标...`);
+          faviconCache.batchCacheFaviconsToIndexedDB(uncachedWebsites)
+            .then(() => console.log('✅ [登录后] 图标预缓存完成'))
+            .catch(error => console.warn('❌ [登录后] 图标预缓存失败:', error));
+        }
+      }, 2000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [currentUser?.email_confirmed_at, websites.length]); // 监听登录状态和网站数量变化
 
   // 响应式布局配置
   const getResponsiveClasses = () => {

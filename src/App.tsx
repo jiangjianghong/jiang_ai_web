@@ -44,6 +44,14 @@ function AppContent() {
   
   // 延迟启用云数据和资源预加载，避免阻塞首屏渲染
   const shouldEnableCloudSync = isFirstRenderComplete && !!currentUser?.email_confirmed_at;
+  
+  console.log('🔧 云同步启用条件检查:', {
+    isFirstRenderComplete,
+    hasUser: !!currentUser,
+    emailConfirmed: !!currentUser?.email_confirmed_at,
+    shouldEnableCloudSync
+  });
+  
   const { cloudWebsites, cloudSettings, hasCloudData, mergeWithLocalData } = useCloudData(shouldEnableCloudSync);
   
   // 在首屏渲染完成后再启用资源预加载
@@ -57,6 +65,14 @@ function AppContent() {
   
   const [showSyncModal, setShowSyncModal] = useState(false);
   const [syncProcessed, setSyncProcessed] = useState(false);
+  
+  // 当用户登录状态变化时，重置同步状态
+  useEffect(() => {
+    if (currentUser && currentUser.email_confirmed_at) {
+      console.log('👤 用户登录状态变化，重置同步状态');
+      setSyncProcessed(false);
+    }
+  }, [currentUser?.id, currentUser?.email_confirmed_at]);
   const [showPrivacySettings, setShowPrivacySettings] = useState(false);
 
   // 首屏渲染完成后启用数据同步和资源预加载
@@ -74,47 +90,156 @@ function AppContent() {
 
   // 检查是否需要显示数据同步对话框（延迟到云同步启用后）
   useEffect(() => {
-    if (!shouldEnableCloudSync) return;
+    console.log('🔍 App.tsx 同步检查 useEffect 触发:', {
+      shouldEnableCloudSync,
+      hasUser: !!currentUser,
+      userId: currentUser?.id,
+      userEmail: currentUser?.email,
+      emailConfirmed: !!currentUser?.email_confirmed_at,
+      hasCloudData,
+      hasCloudWebsites: !!cloudWebsites,
+      cloudWebsitesCount: cloudWebsites?.length || 0,
+      localWebsitesCount: websites.length,
+      syncProcessed
+    });
+    
+    // 添加详细的状态检查
+    if (currentUser) {
+      console.log('👤 当前用户信息:', {
+        id: currentUser.id,
+        email: currentUser.email,
+        emailConfirmed: currentUser.email_confirmed_at,
+        createdAt: currentUser.created_at
+      });
+    }
+    
+    if (!shouldEnableCloudSync) {
+      console.log('⏸️ 云同步未启用，跳过同步检查');
+      return;
+    }
     
     if (currentUser && currentUser.email_confirmed_at && hasCloudData && cloudWebsites && !syncProcessed) {
-      // 使用优化的数据比较函数
-      const localCount = stableWebsitesLength;
+      // 获取当前的本地数据进行比较
+      const currentWebsites = websites;
+      const localCount = currentWebsites.length;
       const cloudCount = cloudWebsites.length;
       
-      if (localCount > 0 && cloudCount > 0 && areDataDifferent(websites, cloudWebsites)) {
+      console.log(`🔄 检测数据同步需求: 本地${localCount}个，云端${cloudCount}个`);
+      
+      if (localCount > 0 && cloudCount > 0 && areDataDifferent(currentWebsites, cloudWebsites)) {
+        console.log('📊 检测到本地和云端数据差异，显示同步对话框');
         setShowSyncModal(true);
+        setSyncProcessed(true); // 避免重复检查
       } else if (cloudCount > 0 && localCount === 0) {
         // 本地无数据，直接使用云端数据
+        console.log('🆕 本地无数据，自动同步云端数据');
         setWebsites(cloudWebsites);
         setSyncProcessed(true);
+        
+        // 触发图标预缓存
+        setTimeout(() => {
+          console.log('🚀 开始为新同步的网站预缓存图标...');
+          import('@/lib/faviconCache').then(({ faviconCache }) => {
+            faviconCache.batchCacheFaviconsToIndexedDB(cloudWebsites)
+              .then(() => console.log('✅ 登录后图标预缓存完成'))
+              .catch(error => console.warn('❌ 登录后图标预缓存失败:', error));
+          });
+        }, 1000);
+      } else if (localCount > 0 && cloudCount === 0) {
+        // 云端无数据，本地有数据，但需要验证本地数据的有效性
+        console.log('☁️ 云端无数据，检查本地数据有效性后决定是否上传');
+        
+        // 验证本地数据是否有效（不是空数组或无效数据）
+        const validLocalWebsites = currentWebsites.filter(site => 
+          site.id && site.name && site.url && 
+          typeof site.id === 'string' && 
+          typeof site.name === 'string' && 
+          typeof site.url === 'string'
+        );
+        
+        if (validLocalWebsites.length > 0) {
+          console.log(`📤 本地有 ${validLocalWebsites.length} 个有效网站，上传到云端`);
+          import('@/lib/supabaseSync').then(({ saveUserWebsites }) => {
+            saveUserWebsites(currentUser, validLocalWebsites)
+              .then(() => console.log('✅ 本地数据已自动上传到云端'))
+              .catch(error => console.warn('❌ 自动上传失败:', error));
+          });
+        } else {
+          console.log('⚠️ 本地数据无效，跳过自动上传，避免覆盖云端数据');
+        }
+        setSyncProcessed(true);
+      } else if (localCount > 0 && cloudCount > 0) {
+        // 每次登录都自动同步云端数据（如果数据相同）
+        console.log('🔄 重新登录，自动同步云端数据');
+        setWebsites(cloudWebsites);
+        setSyncProcessed(true);
+        
+        // 触发图标预缓存
+        setTimeout(() => {
+          console.log('🚀 重新登录，开始预缓存图标...');
+          import('@/lib/faviconCache').then(({ faviconCache }) => {
+            faviconCache.batchCacheFaviconsToIndexedDB(cloudWebsites)
+              .then(() => console.log('✅ 重新登录图标预缓存完成'))
+              .catch(error => console.warn('❌ 重新登录图标预缓存失败:', error));
+          });
+        }, 1000);
       } else {
         setSyncProcessed(true);
       }
     }
-  }, [shouldEnableCloudSync, currentUser, hasCloudData, cloudWebsites, stableWebsitesLength, syncProcessed, setWebsites, websites]);
+  }, [shouldEnableCloudSync, currentUser, hasCloudData, cloudWebsites, syncProcessed, setWebsites]);
 
   // 应用云端设置（延迟到云同步启用后）
   useEffect(() => {
     if (!shouldEnableCloudSync) return;
     
     if (currentUser && currentUser.email_confirmed_at && cloudSettings) {
-      // 静默应用云端设置
+      console.log('⚙️ 检测到云端设置，开始应用配置');
       
-      // 应用各种设置
-      if (typeof cloudSettings.cardOpacity === 'number') {
+      // 检测本地和云端设置差异
+      const localSettings = {
+        cardOpacity: parseFloat(localStorage.getItem('cardOpacity') || '0.1'),
+        searchBarOpacity: parseFloat(localStorage.getItem('searchBarOpacity') || '0.1'),
+        parallaxEnabled: JSON.parse(localStorage.getItem('parallaxEnabled') || 'true'),
+        wallpaperResolution: localStorage.getItem('wallpaperResolution') || '1080p',
+        theme: localStorage.getItem('theme') || 'light'
+      };
+      
+      let hasConfigDifference = false;
+      const differences = [];
+      
+      // 检测并应用各种设置
+      if (typeof cloudSettings.cardOpacity === 'number' && cloudSettings.cardOpacity !== localSettings.cardOpacity) {
+        differences.push(`卡片透明度: ${localSettings.cardOpacity} → ${cloudSettings.cardOpacity}`);
         setCardOpacity(cloudSettings.cardOpacity);
+        hasConfigDifference = true;
       }
-      if (typeof cloudSettings.searchBarOpacity === 'number') {
+      if (typeof cloudSettings.searchBarOpacity === 'number' && cloudSettings.searchBarOpacity !== localSettings.searchBarOpacity) {
+        differences.push(`搜索栏透明度: ${localSettings.searchBarOpacity} → ${cloudSettings.searchBarOpacity}`);
         setSearchBarOpacity(cloudSettings.searchBarOpacity);
+        hasConfigDifference = true;
       }
-      if (typeof cloudSettings.parallaxEnabled === 'boolean') {
+      if (typeof cloudSettings.parallaxEnabled === 'boolean' && cloudSettings.parallaxEnabled !== localSettings.parallaxEnabled) {
+        differences.push(`视差效果: ${localSettings.parallaxEnabled} → ${cloudSettings.parallaxEnabled}`);
         setParallaxEnabled(cloudSettings.parallaxEnabled);
+        hasConfigDifference = true;
       }
-      if (cloudSettings.wallpaperResolution) {
+      if (cloudSettings.wallpaperResolution && cloudSettings.wallpaperResolution !== localSettings.wallpaperResolution) {
+        differences.push(`壁纸分辨率: ${localSettings.wallpaperResolution} → ${cloudSettings.wallpaperResolution}`);
         setWallpaperResolution(cloudSettings.wallpaperResolution);
+        hasConfigDifference = true;
       }
-      if (cloudSettings.theme) {
+      if (cloudSettings.theme && cloudSettings.theme !== localSettings.theme) {
+        differences.push(`主题: ${localSettings.theme} → ${cloudSettings.theme}`);
         localStorage.setItem('theme', cloudSettings.theme);
+        hasConfigDifference = true;
+      }
+      
+      if (hasConfigDifference) {
+        console.log('🔄 检测到配置差异，已应用云端设置:');
+        differences.forEach(diff => console.log(`  - ${diff}`));
+      } else {
+        console.log('✅ 本地和云端配置一致，无需同步');
       }
     }
   }, [shouldEnableCloudSync, currentUser, cloudSettings, setCardOpacity, setSearchBarOpacity, setParallaxEnabled, setWallpaperResolution]);
@@ -131,12 +256,14 @@ function AppContent() {
           // 使用云端数据
           finalData = cloudWebsites;
           setWebsites(finalData);
+          console.log('☁️ 已应用云端数据');
           break;
           
         case 'local':
           // 使用本地数据，同步到云端
           finalData = websites;
           await saveUserWebsites(currentUser, finalData);
+          console.log('📤 已上传本地数据到云端');
           break;
           
         case 'merge':
@@ -144,11 +271,23 @@ function AppContent() {
           finalData = mergeWithLocalData(websites);
           setWebsites(finalData);
           await saveUserWebsites(currentUser, finalData);
+          console.log('🔀 已合并本地和云端数据');
           break;
       }
 
       setSyncProcessed(true);
-      // 静默记录同步完成
+      
+      // 同步完成后触发图标预缓存
+      if (finalData.length > 0) {
+        setTimeout(() => {
+          console.log('🚀 数据同步完成，开始预缓存图标...');
+          import('@/lib/faviconCache').then(({ faviconCache }) => {
+            faviconCache.batchCacheFaviconsToIndexedDB(finalData)
+              .then(() => console.log('✅ 同步后图标预缓存完成'))
+              .catch(error => console.warn('❌ 同步后图标预缓存失败:', error));
+          });
+        }, 500);
+      }
     } catch (error) {
       console.error('❌ 数据同步失败:', error);
     }

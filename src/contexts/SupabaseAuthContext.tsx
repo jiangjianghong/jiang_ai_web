@@ -194,10 +194,46 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   // 登出
   const logout = async () => {
-    clearError();
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      console.error('登出失败:', error);
+    try {
+      clearError();
+      
+      // 检查当前是否有有效会话
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        console.log('用户已经登出，无需重复登出');
+        // 确保本地状态也清除
+        setSession(null);
+        setCurrentUser(null);
+        return;
+      }
+      
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        // 如果是会话缺失错误，不视为真正的错误
+        if (error.message?.includes('Auth session missing') || error.message?.includes('session missing')) {
+          console.log('会话已过期，清除本地状态');
+          setSession(null);
+          setCurrentUser(null);
+          return;
+        }
+        throw error;
+      }
+      
+      console.log('✅ 登出成功');
+    } catch (err) {
+      console.error('登出失败:', err);
+      // 即使登出失败，也清除本地状态
+      setSession(null);
+      setCurrentUser(null);
+      
+      // 只有在非会话相关错误时才显示错误信息
+      const errorMessage = (err as Error).message;
+      if (!errorMessage?.includes('Auth session missing') && !errorMessage?.includes('session missing')) {
+        const message = getLocalizedErrorMessage(err);
+        setError(message);
+      }
     }
   };
 

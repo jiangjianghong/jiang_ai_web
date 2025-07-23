@@ -160,47 +160,36 @@ export default function Home({ websites, setWebsites }: HomeProps) {
   };
 
   useEffect(() => {
-    // 使用代理服务获取 Bing 官方壁纸信息
-    const getBingWallpaperInfo = async () => {
-      try {
-        // 使用公共CORS代理服务避免 CORS 问题
-        const bingApiUrl = 'https://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1&mkt=zh-CN';
-        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(bingApiUrl)}`;
-        const response = await fetch(proxyUrl);
-        const data = await response.json();
-        return data.images[0];
-      } catch (error) {
-        console.warn('获取 Bing API 失败:', error);
-        return null;
-      }
-    };
-
-    // 根据分辨率获取壁纸URL
+    // 使用Supabase壁纸服务获取壁纸URL
     const getWallpaperUrl = async (resolution: string) => {
-      // 首先尝试获取 Bing 官方壁纸
-      const bingInfo = await getBingWallpaperInfo();
-      
-      if (bingInfo && bingInfo.urlbase) {
-        const resolutionMap = {
-          '4k': '_UHD.jpg',
-          '1080p': '_1920x1080.jpg',
-          '720p': '_1366x768.jpg',
-          'mobile': '_768x1280.jpg'
-        };
+      try {
+        // 获取 Supabase URL
+        const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL || '').replace(/\/$/, '');
         
-        const suffix = resolutionMap[resolution as keyof typeof resolutionMap] || '_1920x1080.jpg';
-        return `https://www.bing.com${bingInfo.urlbase}${suffix}`;
+        if (supabaseUrl) {
+          // 分辨率映射
+          const resolutionMap = {
+            '4k': 'uhd',
+            '1080p': '1920x1080',
+            '720p': '1366x768',
+            'mobile': 'mobile'
+          };
+          
+          const targetResolution = resolutionMap[resolution as keyof typeof resolutionMap] || '1920x1080';
+          const wallpaperUrl = `${supabaseUrl}/functions/v1/wallpaper-service?resolution=${targetResolution}`;
+          
+          console.log(`🖼️ 使用Supabase壁纸服务: ${wallpaperUrl}`);
+          return wallpaperUrl;
+        } else {
+          console.warn('⚠️ Supabase URL未配置，使用备用壁纸');
+        }
+      } catch (error) {
+        console.warn('⚠️ Supabase壁纸服务访问失败:', error);
       }
       
-      // 备用壁纸服务
-      const fallbackServices = {
-        '4k': 'https://source.unsplash.com/3840x2160/?nature,landscape',
-        '1080p': 'https://source.unsplash.com/1920x1080/?nature,landscape', 
-        '720p': 'https://source.unsplash.com/1366x768/?nature,landscape',
-        'mobile': 'https://source.unsplash.com/768x1280/?nature,landscape'
-      };
-      
-      return fallbackServices[resolution as keyof typeof fallbackServices] || fallbackServices['1080p'];
+      // 备用方案：使用本地默认壁纸
+      console.log('🔄 使用备用壁纸方案');
+      return '/icon/icon.jpg'; // 使用本地默认图片作为备用
     };
 
     // 获取今天的日期字符串

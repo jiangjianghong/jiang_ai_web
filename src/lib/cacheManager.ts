@@ -82,10 +82,20 @@ export const improvedWallpaperCache = {
 
       console.log('📥 开始下载图片数据...');
       
-      // 检查URL是否已经是代理URL，避免双重代理
-      const isAlreadyProxied = url.includes('corsproxy.io') || url.includes('allorigins.win');
-      const finalUrl = isAlreadyProxied ? url : `https://corsproxy.io/?${encodeURIComponent(url)}`;
-      console.log('🔄 最终请求URL:', finalUrl);
+      // 检查是否是Supabase壁纸服务URL
+      const isSupabaseWallpaper = url.includes('/functions/v1/wallpaper-service');
+      let finalUrl = url;
+      
+      if (isSupabaseWallpaper) {
+        // Supabase壁纸服务，直接使用
+        console.log('🎯 使用Supabase壁纸服务:', url);
+        finalUrl = url;
+      } else {
+        // 其他URL，检查是否需要代理
+        const isAlreadyProxied = url.includes('corsproxy.io') || url.includes('allorigins.win');
+        finalUrl = isAlreadyProxied ? url : `https://corsproxy.io/?${encodeURIComponent(url)}`;
+        console.log('🔄 使用代理URL:', finalUrl);
+      }
       
       // 下载图片
       const response = await fetch(finalUrl, {

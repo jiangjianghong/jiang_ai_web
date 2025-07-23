@@ -19,6 +19,9 @@ export interface ProxyConfig {
   
   /** Priority of this proxy (lower number = higher priority) */
   priority: number;
+  
+  /** Whether this is a Supabase Edge Function proxy */
+  isSupabaseProxy?: boolean;
 }
 
 /**

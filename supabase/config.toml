@@ -13,6 +13,9 @@ additional_redirect_urls = ["https://localhost:3000"]
 [functions.favicon-service]
 verify_jwt = false
 
+[functions.notion-proxy]
+verify_jwt = false
+
 [db]
 port = 54322
 shadow_port = 54320

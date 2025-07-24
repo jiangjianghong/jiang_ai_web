@@ -33,9 +33,9 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
   // 验证表单
   const isFormValid = apiKey.trim().length > 0 && databaseId.trim().length > 0;
 
-  // 直接使用 Vercel 代理
+  // 使用默认的 Supabase 代理
   const getProxyConfig = () => {
-    return 'enabled'; // 始终使用 Vercel 代理
+    return undefined; // 让 NotionClient 使用默认的 Supabase 代理
   };
 
   // 处理连接测试
@@ -93,7 +93,6 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
       clearConfiguration();
       setApiKey('');
       setDatabaseId('');
-      setCorsProxy('');
       setConnectionStatus('idle');
       setErrorMessage('');
     }
@@ -233,11 +232,11 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
                 <div className="flex items-center space-x-2">
                   <i className="fa-solid fa-check-circle text-green-500"></i>
                   <span className="text-sm text-green-800 font-medium">
-                    已启用 Vercel 代理
+                    已启用 Supabase 代理
                   </span>
                 </div>
                 <p className="text-sm text-green-700 mt-1">
-                  自动解决 CORS 跨域问题，无需额外配置
+                  使用 Supabase Edge Functions 自动解决 CORS 跨域问题
                 </p>
               </div>
             </div>

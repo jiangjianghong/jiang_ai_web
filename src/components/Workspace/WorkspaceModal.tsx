@@ -80,8 +80,8 @@ export default function WorkspaceModal({ isOpen, onClose }: WorkspaceModalProps)
     : "w-full max-w-6xl max-h-[85vh]";
 
   const gridClasses = isMobile
-    ? "grid-cols-2 gap-3"
-    : "grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4";
+    ? "grid-cols-2 gap-3 auto-rows-fr"
+    : "grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 auto-rows-fr";
 
   return (
     <AnimatePresence>

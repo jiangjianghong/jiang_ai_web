@@ -44,7 +44,17 @@ export class NotionClient {
 
   constructor(apiKey: string, corsProxy?: string) {
     this.apiKey = apiKey;
-    this.corsProxy = corsProxy || '';
+    // 默认使用 Supabase Edge Functions 代理
+    this.corsProxy = corsProxy || this.getDefaultSupabaseProxy();
+  }
+
+  // 获取默认的 Supabase 代理 URL
+  private getDefaultSupabaseProxy(): string {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    if (supabaseUrl) {
+      return `${supabaseUrl.replace(/\/$/, '')}/functions/v1/notion-proxy`;
+    }
+    return ''; // 如果没有配置 Supabase URL，则使用公共代理
   }
 
   private async makeRequest(endpoint: string, options: RequestInit = {}): Promise<any> {
@@ -56,33 +66,44 @@ export class NotionClient {
     console.log('- API Key前缀:', this.apiKey.substring(0, 15) + '...');
     console.log('- 请求方法:', options.method || 'GET');
 
-    // 如果有CORS代理，使用特殊处理
+    // 优先使用 Supabase Edge Functions 代理
     if (this.corsProxy) {
       try {
-        // 优先使用 Supabase Edge Functions（支持所有HTTP方法）
+        // 检查是否为 Supabase 代理
         if (this.corsProxy.includes('supabase.co') || this.corsProxy.includes('localhost:54321')) {
           const proxyUrl = this.corsProxy + endpoint;
-          console.log('- Supabase代理请求:', options.method || 'GET', proxyUrl);
+          console.log('🚀 使用 Supabase Edge Functions 代理:', options.method || 'GET', proxyUrl);
+          console.log('🔑 认证头:', this.apiKey.substring(0, 20) + '...');
           
           const response = await fetch(proxyUrl, {
             method: options.method || 'GET',
             headers: {
-              'Authorization': `Bearer ${this.apiKey}`,
+              'Authorization': this.apiKey.startsWith('Bearer ') ? this.apiKey : `Bearer ${this.apiKey}`,
               'Content-Type': 'application/json',
+              'Notion-Version': '2022-06-28',
             },
             ...(options.body && { body: options.body }),
           });
           
-          console.log('📡 Supabase代理响应状态:', response.status, response.statusText);
+          console.log('📡 Supabase 代理响应状态:', response.status, response.statusText);
           
           if (!response.ok) {
             const errorText = await response.text();
-            console.error('❌ Supabase代理请求失败:', errorText);
-            throw new Error(`Supabase代理请求失败: ${response.status} ${response.statusText}`);
+            console.error('❌ Supabase 代理请求失败:', errorText);
+            
+            // 提供更具体的错误信息
+            if (response.status === 401) {
+              throw new Error('API密钥无效或已过期，请检查配置');
+            } else if (response.status === 404) {
+              throw new Error('数据库不存在或Integration未被添加到数据库');
+            } else {
+              throw new Error(`Supabase 代理请求失败: ${response.status} ${response.statusText}`);
+            }
           }
           
           const data = await response.json();
-          console.log('✅ Supabase代理请求成功');
+          console.log('✅ Supabase 代理请求成功');
+          console.log('📋 返回数据:', data);
           return data;
         }
 
@@ -134,11 +155,11 @@ export class NotionClient {
       } catch (error) {
         console.error('❌ 代理请求失败:', error);
         
-        if (error.message.includes('Failed to fetch')) {
+        if (error instanceof Error && error.message.includes('Failed to fetch')) {
           throw new Error('无法连接到代理服务器。建议：\n1. 检查网络连接\n2. 尝试关闭代理直连\n3. 使用浏览器CORS插件');
         }
         
-        throw error;
+        throw error instanceof Error ? error : new Error(String(error));
       }
     }
 
@@ -192,8 +213,8 @@ export class NotionClient {
           console.log('✅ 公共代理请求成功');
           return data;
         } catch (error) {
-          console.warn(`❌ 代理服务失败: ${proxyUrl.split('?')[0]}`, error.message);
-          lastError = error;
+          console.warn(`❌ 代理服务失败: ${proxyUrl.split('?')[0]}`, error instanceof Error ? error.message : String(error));
+          lastError = error instanceof Error ? error : new Error(String(error));
           continue;
         }
       }
@@ -203,11 +224,11 @@ export class NotionClient {
     } catch (error) {
       console.error('❌ 公共代理请求失败:', error);
       
-      if (error.message.includes('Failed to fetch')) {
+      if (error instanceof Error && error.message.includes('Failed to fetch')) {
         throw new Error('无法连接到代理服务器。建议：\n1. 检查网络连接\n2. 尝试使用浏览器CORS插件\n3. 稍后重试');
       }
       
-      throw error;
+      throw error instanceof Error ? error : new Error(String(error));
     }
   }
 
@@ -273,7 +294,7 @@ export class NotionClient {
                   return prop.plain_text || prop.name || '';
               }
             } catch (error) {
-              console.warn(`解析属性 ${name} 失败:`, error);
+              console.warn(`解析属性 ${name} 失败:`, error instanceof Error ? error.message : String(error));
               continue;
             }
           }
@@ -288,6 +309,18 @@ export class NotionClient {
       const isActive = getPropertyValue('Active', ['激活', '启用', 'Enabled']) || true;
       const username = getPropertyValue('Username', ['账号', '用户名', 'Account']);
       const password = getPropertyValue('Password', ['密码', 'Pass', 'Pwd']);
+
+      // 调试：输出解析结果
+      console.log('🔍 页面解析结果:', {
+        pageId: page.id,
+        title,
+        url,
+        description,
+        category,
+        username,
+        password,
+        availableProperties: Object.keys(properties)
+      });
 
       return {
         id: `notion-${page.id}`,
@@ -333,16 +366,27 @@ export class WorkspaceManager {
 
   // 配置Notion连接
   configureNotion(apiKey: string, databaseId: string, corsProxy?: string) {
-    this.notionClient = new NotionClient(apiKey, corsProxy);
+    // 如果没有指定代理，使用默认的 Supabase 代理
+    const finalProxy = corsProxy || this.getDefaultSupabaseProxy();
+    this.notionClient = new NotionClient(apiKey, finalProxy);
     
     // 保存配置
     const config = {
       apiKey,
       databaseId,
-      corsProxy,
+      corsProxy: finalProxy,
       lastConfigured: new Date().toISOString()
     };
     localStorage.setItem(this.configKey, JSON.stringify(config));
+  }
+
+  // 获取默认的 Supabase 代理 URL
+  private getDefaultSupabaseProxy(): string {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    if (supabaseUrl) {
+      return `${supabaseUrl.replace(/\/$/, '')}/functions/v1/notion-proxy`;
+    }
+    return ''; // 如果没有配置 Supabase URL，则使用公共代理
   }
 
   // 加载配置
@@ -352,12 +396,14 @@ export class WorkspaceManager {
       if (config) {
         const { apiKey, databaseId, corsProxy } = JSON.parse(config);
         if (apiKey && databaseId) {
-          this.notionClient = new NotionClient(apiKey, corsProxy);
-          return { apiKey, databaseId, corsProxy };
+          // 如果没有保存的代理配置，使用默认的 Supabase 代理
+          const finalProxy = corsProxy || this.getDefaultSupabaseProxy();
+          this.notionClient = new NotionClient(apiKey, finalProxy);
+          return { apiKey, databaseId, corsProxy: finalProxy };
         }
       }
     } catch (error) {
-      console.warn('加载工作空间配置失败:', error);
+      console.warn('加载工作空间配置失败:', error instanceof Error ? error.message : String(error));
     }
     return null;
   }
@@ -435,7 +481,7 @@ export class WorkspaceManager {
       };
       localStorage.setItem(this.cacheKey, JSON.stringify(cacheData));
     } catch (error) {
-      console.warn('缓存工作空间数据失败:', error);
+      console.warn('缓存工作空间数据失败:', error instanceof Error ? error.message : String(error));
     }
   }
 
@@ -448,7 +494,7 @@ export class WorkspaceManager {
         return items || [];
       }
     } catch (error) {
-      console.warn('读取缓存工作空间数据失败:', error);
+      console.warn('读取缓存工作空间数据失败:', error instanceof Error ? error.message : String(error));
     }
     return [];
   }
@@ -462,7 +508,7 @@ export class WorkspaceManager {
         return { lastSync, version };
       }
     } catch (error) {
-      console.warn('读取缓存信息失败:', error);
+      console.warn('读取缓存信息失败:', error instanceof Error ? error.message : String(error));
     }
     return null;
   }

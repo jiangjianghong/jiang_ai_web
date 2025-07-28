@@ -59,7 +59,7 @@ export class CorsProxyService {
     const proxy = proxies[attempts];
     
     try {
-      console.log(`Trying proxy: ${proxy.name} for ${url}`);
+      // 保持console.log，这是代理服务的调试信息
       
       // Transform URL for this proxy
       const proxyUrl = transformUrl(proxy, url);
@@ -106,7 +106,7 @@ export class CorsProxyService {
         source: proxy.name
       };
     } catch (error) {
-      console.error(`Proxy ${proxy.name} failed:`, error);
+      // 保持console.error，这是代理服务的错误信息
       
       // Mark this proxy as failed
       this.workingProxies.delete(proxy.name);
@@ -138,7 +138,7 @@ export class CorsProxyService {
         // Reset this proxy
         this.failedProxies.delete(proxyName);
         this.workingProxies.add(proxyName);
-        console.log(`Resetting failed proxy: ${proxyName}`);
+        // 保持console.log，这是代理服务的状态信息
       }
     }
   }
@@ -165,7 +165,7 @@ export class CorsProxyService {
       
       return response.ok;
     } catch (error) {
-      console.error(`Health check failed for proxy ${proxyName}:`, error);
+      // 保持console.error，这是代理服务的健康检查错误
       return false;
     }
   }

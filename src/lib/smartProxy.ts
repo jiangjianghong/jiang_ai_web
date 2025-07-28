@@ -1,6 +1,8 @@
 // 智能代理管理器 - 自动选择最快的可用代理
 // 针对中国网络环境优化
 import { getApiPath } from './pathUtils';
+import { logger } from './logger';
+import { createTimeoutSignal } from './abortUtils';
 
 interface ProxyConfig {
   name: string;
@@ -31,7 +33,7 @@ class SmartProxyManager {
       const proxyUrl = this.buildProxyUrl(proxy.url, testUrl);
       const response = await fetch(proxyUrl, { 
         method: 'GET',
-        signal: AbortSignal.timeout(5000) // 5秒超时
+        signal: createTimeoutSignal(5000) // 5秒超时
       });
       
       if (response.ok) {
@@ -39,7 +41,7 @@ class SmartProxyManager {
         proxy.speed = speed;
         proxy.available = true;
         proxy.lastCheck = Date.now();
-        console.log(`✅ ${proxy.name} 可用，响应时间: ${speed}ms`);
+        logger.debug(`${proxy.name} 可用，响应时间: ${speed}ms`);
         return speed;
       } else {
         throw new Error(`HTTP ${response.status}`);
@@ -48,7 +50,7 @@ class SmartProxyManager {
       proxy.available = false;
       proxy.speed = Infinity;
       proxy.lastCheck = Date.now();
-      console.warn(`❌ ${proxy.name} 不可用:`, error.message);
+      logger.warn(`${proxy.name} 不可用`, error.message);
       return Infinity;
     }
   }
@@ -67,7 +69,7 @@ class SmartProxyManager {
 
   // 检测所有代理
   async checkAllProxies(testUrl?: string): Promise<void> {
-    console.log('🔍 检测所有代理可用性...');
+    logger.info('检测所有代理可用性');
     
     const results = await Promise.allSettled(
       this.proxies.map(proxy => this.checkProxy(proxy, testUrl))
@@ -82,10 +84,10 @@ class SmartProxyManager {
     });
     
     const available = this.proxies.filter(p => p.available);
-    console.log(`📊 代理检测完成: ${available.length}/${this.proxies.length} 可用`);
+    logger.info(`代理检测完成: ${available.length}/${this.proxies.length} 可用`);
     
     if (available.length > 0) {
-      console.log(`🚀 最快代理: ${available[0].name} (${available[0].speed}ms)`);
+      logger.info(`最快代理: ${available[0].name} (${available[0].speed}ms)`);
     }
   }
 
@@ -109,7 +111,7 @@ class SmartProxyManager {
     for (const proxy of availableProxies) {
       try {
         const proxyUrl = this.buildProxyUrl(proxy.url, targetUrl);
-        console.log(`🔄 使用代理: ${proxy.name}`);
+        logger.debug(`使用代理: ${proxy.name}`);
 
         const response = await fetch(proxyUrl, {
           ...options,
@@ -128,13 +130,13 @@ class SmartProxyManager {
         if (response.ok) {
           proxy.available = true;
           proxy.lastCheck = Date.now();
-          console.log(`✅ 代理请求成功: ${proxy.name}`);
+          logger.debug(`代理请求成功: ${proxy.name}`);
           return response;
         } else {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
       } catch (error) {
-        console.warn(`❌ 代理 ${proxy.name} 失败:`, error.message);
+        logger.warn(`代理 ${proxy.name} 失败`, error.message);
         proxy.available = false;
         proxy.lastCheck = Date.now();
         lastError = error;

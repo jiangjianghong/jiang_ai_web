@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { logger } from './logger';
 
 /**
  * 从 URL 下载图标并上传到 Supabase Storage
@@ -40,7 +41,7 @@ export const uploadFaviconToStorage = async (faviconUrl: string, websiteId: stri
 
     return data.publicUrl;
   } catch (error) {
-    console.error('上传图标到Supabase失败:', error);
+    logger.error('上传图标到Supabase失败', error);
     // 如果上传失败，返回原始URL
     return faviconUrl;
   }

@@ -123,7 +123,7 @@ class ResourcePreloader {
       fontFace.load().then(() => {
         document.fonts.add(fontFace);
       }).catch(error => {
-        console.warn('字体预加载失败:', error);
+        // 字体预加载失败不是关键错误，保持console.warn
       });
     }
   }

@@ -4,6 +4,7 @@ import { logger } from './logger';
 import { errorHandler } from './errorHandler';
 import { memoryManager } from './memoryManager';
 import { createWallpaperRequest } from './requestManager';
+import { createTimeoutSignal } from './abortUtils';
 
 interface WallpaperCache {
   url: string;
@@ -62,7 +63,7 @@ class OptimizedWallpaperService {
         return `${supabaseUrl}/functions/v1/wallpaper-service?resolution=${targetResolution}`;
       }
     } catch (error) {
-      console.warn('⚠️ Supabase壁纸服务访问失败:', error);
+      logger.wallpaper.warn('Supabase壁纸服务访问失败', error);
     }
     
     return this.fallbackImage;
@@ -137,7 +138,7 @@ class OptimizedWallpaperService {
       const response = await createWallpaperRequest(proxyUrl, {
         mode: 'cors',
         headers: { 'Accept': 'image/*' },
-        signal: AbortSignal.timeout(12000) // 12秒超时
+        signal: createTimeoutSignal(12000) // 12秒超时
       });
 
       const blob = await response.blob();
@@ -363,12 +364,16 @@ export const optimizedWallpaperService = OptimizedWallpaperService.getInstance()
 
 // 定期清理过期缓存（每6小时）
 setInterval(() => {
-  optimizedWallpaperService.cleanupExpiredCache().catch(console.error);
+  optimizedWallpaperService.cleanupExpiredCache().catch(error => {
+    logger.wallpaper.error('定期清理缓存失败', error);
+  });
 }, 6 * 60 * 60 * 1000);
 
 // 页面空闲时预加载壁纸
 if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
   requestIdleCallback(() => {
-    optimizedWallpaperService.preloadWallpapers().catch(console.error);
+    optimizedWallpaperService.preloadWallpapers().catch(error => {
+      logger.wallpaper.error('预加载壁纸失败', error);
+    });
   });
 }

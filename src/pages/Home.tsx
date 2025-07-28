@@ -271,7 +271,7 @@ export default function Home({ websites, setWebsites }: HomeProps) {
         <div 
           className="fixed top-0 left-0 w-full h-full -z-10"
           style={{
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            background: '#f0f0f0',
           }}
         />
       )}

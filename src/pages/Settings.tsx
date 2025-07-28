@@ -13,6 +13,7 @@ import { useUserProfile } from '@/contexts/UserProfileContext';
 import { WebsiteData, UserSettings, saveUserSettings, getUserSettings, saveUserWebsites, getUserWebsites } from '@/lib/supabaseSync';
 import { useDataManager } from '@/hooks/useDataManager';
 import { faviconCache } from '@/lib/faviconCache';
+import { logger } from '@/lib/logger';
 
 interface SettingsProps {
   onClose: () => void;
@@ -100,7 +101,7 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
       }
     } catch (error) {
       setNameError('更新失败，请重试');
-      console.error('更新用户名失败:', error);
+      logger.error('更新用户名失败', error);
     } finally {
       setNameLoading(false);
     }
@@ -217,7 +218,7 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
     try {
       // 清空所有favicon缓存
       await faviconCache.clearCache();
-      console.log('✅ 图标缓存已清空');
+      logger.favicon.info('图标缓存已清空');
       
       // 延迟一下让用户看到提示
       setTimeout(() => {
@@ -230,7 +231,7 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
       }, 500);
       
     } catch (error) {
-      console.error('修复图标失败:', error);
+      logger.favicon.error('修复图标失败', error);
       setFixIconsMessage('❌ 修复失败，请重试');
       setTimeout(() => {
         setFixIconsMessage('');
@@ -467,7 +468,7 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
                             await logout();
                             handleClose(); // 登出后关闭设置面板
                           } catch (error) {
-                            console.error('登出失败:', error);
+                            logger.error('登出失败', error);
                           }
                         }}
                         className="group flex items-center gap-2 text-sm text-slate-600 hover:text-slate-800 transition-all duration-200 select-none"

@@ -2,6 +2,7 @@
 import { supabase, TABLES } from '@/lib/supabase';
 import { User } from '@supabase/supabase-js';
 import { WallpaperResolution } from '@/contexts/TransparencyContext';
+import { logger } from './logger';
 
 // 用户设置接口
 export interface UserSettings {
@@ -61,7 +62,7 @@ const retryAsync = async <T>(
       
       // 指数退避延迟
       const waitTime = delay * Math.pow(2, i);
-      console.log(`🔄 同步失败，${waitTime}ms后重试 (${i + 1}/${maxRetries + 1})`);
+      logger.sync.info(`同步失败，${waitTime}ms后重试 (${i + 1}/${maxRetries + 1})`);
       await new Promise(resolve => setTimeout(resolve, waitTime));
     }
   }
@@ -94,11 +95,11 @@ export const saveUserSettings = async (
       if (error) throw error;
     });
     
-    console.log('用户设置已同步到云端');
+    logger.sync.info('用户设置已同步到云端');
     callbacks?.onSyncSuccess?.('设置已同步到云端');
     return true;
   } catch (error) {
-    console.error('保存用户设置失败:', error);
+    logger.sync.error('保存用户设置失败', error);
     callbacks?.onSyncError?.('设置同步失败: ' + (error as Error).message);
     return false;
   }
@@ -125,7 +126,7 @@ export const getUserSettings = async (user: User): Promise<UserSettings | null> 
     }
     
     if (data) {
-      console.log('从云端获取用户设置成功');
+      logger.sync.info('从云端获取用户设置成功');
       return {
         cardOpacity: data.card_opacity,
         searchBarOpacity: data.search_bar_opacity,
@@ -135,11 +136,11 @@ export const getUserSettings = async (user: User): Promise<UserSettings | null> 
         lastSync: data.last_sync
       };
     } else {
-      console.log('用户设置不存在，将使用默认设置');
+      logger.sync.debug('用户设置不存在，将使用默认设置');
       return null;
     }
   } catch (error) {
-    console.error('获取用户设置失败:', error);
+    logger.sync.error('获取用户设置失败', error);
     // 离线模式下直接返回 null，不阻塞界面
     return null;
   }
@@ -166,11 +167,11 @@ export const saveUserWebsites = async (
       if (error) throw error;
     });
     
-    console.log('网站数据已同步到云端');
+    logger.sync.info('网站数据已同步到云端');
     callbacks?.onSyncSuccess?.('网站数据已同步到云端');
     return true;
   } catch (error) {
-    console.error('保存网站数据失败:', error);
+    logger.sync.error('保存网站数据失败', error);
     callbacks?.onSyncError?.('网站数据同步失败: ' + (error as Error).message);
     return false;
   }
@@ -197,14 +198,14 @@ export const getUserWebsites = async (user: User): Promise<WebsiteData[] | null>
     }
     
     if (data) {
-      console.log('从云端获取网站数据成功');
+      logger.sync.info('从云端获取网站数据成功');
       return data.websites as WebsiteData[];
     } else {
-      console.log('用户网站数据不存在');
+      logger.sync.debug('用户网站数据不存在');
       return null;
     }
   } catch (error) {
-    console.error('获取网站数据失败:', error);
+    logger.sync.error('获取网站数据失败', error);
     // 离线模式下直接返回 null，不阻塞界面
     return null;
   }
@@ -288,7 +289,7 @@ export const autoSync = (
       } else {
         if (retryCount < maxRetries) {
           retryCount++;
-          console.log(`🔄 同步部分失败，${retryCount}/${maxRetries} 次重试中...`);
+          logger.sync.warn(`同步部分失败，${retryCount}/${maxRetries} 次重试中`);
           // 指数退避重试
           setTimeout(() => {
             autoSync(user, websites, settings, callbacks);
@@ -301,7 +302,7 @@ export const autoSync = (
     } catch (error) {
       if (retryCount < maxRetries) {
         retryCount++;
-        console.log(`🔄 同步异常，${retryCount}/${maxRetries} 次重试中...`);
+        logger.sync.warn(`同步异常，${retryCount}/${maxRetries} 次重试中`);
         setTimeout(() => {
           autoSync(user, websites, settings, callbacks);
         }, 1000 * Math.pow(2, retryCount - 1));
@@ -332,11 +333,11 @@ export const saveUserProfile = async (
 
     if (error) throw error;
     
-    console.log('用户资料已同步到云端');
+    logger.sync.info('用户资料已同步到云端');
     callbacks?.onSyncSuccess?.('用户资料已保存');
     return true;
   } catch (error) {
-    console.error('保存用户资料失败:', error);
+    logger.sync.error('保存用户资料失败', error);
     callbacks?.onSyncError?.('用户资料保存失败: ' + (error as Error).message);
     return false;
   }
@@ -356,7 +357,7 @@ export const getUserProfile = async (user: User): Promise<UserProfile | null> =>
     }
     
     if (data) {
-      console.log('从云端获取用户资料成功');
+      logger.sync.info('从云端获取用户资料成功');
       return {
         id: data.id,
         email: data.email,
@@ -365,11 +366,11 @@ export const getUserProfile = async (user: User): Promise<UserProfile | null> =>
         updatedAt: data.updated_at
       };
     } else {
-      console.log('用户资料不存在');
+      logger.sync.debug('用户资料不存在');
       return null;
     }
   } catch (error) {
-    console.error('获取用户资料失败:', error);
+    logger.sync.error('获取用户资料失败', error);
     return null;
   }
 };

@@ -48,7 +48,7 @@ export class StorageManager {
       this.consentCache = status;
       this.cacheTimestamp = Date.now();
     } catch (error) {
-      console.error('更新同意状态失败:', error);
+      // 保持console.error，避免循环依赖
     }
   }
 
@@ -69,11 +69,11 @@ export class StorageManager {
         localStorage.setItem(key, value);
         return true;
       } else {
-        console.warn(`🚫 存储被阻止: ${key} (用户未同意Cookie使用)`);
+        // 保持console.warn，避免循环依赖
         return false;
       }
     } catch (error) {
-      console.error('存储失败:', error);
+      // 存储管理器的错误保持console.error，因为logger可能依赖存储
       return false;
     }
   }
@@ -85,11 +85,11 @@ export class StorageManager {
       if (isEssential || this.hasConsent()) {
         return localStorage.getItem(key);
       } else {
-        console.warn(`🚫 读取被阻止: ${key} (用户未同意Cookie使用)`);
+        // 保持console.warn，避免循环依赖
         return null;
       }
     } catch (error) {
-      console.error('读取失败:', error);
+      // 保持console.error，避免循环依赖
       return null;
     }
   }
@@ -101,11 +101,11 @@ export class StorageManager {
         localStorage.removeItem(key);
         return true;
       } else {
-        console.warn(`🚫 删除被阻止: ${key} (用户未同意Cookie使用)`);
+        // 保持console.warn，避免循环依赖
         return false;
       }
     } catch (error) {
-      console.error('删除失败:', error);
+      // 保持console.error，避免循环依赖
       return false;
     }
   }
@@ -144,12 +144,12 @@ export class StorageManager {
         try {
           localStorage.removeItem(key);
         } catch (error) {
-          console.error(`清除数据失败: ${key}`, error);
+          // 保持console.error，避免循环依赖
         }
       }
     });
 
-    console.log('🧹 已清除所有非必要数据');
+    // 保持console.log，避免循环依赖
   }
 
   // 获取存储使用统计
@@ -187,7 +187,7 @@ export class StorageManager {
   // 导出数据（仅在有同意时）
   exportData(): object | null {
     if (!this.hasConsent()) {
-      console.warn('🚫 数据导出被阻止 (用户未同意Cookie使用)');
+      // 保持console.warn，避免循环依赖
       return null;
     }
 

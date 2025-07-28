@@ -111,17 +111,8 @@
   <body>
     <!-- React应用根节点 -->
     <div id="root">
-      <!-- 骨架屏 - 纯灰色背景 -->
-      <div id="loading-skeleton" style="
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100vh;
-        background: #f5f5f5;
-        z-index: 9999;
-      ">
-      </div>
+      
+
       
       <style>
         /* 关键CSS内联 - 避免FOUC */
@@ -133,7 +124,7 @@
           margin: 0;
           padding: 0;
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: #f0f0f0;
           min-height: 100vh;
           overflow-x: hidden;
           /* 优化字体渲染 */
@@ -147,11 +138,13 @@
           min-height: 100vh;
         }
         
-        /* 骨架屏优化 */
-        #loading-skeleton {
-          will-change: opacity;
-          backface-visibility: hidden;
-          transform: translateZ(0); /* 启用硬件加速 */
+
+        
+        /* 减少动画以节省电池 */
+        @media (prefers-reduced-motion: reduce) {
+          #loading-skeleton {
+            animation-duration: 0.5s !important;
+          }
         }
         
         /* 预设常用类避免布局抖动 */
@@ -171,6 +164,8 @@
     </div>
     
     <script type="module" src="/src/main.tsx"></script>
+    
+
     
     <!-- Service Worker 注册（仅在生产环境） -->
     <script>

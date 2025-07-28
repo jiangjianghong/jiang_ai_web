@@ -1,5 +1,9 @@
 // 优化的壁纸服务 - 解决白屏问题，提升加载体验
 import { indexedDBCache } from './indexedDBCache';
+import { logger } from './logger';
+import { errorHandler } from './errorHandler';
+import { memoryManager } from './memoryManager';
+import { createWallpaperRequest } from './requestManager';
 
 interface WallpaperCache {
   url: string;
@@ -72,9 +76,9 @@ class OptimizedWallpaperService {
       const todayCache = await indexedDBCache.get<Blob>(todayKey);
       
       if (todayCache) {
-        console.log('⚡ 使用今天的壁纸缓存');
+        logger.wallpaper.info('使用今天的壁纸缓存');
         return {
-          url: URL.createObjectURL(todayCache),
+          url: memoryManager.createBlobUrl(todayCache, 'wallpaper'),
           isToday: true
         };
       }
@@ -84,9 +88,9 @@ class OptimizedWallpaperService {
       const yesterdayCache = await indexedDBCache.get<Blob>(yesterdayKey);
       
       if (yesterdayCache) {
-        console.log('📅 使用昨天的壁纸缓存作为降级');
+        logger.wallpaper.info('使用昨天的壁纸缓存作为降级');
         return {
-          url: URL.createObjectURL(yesterdayCache),
+          url: memoryManager.createBlobUrl(yesterdayCache, 'wallpaper'),
           isToday: false
         };
       }
@@ -104,16 +108,16 @@ class OptimizedWallpaperService {
         const latestCache = await indexedDBCache.get<Blob>(latestKey);
         
         if (latestCache) {
-          console.log('🗂️ 使用最新可用的壁纸缓存:', latestKey);
+          logger.wallpaper.info('使用最新可用的壁纸缓存', { key: latestKey });
           return {
-            url: URL.createObjectURL(latestCache),
+            url: memoryManager.createBlobUrl(latestCache, 'wallpaper'),
             isToday: false
           };
         }
       }
 
     } catch (error) {
-      console.warn('获取智能缓存失败:', error);
+      logger.wallpaper.warn('获取智能缓存失败', error);
     }
 
     return null;
@@ -122,37 +126,36 @@ class OptimizedWallpaperService {
   // 下载并缓存壁纸
   private async downloadAndCache(url: string, resolution: string): Promise<string> {
     try {
-      console.log('📥 开始下载壁纸:', url);
+      logger.wallpaper.info('开始下载壁纸', { url: url.substring(0, 50) });
       
       // 使用代理处理CORS
       const proxyUrl = url.includes('bing.com') || url.includes('unsplash.com')
         ? `https://corsproxy.io/?${encodeURIComponent(url)}`
         : url;
 
-      const response = await fetch(proxyUrl, {
+      // 使用请求管理器下载
+      const response = await createWallpaperRequest(proxyUrl, {
         mode: 'cors',
         headers: { 'Accept': 'image/*' },
         signal: AbortSignal.timeout(12000) // 12秒超时
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
       const blob = await response.blob();
-      const blobUrl = URL.createObjectURL(blob);
+      const blobUrl = memoryManager.createBlobUrl(blob, 'wallpaper');
 
       // 异步缓存到IndexedDB
       const cacheKey = this.getTodayCacheKey(resolution);
       indexedDBCache.set(cacheKey, blob, 48 * 60 * 60 * 1000) // 48小时缓存
-        .then(() => console.log('✅ 壁纸已缓存到IndexedDB'))
-        .catch(error => console.warn('缓存壁纸失败:', error));
+        .then(() => logger.wallpaper.info('壁纸已缓存到IndexedDB'))
+        .catch(error => logger.wallpaper.warn('缓存壁纸失败', error));
 
-      console.log('✅ 壁纸下载完成:', `${(blob.size / 1024 / 1024).toFixed(2)}MB`);
+      logger.wallpaper.info('壁纸下载完成', { 
+        size: `${(blob.size / 1024 / 1024).toFixed(2)}MB` 
+      });
       return blobUrl;
 
     } catch (error) {
-      console.error('❌ 下载壁纸失败:', error);
+      logger.wallpaper.error('下载壁纸失败', error);
       throw error;
     }
   }
@@ -204,9 +207,9 @@ class OptimizedWallpaperService {
 
         // 如果不是今天的缓存，后台更新
         if (!cachedResult.isToday) {
-          console.log('🔄 后台更新今天的壁纸...');
+          logger.wallpaper.info('后台更新今天的壁纸');
           this.updateWallpaperInBackground(resolution).catch(error => {
-            console.warn('后台更新壁纸失败:', error);
+            logger.wallpaper.warn('后台更新壁纸失败', error);
           });
         }
 
@@ -214,7 +217,7 @@ class OptimizedWallpaperService {
       }
 
       // 2. 无缓存，需要下载
-      console.log('🌐 无可用缓存，开始下载新壁纸...');
+      logger.wallpaper.info('无可用缓存，开始下载新壁纸');
       const wallpaperUrl = await this.getWallpaperUrl(resolution);
       
       if (wallpaperUrl === this.fallbackImage) {
@@ -237,7 +240,8 @@ class OptimizedWallpaperService {
       };
 
     } catch (error) {
-      console.error('❌ 获取壁纸失败，使用备用图片:', error);
+      const errorInfo = errorHandler.handleError(error as Error, 'wallpaper-load');
+      logger.wallpaper.error('获取壁纸失败，使用备用图片', errorInfo);
       
       return {
         url: this.fallbackImage,
@@ -254,10 +258,10 @@ class OptimizedWallpaperService {
       const wallpaperUrl = await this.getWallpaperUrl(resolution);
       if (wallpaperUrl !== this.fallbackImage) {
         await this.downloadAndCache(wallpaperUrl, resolution);
-        console.log('✅ 后台壁纸更新完成');
+        logger.wallpaper.info('后台壁纸更新完成');
       }
     } catch (error) {
-      console.warn('后台壁纸更新失败:', error);
+      logger.wallpaper.warn('后台壁纸更新失败', error);
     }
   }
 
@@ -275,11 +279,11 @@ class OptimizedWallpaperService {
           try {
             const cached = await this.getSmartCache(resolution);
             if (!cached || !cached.isToday) {
-              console.log(`🚀 预加载 ${resolution} 壁纸...`);
+              logger.wallpaper.debug(`预加载 ${resolution} 壁纸`);
               await this.getWallpaper(resolution);
             }
           } catch (error) {
-            console.warn(`预加载 ${resolution} 壁纸失败:`, error);
+            logger.wallpaper.warn(`预加载 ${resolution} 壁纸失败`, error);
           }
           resolve();
         });
@@ -308,10 +312,10 @@ class OptimizedWallpaperService {
       }
 
       if (deletedCount > 0) {
-        console.log(`🧹 清理了 ${deletedCount} 个过期壁纸缓存`);
+        logger.wallpaper.info(`清理了 ${deletedCount} 个过期壁纸缓存`);
       }
     } catch (error) {
-      console.warn('清理过期缓存失败:', error);
+      logger.wallpaper.warn('清理过期缓存失败', error);
     }
   }
 
@@ -348,7 +352,7 @@ class OptimizedWallpaperService {
         cacheKeys: wallpaperKeys
       };
     } catch (error) {
-      console.warn('获取缓存统计失败:', error);
+      logger.wallpaper.warn('获取缓存统计失败', error);
       return { totalCount: 0, todayCount: 0, totalSize: 0, cacheKeys: [] };
     }
   }

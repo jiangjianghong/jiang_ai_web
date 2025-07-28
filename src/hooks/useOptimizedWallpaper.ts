@@ -1,6 +1,8 @@
 // 优化的壁纸加载Hook - 解决白屏问题，提升用户体验
 import { useState, useEffect, useCallback } from 'react';
 import { optimizedWallpaperService } from '@/lib/optimizedWallpaperService';
+import { logger } from '@/lib/logger';
+import { errorHandler } from '@/lib/errorHandler';
 
 interface WallpaperState {
   url: string;
@@ -74,12 +76,12 @@ export function useOptimizedWallpaper(resolution: string) {
         loadProgress: 0
       }));
 
-      console.log('🖼️ 开始加载壁纸，分辨率:', resolution);
+      logger.wallpaper.info('开始加载壁纸', { resolution });
 
       // 获取壁纸
       const result = await optimizedWallpaperService.getWallpaper(resolution);
       
-      console.log('📊 壁纸获取结果:', {
+      logger.wallpaper.debug('壁纸获取结果', {
         isFromCache: result.isFromCache,
         isToday: result.isToday,
         needsUpdate: result.needsUpdate
@@ -100,7 +102,7 @@ export function useOptimizedWallpaper(resolution: string) {
 
         // 如果需要更新，显示提示
         if (result.needsUpdate) {
-          console.log('🔄 使用缓存壁纸，后台正在更新今天的壁纸...');
+          logger.wallpaper.info('使用缓存壁纸，后台正在更新今天的壁纸');
         }
       } else {
         // 新下载的图片，需要预加载确保显示
@@ -117,9 +119,9 @@ export function useOptimizedWallpaper(resolution: string) {
             loadProgress: 100
           });
 
-          console.log('✅ 壁纸加载完成');
+          logger.wallpaper.info('壁纸加载完成');
         } catch (preloadError) {
-          console.warn('⚠️ 图片预加载失败，但仍然使用该URL:', preloadError);
+          logger.wallpaper.warn('图片预加载失败，但仍然使用该URL', preloadError);
           
           // 即使预加载失败，也使用该URL（让浏览器自己处理）
           setWallpaperState({
@@ -135,12 +137,13 @@ export function useOptimizedWallpaper(resolution: string) {
       }
 
     } catch (error) {
-      console.error('❌ 壁纸加载失败:', error);
+      const errorInfo = errorHandler.handleError(error as Error, 'wallpaper-hook');
+      logger.wallpaper.error('壁纸加载失败', errorInfo);
       
       setWallpaperState(prev => ({
         ...prev,
         isLoading: false,
-        error: error instanceof Error ? error.message : '壁纸加载失败',
+        error: errorInfo.userMessage,
         loadProgress: 0
       }));
     }
@@ -148,7 +151,7 @@ export function useOptimizedWallpaper(resolution: string) {
 
   // 强制刷新壁纸
   const refreshWallpaper = useCallback(async () => {
-    console.log('🔄 强制刷新壁纸...');
+    logger.wallpaper.info('强制刷新壁纸');
     
     // 清理今天的缓存
     try {
@@ -156,11 +159,10 @@ export function useOptimizedWallpaper(resolution: string) {
       const todayKey = `wallpaper-optimized:${resolution}-${new Date().toISOString().split('T')[0]}`;
       
       if (stats.cacheKeys.includes(todayKey)) {
-        // 这里需要添加删除特定缓存的方法
-        console.log('🗑️ 清理今天的壁纸缓存');
+        logger.wallpaper.debug('清理今天的壁纸缓存');
       }
     } catch (error) {
-      console.warn('清理缓存失败:', error);
+      logger.wallpaper.warn('清理缓存失败', error);
     }
 
     // 重新加载
@@ -172,7 +174,7 @@ export function useOptimizedWallpaper(resolution: string) {
     try {
       return await optimizedWallpaperService.getCacheStats();
     } catch (error) {
-      console.warn('获取缓存统计失败:', error);
+      logger.wallpaper.warn('获取缓存统计失败', error);
       return { totalCount: 0, todayCount: 0, totalSize: 0, cacheKeys: [] };
     }
   }, []);

@@ -17,6 +17,7 @@ import { useRAFThrottledMouseMove } from '@/hooks/useRAFThrottle';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import { useOptimizedWallpaper } from '@/hooks/useOptimizedWallpaper';
 import { WallpaperDebugPanel } from '@/components/WallpaperDebugPanel';
+import { logger } from '@/lib/logger';
 
 interface HomeProps {
   websites: any[];
@@ -71,8 +72,7 @@ export default function Home({ websites, setWebsites }: HomeProps) {
       // 在全局对象上暴露清理函数，方便调试
       (window as any).clearWallpaperCache = refreshWallpaper;
       (window as any).getWallpaperStats = getCacheStats;
-      console.log('🔧 开发模式：可使用 clearWallpaperCache() 清理壁纸缓存');
-      console.log('🔧 开发模式：可使用 getWallpaperStats() 查看缓存统计');
+      // 调试信息现在由logger管理
     }
   }, [refreshWallpaper, getCacheStats]);
 
@@ -164,16 +164,16 @@ export default function Home({ websites, setWebsites }: HomeProps) {
         });
 
         if (uncachedWebsites.length > 0) {
-          console.log(`🚀 [Home] 开始批量预缓存 ${uncachedWebsites.length} 个未缓存的 favicon...`);
+          logger.favicon.info(`开始批量预缓存 ${uncachedWebsites.length} 个未缓存的 favicon`);
           faviconCache.batchCacheFaviconsToIndexedDB(uncachedWebsites)
             .then(() => {
-              console.log('✅ [Home] Favicon 批量预缓存完成');
+              logger.favicon.info('Favicon 批量预缓存完成');
             })
             .catch(error => {
-              console.warn('❌ [Home] Favicon 批量预缓存失败:', error);
+              logger.favicon.warn('Favicon 批量预缓存失败', error);
             });
         } else {
-          console.log('📦 [Home] 所有 favicon 均已缓存，跳过批量预缓存');
+          logger.favicon.debug('所有 favicon 均已缓存，跳过批量预缓存');
         }
       }, 1500); // 减少到1.5秒，更快响应数据变化
 
@@ -186,17 +186,17 @@ export default function Home({ websites, setWebsites }: HomeProps) {
     if (currentUser && currentUser.email_confirmed_at && websites.length > 0) {
       // 用户登录后，检查是否需要预缓存图标
       const timer = setTimeout(() => {
-        console.log('👤 用户登录状态变化，检查图标缓存需求...');
+        logger.favicon.info('用户登录状态变化，检查图标缓存需求');
         const uncachedWebsites = websites.filter(website => {
           const cached = faviconCache.getCachedFavicon(website.url);
           return !cached;
         });
 
         if (uncachedWebsites.length > 0) {
-          console.log(`🚀 [登录后] 开始预缓存 ${uncachedWebsites.length} 个图标...`);
+          logger.favicon.info(`登录后开始预缓存 ${uncachedWebsites.length} 个图标`);
           faviconCache.batchCacheFaviconsToIndexedDB(uncachedWebsites)
-            .then(() => console.log('✅ [登录后] 图标预缓存完成'))
-            .catch(error => console.warn('❌ [登录后] 图标预缓存失败:', error));
+            .then(() => logger.favicon.info('登录后图标预缓存完成'))
+            .catch(error => logger.favicon.warn('登录后图标预缓存失败', error));
         }
       }, 2000);
 

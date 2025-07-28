@@ -18,7 +18,7 @@ import { useStorage } from '@/lib/storageManager';
 
 // 内部应用组件，可以使用认证上下文
 function AppContent() {
-  console.log('🎯 AppContent 开始渲染');
+  // 移除调试日志，使用新的日志系统
   
   // 使用页面标题hook
   usePageTitle();
@@ -45,7 +45,7 @@ function AppContent() {
     storage.setItem('websites', websites);
   }, [websites, storage]);
 
-  console.log('✅ AppContent 渲染完成');
+  // 移除调试日志，使用新的日志系统
 
   return (
     <>
@@ -67,7 +67,7 @@ function AppContent() {
 
 // 主应用组件，包含所有Provider
 export default function MainApp() {
-  console.log('🎯 MainApp 开始渲染');
+  // 移除调试日志，使用新的日志系统
   
   return (
     <DndProvider backend={HTML5Backend}>

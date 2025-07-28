@@ -5,6 +5,15 @@ import { Toaster } from 'sonner';
 import MainApp from "./MainApp.tsx";
 import "./index.css";
 
+// 初始化优化系统
+import { logger } from './lib/logger';
+import { setupGlobalErrorHandler } from './lib/errorHandler';
+import { memoryManager } from './lib/memoryManager';
+import { requestManager } from './lib/requestManager';
+
+// 设置全局错误处理
+setupGlobalErrorHandler();
+
 const isLocalhost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
 // 检查当前路径是否包含 /jiang_ai_web/
 const hasBasePath = window.location.pathname.startsWith('/jiang_ai_web');
@@ -84,7 +93,7 @@ try {
   });
 
 } catch (error) {
-  console.error('❌ React应用初始化失败:', error);
+  logger.error('React应用初始化失败', error);
   
   // 显示错误信息
   const root = createRoot(document.getElementById("root")!);

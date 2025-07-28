@@ -220,6 +220,31 @@ class IndexedDBCache {
     }
   }
 
+  // 获取所有缓存键
+  async getAllKeys(): Promise<string[]> {
+    try {
+      const db = await this.ensureDB();
+      const transaction = db.transaction([this.storeName], 'readonly');
+      const store = transaction.objectStore(this.storeName);
+      const request = store.getAllKeys();
+
+      return new Promise((resolve, reject) => {
+        request.onsuccess = () => {
+          const keys = request.result as string[];
+          resolve(keys);
+        };
+
+        request.onerror = () => {
+          console.error('IndexedDB 获取所有键失败:', request.error);
+          reject(request.error);
+        };
+      });
+    } catch (error) {
+      console.error('IndexedDB 获取所有键异常:', error);
+      return [];
+    }
+  }
+
   // 获取缓存统计信息
   async getStats(): Promise<{ count: number; totalSize: number }> {
     try {

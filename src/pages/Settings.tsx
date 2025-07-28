@@ -769,25 +769,49 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
                 💡 更改分辨率后会重新加载壁纸并更新缓存
               </p>
               
-              {/* 壁纸问题修复提示 */}
+              {/* 壁纸管理按钮 */}
               <div className="pt-3 border-t border-gray-100">
-                <div className="text-center">
-                  <p className="text-xs text-gray-500 select-none">
-                    壁纸显示不正确？<button 
-                      onClick={() => {
-                        // 清除壁纸缓存并刷新页面
-                        if (window.confirm('这将清除壁纸缓存并刷新页面，确定继续吗？')) {
-                          localStorage.removeItem('wallpaper-cache');
-                          localStorage.removeItem('wallpaper-url');
+                <div className="flex gap-2 justify-center">
+                  <button 
+                    className="px-3 py-1.5 text-xs bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-1"
+                    onClick={() => {
+                      if (window.confirm('这将刷新今日壁纸，确定继续吗？')) {
+                        // 调用壁纸刷新功能
+                        if ((window as any).clearWallpaperCache) {
+                          (window as any).clearWallpaperCache();
+                        } else {
                           window.location.reload();
                         }
-                      }}
-                      className="text-blue-500 hover:text-blue-600 underline ml-1"
-                    >
-                      清除缓存
-                    </button>
-                  </p>
+                      }
+                    }}
+                  >
+                    <i className="fa-solid fa-sync-alt"></i>
+                    刷新壁纸
+                  </button>
+                  
+                  <button 
+                    className="px-3 py-1.5 text-xs bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors flex items-center gap-1"
+                    onClick={async () => {
+                      try {
+                        if ((window as any).getWallpaperStats) {
+                          const stats = await (window as any).getWallpaperStats();
+                          alert(`壁纸缓存统计:\n总数: ${stats.totalCount}\n今日: ${stats.todayCount}\n大小: ${(stats.totalSize / 1024 / 1024).toFixed(2)}MB`);
+                        } else {
+                          alert('缓存统计功能不可用');
+                        }
+                      } catch (error) {
+                        alert('获取统计失败: ' + error);
+                      }
+                    }}
+                  >
+                    <i className="fa-solid fa-chart-bar"></i>
+                    缓存统计
+                  </button>
                 </div>
+                
+                <p className="text-xs text-gray-500 text-center mt-2 select-none">
+                  💡 壁纸每日自动更新，支持智能缓存和后台更新
+                </p>
               </div>
             </div>
           </div>

@@ -13,10 +13,10 @@ import EmailVerificationBanner from '@/components/EmailVerificationBanner';
 import WorkspaceModal from '@/components/Workspace/WorkspaceModal';
 import { useWorkspace } from '@/contexts/WorkspaceContext';
 import { faviconCache } from '@/lib/faviconCache';
-import { improvedWallpaperCache } from '@/lib/cacheManager';
-import { indexedDBCache } from '@/lib/indexedDBCache';
 import { useRAFThrottledMouseMove } from '@/hooks/useRAFThrottle';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
+import { useOptimizedWallpaper } from '@/hooks/useOptimizedWallpaper';
+import { WallpaperDebugPanel } from '@/components/WallpaperDebugPanel';
 
 interface HomeProps {
   websites: any[];
@@ -45,71 +45,36 @@ export default function Home({ websites, setWebsites }: HomeProps) {
     setWebsites(newWebsites);
   };
 
-  const [bgImage, setBgImage] = useState('');
-  const [bgImageLoaded, setBgImageLoaded] = useState(false);
+  // 使用优化的壁纸Hook
+  const {
+    url: bgImage,
+    isLoading: bgImageLoading,
+    isReady: bgImageLoaded,
+    isFromCache,
+    isToday,
+    needsUpdate,
+    showLoadingIndicator,
+    showUpdateHint,
+    refreshWallpaper,
+    getCacheStats
+  } = useOptimizedWallpaper(wallpaperResolution);
+
   const [showSettings, setShowSettings] = useState(false);
   const [mousePosition, setMousePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [showGreeting, setShowGreeting] = useState(false);
   const [clickCount, setClickCount] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
 
-  // 组件挂载时立即检查缓存，提供即时加载体验
-  useEffect(() => {
-    const getTodayKey = () => {
-      const today = new Date();
-      return today.toISOString().split('T')[0];
-    };
-
-    const getBlobCacheKey = () => `blob-${wallpaperResolution}-${getTodayKey()}`;
-
-    const getCachedWallpaper = async () => {
-      try {
-        // 只检查IndexedDB Blob缓存
-        const blobCacheKey = getBlobCacheKey();
-        console.log('🔍 检查Blob缓存键:', blobCacheKey);
-        
-        const cachedBlobUrl = await improvedWallpaperCache.getCachedWallpaper(blobCacheKey);
-        if (cachedBlobUrl) {
-          console.log('⚡ 使用本地Blob缓存');
-          return cachedBlobUrl;
-        }
-      } catch (error) {
-        console.warn('读取壁纸缓存失败:', error);
-      }
-      return null;
-    };
-    
-    getCachedWallpaper().then(cachedUrl => {
-      if (cachedUrl) {
-        setBgImage(cachedUrl);
-        setBgImageLoaded(true);
-        console.log('⚡ 即时加载缓存壁纸');
-      }
-    });
-  }, []); // 只在组件挂载时执行一次
-
   // 开发环境下提供缓存清理功能
   useEffect(() => {
     if (import.meta.env.DEV) {
       // 在全局对象上暴露清理函数，方便调试
-      (window as any).clearWallpaperCache = async () => {
-        try {
-          const getTodayKey = () => {
-            const today = new Date();
-            return today.toISOString().split('T')[0];
-          };
-          const blobCacheKey = `blob-${wallpaperResolution}-${getTodayKey()}`;
-          const fullCacheKey = `wallpaper-blob:${blobCacheKey}`;
-          await indexedDBCache.delete(fullCacheKey);
-          console.log('🗑️ 壁纸缓存已清理:', fullCacheKey);
-          window.location.reload();
-        } catch (error) {
-          console.error('清理缓存失败:', error);
-        }
-      };
+      (window as any).clearWallpaperCache = refreshWallpaper;
+      (window as any).getWallpaperStats = getCacheStats;
       console.log('🔧 开发模式：可使用 clearWallpaperCache() 清理壁纸缓存');
+      console.log('🔧 开发模式：可使用 getWallpaperStats() 查看缓存统计');
     }
-  }, [wallpaperResolution]);
+  }, [refreshWallpaper, getCacheStats]);
 
 
   // 根据访问次数自动排序卡片
@@ -159,152 +124,7 @@ export default function Home({ websites, setWebsites }: HomeProps) {
     );
   };
 
-  useEffect(() => {
-    // 使用Supabase壁纸服务获取壁纸URL
-    const getWallpaperUrl = async (resolution: string) => {
-      try {
-        // 获取 Supabase URL
-        const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL || '').replace(/\/$/, '');
-        
-        if (supabaseUrl) {
-          // 分辨率映射
-          const resolutionMap = {
-            '4k': 'uhd',
-            '1080p': '1920x1080',
-            '720p': '1366x768',
-            'mobile': 'mobile'
-          };
-          
-          const targetResolution = resolutionMap[resolution as keyof typeof resolutionMap] || '1920x1080';
-          const wallpaperUrl = `${supabaseUrl}/functions/v1/wallpaper-service?resolution=${targetResolution}`;
-          
-          console.log(`🖼️ 使用Supabase壁纸服务: ${wallpaperUrl}`);
-          return wallpaperUrl;
-        } else {
-          console.warn('⚠️ Supabase URL未配置，使用备用壁纸');
-        }
-      } catch (error) {
-        console.warn('⚠️ Supabase壁纸服务访问失败:', error);
-      }
-      
-      // 备用方案：使用本地默认壁纸
-      console.log('🔄 使用备用壁纸方案');
-      return '/icon/icon.jpg'; // 使用本地默认图片作为备用
-    };
-
-    // 获取今天的日期字符串
-    const getTodayKey = () => {
-      const today = new Date();
-      return today.toISOString().split('T')[0];
-    };
-
-    // 生成缓存键
-    const getBlobCacheKey = () => `blob-${wallpaperResolution}-${getTodayKey()}`;
-
-    // 检查本地缓存
-    const getCachedWallpaper = async () => {
-      try {
-        const blobCacheKey = getBlobCacheKey();
-        console.log('🔍 检查本地缓存:', blobCacheKey);
-        
-        const cachedBlobUrl = await improvedWallpaperCache.getCachedWallpaper(blobCacheKey);
-        if (cachedBlobUrl) {
-          console.log('⚡ 使用本地缓存');
-          return cachedBlobUrl;
-        }
-      } catch (error) {
-        console.warn('读取缓存失败:', error);
-      }
-      return null;
-    };
-
-    // 缓存壁纸（仅Blob缓存）
-    const cacheWallpaper = async (imageUrl: string) => {
-      try {
-        const blobCacheKey = getBlobCacheKey();
-        console.log('🚀 开始缓存壁纸Blob...');
-        await improvedWallpaperCache.cacheWallpaperBlob(imageUrl, blobCacheKey);
-        console.log('✅ 壁纸已缓存');
-      } catch (error) {
-        console.warn('缓存壁纸失败:', error);
-      }
-    };
-
-    const loadWallpaper = (apiUrl: string) => {
-      console.log('🖼️ 加载壁纸，分辨率:', wallpaperResolution);
-      setBgImageLoaded(false);
-      
-      // 如果URL需要代理访问，使用公共CORS代理
-      const proxyUrl = apiUrl.includes('bing.com') 
-        ? `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`
-        : apiUrl;
-      
-      console.log('🔄 壁纸代理URL:', proxyUrl);
-      
-      const img = new Image();
-      
-      // 超时处理
-      const timeout = setTimeout(() => {
-        img.onload = null;
-        img.onerror = null;
-        console.warn('⏰ 壁纸加载超时');
-        setBgImage('');
-        setBgImageLoaded(true);
-      }, 15000); // 延长到15秒超时
-      
-      img.onload = () => {
-        clearTimeout(timeout);
-        setBgImage(proxyUrl);
-        setBgImageLoaded(true);
-        cacheWallpaper(proxyUrl); // 缓存代理URL
-        console.log('✅ 壁纸加载完成:', proxyUrl);
-      };
-      
-      img.onerror = () => {
-        clearTimeout(timeout);
-        console.warn('❌ 壁纸加载失败:', proxyUrl);
-        setBgImage('');
-        setBgImageLoaded(true);
-      };
-      
-      img.src = proxyUrl;
-    };
-
-    // 主要逻辑：优先使用本地缓存，无缓存时才加载新壁纸
-    getCachedWallpaper().then(async (cached) => {
-      if (cached) {
-        console.log('📦 使用本地缓存壁纸');
-        setBgImage(cached);
-        setBgImageLoaded(true);
-        
-        // 使用缓存后，异步检查是否需要更新（可以添加日期比较逻辑）
-        console.log('🔄 本地缓存已加载，可以后台检查更新');
-      } else {
-        // 无本地缓存，直接加载新壁纸
-        try {
-          const wallpaperUrl = await getWallpaperUrl(wallpaperResolution);
-          console.log('🌐 无本地缓存，加载新壁纸:', wallpaperUrl);
-          loadWallpaper(wallpaperUrl);
-        } catch (error) {
-          console.warn('获取壁纸URL失败:', error);
-          setBgImage('');
-          setBgImageLoaded(true);
-        }
-      }
-    }).catch(async (error) => {
-      console.warn('检查缓存失败:', error);
-      // 如果缓存检查失败，直接加载壁纸
-      try {
-        const wallpaperUrl = await getWallpaperUrl(wallpaperResolution);
-        console.log('🌐 加载壁纸:', wallpaperUrl);
-        loadWallpaper(wallpaperUrl);
-      } catch (error) {
-        console.warn('获取壁纸URL失败:', error);
-        setBgImage('');
-        setBgImageLoaded(true);
-      }
-    });
-  }, [wallpaperResolution]);
+  // 壁纸加载现在由 useOptimizedWallpaper Hook 处理
 
   // 优化的鼠标移动处理器 - 使用 RAF 节流
   const handleMouseMove = useCallback((e: MouseEvent) => {
@@ -426,6 +246,8 @@ export default function Home({ websites, setWebsites }: HomeProps) {
             `translate(${mousePosition.x * 0.02}px, ${mousePosition.y * 0.02}px) scale(1.05)` : 
             'translate(0px, 0px) scale(1)',
           transition: 'filter 1.5s ease-out, transform 0.3s ease-out',
+          // 添加缓存标识的视觉提示
+          opacity: bgImageLoaded ? 1 : 0.8,
         }}
       />
 
@@ -437,19 +259,39 @@ export default function Home({ websites, setWebsites }: HomeProps) {
             background: isMobile 
               ? 'linear-gradient(to bottom, rgba(30, 41, 59, 0.6) 0%, rgba(30, 41, 59, 0.4) 50%, rgba(30, 41, 59, 0.2) 100%)'
               : 'linear-gradient(to bottom, rgba(30, 41, 59, 0.7) 0%, rgba(30, 41, 59, 0.3) 50%, rgba(30, 41, 59, 0.1) 100%)',
-            opacity: bgImageLoaded ? 0 : 1,
+            opacity: bgImageLoaded ? 0 : 0.3, // 减少遮罩不透明度，避免过度遮挡
             transition: 'opacity 1.5s ease-out',
             pointerEvents: 'none'
           }}
         />
       )}
+
+      {/* 备用背景 - 当没有壁纸时显示 */}
+      {!bgImage && (
+        <div 
+          className="fixed top-0 left-0 w-full h-full -z-10"
+          style={{
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          }}
+        />
+      )}
       
       {/* 壁纸加载指示器 - 响应式位置 */}
-      {!bgImageLoaded && bgImage && (
+      {showLoadingIndicator && (
         <div className={`fixed ${isMobile ? 'top-2 left-2' : 'top-4 left-4'} z-40 bg-black/30 backdrop-blur-sm rounded-lg px-4 py-2`}>
           <div className="text-white/90 text-sm font-medium flex items-center space-x-2">
             <div className="animate-pulse rounded-full h-2 w-2 bg-white/70"></div>
             <span className={isMobile ? 'text-xs' : 'text-sm'}>壁纸加载中</span>
+          </div>
+        </div>
+      )}
+
+      {/* 壁纸更新提示 */}
+      {showUpdateHint && !isMobile && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-40 bg-blue-500/20 backdrop-blur-sm rounded-lg px-4 py-2 border border-blue-400/30">
+          <div className="text-white/90 text-sm font-medium flex items-center space-x-2">
+            <i className="fa-solid fa-sync-alt animate-spin text-blue-300"></i>
+            <span>正在后台更新今日壁纸...</span>
           </div>
         </div>
       )}
@@ -553,6 +395,15 @@ export default function Home({ websites, setWebsites }: HomeProps) {
         <WorkspaceModal 
           isOpen={isWorkspaceOpen}
           onClose={() => setIsWorkspaceOpen(false)}
+        />
+
+        {/* 壁纸调试面板 - 仅开发环境 */}
+        <WallpaperDebugPanel
+          currentResolution={wallpaperResolution}
+          currentUrl={bgImage}
+          isFromCache={isFromCache}
+          isToday={isToday}
+          needsUpdate={needsUpdate}
         />
       </div>
     </>

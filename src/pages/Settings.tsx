@@ -254,6 +254,10 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
         parallaxEnabled,
         wallpaperResolution,
         theme: localStorage.getItem('theme') || 'light',
+        cardColor,
+        searchBarColor,
+        autoSyncEnabled,
+        autoSyncInterval,
         lastSync: new Date().toISOString()
       };
 
@@ -294,6 +298,10 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
         setSearchBarOpacity(cloudSettings.searchBarOpacity);
         setParallaxEnabled(cloudSettings.parallaxEnabled);
         setWallpaperResolution(cloudSettings.wallpaperResolution);
+        setCardColor(cloudSettings.cardColor);
+        setSearchBarColor(cloudSettings.searchBarColor);
+        setAutoSyncEnabled(cloudSettings.autoSyncEnabled);
+        setAutoSyncInterval(cloudSettings.autoSyncInterval);
         localStorage.setItem('theme', cloudSettings.theme || 'light');
       }
       

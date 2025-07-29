@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 
 export interface SyncStatus {
   isOnline: boolean;
@@ -39,13 +39,13 @@ interface SyncProviderProps {
 export function SyncProvider({ children }: SyncProviderProps) {
   const [syncStatus, setSyncStatus] = useState<SyncStatus>(defaultSyncStatus);
 
-  const updateSyncStatus = (status: Partial<SyncStatus>) => {
+  const updateSyncStatus = useCallback((status: Partial<SyncStatus>) => {
     setSyncStatus(prev => ({ ...prev, ...status }));
-  };
+  }, []);
 
-  const resetSyncStatus = () => {
+  const resetSyncStatus = useCallback(() => {
     setSyncStatus(defaultSyncStatus);
-  };
+  }, []);
 
   // 监听网络状态变化
   useEffect(() => {

@@ -11,6 +11,10 @@ export interface UserSettings {
   parallaxEnabled: boolean;
   wallpaperResolution: WallpaperResolution;
   theme: string;
+  cardColor: string;        // 卡片颜色 (RGB字符串)
+  searchBarColor: string;   // 搜索框颜色 (RGB字符串)
+  autoSyncEnabled: boolean; // 自动同步开关
+  autoSyncInterval: number; // 自动同步间隔（秒）
   lastSync: string;
 }
 
@@ -80,17 +84,53 @@ export const saveUserSettings = async (
     callbacks?.onSyncStart?.();
     
     await retryAsync(async () => {
+      // 尝试同步所有字段，如果新字段不可用则回退到基本字段
+      const fullData = {
+        id: user.id,
+        card_opacity: settings.cardOpacity,
+        search_bar_opacity: settings.searchBarOpacity,
+        parallax_enabled: settings.parallaxEnabled,
+        wallpaper_resolution: settings.wallpaperResolution,
+        theme: settings.theme,
+        card_color: settings.cardColor,
+        search_bar_color: settings.searchBarColor,
+        auto_sync_enabled: settings.autoSyncEnabled,
+        auto_sync_interval: settings.autoSyncInterval,
+        last_sync: new Date().toISOString()
+      };
+
       const { error } = await supabase
         .from(TABLES.USER_SETTINGS)
-        .upsert({
-          id: user.id,
-          card_opacity: settings.cardOpacity,
-          search_bar_opacity: settings.searchBarOpacity,
-          parallax_enabled: settings.parallaxEnabled,
-          wallpaper_resolution: settings.wallpaperResolution,
-          theme: settings.theme,
-          last_sync: new Date().toISOString()
-        });
+        .upsert(fullData);
+
+      if (error) {
+        // 如果新字段导致错误，回退到基本字段
+        if (error.code === 'PGRST204' || error.message?.includes('column')) {
+          logger.sync.warn('新字段暂不可用，使用基本字段同步', { error: error.message });
+          
+          const basicData = {
+            id: user.id,
+            card_opacity: settings.cardOpacity,
+            search_bar_opacity: settings.searchBarOpacity,
+            parallax_enabled: settings.parallaxEnabled,
+            wallpaper_resolution: settings.wallpaperResolution,
+            theme: settings.theme,
+            last_sync: new Date().toISOString()
+          };
+
+          const { error: basicError } = await supabase
+            .from(TABLES.USER_SETTINGS)
+            .upsert(basicData);
+
+          if (basicError) throw basicError;
+          
+          logger.sync.info('基本字段同步成功，新字段将在schema缓存更新后可用');
+        } else {
+          throw error;
+        }
+      } else {
+        logger.sync.info('所有字段同步成功，包括新添加的字段');
+      }
 
       if (error) throw error;
     });
@@ -133,6 +173,11 @@ export const getUserSettings = async (user: User): Promise<UserSettings | null> 
         parallaxEnabled: data.parallax_enabled,
         wallpaperResolution: data.wallpaper_resolution,
         theme: data.theme,
+        // 新字段处理，如果数据库中存在则使用，否则使用默认值
+        cardColor: typeof data.card_color === 'string' ? data.card_color : '255, 255, 255',
+        searchBarColor: typeof data.search_bar_color === 'string' ? data.search_bar_color : '255, 255, 255',
+        autoSyncEnabled: typeof data.auto_sync_enabled === 'boolean' ? data.auto_sync_enabled : true,
+        autoSyncInterval: (typeof data.auto_sync_interval === 'number' && data.auto_sync_interval >= 3 && data.auto_sync_interval <= 60) ? data.auto_sync_interval : 30,
         lastSync: data.last_sync
       };
     } else {
@@ -257,22 +302,49 @@ export const mergeWebsiteData = (localData: WebsiteData[], cloudData: WebsiteDat
   return Object.values(merged);
 };
 
-// 自动同步数据（防抖处理）- 增强版本，带重试机制
-let syncTimeout: NodeJS.Timeout | null = null;
-let retryCount = 0;
-const maxRetries = 3;
+// 同步管理器类 - 避免全局变量冲突
+class SyncManager {
+  private syncTimeout: NodeJS.Timeout | null = null;
+  private retryCount: number = 0;
+  private readonly maxRetries: number = 3;
 
-export const autoSync = (
-  user: User, 
-  websites: WebsiteData[], 
-  settings: UserSettings,
-  callbacks?: SyncStatusCallback
-) => {
-  if (syncTimeout) {
-    clearTimeout(syncTimeout);
+  async performSync(
+    user: User, 
+    websites: WebsiteData[], 
+    settings: UserSettings,
+    callbacks?: SyncStatusCallback,
+    delay: number = 0 // 移除硬编码延迟，由调用方决定
+  ): Promise<void> {
+    // 清除之前的延迟
+    if (this.syncTimeout) {
+      clearTimeout(this.syncTimeout);
+      this.syncTimeout = null;
+    }
+    
+    // 如果没有延迟，立即执行
+    if (delay === 0) {
+      return this.executSync(user, websites, settings, callbacks);
+    }
+    
+    // 设置延迟执行
+    return new Promise((resolve, reject) => {
+      this.syncTimeout = setTimeout(async () => {
+        try {
+          await this.executSync(user, websites, settings, callbacks);
+          resolve();
+        } catch (error) {
+          reject(error);
+        }
+      }, delay);
+    });
   }
-  
-  syncTimeout = setTimeout(async () => {
+
+  private async executSync(
+    user: User, 
+    websites: WebsiteData[], 
+    settings: UserSettings,
+    callbacks?: SyncStatusCallback
+  ): Promise<void> {
     callbacks?.onSyncStart?.();
     
     try {
@@ -284,34 +356,82 @@ export const autoSync = (
       const failed = results.filter(result => result.status === 'rejected');
       
       if (failed.length === 0) {
-        retryCount = 0; // 重置重试计数器
+        this.retryCount = 0; // 重置重试计数器
         callbacks?.onSyncSuccess?.('数据已静默同步到云端');
       } else {
-        if (retryCount < maxRetries) {
-          retryCount++;
-          logger.sync.warn(`同步部分失败，${retryCount}/${maxRetries} 次重试中`);
-          // 指数退避重试
-          setTimeout(() => {
-            autoSync(user, websites, settings, callbacks);
-          }, 1000 * Math.pow(2, retryCount - 1));
-        } else {
-          retryCount = 0;
-          callbacks?.onSyncError?.(`${failed.length} 个数据同步失败，已重试 ${maxRetries} 次`);
-        }
+        await this.handleSyncFailure(user, websites, settings, callbacks, failed.length);
       }
     } catch (error) {
-      if (retryCount < maxRetries) {
-        retryCount++;
-        logger.sync.warn(`同步异常，${retryCount}/${maxRetries} 次重试中`);
-        setTimeout(() => {
-          autoSync(user, websites, settings, callbacks);
-        }, 1000 * Math.pow(2, retryCount - 1));
-      } else {
-        retryCount = 0;
-        callbacks?.onSyncError?.('同步过程中发生错误: ' + (error as Error).message);
-      }
+      await this.handleSyncError(user, websites, settings, callbacks, error as Error);
     }
-  }, 5000); // 5秒延迟，用户停止操作后快速同步
+  }
+
+  private async handleSyncFailure(
+    user: User, 
+    websites: WebsiteData[], 
+    settings: UserSettings,
+    callbacks: SyncStatusCallback | undefined,
+    failedCount: number
+  ): Promise<void> {
+    if (this.retryCount < this.maxRetries) {
+      this.retryCount++;
+      logger.sync.warn(`同步部分失败，${this.retryCount}/${this.maxRetries} 次重试中`);
+      
+      // 指数退避重试
+      const retryDelay = 1000 * Math.pow(2, this.retryCount - 1);
+      await new Promise(resolve => setTimeout(resolve, retryDelay));
+      
+      return this.executSync(user, websites, settings, callbacks);
+    } else {
+      this.retryCount = 0;
+      callbacks?.onSyncError?.(`${failedCount} 个数据同步失败，已重试 ${this.maxRetries} 次`);
+    }
+  }
+
+  private async handleSyncError(
+    user: User, 
+    websites: WebsiteData[], 
+    settings: UserSettings,
+    callbacks: SyncStatusCallback | undefined,
+    error: Error
+  ): Promise<void> {
+    if (this.retryCount < this.maxRetries) {
+      this.retryCount++;
+      logger.sync.warn(`同步异常，${this.retryCount}/${this.maxRetries} 次重试中`);
+      
+      // 指数退避重试
+      const retryDelay = 1000 * Math.pow(2, this.retryCount - 1);
+      await new Promise(resolve => setTimeout(resolve, retryDelay));
+      
+      return this.executSync(user, websites, settings, callbacks);
+    } else {
+      this.retryCount = 0;
+      callbacks?.onSyncError?.('同步过程中发生错误: ' + error.message);
+    }
+  }
+
+  // 清理资源
+  cleanup(): void {
+    if (this.syncTimeout) {
+      clearTimeout(this.syncTimeout);
+      this.syncTimeout = null;
+    }
+    this.retryCount = 0;
+  }
+}
+
+// 创建同步管理器实例的工厂函数
+export const createSyncManager = (): SyncManager => new SyncManager();
+
+// 保持向后兼容的autoSync函数
+export const autoSync = (
+  user: User, 
+  websites: WebsiteData[], 
+  settings: UserSettings,
+  callbacks?: SyncStatusCallback
+): Promise<void> => {
+  const syncManager = createSyncManager();
+  return syncManager.performSync(user, websites, settings, callbacks, 0); // 立即执行，不延迟
 };
 
 // 保存用户资料到 Supabase

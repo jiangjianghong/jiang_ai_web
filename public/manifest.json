@@ -1,7 +1,7 @@
 {
-  "name": "炫酷收藏夹",
-  "short_name": "收藏夹",
-  "description": "智能搜索主页与个人收藏夹管理",
+  "name": "江的标签页",
+  "short_name": "江的标签页",
+  "description": "江的个人标签页与收藏夹管理",
   "theme_color": "#1e293b",
   "background_color": "#0f172a",
   "display": "standalone",

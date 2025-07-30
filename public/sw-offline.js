@@ -1,4 +1,4 @@
-// 离线优先的Service Worker for 炫酷收藏夹
+// 离线优先的Service Worker for 江的标签页
 const STATIC_CACHE_NAME = 'static-v4';
 const DYNAMIC_CACHE_NAME = 'dynamic-v4';
 

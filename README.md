@@ -1,8 +1,8 @@
-# 江AI网站导航 (Jiang AI Web)
+# 江的标签页
 
 一个现代化的个人网站导航应用，集成了智能壁纸、云端同步、拖拽排序等功能。
 
-[**项目地址**](https://space.coze.cn/task/7520427345329783091) | [**在线演示**](https://your-demo-url.com)
+[**在线访问**](https://jiangjiangjiang.top) | [**项目地址**](https://github.com/jiangjianghong/jiang_ai_web)
 
 ## ✨ 核心特性
 
@@ -418,12 +418,119 @@ MIT License - 详见 [LICENSE](LICENSE) 文件。
 - 基础功能实现
 - 云端同步功能
 
+## 🚀 部署指南
+
+### GitHub Pages 自动部署
+
+项目已配置 GitHub Actions 自动部署，推送到 main 分支即可自动构建和部署。
+
+#### 域名配置步骤：
+
+1. **配置 GitHub Pages**
+   - 进入仓库 Settings → Pages
+   - Source 选择 "GitHub Actions"
+   - Custom domain 输入你的域名
+   - 勾选 "Enforce HTTPS"
+
+2. **验证部署**
+   - 查看 Actions 页面等待部署完成（约 2-5 分钟）
+   - 访问你的域名确认网站正常运行
+
+#### 部署验证清单：
+- [ ] 首页正常加载
+- [ ] 搜索功能正常
+- [ ] 网站卡片显示正常
+- [ ] 图标加载正常
+- [ ] 路由跳转正常
+- [ ] 用户登录功能正常
+- [ ] 工作空间功能正常
+
+### 注意事项
+- DNS 传播可能需要几分钟到几小时
+- 建议清除浏览器缓存查看最新版本
+- GitHub Pages 会自动生成 SSL 证书
+
+## 🗄️ 数据库配置
+
+### Supabase 数据库迁移
+
+如果你需要设置自己的 Supabase 实例，请执行以下 SQL：
+
+```sql
+-- 添加颜色设置字段
+ALTER TABLE user_settings 
+ADD COLUMN IF NOT EXISTS card_color TEXT DEFAULT '255, 255, 255';
+
+ALTER TABLE user_settings 
+ADD COLUMN IF NOT EXISTS search_bar_color TEXT DEFAULT '255, 255, 255';
+
+-- 添加自动同步设置字段
+ALTER TABLE user_settings 
+ADD COLUMN IF NOT EXISTS auto_sync_enabled BOOLEAN DEFAULT true;
+
+ALTER TABLE user_settings 
+ADD COLUMN IF NOT EXISTS auto_sync_interval INTEGER DEFAULT 30;
+
+-- 添加约束确保数据有效性
+ALTER TABLE user_settings 
+ADD CONSTRAINT IF NOT EXISTS check_auto_sync_interval 
+CHECK (auto_sync_interval >= 3 AND auto_sync_interval <= 60);
+
+-- 添加索引以提高查询性能
+CREATE INDEX IF NOT EXISTS idx_user_settings_id ON user_settings(id);
+CREATE INDEX IF NOT EXISTS idx_user_websites_id ON user_websites(id);
+CREATE INDEX IF NOT EXISTS idx_user_profiles_id ON user_profiles(id);
+```
+
+### 环境变量配置
+
+```env
+# Supabase 配置
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# 应用配置
+VITE_APP_NAME=江的标签页
+VITE_APP_VERSION=1.0.0
+```
+
+## 🛠️ 故障排除
+
+### 常见问题
+
+#### 1. 域名无法访问
+- 检查 DNS 配置是否正确
+- 等待 DNS 传播（最多 24 小时）
+- 清除浏览器缓存
+
+#### 2. 功能异常
+- 检查浏览器控制台错误信息
+- 确认网络连接正常
+- 验证 Supabase 配置
+
+#### 3. 同步问题
+- 检查用户是否已登录
+- 确认网络连接稳定
+- 查看同步状态指示器
+
+#### 4. 图标加载失败
+- 检查网络连接
+- 尝试刷新页面
+- 清除浏览器缓存
+
+### 性能优化建议
+
+- 定期清理浏览器缓存
+- 使用现代浏览器（Chrome、Firefox、Safari）
+- 确保网络连接稳定
+- 避免同时打开过多标签页
+
 ## 📞 联系方式
 
-- **项目地址**: [GitHub](https://github.com/your-username/jiang_ai_web)
-- **问题反馈**: [Issues](https://github.com/your-username/jiang_ai_web/issues)
-- **功能建议**: [Discussions](https://github.com/your-username/jiang_ai_web/discussions)
+- **项目地址**: [GitHub](https://github.com/jiangjianghong/jiang_ai_web)
+- **问题反馈**: [Issues](https://github.com/jiangjianghong/jiang_ai_web/issues)
+- **在线访问**: [jiangjiangjiang.top](https://jiangjiangjiang.top)
 
 ---
 
-**江AI网站导航** - 让网站管理更简单、更智能 🚀
+**江的标签页** - 让网站管理更简单、更智能 🚀

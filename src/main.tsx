@@ -14,10 +14,8 @@ import { requestManager } from './lib/requestManager';
 // 设置全局错误处理
 setupGlobalErrorHandler();
 
-const isLocalhost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
-// 检查当前路径是否包含 /jiang_ai_web/
-const hasBasePath = window.location.pathname.startsWith('/jiang_ai_web');
-const basename = hasBasePath ? "/jiang_ai_web" : undefined;
+// 使用根路径部署，不需要 basename
+const basename = undefined;
 
 // 简化日志输出
 

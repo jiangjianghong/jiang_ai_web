@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 export const usePageTitle = () => {
   useEffect(() => {
     // 设置初始标题
-    document.title = 'jiang_ai_web';
+    document.title = '炫酷收藏夹';
     
     const handleVisibilityChange = () => {
       if (document.hidden) {
@@ -11,7 +11,7 @@ export const usePageTitle = () => {
         document.title = '😭你就要离开我了吗';
       } else {
         // 页面获得焦点时显示默认标题
-        document.title = 'jiang_ai_web';
+        document.title = '炫酷收藏夹';
       }
     };
 

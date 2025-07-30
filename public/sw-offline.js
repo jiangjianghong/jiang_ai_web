@@ -4,8 +4,8 @@ const DYNAMIC_CACHE_NAME = 'dynamic-v4';
 
 // 动态获取正确的路径前缀
 const getBasePath = () => {
-  const isGitHubPages = self.location.hostname.includes('github.io') || self.location.hostname.includes('jiangjiangjiang.top');
-  return isGitHubPages ? '/jiang_ai_web' : '';
+  // 使用根路径部署，不需要前缀
+  return '';
 };
 
 const basePath = getBasePath();

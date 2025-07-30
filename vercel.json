@@ -3,7 +3,7 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
-      "source": "/jiang_ai_web/api/(.*)",
+      "source": "/api/(.*)",
       "destination": "/api/$1"
     },
     {
@@ -30,7 +30,7 @@
       ]
     },
     {
-      "source": "/jiang_ai_web/api/(.*)",
+      "source": "/api/(.*)",
       "headers": [
         {
           "key": "Access-Control-Allow-Origin",

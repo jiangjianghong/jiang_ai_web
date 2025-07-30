@@ -61,14 +61,14 @@
   <div class="container">
     <div class="spinner"></div>
     <div class="loading">正在重定向到炫酷收藏夹...</div>
-    <div class="redirect-info">如果页面没有自动跳转，请点击<a href="/jiang_ai_web/" style="color: #fff; text-decoration: underline;">这里</a></div>
+    <div class="redirect-info">如果页面没有自动跳转，请点击<a href="/" style="color: #fff; text-decoration: underline;">这里</a></div>
   </div>
   
   <script>
     // 备用重定向逻辑
     setTimeout(function() {
-      if (window.location.pathname === '/jiang_ai_web/404.html') {
-        window.location.href = '/jiang_ai_web/';
+      if (window.location.pathname === '/404.html') {
+        window.location.href = '/';
       }
     }, 3000);
   </script>

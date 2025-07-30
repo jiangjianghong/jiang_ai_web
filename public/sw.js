@@ -5,11 +5,7 @@ const DYNAMIC_CACHE_NAME = 'dynamic-v4';
 
 // 动态获取正确的路径前缀
 const getBasePath = () => {
-  const currentPath = self.location.pathname;
-  // 如果当前路径包含 /jiang_ai_web，说明需要这个前缀
-  if (currentPath.includes('/jiang_ai_web')) {
-    return '/jiang_ai_web';
-  }
+  // 使用根路径部署，不需要前缀
   return '';
 };
 

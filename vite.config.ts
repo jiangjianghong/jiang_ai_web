@@ -32,8 +32,8 @@ function getPlugins() {
 }
 
 export default defineConfig({
-  // 始终使用 /jiang_ai_web/ 作为 base，确保本地和生产资源路径一致，防止404
-  base: '/jiang_ai_web/',
+  // 使用根路径作为 base，适配自定义域名部署
+  base: '/',
   plugins: getPlugins(),
   
   // 构建优化配置
@@ -86,10 +86,9 @@ export default defineConfig({
     },
     // 代理配置 - 将API请求转发到本地代理服务器
     proxy: {
-      '/jiang_ai_web/api': {
+      '/api': {
         target: 'http://localhost:3002',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/jiang_ai_web\/api/, '/api'),
         configure: (proxy, options) => {
           proxy.on('error', (err, req, res) => {
             console.log('代理错误:', err);

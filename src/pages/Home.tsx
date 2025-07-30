@@ -16,7 +16,8 @@ import { faviconCache } from '@/lib/faviconCache';
 import { useRAFThrottledMouseMove } from '@/hooks/useRAFThrottle';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import { useOptimizedWallpaper } from '@/hooks/useOptimizedWallpaper';
-import { WallpaperDebugPanel } from '@/components/WallpaperDebugPanel';
+// 调试面板暂时禁用以修复构建问题
+// import { WallpaperDebugPanel } from '@/components/WallpaperDebugPanel';
 import { logger } from '@/lib/logger';
 
 interface HomeProps {
@@ -397,14 +398,14 @@ export default function Home({ websites, setWebsites }: HomeProps) {
           onClose={() => setIsWorkspaceOpen(false)}
         />
 
-        {/* 壁纸调试面板 - 仅开发环境 */}
-        <WallpaperDebugPanel
+        {/* 壁纸调试面板 - 暂时禁用以修复构建问题 */}
+        {/* <WallpaperDebugPanel
           currentResolution={wallpaperResolution}
           currentUrl={bgImage}
           isFromCache={isFromCache}
           isToday={isToday}
           needsUpdate={needsUpdate}
-        />
+        /> */}
       </div>
     </>
   );

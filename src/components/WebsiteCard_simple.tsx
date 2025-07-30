@@ -29,7 +29,7 @@ const WebsiteCardComponent = ({ id, name, url, favicon, tags, visitCount, note, 
   const { isMobile, getCardClasses } = useResponsiveLayout();
   
   // 使用默认图标，避免 useFavicon 的异步等待
-  const displayFavicon = favicon || '/icon/icon.jpg';
+  const displayFavicon = favicon || '/icon/favicon.png';
 
   const [{ isDragging }, drag] = useDrag({
     type: 'WEBSITE_CARD',

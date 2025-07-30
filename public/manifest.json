@@ -10,15 +10,15 @@
   "start_url": "/",
   "icons": [
     {
-      "src": "/icon/icon.jpg",
+      "src": "/icon/favicon.png",
       "sizes": "192x192",
-      "type": "image/jpeg",
+      "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/icon/icon.jpg",
+      "src": "/icon/favicon.png",
       "sizes": "512x512",
-      "type": "image/jpeg",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ],
@@ -35,7 +35,7 @@
       "url": "/?action=search",
       "icons": [
         {
-          "src": "/icon/icon.jpg",
+          "src": "/icon/favicon.png",
           "sizes": "96x96"
         }
       ]
@@ -47,7 +47,7 @@
       "url": "/?action=settings",
       "icons": [
         {
-          "src": "/icon/icon.jpg",
+          "src": "/icon/favicon.png",
           "sizes": "96x96"
         }
       ]
@@ -55,15 +55,15 @@
   ],
   "screenshots": [
     {
-      "src": "/icon/icon.jpg",
+      "src": "/icon/favicon.png",
       "sizes": "1280x720",
-      "type": "image/jpeg",
+      "type": "image/png",
       "form_factor": "wide"
     },
     {
-      "src": "/icon/icon.jpg",
+      "src": "/icon/favicon.png",
       "sizes": "750x1334",
-      "type": "image/jpeg",
+      "type": "image/png",
       "form_factor": "narrow"
     }
   ]

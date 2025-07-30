@@ -83,7 +83,7 @@ export function useFavicon(originalUrl: string, faviconUrl: string) {
     }
     
     if (retryCount >= 6) { // 增加重试次数，支持公开镜像源 + Supabase 代理
-      console.warn('🚨 所有图标服务重试次数过多，使用原始URL:', originalUrl);
+      console.warn('🚨 所有图标服务重试次数过多,使用原始URL:', originalUrl);
       setFaviconUrl(url);
       setError(false);
       return;
@@ -138,10 +138,10 @@ export function useFavicon(originalUrl: string, faviconUrl: string) {
         
         if (cachedMeta && !isDefaultIcon(cachedMeta)) {
           // 有缓存元数据，尝试获取Blob URL
-          console.log('📦 发现缓存元数据，获取Blob图标:', originalUrl);
+          console.log('📦 发现缓存元数据,获取Blob图标:', originalUrl);
           const cachedBlobUrl = await faviconCache.getFavicon(originalUrl, faviconUrl);
           
-          if (cachedBlobUrl && cachedBlobUrl !== '/icon/icon.jpg' && !isDefaultIcon(cachedBlobUrl)) {
+          if (cachedBlobUrl && cachedBlobUrl !== '/icon/favicon.png' && !isDefaultIcon(cachedBlobUrl)) {
             console.log('✅ 成功获取缓存的Blob图标:', originalUrl);
             setFaviconUrl(cachedBlobUrl);
             setError(false);
@@ -150,7 +150,7 @@ export function useFavicon(originalUrl: string, faviconUrl: string) {
         }
         
         // 如果没有有效缓存，使用原始图标URL
-        console.log('📦 没有缓存，使用原始图标URL:', faviconUrl);
+        console.log('📦 没有缓存,使用原始图标URL:', faviconUrl);
         retryLoadFavicon(faviconUrl);
         
       } catch (err) {

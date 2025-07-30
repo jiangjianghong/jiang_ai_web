@@ -13,7 +13,7 @@ const getBasePath = (): string => {
  * 获取默认图标的完整路径
  */
 export const getDefaultIconPath = (): string => {
-  return `${getBasePath()}/icon/chatgpt.svg`;
+  return `${getBasePath()}/icon/favicon.png`;
 };
 
 /**
@@ -49,5 +49,5 @@ export const getIconPath = (iconPath: string): string => {
  * 检查是否是默认图标
  */
 export const isDefaultIcon = (iconPath: string): boolean => {
-  return iconPath === '/icon/icon.jpg' || iconPath === getDefaultIconPath();
+  return iconPath === '/icon/favicon.png' || iconPath === getDefaultIconPath();
 };

@@ -77,7 +77,7 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
         `${supabaseUrl}/functions/v1/favicon-service?domain=${encodeURIComponent(domain)}&size=64`,
         `${supabaseUrl}/functions/v1/favicon-service?domain=${encodeURIComponent(domain)}&size=32`,
         // 兜底：默认图标
-        '/icon/icon.jpg'
+        '/icon/favicon.png'
       ];
     }
     
@@ -86,7 +86,7 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
       `https://corsproxy.io/?${encodeURIComponent(`https://www.google.com/s2/favicons?domain=${domain}&sz=64`)}`,
       `https://icon.horse/icon/${domain}`,
       `https://favicons.githubusercontent.com/${domain}`,
-      '/icon/icon.jpg'
+      '/icon/favicon.png'
     ];
   };
 
@@ -143,7 +143,7 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
       
       // 尝试多个图标服务，优先使用国内访问稳定的服务
       const faviconUrls = getFaviconUrls(cacheDomain);
-      let newFaviconUrl = '/icon/icon.jpg'; // 默认图标
+      let newFaviconUrl = '/icon/favicon.png'; // 默认图标
       
       console.log('🔍 开始尝试获取图标，优先使用国内稳定服务...');
       

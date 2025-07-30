@@ -142,7 +142,7 @@ self.addEventListener('fetch', (event) => {
           
           // 如果是图片请求失败，返回默认图标
           if (event.request.destination === 'image') {
-            return caches.match(basePath + '/icon/icon.jpg');
+            return caches.match(basePath + '/icon/favicon.png');
           }
           
           throw error;

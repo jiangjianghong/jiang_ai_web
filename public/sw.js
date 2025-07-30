@@ -23,7 +23,7 @@ const STATIC_CACHE_URLS = [
 // 可选缓存URL（这些文件可能不存在）- 移除外部FontAwesome依赖
 const OPTIONAL_CACHE_URLS = [
   `${basePath}/404.html`,
-  `${basePath}/icon/icon.jpg`
+  `${basePath}/icon/favicon.png`
 ];
 
 // 高优先级缓存的资源类型

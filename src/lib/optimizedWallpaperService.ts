@@ -1,4 +1,5 @@
 // 优化的壁纸服务 - 解决白屏问题，提升加载体验
+// 使用浏览器原生 Blob API 处理图片数据
 import { indexedDBCache } from './indexedDBCache';
 import { logger } from './logger';
 import { errorHandler } from './errorHandler';
@@ -6,19 +7,13 @@ import { memoryManager } from './memoryManager';
 import { createWallpaperRequest } from './requestManager';
 import { createTimeoutSignal } from './abortUtils';
 
-interface WallpaperCache {
-  url: string;
-  blob: Blob;
-  timestamp: number;
-  resolution: string;
-  isToday: boolean;
-}
+// 移除未使用的接口
 
 class OptimizedWallpaperService {
   private static instance: OptimizedWallpaperService;
   private loadingPromises = new Map<string, Promise<string>>();
-  private fallbackImage = '/icon/icon.jpg'; // 本地备用图片
-  
+  private fallbackImage = '/icon/favicon.png'; // 本地备用图片
+
   static getInstance(): OptimizedWallpaperService {
     if (!OptimizedWallpaperService.instance) {
       OptimizedWallpaperService.instance = new OptimizedWallpaperService();
@@ -39,33 +34,28 @@ class OptimizedWallpaperService {
     return `wallpaper-optimized:${resolution}-${yesterday.toISOString().split('T')[0]}`;
   }
 
-  // 检查是否为今天的缓存
-  private isToday(timestamp: number): boolean {
-    const today = new Date().toISOString().split('T')[0];
-    const cacheDate = new Date(timestamp).toISOString().split('T')[0];
-    return today === cacheDate;
-  }
+  // 移除未使用的方法
 
   // 获取Supabase壁纸URL
   private async getWallpaperUrl(resolution: string): Promise<string> {
     try {
       const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL || '').replace(/\/$/, '');
-      
+
       if (supabaseUrl) {
         const resolutionMap = {
           '4k': 'uhd',
-          '1080p': '1920x1080', 
+          '1080p': '1920x1080',
           '720p': '1366x768',
           'mobile': 'mobile'
         };
-        
+
         const targetResolution = resolutionMap[resolution as keyof typeof resolutionMap] || '1920x1080';
         return `${supabaseUrl}/functions/v1/wallpaper-service?resolution=${targetResolution}`;
       }
     } catch (error) {
       logger.wallpaper.warn('Supabase壁纸服务访问失败', error);
     }
-    
+
     return this.fallbackImage;
   }
 
@@ -74,8 +64,8 @@ class OptimizedWallpaperService {
     try {
       // 1. 优先尝试今天的缓存
       const todayKey = this.getTodayCacheKey(resolution);
-      const todayCache = await indexedDBCache.get<Blob>(todayKey);
-      
+      const todayCache = await indexedDBCache.get(todayKey) as Blob;
+
       if (todayCache) {
         logger.wallpaper.info('使用今天的壁纸缓存');
         return {
@@ -86,8 +76,8 @@ class OptimizedWallpaperService {
 
       // 2. 尝试昨天的缓存作为降级
       const yesterdayKey = this.getYesterdayCacheKey(resolution);
-      const yesterdayCache = await indexedDBCache.get<Blob>(yesterdayKey);
-      
+      const yesterdayCache = await indexedDBCache.get(yesterdayKey) as Blob;
+
       if (yesterdayCache) {
         logger.wallpaper.info('使用昨天的壁纸缓存作为降级');
         return {
@@ -98,7 +88,7 @@ class OptimizedWallpaperService {
 
       // 3. 尝试任何可用的壁纸缓存
       const allKeys = await indexedDBCache.getAllKeys();
-      const wallpaperKeys = allKeys.filter(key => 
+      const wallpaperKeys = allKeys.filter(key =>
         key.startsWith('wallpaper-optimized:') && key.includes(resolution)
       );
 
@@ -106,8 +96,8 @@ class OptimizedWallpaperService {
         // 按时间排序，使用最新的
         wallpaperKeys.sort().reverse();
         const latestKey = wallpaperKeys[0];
-        const latestCache = await indexedDBCache.get<Blob>(latestKey);
-        
+        const latestCache = await indexedDBCache.get(latestKey) as Blob;
+
         if (latestCache) {
           logger.wallpaper.info('使用最新可用的壁纸缓存', { key: latestKey });
           return {
@@ -128,7 +118,7 @@ class OptimizedWallpaperService {
   private async downloadAndCache(url: string, resolution: string): Promise<string> {
     try {
       logger.wallpaper.info('开始下载壁纸', { url: url.substring(0, 50) });
-      
+
       // 使用代理处理CORS
       const proxyUrl = url.includes('bing.com') || url.includes('unsplash.com')
         ? `https://corsproxy.io/?${encodeURIComponent(url)}`
@@ -150,8 +140,8 @@ class OptimizedWallpaperService {
         .then(() => logger.wallpaper.info('壁纸已缓存到IndexedDB'))
         .catch(error => logger.wallpaper.warn('缓存壁纸失败', error));
 
-      logger.wallpaper.info('壁纸下载完成', { 
-        size: `${(blob.size / 1024 / 1024).toFixed(2)}MB` 
+      logger.wallpaper.info('壁纸下载完成', {
+        size: `${(blob.size / 1024 / 1024).toFixed(2)}MB`
       });
       return blobUrl;
 
@@ -169,7 +159,7 @@ class OptimizedWallpaperService {
     needsUpdate: boolean;
   }> {
     const cacheKey = `loading-${resolution}`;
-    
+
     // 防止重复加载
     if (this.loadingPromises.has(cacheKey)) {
       const url = await this.loadingPromises.get(cacheKey)!;
@@ -196,7 +186,7 @@ class OptimizedWallpaperService {
     try {
       // 1. 首先尝试智能缓存
       const cachedResult = await this.getSmartCache(resolution);
-      
+
       if (cachedResult) {
         // 有缓存，立即返回，但可能需要后台更新
         const result = {
@@ -220,7 +210,7 @@ class OptimizedWallpaperService {
       // 2. 无缓存，需要下载
       logger.wallpaper.info('无可用缓存，开始下载新壁纸');
       const wallpaperUrl = await this.getWallpaperUrl(resolution);
-      
+
       if (wallpaperUrl === this.fallbackImage) {
         // 使用本地备用图片
         return {
@@ -232,7 +222,7 @@ class OptimizedWallpaperService {
       }
 
       const downloadedUrl = await this.downloadAndCache(wallpaperUrl, resolution);
-      
+
       return {
         url: downloadedUrl,
         isFromCache: false,
@@ -243,7 +233,7 @@ class OptimizedWallpaperService {
     } catch (error) {
       const errorInfo = errorHandler.handleError(error as Error, 'wallpaper-load');
       logger.wallpaper.error('获取壁纸失败，使用备用图片', errorInfo);
-      
+
       return {
         url: this.fallbackImage,
         isFromCache: false,
@@ -273,7 +263,7 @@ class OptimizedWallpaperService {
     }
 
     const resolutions = ['1080p', '720p', '4k', 'mobile'];
-    
+
     for (const resolution of resolutions) {
       await new Promise<void>((resolve) => {
         requestIdleCallback(async () => {
@@ -297,13 +287,13 @@ class OptimizedWallpaperService {
     try {
       const allKeys = await indexedDBCache.getAllKeys();
       const wallpaperKeys = allKeys.filter(key => key.startsWith('wallpaper-optimized:'));
-      
+
       const threeDaysAgo = new Date();
       threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
       const cutoffDate = threeDaysAgo.toISOString().split('T')[0];
 
       let deletedCount = 0;
-      
+
       for (const key of wallpaperKeys) {
         const dateMatch = key.match(/(\d{4}-\d{2}-\d{2})/);
         if (dateMatch && dateMatch[1] < cutoffDate) {
@@ -330,14 +320,14 @@ class OptimizedWallpaperService {
     try {
       const allKeys = await indexedDBCache.getAllKeys();
       const wallpaperKeys = allKeys.filter(key => key.startsWith('wallpaper-optimized:'));
-      
+
       const today = new Date().toISOString().split('T')[0];
       const todayKeys = wallpaperKeys.filter(key => key.includes(today));
-      
+
       let totalSize = 0;
       for (const key of wallpaperKeys) {
         try {
-          const blob = await indexedDBCache.get<Blob>(key);
+          const blob = await indexedDBCache.get(key) as Blob;
           if (blob) {
             totalSize += blob.size;
           }

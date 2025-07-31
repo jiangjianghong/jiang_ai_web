@@ -69,7 +69,7 @@ export function useAutoSync(websites: WebsiteData[]): void {
   // 缓存主题设置，避免频繁访问localStorage
   const cachedTheme = useMemo(() => {
     return localStorage.getItem('theme') || 'light';
-  }, []); // 空依赖数组，只在组件挂载时计算一次
+  }, [websites.length]); // 使用 websites.length 作为依赖，确保主题变化被检测
 
   // 优化数据指纹计算，使用useMemo缓存
   const websiteFingerprint = useMemo(() => {
@@ -206,6 +206,13 @@ export function useAutoSync(websites: WebsiteData[]): void {
           pendingChanges: 0
         });
         logger.sync.info('同步成功', { message });
+        
+        // 同步成功后立即更新数据指纹，避免重复同步
+        const syncedDataFingerprint = JSON.stringify({
+          websites: websiteFingerprint,
+          settings: settingsFingerprint
+        });
+        lastSyncDataRef.current = syncedDataFingerprint;
       },
       onSyncError: (error) => {
         // 重置同步状态

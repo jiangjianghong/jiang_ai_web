@@ -53,36 +53,36 @@ const retryAsync = async <T>(
   delay: number = 1000
 ): Promise<T> => {
   let lastError: Error;
-  
+
   for (let i = 0; i <= maxRetries; i++) {
     try {
       return await fn();
     } catch (error) {
       lastError = error as Error;
-      
+
       if (i === maxRetries) {
         throw lastError;
       }
-      
+
       // 指数退避延迟
       const waitTime = delay * Math.pow(2, i);
       logger.sync.info(`同步失败，${waitTime}ms后重试 (${i + 1}/${maxRetries + 1})`);
       await new Promise(resolve => setTimeout(resolve, waitTime));
     }
   }
-  
+
   throw lastError!;
 };
 
 // 保存用户设置到 Supabase - 带重试机制
 export const saveUserSettings = async (
-  user: User, 
-  settings: UserSettings, 
+  user: User,
+  settings: UserSettings,
   callbacks?: SyncStatusCallback
 ) => {
   try {
     callbacks?.onSyncStart?.();
-    
+
     await retryAsync(async () => {
       // 尝试同步所有字段，如果新字段不可用则回退到基本字段
       const fullData = {
@@ -105,9 +105,9 @@ export const saveUserSettings = async (
 
       if (error) {
         // 如果新字段导致错误，回退到基本字段
-        if (error.code === 'PGRST204' || error.message?.includes('column')) {
+        if (error.code === '42703' || error.message?.includes('column') || error.message?.includes('does not exist')) {
           logger.sync.warn('新字段暂不可用，使用基本字段同步', { error: error.message });
-          
+
           const basicData = {
             id: user.id,
             card_opacity: settings.cardOpacity,
@@ -123,18 +123,16 @@ export const saveUserSettings = async (
             .upsert(basicData);
 
           if (basicError) throw basicError;
-          
-          logger.sync.info('基本字段同步成功，新字段将在schema缓存更新后可用');
+
+          logger.sync.info('基本字段同步成功，新字段将在数据库迁移后可用');
         } else {
           throw error;
         }
       } else {
         logger.sync.info('所有字段同步成功，包括新添加的字段');
       }
-
-      if (error) throw error;
     });
-    
+
     logger.sync.info('用户设置已同步到云端');
     callbacks?.onSyncSuccess?.('设置已同步到云端');
     return true;
@@ -149,22 +147,22 @@ export const saveUserSettings = async (
 export const getUserSettings = async (user: User): Promise<UserSettings | null> => {
   try {
     // 添加超时机制，避免长时间等待
-    const timeoutPromise = new Promise<never>((_, reject) => 
+    const timeoutPromise = new Promise<never>((_, reject) =>
       setTimeout(() => reject(new Error('连接超时')), 5000)
     );
-    
+
     const dataPromise = supabase
       .from(TABLES.USER_SETTINGS)
       .select('*')
       .eq('id', user.id)
       .single();
-    
+
     const { data, error } = await Promise.race([dataPromise, timeoutPromise]);
-    
+
     if (error && error.code !== 'PGRST116') { // PGRST116 表示没有找到记录
       throw error;
     }
-    
+
     if (data) {
       logger.sync.info('从云端获取用户设置成功');
       return {
@@ -174,10 +172,10 @@ export const getUserSettings = async (user: User): Promise<UserSettings | null> 
         wallpaperResolution: data.wallpaper_resolution,
         theme: data.theme,
         // 新字段处理，如果数据库中存在则使用，否则使用默认值
-        cardColor: typeof data.card_color === 'string' ? data.card_color : '255, 255, 255',
-        searchBarColor: typeof data.search_bar_color === 'string' ? data.search_bar_color : '255, 255, 255',
-        autoSyncEnabled: typeof data.auto_sync_enabled === 'boolean' ? data.auto_sync_enabled : true,
-        autoSyncInterval: (typeof data.auto_sync_interval === 'number' && data.auto_sync_interval >= 3 && data.auto_sync_interval <= 60) ? data.auto_sync_interval : 30,
+        cardColor: data.card_color || '255, 255, 255',
+        searchBarColor: data.search_bar_color || '255, 255, 255',
+        autoSyncEnabled: data.auto_sync_enabled !== undefined ? data.auto_sync_enabled : true,
+        autoSyncInterval: (data.auto_sync_interval && data.auto_sync_interval >= 3 && data.auto_sync_interval <= 300) ? data.auto_sync_interval : 30,
         lastSync: data.last_sync
       };
     } else {
@@ -193,13 +191,13 @@ export const getUserSettings = async (user: User): Promise<UserSettings | null> 
 
 // 保存用户网站数据到 Supabase
 export const saveUserWebsites = async (
-  user: User, 
-  websites: WebsiteData[], 
+  user: User,
+  websites: WebsiteData[],
   callbacks?: SyncStatusCallback
 ) => {
   try {
     callbacks?.onSyncStart?.();
-    
+
     await retryAsync(async () => {
       const { error } = await supabase
         .from(TABLES.USER_WEBSITES)
@@ -211,7 +209,7 @@ export const saveUserWebsites = async (
 
       if (error) throw error;
     });
-    
+
     logger.sync.info('网站数据已同步到云端');
     callbacks?.onSyncSuccess?.('网站数据已同步到云端');
     return true;
@@ -226,24 +224,31 @@ export const saveUserWebsites = async (
 export const getUserWebsites = async (user: User): Promise<WebsiteData[] | null> => {
   try {
     // 添加超时机制，避免长时间等待
-    const timeoutPromise = new Promise<never>((_, reject) => 
+    const timeoutPromise = new Promise<never>((_, reject) =>
       setTimeout(() => reject(new Error('连接超时')), 5000)
     );
-    
+
     const dataPromise = supabase
       .from(TABLES.USER_WEBSITES)
       .select('*')
       .eq('id', user.id)
       .single();
-    
+
     const { data, error } = await Promise.race([dataPromise, timeoutPromise]);
-    
-    if (error && error.code !== 'PGRST116') { // PGRST116 表示没有找到记录
-      throw error;
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // PGRST116 表示没有找到记录
+        logger.sync.debug('用户网站数据不存在');
+        return null;
+      } else {
+        logger.sync.error('获取网站数据时发生错误:', error);
+        throw error;
+      }
     }
-    
+
     if (data) {
-      logger.sync.info('从云端获取网站数据成功');
+      logger.sync.info('从云端获取网站数据成功', { count: data.websites?.length || 0 });
       return data.websites as WebsiteData[];
     } else {
       logger.sync.debug('用户网站数据不存在');
@@ -259,12 +264,12 @@ export const getUserWebsites = async (user: User): Promise<WebsiteData[] | null>
 // 合并本地和云端数据 - 改进版本，避免数据丢失
 export const mergeWebsiteData = (localData: WebsiteData[], cloudData: WebsiteData[]): WebsiteData[] => {
   const merged: { [key: string]: WebsiteData } = {};
-  
+
   // 先添加本地数据
   localData.forEach(item => {
     merged[item.id] = { ...item };
   });
-  
+
   // 智能合并云端数据
   cloudData.forEach(item => {
     const existing = merged[item.id];
@@ -275,9 +280,9 @@ export const mergeWebsiteData = (localData: WebsiteData[], cloudData: WebsiteDat
       // 比较最后访问时间，选择更新的数据作为基础
       const localTime = new Date(existing.lastVisit || '2000-01-01').getTime();
       const cloudTime = new Date(item.lastVisit || '2000-01-01').getTime();
-      
+
       let finalData: WebsiteData;
-      
+
       if (cloudTime > localTime) {
         // 云端数据更新，使用云端数据作为基础
         finalData = { ...item };
@@ -288,17 +293,17 @@ export const mergeWebsiteData = (localData: WebsiteData[], cloudData: WebsiteDat
         // 时间相同，使用访问次数更高的
         finalData = item.visitCount > existing.visitCount ? { ...item } : { ...existing };
       }
-      
+
       // 保留较高的访问次数（累积值）
       finalData.visitCount = Math.max(existing.visitCount || 0, item.visitCount || 0);
-      
+
       // 保留最新的访问时间
       finalData.lastVisit = localTime > cloudTime ? existing.lastVisit : item.lastVisit;
-      
+
       merged[item.id] = finalData;
     }
   });
-  
+
   return Object.values(merged);
 };
 
@@ -309,8 +314,8 @@ class SyncManager {
   private readonly maxRetries: number = 3;
 
   async performSync(
-    user: User, 
-    websites: WebsiteData[], 
+    user: User,
+    websites: WebsiteData[],
     settings: UserSettings,
     callbacks?: SyncStatusCallback,
     delay: number = 0 // 移除硬编码延迟，由调用方决定
@@ -320,12 +325,12 @@ class SyncManager {
       clearTimeout(this.syncTimeout);
       this.syncTimeout = null;
     }
-    
+
     // 如果没有延迟，立即执行
     if (delay === 0) {
       return this.executSync(user, websites, settings, callbacks);
     }
-    
+
     // 设置延迟执行
     return new Promise((resolve, reject) => {
       this.syncTimeout = setTimeout(async () => {
@@ -340,21 +345,21 @@ class SyncManager {
   }
 
   private async executSync(
-    user: User, 
-    websites: WebsiteData[], 
+    user: User,
+    websites: WebsiteData[],
     settings: UserSettings,
     callbacks?: SyncStatusCallback
   ): Promise<void> {
     callbacks?.onSyncStart?.();
-    
+
     try {
       const results = await Promise.allSettled([
         saveUserWebsites(user, websites),
         saveUserSettings(user, settings)
       ]);
-      
+
       const failed = results.filter(result => result.status === 'rejected');
-      
+
       if (failed.length === 0) {
         this.retryCount = 0; // 重置重试计数器
         callbacks?.onSyncSuccess?.('数据已静默同步到云端');
@@ -367,8 +372,8 @@ class SyncManager {
   }
 
   private async handleSyncFailure(
-    user: User, 
-    websites: WebsiteData[], 
+    user: User,
+    websites: WebsiteData[],
     settings: UserSettings,
     callbacks: SyncStatusCallback | undefined,
     failedCount: number
@@ -376,11 +381,11 @@ class SyncManager {
     if (this.retryCount < this.maxRetries) {
       this.retryCount++;
       logger.sync.warn(`同步部分失败，${this.retryCount}/${this.maxRetries} 次重试中`);
-      
+
       // 指数退避重试
       const retryDelay = 1000 * Math.pow(2, this.retryCount - 1);
       await new Promise(resolve => setTimeout(resolve, retryDelay));
-      
+
       return this.executSync(user, websites, settings, callbacks);
     } else {
       this.retryCount = 0;
@@ -389,8 +394,8 @@ class SyncManager {
   }
 
   private async handleSyncError(
-    user: User, 
-    websites: WebsiteData[], 
+    user: User,
+    websites: WebsiteData[],
     settings: UserSettings,
     callbacks: SyncStatusCallback | undefined,
     error: Error
@@ -398,11 +403,11 @@ class SyncManager {
     if (this.retryCount < this.maxRetries) {
       this.retryCount++;
       logger.sync.warn(`同步异常，${this.retryCount}/${this.maxRetries} 次重试中`);
-      
+
       // 指数退避重试
       const retryDelay = 1000 * Math.pow(2, this.retryCount - 1);
       await new Promise(resolve => setTimeout(resolve, retryDelay));
-      
+
       return this.executSync(user, websites, settings, callbacks);
     } else {
       this.retryCount = 0;
@@ -425,8 +430,8 @@ export const createSyncManager = (): SyncManager => new SyncManager();
 
 // 保持向后兼容的autoSync函数
 export const autoSync = (
-  user: User, 
-  websites: WebsiteData[], 
+  user: User,
+  websites: WebsiteData[],
   settings: UserSettings,
   callbacks?: SyncStatusCallback
 ): Promise<void> => {
@@ -436,13 +441,13 @@ export const autoSync = (
 
 // 保存用户资料到 Supabase
 export const saveUserProfile = async (
-  user: User, 
-  displayName: string, 
+  user: User,
+  displayName: string,
   callbacks?: SyncStatusCallback
 ) => {
   try {
     callbacks?.onSyncStart?.();
-    
+
     const { error } = await supabase
       .from(TABLES.USER_PROFILES)
       .upsert({
@@ -452,7 +457,7 @@ export const saveUserProfile = async (
       });
 
     if (error) throw error;
-    
+
     logger.sync.info('用户资料已同步到云端');
     callbacks?.onSyncSuccess?.('用户资料已保存');
     return true;
@@ -471,11 +476,11 @@ export const getUserProfile = async (user: User): Promise<UserProfile | null> =>
       .select('*')
       .eq('id', user.id)
       .single();
-    
+
     if (error && error.code !== 'PGRST116') { // PGRST116 表示没有找到记录
       throw error;
     }
-    
+
     if (data) {
       logger.sync.info('从云端获取用户资料成功');
       return {

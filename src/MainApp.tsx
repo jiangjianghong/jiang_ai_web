@@ -8,13 +8,11 @@ import { AuthProvider } from '@/contexts/SupabaseAuthContext';
 import { SyncProvider } from '@/contexts/SyncContext';
 import { UserProfileProvider } from '@/contexts/UserProfileContext';
 import { WorkspaceProvider } from '@/contexts/WorkspaceContext';
-import { WebsiteData } from '@/lib/supabaseSync';
 import { useState, useEffect } from 'react';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useResourcePreloader } from '@/hooks/useResourcePreloader';
 import CookieConsent from '@/components/CookieConsent';
 import PrivacySettings from '@/components/PrivacySettings';
-import { useStorage } from '@/lib/storageManager';
 import { useCloudData } from '@/hooks/useCloudData';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { useWebsiteData } from '@/hooks/useWebsiteData';
@@ -58,14 +56,17 @@ function AppContent() {
       // 如果云端有数据，使用云端数据（简化逻辑）
       if (cloudWebsites.length > 0) {
         console.log('📥 使用云端数据');
-        setWebsites(cloudWebsites);
+        // 使用 setTimeout 确保在下一个事件循环中执行，避免与 useAutoSync 冲突
+        setTimeout(() => {
+          setWebsites(cloudWebsites);
+        }, 0);
         setHasLoadedFromCloud(true);
       } else {
         console.log('📝 云端无数据，保持本地数据');
         setHasLoadedFromCloud(true);
       }
     }
-  }, [currentUser, hasCloudData, cloudWebsites, hasLoadedFromCloud, websites.length]);
+  }, [currentUser, hasCloudData, cloudWebsites, hasLoadedFromCloud, websites.length, setWebsites]);
 
   // 重置加载状态（当用户登出时）
   useEffect(() => {

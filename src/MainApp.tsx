@@ -17,6 +17,7 @@ import PrivacySettings from '@/components/PrivacySettings';
 import { useStorage } from '@/lib/storageManager';
 import { useCloudData } from '@/hooks/useCloudData';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
+import { useWebsiteData } from '@/hooks/useWebsiteData';
 
 // 内部应用组件，可以使用认证上下文
 function AppContent() {
@@ -31,18 +32,9 @@ function AppContent() {
   // 认证状态
   const { currentUser } = useAuth();
 
-  // 存储管理
-  const storage = useStorage();
-
-  // 优先从存储管理器读取卡片数据
-  const [websites, setWebsites] = useState<WebsiteData[]>(() => {
-    const saved = storage.getItem<WebsiteData[]>('websites');
-    if (saved) {
-      return saved;
-    }
-    return []; // 使用空数组替代mockWebsites
-  });
-
+  // 使用统一的网站数据管理
+  const { websites, setWebsites } = useWebsiteData();
+  
   // 云端数据同步状态
   const [hasLoadedFromCloud, setHasLoadedFromCloud] = useState(false);
 
@@ -51,10 +43,7 @@ function AppContent() {
 
   const [showPrivacySettings, setShowPrivacySettings] = useState(false);
 
-  // 持久化到存储管理器
-  useEffect(() => {
-    storage.setItem('websites', websites);
-  }, [websites, storage]);
+  // 存储管理已由 useWebsiteData 处理
 
   // 云端数据同步逻辑（仅在首次登录时执行一次）
   useEffect(() => {

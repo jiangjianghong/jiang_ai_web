@@ -206,13 +206,6 @@ export function useAutoSync(websites: WebsiteData[]): void {
           pendingChanges: 0
         });
         logger.sync.info('同步成功', { message });
-        
-        // 同步成功后立即更新数据指纹，避免重复同步
-        const syncedDataFingerprint = JSON.stringify({
-          websites: websiteFingerprint,
-          settings: settingsFingerprint
-        });
-        lastSyncDataRef.current = syncedDataFingerprint;
       },
       onSyncError: (error) => {
         // 重置同步状态

@@ -59,7 +59,12 @@ export function useCloudData(enabled: boolean = true): UseCloudDataResult {
     
     try {
       // 使用 Promise.allSettled 避免一个失败影响另一个
-      console.log('📡 正在从Supabase获取数据...');
+      console.log('📡 正在从Supabase获取数据...', {
+        userId: currentUser.id,
+        userEmail: currentUser.email,
+        emailConfirmed: currentUser.email_confirmed_at,
+        createdAt: currentUser.created_at
+      });
       const [websitesResult, settingsResult] = await Promise.allSettled([
         getUserWebsites(currentUser),
         getUserSettings(currentUser)
@@ -76,6 +81,22 @@ export function useCloudData(enabled: boolean = true): UseCloudDataResult {
         hasSettings: !!settings,
         settingsData: settings
       });
+
+      // 如果网站数据获取失败，记录详细错误
+      if (websitesResult.status === 'rejected') {
+        console.error('❌ 网站数据获取失败:', {
+          error: websitesResult.reason,
+          userId: currentUser.id,
+          userEmail: currentUser.email
+        });
+      }
+      if (settingsResult.status === 'rejected') {
+        console.error('❌ 设置数据获取失败:', {
+          error: settingsResult.reason,
+          userId: currentUser.id,
+          userEmail: currentUser.email
+        });
+      }
 
       setState({
         cloudWebsites: websites,
@@ -165,24 +186,34 @@ export function useCloudData(enabled: boolean = true): UseCloudDataResult {
         emailConfirmed: isEmailConfirmed
       });
     }
-  }, [currentUser?.id, currentUser?.email_confirmed_at, enabled, loadCloudData]);
+  }, [currentUser?.id, currentUser?.email_confirmed_at, loadCloudData]); // 移除 enabled 依赖
 
-  // 监听用户登录事件，立即触发数据加载
+  // 监听用户登录事件，立即触发数据加载（始终监听，不依赖enabled）
   useEffect(() => {
     const handleUserSignedIn = (event: CustomEvent) => {
       const user = event.detail?.user;
-      if (enabled && user && user.email_confirmed_at) {
+      console.log('📨 收到用户登录事件:', { 
+        hasUser: !!user, 
+        emailConfirmed: !!user?.email_confirmed_at,
+        userEmail: user?.email 
+      });
+      
+      if (user && user.email_confirmed_at) {
         console.log('🚀 收到用户登录事件，立即加载云端数据');
         // 立即触发数据加载，不等待其他条件
         loadCloudData();
+      } else {
+        console.log('⏸️ 用户登录事件条件不满足，跳过数据加载');
       }
     };
 
+    console.log('🎧 注册用户登录事件监听器');
     window.addEventListener('userSignedIn', handleUserSignedIn as EventListener);
     return () => {
+      console.log('🔇 移除用户登录事件监听器');
       window.removeEventListener('userSignedIn', handleUserSignedIn as EventListener);
     };
-  }, [enabled, loadCloudData]);
+  }, [loadCloudData]); // 移除 enabled 依赖
 
   return {
     ...state,

@@ -15,28 +15,39 @@ import { useResourcePreloader } from '@/hooks/useResourcePreloader';
 import CookieConsent from '@/components/CookieConsent';
 import PrivacySettings from '@/components/PrivacySettings';
 import { useStorage } from '@/lib/storageManager';
+import { useCloudData } from '@/hooks/useCloudData';
+import { useAuth } from '@/contexts/SupabaseAuthContext';
 
 // 内部应用组件，可以使用认证上下文
 function AppContent() {
-  // 移除调试日志，使用新的日志系统
-  
+  console.log('🏠 MainApp AppContent 组件渲染');
+
   // 使用页面标题hook
   usePageTitle();
-  
+
   // 启用资源预加载
   useResourcePreloader();
-  
+
+  // 认证状态
+  const { currentUser } = useAuth();
+
   // 存储管理
   const storage = useStorage();
-  
+
   // 优先从存储管理器读取卡片数据
-  const [websites, setWebsites] = useState(() => {
+  const [websites, setWebsites] = useState<WebsiteData[]>(() => {
     const saved = storage.getItem<WebsiteData[]>('websites');
     if (saved) {
       return saved;
     }
     return []; // 使用空数组替代mockWebsites
   });
+
+  // 云端数据同步状态
+  const [hasLoadedFromCloud, setHasLoadedFromCloud] = useState(false);
+
+  // 始终启用云端数据监听（hook内部会处理用户状态）
+  const { cloudWebsites, hasCloudData } = useCloudData(true);
 
   const [showPrivacySettings, setShowPrivacySettings] = useState(false);
 
@@ -45,6 +56,35 @@ function AppContent() {
     storage.setItem('websites', websites);
   }, [websites, storage]);
 
+  // 云端数据同步逻辑（仅在首次登录时执行一次）
+  useEffect(() => {
+    if (currentUser && currentUser.email_confirmed_at && hasCloudData && cloudWebsites && !hasLoadedFromCloud) {
+      console.log('☁️ 首次检测到云端数据，开始同步:', {
+        cloudCount: cloudWebsites.length,
+        localCount: websites.length,
+        hasLoadedFromCloud,
+        userEmail: currentUser.email
+      });
+
+      // 如果云端有数据，使用云端数据（简化逻辑）
+      if (cloudWebsites.length > 0) {
+        console.log('📥 使用云端数据');
+        setWebsites(cloudWebsites);
+        setHasLoadedFromCloud(true);
+      } else {
+        console.log('📝 云端无数据，保持本地数据');
+        setHasLoadedFromCloud(true);
+      }
+    }
+  }, [currentUser, hasCloudData, cloudWebsites, hasLoadedFromCloud, websites.length]);
+
+  // 重置加载状态（当用户登出时）
+  useEffect(() => {
+    if (!currentUser) {
+      setHasLoadedFromCloud(false);
+    }
+  }, [currentUser]);
+
   // 移除调试日志，使用新的日志系统
 
   return (
@@ -52,11 +92,11 @@ function AppContent() {
       <Routes>
         <Route path="/" element={<Home websites={websites} setWebsites={setWebsites} />} />
       </Routes>
-      
+
       <CookieConsent />
-      
+
       {showPrivacySettings && (
-        <PrivacySettings 
+        <PrivacySettings
           isOpen={showPrivacySettings}
           onClose={() => setShowPrivacySettings(false)}
         />
@@ -68,7 +108,7 @@ function AppContent() {
 // 主应用组件，包含所有Provider
 export default function MainApp() {
   // 移除调试日志，使用新的日志系统
-  
+
   return (
     <DndProvider backend={HTML5Backend}>
       <TransparencyProvider>

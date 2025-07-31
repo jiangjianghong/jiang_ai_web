@@ -108,7 +108,19 @@ class FaviconCacheManager {
       urls.push(customFaviconUrl);
     }
     
-    // 直接使用公开镜像源（可能有跨域限制）
+    // 在开发环境优先使用 Supabase 代理服务
+    const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL || '').replace(/\/$/, '');
+    const isDevelopment = import.meta.env.MODE === 'development';
+    
+    if (supabaseUrl && isDevelopment) {
+      // 开发环境：优先使用 Supabase 代理服务
+      urls.push(
+        `${supabaseUrl}/functions/v1/favicon-service?domain=${encodeURIComponent(domain)}&size=64`,
+        `${supabaseUrl}/functions/v1/favicon-service?domain=${encodeURIComponent(domain)}&size=32`
+      );
+    }
+    
+    // 直接使用公开镜像源（生产环境优先，开发环境作为备选）
     urls.push(
       `https://favicon.im/${domain}?larger=true`,
       `https://favicon.im/${domain}`,
@@ -116,9 +128,8 @@ class FaviconCacheManager {
       `https://www.google.com/s2/favicons?domain=${domain}&sz=32`
     );
     
-    // Supabase 作为跨域代理和缓存服务（当直接访问失败时）
-    const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL || '').replace(/\/$/, '');
-    if (supabaseUrl) {
+    // 生产环境：Supabase 作为备选
+    if (supabaseUrl && !isDevelopment) {
       urls.push(
         `${supabaseUrl}/functions/v1/favicon-service?domain=${encodeURIComponent(domain)}&size=64`,
         `${supabaseUrl}/functions/v1/favicon-service?domain=${encodeURIComponent(domain)}&size=32`

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useWorkspace } from '@/contexts/WorkspaceContext';
 import NotionGuide from './NotionGuide';
+import { parseNotionUrl, isValidDatabaseId } from '@/lib/notionUrlParser';
 
 interface WorkspaceSettingsProps {
   onClose: () => void;
@@ -12,6 +13,8 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
   
   const [apiKey, setApiKey] = useState('');
   const [databaseId, setDatabaseId] = useState('');
+  const [databaseIdInput, setDatabaseIdInput] = useState(''); // 用户输入的原始内容
+  const [parseResult, setParseResult] = useState<{ isValid: boolean; error?: string } | null>(null);
   // Vercel 代理已内置，无需配置
   const [isTestingConnection, setIsTestingConnection] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<'idle' | 'success' | 'error'>('idle');
@@ -25,13 +28,41 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
     if (config) {
       // 自动填充上次保存的配置
       setApiKey(config.apiKey || '');
-      setDatabaseId(config.databaseId || '');
+      const savedDatabaseId = config.databaseId || '';
+      setDatabaseId(savedDatabaseId);
+      setDatabaseIdInput(savedDatabaseId); // 显示保存的数据库 ID
+      if (savedDatabaseId) {
+        setParseResult({ isValid: true });
+      }
       console.log('✅ 已加载保存的工作空间配置');
     }
   }, [getConfiguration]);
 
+  // 处理数据库 ID 输入变化
+  const handleDatabaseIdChange = (input: string) => {
+    setDatabaseIdInput(input);
+    
+    if (!input.trim()) {
+      setDatabaseId('');
+      setParseResult(null);
+      return;
+    }
+
+    const result = parseNotionUrl(input);
+    setParseResult({
+      isValid: result.isValid,
+      error: result.error
+    });
+
+    if (result.isValid && result.databaseId) {
+      setDatabaseId(result.databaseId);
+    } else {
+      setDatabaseId('');
+    }
+  };
+
   // 验证表单
-  const isFormValid = apiKey.trim().length > 0 && databaseId.trim().length > 0;
+  const isFormValid = apiKey.trim().length > 0 && databaseId.length > 0 && isValidDatabaseId(databaseId);
 
   // 使用默认的 Supabase 代理
   const getProxyConfig = () => {
@@ -51,8 +82,7 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
 
     try {
       // 先配置连接
-      const proxyConfig = getProxyConfig();
-      configureNotion(apiKey.trim(), databaseId.trim(), proxyConfig);
+      configureNotion(apiKey.trim(), databaseId, undefined);
       
       // 测试连接
       const isConnected = await testConnection();
@@ -79,8 +109,7 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
     }
 
     try {
-      const proxyConfig = getProxyConfig();
-      configureNotion(apiKey.trim(), databaseId.trim(), proxyConfig);
+      configureNotion(apiKey.trim(), databaseId, undefined);
       onConfigured();
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : '保存配置失败');
@@ -93,6 +122,8 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
       clearConfiguration();
       setApiKey('');
       setDatabaseId('');
+      setDatabaseIdInput('');
+      setParseResult(null);
       setConnectionStatus('idle');
       setErrorMessage('');
     }
@@ -207,13 +238,41 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
               </label>
               <input
                 type="text"
-                value={databaseId}
-                onChange={(e) => setDatabaseId(e.target.value)}
-                placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono"
+                value={databaseIdInput}
+                onChange={(e) => handleDatabaseIdChange(e.target.value)}
+                placeholder="粘贴 Notion 分享链接或数据库 ID"
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent text-sm ${
+                  parseResult === null 
+                    ? 'border-gray-300 focus:ring-blue-500' 
+                    : parseResult.isValid 
+                      ? 'border-green-300 focus:ring-green-500 bg-green-50' 
+                      : 'border-red-300 focus:ring-red-500 bg-red-50'
+                }`}
               />
+              
+              {/* 解析状态提示 */}
+              {parseResult && (
+                <div className={`mt-2 p-2 rounded-lg text-xs ${
+                  parseResult.isValid 
+                    ? 'bg-green-50 border border-green-200 text-green-700' 
+                    : 'bg-red-50 border border-red-200 text-red-700'
+                }`}>
+                  {parseResult.isValid ? (
+                    <div className="flex items-center space-x-1">
+                      <i className="fa-solid fa-check-circle"></i>
+                      <span>✅ 已成功提取数据库 ID: {databaseId}</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center space-x-1">
+                      <i className="fa-solid fa-exclamation-triangle"></i>
+                      <span>❌ {parseResult.error}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+              
               <p className="mt-1 text-xs text-gray-500">
-                从数据库 URL 中提取的 32 位字符串
+                支持粘贴完整的 Notion 分享链接，系统会自动提取数据库 ID
               </p>
             </div>
           </div>

@@ -177,9 +177,9 @@ export default function NotionGuide({ onClose }: NotionGuideProps) {
                       <div>
                         <p className="font-medium text-purple-900">获取数据库 ID</p>
                         <p className="text-xs mt-1">
-                          数据库连接成功后，您可以从浏览器地址栏复制数据库ID。<br/>
-                          格式：<code>notion.so/[workspace]/[database-id]?v=...</code><br/>
-                          您需要的是中间的 database-id 部分（32位字符）
+                          数据库连接成功后，您可以从浏览器地址栏复制完整的分享链接。<br/>
+                          格式：<code>https://www.notion.so/22b197407c238188ace9fe148487a853?v=22b197407c23816c809f000c1b8ef117</code><br/>
+                          <span className="text-green-600">✨ 新功能：现在可以直接粘贴完整链接，系统会自动提取数据库 ID！</span>
                         </p>
                       </div>
                     </div>

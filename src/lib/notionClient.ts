@@ -234,11 +234,15 @@ export class NotionClient {
 
   // 获取数据库信息
   async getDatabase(databaseId: string): Promise<NotionDatabase> {
-    return await this.makeRequest(`/databases/${databaseId}`);
+    // 清理数据库 ID，确保不包含查询参数
+    const cleanId = databaseId.split('?')[0].split('#')[0].trim();
+    return await this.makeRequest(`/databases/${cleanId}`);
   }
 
   // 查询数据库页面（支持分页）
   async queryDatabase(databaseId: string, filter?: any, sorts?: any): Promise<NotionPage[]> {
+    // 清理数据库 ID，确保不包含查询参数
+    const cleanId = databaseId.split('?')[0].split('#')[0].trim();
     let allResults: NotionPage[] = [];
     let hasMore = true;
     let startCursor: string | undefined;
@@ -252,7 +256,7 @@ export class NotionClient {
       if (sorts) body.sorts = sorts;
       if (startCursor) body.start_cursor = startCursor;
 
-      const response = await this.makeRequest(`/databases/${databaseId}/query`, {
+      const response = await this.makeRequest(`/databases/${cleanId}/query`, {
         method: 'POST',
         body: JSON.stringify(body),
       });

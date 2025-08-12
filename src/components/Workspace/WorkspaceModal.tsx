@@ -33,6 +33,8 @@ export default function WorkspaceModal({ isOpen, onClose }: WorkspaceModalProps)
     }
   }, [isOpen, isConfigured]);
 
+
+
   // 过滤和搜索逻辑
   const filteredItems = workspaceItems.filter(item => {
     // 搜索过滤
@@ -69,11 +71,7 @@ export default function WorkspaceModal({ isOpen, onClose }: WorkspaceModalProps)
     return date.toLocaleDateString();
   };
 
-  const modalVariants = {
-    hidden: { opacity: 0, scale: 0.9 },
-    visible: { opacity: 1, scale: 1 },
-    exit: { opacity: 0, scale: 0.9 }
-  };
+
 
   const containerClasses = isMobile
     ? "fixed inset-4 max-h-[90vh]"
@@ -84,29 +82,35 @@ export default function WorkspaceModal({ isOpen, onClose }: WorkspaceModalProps)
     : "grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 auto-rows-fr";
 
   return (
-    <AnimatePresence>
+    <AnimatePresence mode="wait">
       {isOpen && (
         <>
-          {/* 模糊背景遮罩 */}
+          {/* 背景遮罩 - 点击关闭 */}
           <motion.div
             className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
             onClick={onClose}
           />
 
-          {/* 工作空间内容 */}
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* 工作空间内容容器 */}
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+            {/* 工作空间内容 */}
             <motion.div
-              className={`${containerClasses} bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl overflow-hidden flex flex-col`}
-              variants={modalVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              transition={{ type: 'spring', damping: 20, stiffness: 300 }}
-              onClick={(e) => e.stopPropagation()}
+              className={`${containerClasses} bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl overflow-hidden flex flex-col pointer-events-auto`}
+              initial={{ scale: 0.7, opacity: 0, y: 50, rotateX: -15 }}
+              animate={{ scale: 1, opacity: 1, y: 0, rotateX: 0 }}
+              exit={{ scale: 0.7, opacity: 0, y: 50, rotateX: -15 }}
+              transition={{ 
+                type: 'spring', 
+                damping: 20, 
+                stiffness: 300,
+                duration: 0.6
+              }}
+              onAnimationStart={() => console.log('🎬 工作空间动画开始')}
+              onAnimationComplete={() => console.log('✅ 工作空间动画完成')}
             >
               {/* 头部 */}
               <div className="flex items-center justify-between p-6 border-b border-gray-200/50">

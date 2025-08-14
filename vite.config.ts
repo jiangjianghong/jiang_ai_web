@@ -64,7 +64,6 @@ export default defineConfig({
           'react-vendor': ['react', 'react-dom'],
           'router-vendor': ['react-router-dom'],
           'ui-vendor': ['framer-motion', 'react-dnd', 'react-dnd-html5-backend'],
-          'firebase-vendor': ['firebase/app', 'firebase/auth', 'firebase/firestore'],
           'chart-vendor': ['recharts'],
         }
       }
@@ -108,9 +107,6 @@ export default defineConfig({
       'react-dom',
       'react-router-dom',
       'framer-motion',
-      'firebase/app',
-      'firebase/auth',
-      'firebase/firestore',
       'clsx',
       'tailwind-merge'
     ],

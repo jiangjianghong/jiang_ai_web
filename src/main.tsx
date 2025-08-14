@@ -5,17 +5,22 @@ import { Toaster } from 'sonner';
 import MainApp from "./MainApp.tsx";
 import "./index.css";
 
-// 初始化优化系统
-import { logger } from './lib/logger';
-import { setupGlobalErrorHandler } from './lib/errorHandler';
-import { memoryManager } from './lib/memoryManager';
-import { requestManager } from './lib/requestManager';
+const isLocalhost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+// 检查当前路径是否包含 /jiang_ai_web/
+const hasBasePath = window.location.pathname.startsWith('/jiang_ai_web');
+const basename = hasBasePath ? "/jiang_ai_web" : undefined;
 
-// 设置全局错误处理
-setupGlobalErrorHandler();
-
-// 使用根路径部署，不需要 basename
-const basename = undefined;
+// 移除加载骨架屏的函数
+const removeLoadingSkeleton = () => {
+  const skeleton = document.getElementById('loading-skeleton');
+  if (skeleton) {
+    skeleton.style.opacity = '0';
+    skeleton.style.transition = 'opacity 0.3s ease-out';
+    setTimeout(() => {
+      skeleton.remove();
+    }, 300);
+  }
+};
 
 // 简化日志输出
 
@@ -70,8 +75,16 @@ try {
     </StrictMode>
   );
 
+  // 应用渲染完成后移除骨架屏
+  // 使用微任务确保React已完成首次渲染
+  queueMicrotask(() => {
+    requestAnimationFrame(() => {
+      removeLoadingSkeleton();
+    });
+  });
+
 } catch (error) {
-  logger.error('React应用初始化失败', error);
+  console.error('❌ React应用初始化失败:', error);
   
   // 显示错误信息
   const root = createRoot(document.getElementById("root")!);

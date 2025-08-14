@@ -1,11 +1,15 @@
-// 离线优先的Service Worker for 江的标签页
+// 离线优先的Service Worker for 炫酷收藏夹
 const CACHE_NAME = 'jiang-ai-web-v4-offline';
 const STATIC_CACHE_NAME = 'static-v4';
 const DYNAMIC_CACHE_NAME = 'dynamic-v4';
 
 // 动态获取正确的路径前缀
 const getBasePath = () => {
-  // 使用根路径部署，不需要前缀
+  const currentPath = self.location.pathname;
+  // 如果当前路径包含 /jiang_ai_web，说明需要这个前缀
+  if (currentPath.includes('/jiang_ai_web')) {
+    return '/jiang_ai_web';
+  }
   return '';
 };
 
@@ -17,13 +21,16 @@ console.log('Service Worker 路径配置:', { basePath, hostname: self.location.
 // 静态缓存URL（核心文件）
 const STATIC_CACHE_URLS = [
   `${basePath}/`,
-  `${basePath}/index.html`
+  `${basePath}/index.html`,
+  // 预缓存关键资源
+  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css'
 ];
 
-// 可选缓存URL（这些文件可能不存在）- 移除外部FontAwesome依赖
+// 可选缓存URL（这些文件可能不存在）
 const OPTIONAL_CACHE_URLS = [
   `${basePath}/404.html`,
-  `${basePath}/icon/favicon.png`
+  `${basePath}/icon/icon.jpg`,
+  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/webfonts/fa-solid-900.woff2'
 ];
 
 // 高优先级缓存的资源类型

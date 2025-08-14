@@ -32,8 +32,8 @@ function getPlugins() {
 }
 
 export default defineConfig({
-  // 使用根路径作为 base，适配自定义域名部署
-  base: '/',
+  // 始终使用 /jiang_ai_web/ 作为 base，确保本地和生产资源路径一致，防止404
+  base: '/jiang_ai_web/',
   plugins: getPlugins(),
   
   // 构建优化配置
@@ -64,6 +64,7 @@ export default defineConfig({
           'react-vendor': ['react', 'react-dom'],
           'router-vendor': ['react-router-dom'],
           'ui-vendor': ['framer-motion', 'react-dnd', 'react-dnd-html5-backend'],
+          'firebase-vendor': ['firebase/app', 'firebase/auth', 'firebase/firestore'],
           'chart-vendor': ['recharts'],
         }
       }
@@ -83,21 +84,6 @@ export default defineConfig({
       port: 3003, // 使用不同端口避免冲突
       host: 'localhost'
     },
-    // 代理配置 - 将API请求转发到本地代理服务器
-    proxy: {
-      '/api': {
-        target: 'http://localhost:3002',
-        changeOrigin: true,
-        configure: (proxy, options) => {
-          proxy.on('error', (err, req, res) => {
-            console.log('代理错误:', err);
-          });
-          proxy.on('proxyReq', (proxyReq, req, res) => {
-            console.log('代理请求:', req.method, req.url, '->', proxyReq.path);
-          });
-        }
-      }
-    },
     // 设置正确的MIME类型和缓存头
     headers: {
       'X-Content-Type-Options': 'nosniff',
@@ -107,7 +93,7 @@ export default defineConfig({
     warmup: {
       clientFiles: [
         './src/main.tsx',
-        './src/MainApp.tsx',
+        './src/App.tsx',
         './src/pages/Home.tsx',
         './src/components/**/*.tsx'
       ]
@@ -122,6 +108,9 @@ export default defineConfig({
       'react-dom',
       'react-router-dom',
       'framer-motion',
+      'firebase/app',
+      'firebase/auth',
+      'firebase/firestore',
       'clsx',
       'tailwind-merge'
     ],
@@ -137,10 +126,5 @@ export default defineConfig({
       'Cache-Control': 'public, max-age=31536000, immutable',
       'Expires': '', // 清空Expires头，使用Cache-Control
     }
-  },
-  
-  // 实验性功能配置（当前版本暂无可用选项）
-  // experimental: {
-  //   // 未来可能的实验性功能
-  // }
+  }
 });

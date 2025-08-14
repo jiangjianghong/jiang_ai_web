@@ -5,15 +5,19 @@
 
 // 获取正确的base path
 const getBasePath = (): string => {
-  // 使用根路径部署，不需要前缀
-  return '';
+  if (typeof window !== 'undefined') {
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    return isLocalhost ? '' : '/jiang_ai_web';
+  }
+  // 服务端或其他环境
+  return process.env.NODE_ENV === 'production' ? '/jiang_ai_web' : '';
 };
 
 /**
  * 获取默认图标的完整路径
  */
 export const getDefaultIconPath = (): string => {
-  return `${getBasePath()}/icon/favicon.png`;
+  return `${getBasePath()}/icon/chatgpt.svg`;
 };
 
 /**
@@ -49,5 +53,5 @@ export const getIconPath = (iconPath: string): string => {
  * 检查是否是默认图标
  */
 export const isDefaultIcon = (iconPath: string): boolean => {
-  return iconPath === '/icon/favicon.png' || iconPath === getDefaultIconPath();
+  return iconPath === '/icon/icon.jpg' || iconPath === getDefaultIconPath();
 };

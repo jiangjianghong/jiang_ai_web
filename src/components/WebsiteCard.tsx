@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { useState, useRef, useEffect, memo } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
+import Tilt from 'react-parallax-tilt';
 import CardEditModal from './CardEditModal';
 import { useTransparency } from '@/contexts/TransparencyContext';
 import { useFavicon } from '@/hooks/useFavicon';
@@ -29,6 +30,7 @@ export const WebsiteCard = memo(function WebsiteCardComponent({ id, name, url, f
   const { cardOpacity, cardColor } = useTransparency();
   const { faviconUrl, isLoading, error } = useFavicon(url, favicon);
   const { isMobile, getCardClasses } = useResponsiveLayout();
+
 
   const [{ isDragging }, drag] = useDrag({
     type: 'WEBSITE_CARD',
@@ -175,58 +177,61 @@ export const WebsiteCard = memo(function WebsiteCardComponent({ id, name, url, f
 
   return (
     <>
-      {/* 简化的卡片容器 - 保留圆角 */}
-      <motion.div 
-        className={`${getCardClasses()} relative rounded-lg`}
-        style={{ 
-          backgroundColor: `rgba(${cardColor}, ${cardOpacity})`,
-          backdropFilter: 'blur(10px)',
-          border: '1px solid rgba(255, 255, 255, 0.2)',
-        }}
-        animate={{
-          opacity: isDragging ? 0.3 : 1,
-          scale: isDragging ? 1.05 : 1,
-          zIndex: isDragging ? 50 : 0,
-          rotate: isDragging ? 5 : 0,
-        }}
-        transition={{
-          type: "spring",
-          stiffness: 300,
-          damping: 20,
-        }}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-        onTouchStart={startLongPress}
-        onTouchEnd={clearLongPress}
-        onTouchMove={clearLongPress}
-        onTouchCancel={clearLongPress}
-        onClick={handleCardClick}
-        whileTap={isMobile ? { 
-          scale: 0.95,
-          transition: { duration: 0.1, ease: "easeInOut" }
-        } : {}}
-        whileHover={!isMobile && !isDragging ? { 
-          scale: 1.02, 
-          y: -3,
-          transition: { 
-            type: "spring",
-            stiffness: 400,
-            damping: 17
-          }
-        } : {}}
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ 
-          opacity: 1, 
-          y: 0,
-          transition: { 
-            duration: 0.4, 
-            ease: "easeOut",
-            delay: 0.05 
-          }
-        }}
-        viewport={{ once: true }}
-        ref={cardRef}
+      {/* 使用Tilt组件实现3D效果 */}
+      <Tilt
+        tiltEnable={!isMobile && !isDragging}
+        tiltReverse={true}  // 反转倾斜方向（按下效果）
+        tiltMaxAngleX={25}  // 增加X轴倾斜角度
+        tiltMaxAngleY={25}  // 增加Y轴倾斜角度
+        perspective={1000}
+        transitionSpeed={1000}
+        scale={1.02}
+        glareEnable={!isMobile}
+        glareMaxOpacity={0.3}
+        glareColor="lightblue"
+        glarePosition="all"
       >
+        {/* 简化的卡片容器 - 保留圆角 */}
+        <motion.div 
+          className={`${getCardClasses()} relative rounded-lg`}
+          style={{ 
+            backgroundColor: `rgba(${cardColor}, ${cardOpacity})`,
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+          }}
+          animate={{
+            opacity: isDragging ? 0.3 : 1,
+            zIndex: isDragging ? 50 : 0,
+          }}
+          transition={{
+            type: "spring",
+            stiffness: 200,
+            damping: 15,
+          }}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+          onTouchStart={startLongPress}
+          onTouchEnd={clearLongPress}
+          onTouchMove={clearLongPress}
+          onTouchCancel={clearLongPress}
+          onClick={handleCardClick}
+          whileTap={isMobile ? { 
+            scale: 0.95,
+            transition: { duration: 0.1, ease: "easeInOut" }
+          } : {}}
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ 
+            opacity: 1, 
+            y: 0,
+            transition: { 
+              duration: 0.4, 
+              ease: "easeOut",
+              delay: 0.05 
+            }
+          }}
+          viewport={{ once: true }}
+          ref={cardRef}
+        >
         {/* 设置按钮 */}
         <div className={`absolute ${isMobile ? 'top-1 right-1' : 'bottom-0.5 right-0.5'} z-10`}>
           <button 
@@ -333,6 +338,7 @@ export const WebsiteCard = memo(function WebsiteCardComponent({ id, name, url, f
           />
         )}
       </motion.div>
+      </Tilt>
 
       {showEditModal && (
         <CardEditModal

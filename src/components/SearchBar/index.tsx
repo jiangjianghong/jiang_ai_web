@@ -1,7 +1,6 @@
-import { useState, useRef, useLayoutEffect, useEffect, useCallback, memo } from 'react';
+import { useState, useRef, useLayoutEffect, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTransparency } from '@/contexts/TransparencyContext';
-import { useWorkspace } from '@/contexts/WorkspaceContext';
 import { useSmartDebounce } from '@/hooks/useSmartDebounceFixed';
 
 // 子组件导入
@@ -14,7 +13,7 @@ interface SearchBarProps {
   // 不再需要websites参数
 }
 
-export const SearchBar = memo(function SearchBarComponent(_props: SearchBarProps = {}) {
+export function SearchBar(_props: SearchBarProps = {}) {
   const [searchQuery, setSearchQuery] = useState('');
   const [isHovered, setIsHovered] = useState(false);
   const [engine, setEngine] = useState<'bing' | 'google'>('bing');
@@ -30,20 +29,19 @@ export const SearchBar = memo(function SearchBarComponent(_props: SearchBarProps
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [isFocused, setIsFocused] = useState(false);
   const { searchBarOpacity, setIsSearchFocused } = useTransparency();
-  const { workspaceItems } = useWorkspace();
-  
-  // 调试：监控工作空间数据变化
-  useEffect(() => {
-    console.log('🔍 SearchBar - 工作空间数据更新:', workspaceItems);
-  }, [workspaceItems]);
 
   // 全局监听空格键聚焦搜索框
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      console.log('键盘事件:', e.code, e.key); // 调试信息
+      
       // 检查是否按下空格键
       if (e.code === 'Space') {
+        console.log('检测到空格键'); // 调试信息
+        
         // 获取当前聚焦的元素
         const activeElement = document.activeElement;
+        console.log('当前聚焦元素:', activeElement?.tagName, activeElement); // 调试信息
         
         // 如果当前聚焦的不是输入框/textarea/可编辑元素，则聚焦搜索框
         if (activeElement && (
@@ -51,27 +49,36 @@ export const SearchBar = memo(function SearchBarComponent(_props: SearchBarProps
           activeElement.tagName === 'TEXTAREA' ||
           activeElement.getAttribute('contenteditable') === 'true'
         )) {
+          console.log('当前在输入元素中，跳过处理'); // 调试信息
           return; // 不处理，让默认行为执行
         }
+        
+        console.log('准备聚焦搜索框'); // 调试信息
         
         // 阻止默认的空格行为（滚动页面）
         e.preventDefault();
         
         // 聚焦搜索框并设置聚焦状态
         if (searchInputRef.current) {
+          console.log('聚焦搜索框成功'); // 调试信息
           searchInputRef.current.focus();
           setIsFocused(true);
           setIsHovered(true); // 确保hover状态也被设置，让搜索框变宽
           setIsSearchFocused(true);
+          console.log('设置搜索聚焦状态为true'); // 调试信息
+        } else {
+          console.log('搜索框ref为空'); // 调试信息
         }
       }
     };
 
     // 添加全局键盘监听
     document.addEventListener('keydown', handleKeyDown);
+    console.log('添加空格键监听器'); // 调试信息
     
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
+      console.log('移除空格键监听器'); // 调试信息
     };
   }, [setIsSearchFocused]);
 
@@ -83,13 +90,13 @@ export const SearchBar = memo(function SearchBarComponent(_props: SearchBarProps
     }
 
     try {
-      const results = await fetchSearchSuggestions(query, workspaceItems);
+      const results = await fetchSearchSuggestions(query);
       setSuggestions(results);
     } catch (error) {
       console.warn('获取搜索建议失败:', error);
       setSuggestions([]);
     }
-  }, [workspaceItems]);
+  }, [engine]);
 
   const debouncedFetchSuggestions = useSmartDebounce(fetchSuggestionsWithDebounce, 300, 1000);
 
@@ -170,16 +177,9 @@ export const SearchBar = memo(function SearchBarComponent(_props: SearchBarProps
 
   // 处理建议点击
   const handleSuggestionClick = useCallback((suggestion: Suggestion) => {
-    if (suggestion.type === 'workspace' && suggestion.url) {
-      // 工作空间项目直接打开 URL
-      window.open(suggestion.url, '_blank');
-      setShowSuggestions(false);
-    } else {
-      // 搜索建议执行搜索
-      setSearchQuery(suggestion.text);
-      handleSearch(suggestion.text);
-      setShowSuggestions(false);
-    }
+    setSearchQuery(suggestion.text);
+    handleSearch(suggestion.text);
+    setShowSuggestions(false);
   }, [handleSearch]);
 
   // 引擎按钮鼠标事件
@@ -222,10 +222,12 @@ export const SearchBar = memo(function SearchBarComponent(_props: SearchBarProps
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
             onClick={() => {
+              console.log('点击背景遮罩，取消聚焦'); // 调试信息
               setIsFocused(false);
               setIsHovered(false);
               setShowSuggestions(false);
               setIsSearchFocused(false);
+              console.log('设置搜索聚焦状态为false'); // 调试信息
               searchInputRef.current?.blur();
             }}
           />
@@ -280,9 +282,11 @@ export const SearchBar = memo(function SearchBarComponent(_props: SearchBarProps
             value={searchQuery}
             onChange={handleSearchInputChange}
             onFocus={() => {
+              console.log('搜索框获得焦点'); // 调试信息
               setIsHovered(true);
               setIsFocused(true);
               setIsSearchFocused(true);
+              console.log('点击设置搜索聚焦状态为true'); // 调试信息
               if (searchQuery.trim() && suggestions.length > 0) {
                 setShowSuggestions(true);
               }
@@ -330,7 +334,7 @@ export const SearchBar = memo(function SearchBarComponent(_props: SearchBarProps
     </div>
     </>
   );
-});
+}
 
 // 默认导出
 export default SearchBar;

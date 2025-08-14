@@ -1,21 +1,20 @@
 {
-  "name": "jiang-tab-page",
+  "name": "project_template_react",
   "private": true,
   "version": "0.0.1",
   "type": "module",
   "scripts": {
     "dev:client": "vite --host --port 3000",
-    "dev:proxy": "node dev-proxy-server.js",
     "dev": "pnpm dev:client",
     "build:client": "vite build",
     "build": "rimraf dist && pnpm build:client && shx cp package.json dist/ && shx touch dist/build.flag",
-    "deploy": "pnpm run build && gh-pages -d dist",
-    "preview": "vite preview"
+    "deploy": "pnpm run build && gh-pages -d dist"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.52.0",
     "@tsparticles/react": "^3.0.0",
     "clsx": "^2.1.1",
+    "firebase": "^11.10.0",
     "framer-motion": "^12.9.2",
     "html2canvas": "^1.4.1",
     "react": "^18.3.1",
@@ -39,8 +38,6 @@
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.21",
-    "cors": "^2.8.5",
-    "express": "^4.21.2",
     "gh-pages": "^6.3.0",
     "postcss": "^8.5.3",
     "rimraf": "^6.0.1",

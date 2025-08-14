@@ -10,7 +10,8 @@
       "Bash(claude config get editorMode)",
       "Bash(claude config get:*)",
       "Bash(claude config list:*)",
-      "Bash(claude --permission-mode bypassPermissions)"
+      "Bash(claude --permission-mode bypassPermissions)",
+      "WebSearch"
     ],
     "deny": []
   }

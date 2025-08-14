@@ -1,8 +1,7 @@
-import { useState, memo, useCallback } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { z } from 'zod';
 import { uploadFaviconToStorage } from '@/lib/supabaseFaviconUpload';
-import { getApiPath } from '@/lib/pathUtils';
 
 const websiteSchema = z.object({
   name: z.string().min(1, '网站名不能为空'),
@@ -30,7 +29,7 @@ interface CardEditModalProps {
   onDelete?: (id: string) => void;
 }
 
-const CardEditModal = memo(function CardEditModalComponent({ id, name, url, favicon, tags, note, onClose, onSave, onDelete }: CardEditModalProps) {
+export default function CardEditModal({ id, name, url, favicon, tags, note, onClose, onSave, onDelete }: CardEditModalProps) {
   const [formData, setFormData] = useState({
     name,
     url,
@@ -65,32 +64,43 @@ const CardEditModal = memo(function CardEditModalComponent({ id, name, url, favi
   };
 
   /**
-   * 获取 favicon 的备用 URL 列表（使用 Supabase 统一服务）
+   * 获取 favicon 的备用 URL 列表（代理优先，支持降级）
    */
   const getFaviconUrls = (domain: string): string[] => {
-    // 获取 Supabase URL
-    const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL || '').replace(/\/$/, '');
+    // 代理服务前缀
+    const proxyPrefix = 'https://api.allorigins.win/raw?url=';
     
-    if (supabaseUrl) {
-      return [
-        // 使用 Supabase favicon 服务（优先）
-        `${supabaseUrl}/functions/v1/favicon-service?domain=${encodeURIComponent(domain)}&size=64`,
-        `${supabaseUrl}/functions/v1/favicon-service?domain=${encodeURIComponent(domain)}&size=32`,
-        // 兜底：默认图标
-        '/icon/favicon.png'
-      ];
-    }
-    
-    // 备用方案：如果没有Supabase配置
     return [
-      `https://corsproxy.io/?${encodeURIComponent(`https://www.google.com/s2/favicons?domain=${domain}&sz=64`)}`,
-      `https://icon.horse/icon/${domain}`,
-      `https://favicons.githubusercontent.com/${domain}`,
-      '/icon/favicon.png'
+      // 使用代理访问 favicon.im（支持国内访问，速度快）
+      proxyPrefix + encodeURIComponent(`https://favicon.im/${domain}?larger=true`),
+      // 代理失败时的直接访问降级
+      `https://favicon.im/${domain}?larger=true`,
+      // 直接访问Google服务（无CORS限制）
+      `https://www.google.com/s2/favicons?domain=${domain}&sz=64`,
+      `https://www.google.com/s2/favicons?domain=${domain}&sz=32`,
+      // 备用：DuckDuckGo的图标服务
+      `https://icons.duckduckgo.com/ip3/${domain}.ico`,
+      // 尝试网站自己的 favicon
+      `https://${domain}/favicon.ico`,
+      `https://${domain}/favicon.png`,
+      // 兜底：默认图标
+      '/icon/icon.jpg'
     ];
   };
 
-
+  /**
+   * 处理 favicon URL，检测并通过代理访问有 CORS 问题的 URL
+   */
+  const processeFaviconUrl = (url: string): string => {
+    const proxyPrefix = 'https://api.allorigins.win/raw?url=';
+    
+    // 检查是否是需要代理的URL
+    if (url.includes('favicon.im')) {
+      return proxyPrefix + encodeURIComponent(url);
+    }
+    
+    return url;
+  };
 
   /**
    * 测试图标URL是否可用
@@ -143,7 +153,7 @@ const CardEditModal = memo(function CardEditModalComponent({ id, name, url, favi
       
       // 尝试多个图标服务，优先使用国内访问稳定的服务
       const faviconUrls = getFaviconUrls(cacheDomain);
-      let newFaviconUrl = '/icon/favicon.png'; // 默认图标
+      let newFaviconUrl = '/icon/icon.jpg'; // 默认图标
       
       console.log('🔍 开始尝试获取图标，优先使用国内稳定服务...');
       
@@ -208,7 +218,7 @@ const CardEditModal = memo(function CardEditModalComponent({ id, name, url, favi
       // 使用独立的标签，不从备注中提取
       const cleanedNote = formData.note || '';
       
-      // 只有当图标发生变化时才上传到云存储
+      // 只有当图标发生变化时才上传到 Firebase Storage
       let finalFaviconUrl = formData.favicon;
       
       if (formData.favicon !== favicon) {
@@ -521,6 +531,4 @@ const CardEditModal = memo(function CardEditModalComponent({ id, name, url, favi
       </motion.div>
     </div>
   );
-});
-
-export default CardEditModal;
+}

@@ -13,7 +13,6 @@ import { useUserProfile } from '@/contexts/UserProfileContext';
 import { WebsiteData, UserSettings, saveUserSettings, getUserSettings, saveUserWebsites, getUserWebsites } from '@/lib/supabaseSync';
 import { useDataManager } from '@/hooks/useDataManager';
 import { faviconCache } from '@/lib/faviconCache';
-import { logger } from '@/lib/logger';
 
 interface SettingsProps {
   onClose: () => void;
@@ -101,7 +100,7 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
       }
     } catch (error) {
       setNameError('更新失败，请重试');
-      logger.error('更新用户名失败', error);
+      console.error('更新用户名失败:', error);
     } finally {
       setNameLoading(false);
     }
@@ -218,7 +217,7 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
     try {
       // 清空所有favicon缓存
       await faviconCache.clearCache();
-      logger.favicon.info('图标缓存已清空');
+      console.log('✅ 图标缓存已清空');
       
       // 延迟一下让用户看到提示
       setTimeout(() => {
@@ -231,7 +230,7 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
       }, 500);
       
     } catch (error) {
-      logger.favicon.error('修复图标失败', error);
+      console.error('修复图标失败:', error);
       setFixIconsMessage('❌ 修复失败，请重试');
       setTimeout(() => {
         setFixIconsMessage('');
@@ -254,10 +253,6 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
         parallaxEnabled,
         wallpaperResolution,
         theme: localStorage.getItem('theme') || 'light',
-        cardColor,
-        searchBarColor,
-        autoSyncEnabled,
-        autoSyncInterval,
         lastSync: new Date().toISOString()
       };
 
@@ -298,10 +293,6 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
         setSearchBarOpacity(cloudSettings.searchBarOpacity);
         setParallaxEnabled(cloudSettings.parallaxEnabled);
         setWallpaperResolution(cloudSettings.wallpaperResolution);
-        setCardColor(cloudSettings.cardColor);
-        setSearchBarColor(cloudSettings.searchBarColor);
-        setAutoSyncEnabled(cloudSettings.autoSyncEnabled);
-        setAutoSyncInterval(cloudSettings.autoSyncInterval);
         localStorage.setItem('theme', cloudSettings.theme || 'light');
       }
       
@@ -476,7 +467,7 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
                             await logout();
                             handleClose(); // 登出后关闭设置面板
                           } catch (error) {
-                            logger.error('登出失败', error);
+                            console.error('登出失败:', error);
                           }
                         }}
                         className="group flex items-center gap-2 text-sm text-slate-600 hover:text-slate-800 transition-all duration-200 select-none"
@@ -777,51 +768,6 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
               <p className="text-xs text-gray-500 bg-gray-50 p-2 rounded select-none">
                 💡 更改分辨率后会重新加载壁纸并更新缓存
               </p>
-              
-              {/* 壁纸管理按钮 */}
-              <div className="pt-3 border-t border-gray-100">
-                <div className="flex gap-2 justify-center">
-                  <button 
-                    className="px-3 py-1.5 text-xs bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-1"
-                    onClick={() => {
-                      if (window.confirm('这将刷新今日壁纸，确定继续吗？')) {
-                        // 调用壁纸刷新功能
-                        if ((window as any).clearWallpaperCache) {
-                          (window as any).clearWallpaperCache();
-                        } else {
-                          window.location.reload();
-                        }
-                      }
-                    }}
-                  >
-                    <i className="fa-solid fa-sync-alt"></i>
-                    刷新壁纸
-                  </button>
-                  
-                  <button 
-                    className="px-3 py-1.5 text-xs bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors flex items-center gap-1"
-                    onClick={async () => {
-                      try {
-                        if ((window as any).getWallpaperStats) {
-                          const stats = await (window as any).getWallpaperStats();
-                          alert(`壁纸缓存统计:\n总数: ${stats.totalCount}\n今日: ${stats.todayCount}\n大小: ${(stats.totalSize / 1024 / 1024).toFixed(2)}MB`);
-                        } else {
-                          alert('缓存统计功能不可用');
-                        }
-                      } catch (error) {
-                        alert('获取统计失败: ' + error);
-                      }
-                    }}
-                  >
-                    <i className="fa-solid fa-chart-bar"></i>
-                    缓存统计
-                  </button>
-                </div>
-                
-                <p className="text-xs text-gray-500 text-center mt-2 select-none">
-                  💡 壁纸每日自动更新，支持智能缓存和后台更新
-                </p>
-              </div>
             </div>
           </div>
           
@@ -881,10 +827,7 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
                     </>
                   ) : (
                     <>
-                      <svg className="w-4 h-4 select-none" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" />
-                        <path d="M12,11L16,15H13V19H11V15H8L12,11Z" />
-                      </svg>
+                      <i className="fa-solid fa-download select-none"></i>
                       <span className="select-none">导出数据</span>
                     </>
                   )}
@@ -896,7 +839,7 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
                   className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 select-none ${
                     isImporting 
                       ? 'bg-gray-400 cursor-not-allowed text-white' 
-                      : 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg shadow-blue-200'
+                      : 'bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg shadow-orange-200'
                   }`}
                 >
                   {isImporting ? (
@@ -906,10 +849,7 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
                     </>
                   ) : (
                     <>
-                      <svg className="w-4 h-4 select-none" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" />
-                        <path d="M12,19L8,15H11V11H13V15H16L12,19Z" />
-                      </svg>
+                      <i className="fa-solid fa-upload select-none"></i>
                       <span className="select-none">导入数据</span>
                     </>
                   )}

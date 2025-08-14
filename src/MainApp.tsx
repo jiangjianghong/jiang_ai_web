@@ -2,91 +2,61 @@ import { Routes, Route } from "react-router-dom";
 import Home from "@/pages/Home";
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-// import { mockWebsites } from '@/lib/mockData'; // 已删除
+import { mockWebsites } from '@/lib/mockData';
 import { TransparencyProvider } from '@/contexts/TransparencyContext';
 import { AuthProvider } from '@/contexts/SupabaseAuthContext';
 import { SyncProvider } from '@/contexts/SyncContext';
 import { UserProfileProvider } from '@/contexts/UserProfileContext';
 import { WorkspaceProvider } from '@/contexts/WorkspaceContext';
+import { WebsiteData } from '@/lib/supabaseSync';
 import { useState, useEffect } from 'react';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useResourcePreloader } from '@/hooks/useResourcePreloader';
 import CookieConsent from '@/components/CookieConsent';
 import PrivacySettings from '@/components/PrivacySettings';
-import { useCloudData } from '@/hooks/useCloudData';
-import { useAuth } from '@/contexts/SupabaseAuthContext';
-import { useWebsiteData } from '@/hooks/useWebsiteData';
+import { useStorage } from '@/lib/storageManager';
 
 // 内部应用组件，可以使用认证上下文
 function AppContent() {
-  console.log('🏠 MainApp AppContent 组件渲染');
-
+  console.log('🎯 AppContent 开始渲染');
+  
   // 使用页面标题hook
   usePageTitle();
-
+  
   // 启用资源预加载
   useResourcePreloader();
-
-  // 认证状态
-  const { currentUser } = useAuth();
-
-  // 使用统一的网站数据管理
-  const { websites, setWebsites } = useWebsiteData();
   
-  // 云端数据同步状态
-  const [hasLoadedFromCloud, setHasLoadedFromCloud] = useState(false);
-
-  // 始终启用云端数据监听（hook内部会处理用户状态）
-  const { cloudWebsites, hasCloudData } = useCloudData(true);
+  // 存储管理
+  const storage = useStorage();
+  
+  // 优先从存储管理器读取卡片数据
+  const [websites, setWebsites] = useState(() => {
+    const saved = storage.getItem<WebsiteData[]>('websites');
+    if (saved) {
+      return saved;
+    }
+    return mockWebsites;
+  });
 
   const [showPrivacySettings, setShowPrivacySettings] = useState(false);
 
-  // 存储管理已由 useWebsiteData 处理
-
-  // 云端数据同步逻辑（仅在首次登录时执行一次）
+  // 持久化到存储管理器
   useEffect(() => {
-    if (currentUser && currentUser.email_confirmed_at && hasCloudData && cloudWebsites && !hasLoadedFromCloud) {
-      console.log('☁️ 首次检测到云端数据，开始同步:', {
-        cloudCount: cloudWebsites.length,
-        localCount: websites.length,
-        hasLoadedFromCloud,
-        userEmail: currentUser.email
-      });
+    storage.setItem('websites', websites);
+  }, [websites, storage]);
 
-      // 如果云端有数据，使用云端数据（简化逻辑）
-      if (cloudWebsites.length > 0) {
-        console.log('📥 使用云端数据');
-        // 使用 setTimeout 确保在下一个事件循环中执行，避免与 useAutoSync 冲突
-        setTimeout(() => {
-          setWebsites(cloudWebsites);
-        }, 0);
-        setHasLoadedFromCloud(true);
-      } else {
-        console.log('📝 云端无数据，保持本地数据');
-        setHasLoadedFromCloud(true);
-      }
-    }
-  }, [currentUser, hasCloudData, cloudWebsites, hasLoadedFromCloud, websites.length, setWebsites]);
-
-  // 重置加载状态（当用户登出时）
-  useEffect(() => {
-    if (!currentUser) {
-      setHasLoadedFromCloud(false);
-    }
-  }, [currentUser]);
-
-  // 移除调试日志，使用新的日志系统
+  console.log('✅ AppContent 渲染完成');
 
   return (
     <>
       <Routes>
         <Route path="/" element={<Home websites={websites} setWebsites={setWebsites} />} />
       </Routes>
-
+      
       <CookieConsent />
-
+      
       {showPrivacySettings && (
-        <PrivacySettings
+        <PrivacySettings 
           isOpen={showPrivacySettings}
           onClose={() => setShowPrivacySettings(false)}
         />
@@ -97,8 +67,8 @@ function AppContent() {
 
 // 主应用组件，包含所有Provider
 export default function MainApp() {
-  // 移除调试日志，使用新的日志系统
-
+  console.log('🎯 MainApp 开始渲染');
+  
   return (
     <DndProvider backend={HTML5Backend}>
       <TransparencyProvider>

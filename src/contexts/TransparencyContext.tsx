@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 export type WallpaperResolution = '4k' | '1080p' | '720p' | 'mobile';
 
@@ -138,46 +138,31 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('searchBarColor', searchBarColor);
   }, [searchBarColor]);
 
-  // 使用useMemo缓存context value，避免不必要的重渲染
-  const contextValue = useMemo(
-    () => ({
-      cardOpacity,
-      searchBarOpacity,
-      parallaxEnabled,
-      wallpaperResolution,
-      isSettingsOpen,
-      isSearchFocused,
-      cardColor,
-      searchBarColor,
-      autoSyncEnabled,
-      autoSyncInterval,
-      setCardOpacity,
-      setSearchBarOpacity,
-      setParallaxEnabled,
-      setWallpaperResolution,
-      setIsSettingsOpen,
-      setIsSearchFocused,
-      setCardColor,
-      setSearchBarColor,
-      setAutoSyncEnabled,
-      setAutoSyncInterval,
-    }),
-    [
-      cardOpacity,
-      searchBarOpacity,
-      parallaxEnabled,
-      wallpaperResolution,
-      isSettingsOpen,
-      isSearchFocused,
-      cardColor,
-      searchBarColor,
-      autoSyncEnabled,
-      autoSyncInterval,
-    ]
-  );
-
   return (
-    <TransparencyContext.Provider value={contextValue}>
+    <TransparencyContext.Provider
+      value={{
+        cardOpacity,
+        searchBarOpacity,
+        parallaxEnabled,
+        wallpaperResolution,
+        isSettingsOpen,
+        isSearchFocused,
+        cardColor,
+        searchBarColor,
+        autoSyncEnabled,
+        autoSyncInterval,
+        setCardOpacity,
+        setSearchBarOpacity,
+        setParallaxEnabled,
+        setWallpaperResolution,
+        setIsSettingsOpen,
+        setIsSearchFocused,
+        setCardColor,
+        setSearchBarColor,
+        setAutoSyncEnabled,
+        setAutoSyncInterval,
+      }}
+    >
       {children}
     </TransparencyContext.Provider>
   );

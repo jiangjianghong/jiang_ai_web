@@ -98,49 +98,21 @@ class FaviconCacheManager {
   }
 
   /**
-   * 获取 favicon 的 URL（混合架构：公开镜像源 + Supabase 跨域代理）
+   * 获取 favicon 的备用 URL 列表（使用favicon.im通过CORS代理）
    */
-  private getFaviconUrls(domain: string, customFaviconUrl?: string): string[] {
-    const urls: string[] = [];
-
-    // 如果提供了自定义 favicon URL，优先尝试
-    if (customFaviconUrl && customFaviconUrl !== '/icon/favicon.png') {
-      urls.push(customFaviconUrl);
-    }
-
-    // 在开发环境优先使用 Supabase 代理服务
-    const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL || '').replace(/\/$/, '');
-    const isDevelopment = import.meta.env.MODE === 'development';
-
-    if (supabaseUrl && isDevelopment) {
-      // 开发环境：优先使用 Supabase 代理服务
-      urls.push(
-        `${supabaseUrl}/functions/v1/favicon-service?domain=${encodeURIComponent(domain)}&size=64`,
-        `${supabaseUrl}/functions/v1/favicon-service?domain=${encodeURIComponent(domain)}&size=32`
-      );
-    }
-
-    // 直接使用公开镜像源（生产环境优先，开发环境作为备选）
-    urls.push(
-      `https://favicon.im/${domain}?larger=true`,
-      `https://favicon.im/${domain}`,
-      `https://www.google.com/s2/favicons?domain=${domain}&sz=64`,
-      `https://www.google.com/s2/favicons?domain=${domain}&sz=32`
-    );
-
-    // 生产环境：Supabase 作为备选
-    if (supabaseUrl && !isDevelopment) {
-      urls.push(
-        `${supabaseUrl}/functions/v1/favicon-service?domain=${encodeURIComponent(domain)}&size=64`,
-        `${supabaseUrl}/functions/v1/favicon-service?domain=${encodeURIComponent(domain)}&size=32`
-      );
-    }
-
-    if (urls.length === 0) {
-      console.warn('⚠️ 没有可用的 favicon 服务');
-    }
-
-    return urls;
+  private getFaviconUrls(originalUrl: string, domain: string): string[] {
+    return [
+      // 优先使用 allorigins 代理访问 favicon.im（稳定可靠）
+      `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://favicon.im/${domain}?larger=true&size=64`)}`,
+      `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://favicon.im/${domain}?larger=true&size=32`)}`,
+      
+      // 备用：使用 corsproxy.io
+      `https://corsproxy.io/?${encodeURIComponent(`https://favicon.im/${domain}?larger=true&size=64`)}`,
+      `https://corsproxy.io/?${encodeURIComponent(`https://favicon.im/${domain}?larger=true&size=32`)}`,
+      
+      // 最后使用原始 URL（如果提供）
+      ...(originalUrl && !originalUrl.includes('favicon.im') ? [originalUrl] : [])
+    ];
   }
 
   /**
@@ -150,11 +122,11 @@ class FaviconCacheManager {
     for (const url of urls) {
       try {
         console.log(`🔄 尝试下载 favicon: ${domain} -> ${url}`);
-
+        
         // 添加超时控制
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 5000); // 5秒超时
-
+        
         const response = await fetch(url, {
           mode: 'cors',
           credentials: 'omit',
@@ -170,7 +142,7 @@ class FaviconCacheManager {
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
         const blob = await response.blob();
-
+        
         // 验证是否为有效图片
         if (!blob.type.startsWith('image/') || blob.size < 100) {
           throw new Error('无效的图片文件');
@@ -194,11 +166,11 @@ class FaviconCacheManager {
         // 创建 Blob URL
         const blobUrl = URL.createObjectURL(blob);
         console.log(`✅ Favicon 文件缓存成功: ${domain} (${(blob.size / 1024).toFixed(1)}KB)`);
-
+        
         return blobUrl;
       } catch (error) {
         console.log(`❌ Favicon 下载失败: ${domain} -> ${url} (${error})`);
-
+        
         // 如果是代理URL失败，记录并继续尝试直接URL
         if (url.includes('api.allorigins.win')) {
           console.log(`🔄 代理服务失败，将尝试直接访问`);
@@ -206,10 +178,10 @@ class FaviconCacheManager {
         continue;
       }
     }
-
+    
     // 所有尝试失败，返回默认图标
     console.log(`🔄 所有 favicon 尝试失败，使用默认图标: ${domain}`);
-    return '/icon/favicon.png';
+    return '/icon/icon.jpg';
   }
 
   /**
@@ -226,7 +198,7 @@ class FaviconCacheManager {
       // 从 IndexedDB 获取文件
       const cacheKey = this.getFaviconCacheKey(domain);
       const blob = await indexedDBCache.get(cacheKey);
-
+      
       if (blob) {
         console.log(`📁 使用缓存 favicon 文件: ${domain} (${(blob.size / 1024).toFixed(1)}KB)`);
         return URL.createObjectURL(blob);
@@ -234,7 +206,7 @@ class FaviconCacheManager {
     } catch (error) {
       console.warn(`读取 favicon 缓存失败: ${domain}`, error);
     }
-
+    
     return null;
   }
 
@@ -257,12 +229,12 @@ class FaviconCacheManager {
   getCachedFavicon(url: string): string | null {
     const domain = this.extractDomain(url);
     const meta = this.metadata[domain];
-
+    
     if (meta && Date.now() < meta.expiry) {
       // 有有效的缓存元数据，返回原始URL表示已缓存
       return meta.originalUrl;
     }
-
+    
     return null;
   }
 
@@ -271,7 +243,7 @@ class FaviconCacheManager {
    */
   async getFavicon(originalUrl: string, faviconUrl: string): Promise<string> {
     const domain = this.extractDomain(originalUrl);
-
+    
     // 优先检查文件缓存
     const cached = await this.getCachedFaviconFile(domain);
     if (cached) {
@@ -281,19 +253,16 @@ class FaviconCacheManager {
     // 如果网络不可用，直接返回默认图标
     if (!navigator.onLine) {
       console.log(`🔌 网络不可用，使用默认图标: ${domain}`);
-      return '/icon/favicon.png';
+      return '/icon/icon.jpg';
     }
 
     // 检查是否正在加载
     if (this.loadingPromises.has(domain)) {
-      // 等待加载完成后，重新获取缓存（避免Blob URL共享问题）
-      await this.loadingPromises.get(domain)!;
-      const newCached = await this.getCachedFaviconFile(domain);
-      return newCached || '/icon/favicon.png';
+      return this.loadingPromises.get(domain)!;
     }
 
     // 开始下载和缓存
-    const loadingPromise = this.loadAndCacheFavicon(faviconUrl, domain);
+    const loadingPromise = this.loadAndCacheFavicon(originalUrl, faviconUrl, domain);
     this.loadingPromises.set(domain, loadingPromise);
 
     try {
@@ -307,15 +276,15 @@ class FaviconCacheManager {
   /**
    * 下载并缓存 favicon（简化版）
    */
-  private async loadAndCacheFavicon(faviconUrl: string, domain: string): Promise<string> {
-    const urls = this.getFaviconUrls(domain, faviconUrl);
-
+  private async loadAndCacheFavicon(originalUrl: string, faviconUrl: string, domain: string): Promise<string> {
+    const urls = this.getFaviconUrls(faviconUrl, domain);
+    
     try {
       const result = await this.downloadAndCacheFavicon(urls, domain);
       return result;
     } catch (error) {
       console.warn(`获取 favicon 失败: ${domain}`, error);
-      return '/icon/favicon.png';
+      return '/icon/icon.jpg';
     }
   }
 
@@ -338,19 +307,19 @@ class FaviconCacheManager {
    */
   async batchCacheFaviconsToIndexedDB(websites: Array<{ url: string; favicon: string }>): Promise<void> {
     console.log(`🚀 开始批量文件缓存 ${websites.length} 个 favicon`);
-
+    
     let successCount = 0;
     let skipCount = 0;
     let errorCount = 0;
-
+    
     const BATCH_SIZE = 3; // 减少并发数，避免过多网络请求
-
+    
     for (let i = 0; i < websites.length; i += BATCH_SIZE) {
       const batch = websites.slice(i, i + BATCH_SIZE);
-
+      
       const promises = batch.map(async (site, index) => {
         const domain = this.extractDomain(site.url);
-
+        
         try {
           // 检查是否已有文件缓存
           const cached = await this.getCachedFaviconFile(domain);
@@ -358,35 +327,35 @@ class FaviconCacheManager {
             skipCount++;
             return;
           }
-
+          
           // 添加延迟避免请求过于频繁，减少429错误
           const delay = (index + 1) * 1200; // 增加延迟到1.2秒
           await new Promise(resolve => setTimeout(resolve, delay));
-
+          
           console.log(`🔄 [${i + index + 1}/${websites.length}] 处理: ${domain}`);
-
+          
           const result = await this.getFavicon(site.url, site.favicon);
-          if (result && result !== '/icon/favicon.png') {
+          if (result && result !== '/icon/icon.jpg') {
             successCount++;
             console.log(`✅ 文件缓存成功: ${domain}`);
           } else {
             errorCount++;
           }
-
+          
         } catch (error) {
           errorCount++;
           console.warn(`❌ 批量文件缓存失败: ${domain}`, error);
         }
       });
-
+      
       await Promise.allSettled(promises);
-
+      
       // 批次间停顿
       if (i + BATCH_SIZE < websites.length) {
         await new Promise(resolve => setTimeout(resolve, 1500));
       }
     }
-
+    
     console.log(`✅ 批量 favicon 文件缓存完成:`);
     console.log(`   成功: ${successCount}, 跳过: ${skipCount}, 失败: ${errorCount}`);
   }
@@ -399,10 +368,10 @@ class FaviconCacheManager {
     for (const domain of Object.keys(this.metadata)) {
       await this.deleteFaviconFile(domain);
     }
-
+    
     this.metadata = {};
     this.loadingPromises.clear();
-
+    
     try {
       localStorage.removeItem(this.metadataKey);
     } catch (error) {
@@ -417,11 +386,11 @@ class FaviconCacheManager {
     const now = Date.now();
     const total = Object.keys(this.metadata).length;
     const expired = Object.values(this.metadata).filter(item => now > item.expiry).length;
-
+    
     const totalSize = Object.values(this.metadata)
       .reduce((sum, item) => sum + (item.size || 0), 0);
-
-    const sizeStr = totalSize > 1024 * 1024
+    
+    const sizeStr = totalSize > 1024 * 1024 
       ? `${(totalSize / 1024 / 1024).toFixed(1)} MB`
       : `${(totalSize / 1024).toFixed(1)} KB`;
 

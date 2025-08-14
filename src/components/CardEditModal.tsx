@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { z } from 'zod';
 import { uploadFaviconToStorage } from '@/lib/supabaseFaviconUpload';
@@ -30,7 +30,7 @@ interface CardEditModalProps {
   onDelete?: (id: string) => void;
 }
 
-export default function CardEditModal({ id, name, url, favicon, tags, note, onClose, onSave, onDelete }: CardEditModalProps) {
+const CardEditModal = memo(function CardEditModalComponent({ id, name, url, favicon, tags, note, onClose, onSave, onDelete }: CardEditModalProps) {
   const [formData, setFormData] = useState({
     name,
     url,
@@ -208,7 +208,7 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
       // 使用独立的标签，不从备注中提取
       const cleanedNote = formData.note || '';
       
-      // 只有当图标发生变化时才上传到 Firebase Storage
+      // 只有当图标发生变化时才上传到云存储
       let finalFaviconUrl = formData.favicon;
       
       if (formData.favicon !== favicon) {
@@ -521,4 +521,6 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
       </motion.div>
     </div>
   );
-}
+});
+
+export default CardEditModal;

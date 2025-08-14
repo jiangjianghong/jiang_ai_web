@@ -1,9 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { WebsiteCard } from '@/components/WebsiteCard';
 import { SearchBar } from '@/components/SearchBar';
 import { AnimatedCat } from '@/components/AnimatedCat';
 // 拖拽逻辑已迁移到 WebsiteCard
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useTransparency } from '@/contexts/TransparencyContext';
 import { useAuth } from '../contexts/SupabaseAuthContext';
 import { useUserProfile } from '@/contexts/UserProfileContext';
@@ -39,13 +39,15 @@ export default function Home({ websites, setWebsites }: HomeProps) {
   // 启用自动同步
   useAutoSync(websites);
   
-  // 拖拽排序逻辑
-  const moveCard = (dragIndex: number, hoverIndex: number) => {
-    const newWebsites = [...websites];
-    const [removed] = newWebsites.splice(dragIndex, 1);
-    newWebsites.splice(hoverIndex, 0, removed);
-    setWebsites(newWebsites);
-  };
+  // 拖拽排序逻辑 - 使用函数式更新避免闭包问题
+  const moveCard = useCallback((dragIndex: number, hoverIndex: number) => {
+    setWebsites(prevWebsites => {
+      const newWebsites = [...prevWebsites];
+      const [removed] = newWebsites.splice(dragIndex, 1);
+      newWebsites.splice(hoverIndex, 0, removed);
+      return newWebsites;
+    });
+  }, [setWebsites]);
 
   // 使用优化的壁纸Hook
   const {
@@ -78,20 +80,27 @@ export default function Home({ websites, setWebsites }: HomeProps) {
   }, [refreshWallpaper, getCacheStats]);
 
 
-  // 根据访问次数自动排序卡片
-  const sortedWebsites = [...websites].sort((a, b) => {
-    // 首先按访问次数降序排序
-    const visitDiff = (b.visitCount || 0) - (a.visitCount || 0);
-    if (visitDiff !== 0) return visitDiff;
-    
-    // 如果访问次数相同，按最后访问时间降序排序
-    const dateA = new Date(a.lastVisit || '2000-01-01').getTime();
-    const dateB = new Date(b.lastVisit || '2000-01-01').getTime();
-    return dateB - dateA;
-  });
+  // 根据访问次数自动排序卡片 - 暂时禁用自动排序以支持拖拽
+  const sortedWebsites = useMemo(() => {
+    // 直接返回原始顺序，支持手动拖拽排序
+    return [...websites];
+    // 如需启用自动排序，取消下面的注释
+    /*
+    return [...websites].sort((a, b) => {
+      // 首先按访问次数降序排序
+      const visitDiff = (b.visitCount || 0) - (a.visitCount || 0);
+      if (visitDiff !== 0) return visitDiff;
+      
+      // 如果访问次数相同，按最后访问时间降序排序
+      const dateA = new Date(a.lastVisit || '2000-01-01').getTime();
+      const dateB = new Date(b.lastVisit || '2000-01-01').getTime();
+      return dateB - dateA;
+    });
+    */
+  }, [websites]);
 
-  // 处理用户名框点击事件
-  const handleUserNameClick = () => {
+  // 处理用户名框点击事件 - 使用useCallback
+  const handleUserNameClick = useCallback(() => {
     if (isAnimating) return; // 防止动画期间重复点击
     
     setClickCount(prev => prev + 1);
@@ -106,9 +115,9 @@ export default function Home({ websites, setWebsites }: HomeProps) {
         setIsAnimating(false);
       }, 300); // 等待淡出动画完成
     }, 1000);
-  };
+  }, [isAnimating]);
 
-  const handleSaveCard = (updatedCard: {
+  const handleSaveCard = useCallback((updatedCard: {
     id: string;
     name: string;
     url: string;
@@ -118,12 +127,12 @@ export default function Home({ websites, setWebsites }: HomeProps) {
     visitCount?: number;
     lastVisit?: string;
   }) => {
-    setWebsites(
-      websites.map(card =>
+    setWebsites(prevWebsites =>
+      prevWebsites.map(card =>
         card.id === updatedCard.id ? { ...card, ...updatedCard } : card
       )
     );
-  };
+  }, [setWebsites]);
 
   // 壁纸加载现在由 useOptimizedWallpaper Hook 处理
 
@@ -309,18 +318,37 @@ export default function Home({ websites, setWebsites }: HomeProps) {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5 }}
           >
-            {sortedWebsites.map((website, idx) => (
-              <WebsiteCard
-                key={website.id}
-                {...website}
-                index={idx}
-                moveCard={moveCard}
-                onSave={handleSaveCard}
-                onDelete={(id) => {
-                  setWebsites(websites.filter(card => card.id !== id));
-                }}
-              />
-            ))}
+            <AnimatePresence mode="popLayout">
+              {sortedWebsites.map((website, idx) => (
+                <motion.div
+                  key={website.id}
+                  layout
+                  layoutId={website.id}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  transition={{
+                    layout: {
+                      type: "spring",
+                      stiffness: 350,
+                      damping: 25
+                    },
+                    opacity: { duration: 0.2 },
+                    scale: { duration: 0.2 }
+                  }}
+                >
+                  <WebsiteCard
+                    {...website}
+                    index={idx}
+                    moveCard={moveCard}
+                    onSave={handleSaveCard}
+                    onDelete={(id) => {
+                      setWebsites(prev => prev.filter(card => card.id !== id));
+                    }}
+                  />
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </motion.div>
         </div>
 

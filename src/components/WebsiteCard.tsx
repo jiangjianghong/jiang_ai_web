@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, memo } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import CardEditModal from './CardEditModal';
 import { useTransparency } from '@/contexts/TransparencyContext';
@@ -20,7 +20,7 @@ interface WebsiteCardProps {
   onDelete?: (id: string) => void;
 }
 
-export function WebsiteCard({ id, name, url, favicon, tags, visitCount, note, index, moveCard, onSave, onDelete }: WebsiteCardProps) {
+export const WebsiteCard = memo(function WebsiteCardComponent({ id, name, url, favicon, tags, visitCount, note, index, moveCard, onSave, onDelete }: WebsiteCardProps) {
   const [showEditModal, setShowEditModal] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [clickAnimation, setClickAnimation] = useState(false);
@@ -41,12 +41,60 @@ export function WebsiteCard({ id, name, url, favicon, tags, visitCount, note, in
 
   const [, drop] = useDrop({
     accept: 'WEBSITE_CARD',
-    hover(item: { id: string; index: number }) {
+    hover(item: { id: string; index: number }, monitor) {
       if (!cardRef.current) return;
+      
       const dragIndex = item.index;
       const hoverIndex = index;
+      
+      // 如果是同一个位置，不处理
       if (dragIndex === hoverIndex) return;
+      
+      // 获取卡片的边界矩形
+      const hoverBoundingRect = cardRef.current.getBoundingClientRect();
+      
+      // 获取卡片中心点
+      const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
+      const hoverMiddleX = (hoverBoundingRect.right - hoverBoundingRect.left) / 2;
+      
+      // 获取鼠标位置
+      const clientOffset = monitor.getClientOffset();
+      if (!clientOffset) return;
+      
+      // 计算鼠标在hover卡片中的位置
+      const hoverClientY = clientOffset.y - hoverBoundingRect.top;
+      const hoverClientX = clientOffset.x - hoverBoundingRect.left;
+      
+      // 判断是水平还是垂直移动（根据网格布局）
+      // 获取每行的卡片数量（可以通过容器宽度和卡片宽度计算）
+      const cardsPerRow = Math.floor(window.innerWidth / 150); // 假设每个卡片约150px宽
+      
+      const dragRow = Math.floor(dragIndex / cardsPerRow);
+      const hoverRow = Math.floor(hoverIndex / cardsPerRow);
+      const isSameRow = dragRow === hoverRow;
+      
+      if (isSameRow) {
+        // 同一行，检查水平位置
+        if (dragIndex < hoverIndex && hoverClientX < hoverMiddleX) {
+          return; // 向右拖，但还没超过中点
+        }
+        if (dragIndex > hoverIndex && hoverClientX > hoverMiddleX) {
+          return; // 向左拖，但还没超过中点
+        }
+      } else {
+        // 不同行，检查垂直位置
+        if (dragIndex < hoverIndex && hoverClientY < hoverMiddleY * 0.3) {
+          return; // 向下拖，但只进入了30%
+        }
+        if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY * 1.7) {
+          return; // 向上拖，但只进入了30%
+        }
+      }
+      
+      // 执行交换
       moveCard(dragIndex, hoverIndex);
+      
+      // 更新item的index，这很重要！
       item.index = hoverIndex;
     },
   });
@@ -131,12 +179,20 @@ export function WebsiteCard({ id, name, url, favicon, tags, visitCount, note, in
       <motion.div 
         className={`${getCardClasses()} relative rounded-lg`}
         style={{ 
-          opacity: isDragging ? 0.5 : 1,
           backgroundColor: `rgba(${cardColor}, ${cardOpacity})`,
           backdropFilter: 'blur(10px)',
           border: '1px solid rgba(255, 255, 255, 0.2)',
-          transform: clickAnimation && isMobile ? 'scale(0.95)' : 'scale(1)',
-          transition: isMobile ? 'transform 0.15s ease-in-out' : 'background-color 0.3s ease, border-color 0.3s ease', // 优雅的颜色过渡
+        }}
+        animate={{
+          opacity: isDragging ? 0.3 : 1,
+          scale: isDragging ? 1.05 : 1,
+          zIndex: isDragging ? 50 : 0,
+          rotate: isDragging ? 5 : 0,
+        }}
+        transition={{
+          type: "spring",
+          stiffness: 300,
+          damping: 20,
         }}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
@@ -147,17 +203,15 @@ export function WebsiteCard({ id, name, url, favicon, tags, visitCount, note, in
         onClick={handleCardClick}
         whileTap={isMobile ? { 
           scale: 0.95,
-          transition: { duration: 0.15, ease: "easeInOut" }
+          transition: { duration: 0.1, ease: "easeInOut" }
         } : {}}
-        whileHover={!isMobile ? { 
-          scale: 1.03, 
-          y: -4,
+        whileHover={!isMobile && !isDragging ? { 
+          scale: 1.02, 
+          y: -3,
           transition: { 
-            duration: 0.3, 
-            ease: [0.4, 0, 0.2, 1], // 更优雅的贝塞尔曲线
             type: "spring",
-            stiffness: 200,
-            damping: 15
+            stiffness: 400,
+            damping: 17
           }
         } : {}}
         initial={{ opacity: 0, y: 20 }}
@@ -165,9 +219,9 @@ export function WebsiteCard({ id, name, url, favicon, tags, visitCount, note, in
           opacity: 1, 
           y: 0,
           transition: { 
-            duration: 0.6, 
+            duration: 0.4, 
             ease: "easeOut",
-            delay: 0.1 
+            delay: 0.05 
           }
         }}
         viewport={{ once: true }}
@@ -298,4 +352,4 @@ export function WebsiteCard({ id, name, url, favicon, tags, visitCount, note, in
       )}
     </>
   );
-}
+});

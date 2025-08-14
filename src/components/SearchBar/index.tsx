@@ -1,4 +1,4 @@
-import { useState, useRef, useLayoutEffect, useEffect, useCallback } from 'react';
+import { useState, useRef, useLayoutEffect, useEffect, useCallback, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTransparency } from '@/contexts/TransparencyContext';
 import { useWorkspace } from '@/contexts/WorkspaceContext';
@@ -14,7 +14,7 @@ interface SearchBarProps {
   // 不再需要websites参数
 }
 
-export function SearchBar(_props: SearchBarProps = {}) {
+export const SearchBar = memo(function SearchBarComponent(_props: SearchBarProps = {}) {
   const [searchQuery, setSearchQuery] = useState('');
   const [isHovered, setIsHovered] = useState(false);
   const [engine, setEngine] = useState<'bing' | 'google'>('bing');
@@ -330,7 +330,7 @@ export function SearchBar(_props: SearchBarProps = {}) {
     </div>
     </>
   );
-}
+});
 
 // 默认导出
 export default SearchBar;

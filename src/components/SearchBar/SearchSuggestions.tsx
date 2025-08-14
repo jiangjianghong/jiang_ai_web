@@ -171,9 +171,9 @@ export async function fetchSearchSuggestions(query: string, workspaceItems?: any
     const maxSearchSuggestions = Math.max(0, 3 - suggestions.length);
     if (maxSearchSuggestions > 0) {
       const searchSuggestions: Suggestion[] = [
-        { text: `${query} 是什么`, type: 'search', icon: '🔍' },
-        { text: `${query} 怎么用`, type: 'search', icon: '🔍' },
-        { text: `${query} 教程`, type: 'search', icon: '🔍' },
+        { text: `${query} 是什么`, type: 'search' as const, icon: '🔍' },
+        { text: `${query} 怎么用`, type: 'search' as const, icon: '🔍' },
+        { text: `${query} 教程`, type: 'search' as const, icon: '🔍' },
       ].slice(0, maxSearchSuggestions);
       
       suggestions.push(...searchSuggestions);

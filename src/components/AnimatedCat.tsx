@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import './AnimatedCat.css';
 
-export function AnimatedCat() {
+export const AnimatedCat = memo(function AnimatedCatComponent() {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -67,4 +67,4 @@ export function AnimatedCat() {
       </div>
     </div>
   );
-}
+});

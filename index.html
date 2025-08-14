@@ -168,58 +168,100 @@
     
 
     
-    <!-- Service Worker 注册（仅在生产环境） -->
+    <!-- Service Worker 注册（支持离线运行） -->
     <script>
-      if ('serviceWorker' in navigator && window.location.hostname !== 'localhost') {
+      // 检测是否离线
+      function updateOnlineStatus() {
+        if (!navigator.onLine) {
+          console.log('📴 当前处于离线状态');
+          document.body.classList.add('offline-mode');
+        } else {
+          console.log('📶 已连接到网络');
+          document.body.classList.remove('offline-mode');
+        }
+      }
+
+      window.addEventListener('online', updateOnlineStatus);
+      window.addEventListener('offline', updateOnlineStatus);
+      updateOnlineStatus();
+
+      // Service Worker 注册
+      if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          // 强制使用带时间戳的路径避免缓存问题
-          const timestamp = Date.now();
-          const swPath = './sw.js?v=' + timestamp;
+          // 根据环境选择Service Worker
+          const swFile = 'sw-enhanced.js';
+          const swPath = `./${swFile}?v=${Date.now()}`;
           
-          console.log('🔧 尝试注册Service Worker:', swPath);
-          console.log('🌐 当前URL:', window.location.href);
-          console.log('📍 当前路径:', window.location.pathname);
+          console.log('🔧 注册Service Worker:', swPath);
           
           navigator.serviceWorker.register(swPath)
             .then((registration) => {
-              console.log('✅ Service Worker 注册成功:', registration.scope);
+              console.log('✅ Service Worker 注册成功');
+              
+              // 监听更新
+              registration.addEventListener('updatefound', () => {
+                const newWorker = registration.installing;
+                
+                newWorker.addEventListener('statechange', () => {
+                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    console.log('🔄 新版本可用，刷新页面更新');
+                    // 可以在这里提示用户刷新页面
+                  }
+                });
+              });
+              
+              // 定期检查更新
+              setInterval(() => {
+                registration.update();
+              }, 60 * 60 * 1000); // 每小时检查一次
             })
             .catch((error) => {
-              console.log('❌ Service Worker 注册失败:', error);
-              // 尝试不同的路径
-              const fallbackPaths = [
-                'sw.js',
-                '/sw.js',
-                '/sw.js'
-              ];
-              
-              console.log('🔄 尝试备用路径...');
-              
-              const tryNextPath = (index) => {
-                if (index >= fallbackPaths.length) {
-                  console.log('❌ 所有Service Worker路径都失败了');
-                  return;
-                }
-                
-                const path = fallbackPaths[index];
-                console.log(`🧪 尝试路径 ${index + 1}:`, path);
-                
-                navigator.serviceWorker.register(path)
-                  .then((registration) => {
-                    console.log('✅ Service Worker 注册成功 (备用路径):', registration.scope);
-                  })
-                  .catch((err) => {
-                    console.log(`❌ 路径 ${index + 1} 失败:`, err.message);
-                    tryNextPath(index + 1);
-                  });
-              };
-              
-              tryNextPath(0);
+              console.error('❌ Service Worker 注册失败:', error);
+              // 回退到基础Service Worker
+              navigator.serviceWorker.register('./sw.js')
+                .then(() => console.log('✅ 回退到基础Service Worker'))
+                .catch(() => console.log('❌ 所有Service Worker都失败'));
             });
+          
+          // 处理Service Worker消息
+          navigator.serviceWorker.addEventListener('message', event => {
+            console.log('📨 收到Service Worker消息:', event.data);
+          });
         });
       } else {
-        console.log('⚠️ 浏览器不支持Service Worker');
+        console.log('⚠️ 浏览器不支持Service Worker，离线功能不可用');
       }
+      
+      // PWA安装提示
+      let deferredPrompt;
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        console.log('📱 可以安装为PWA应用');
+        // 可以在这里显示安装按钮
+      });
     </script>
+    
+    <!-- 离线状态样式 -->
+    <style>
+      .offline-mode::before {
+        content: "离线模式";
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        background: #ff9800;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-size: 12px;
+        z-index: 9999;
+        animation: pulse 2s infinite;
+      }
+      
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.6; }
+      }
+    </style>
   </body>
 </html>

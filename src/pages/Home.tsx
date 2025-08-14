@@ -13,7 +13,7 @@ import EmailVerificationBanner from '@/components/EmailVerificationBanner';
 import WorkspaceModal from '@/components/Workspace/WorkspaceModal';
 import { useWorkspace } from '@/contexts/WorkspaceContext';
 import { faviconCache } from '@/lib/faviconCache';
-import { improvedWallpaperCache } from '@/lib/cacheManager';
+import { optimizedWallpaperService } from '@/lib/optimizedWallpaperService';
 import { useRAFThrottledMouseMove } from '@/hooks/useRAFThrottle';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 
@@ -54,37 +54,22 @@ export default function Home({ websites, setWebsites }: HomeProps) {
 
   // 组件挂载时立即检查缓存，提供即时加载体验
   useEffect(() => {
-    const getTodayKey = () => {
-      const today = new Date();
-      return today.toISOString().split('T')[0];
-    };
-
-    const getBlobCacheKey = () => `blob-${wallpaperResolution}-${getTodayKey()}`;
-
-    const getCachedWallpaper = async () => {
+    const checkCacheAndLoadWallpaper = async () => {
       try {
-        // 只检查IndexedDB Blob缓存
-        const blobCacheKey = getBlobCacheKey();
-        console.log('🔍 检查Blob缓存键:', blobCacheKey);
+        console.log('🔍 检查壁纸缓存');
+        const result = await optimizedWallpaperService.getWallpaper(wallpaperResolution);
         
-        const cachedBlobUrl = await improvedWallpaperCache.getCachedWallpaper(blobCacheKey);
-        if (cachedBlobUrl) {
-          console.log('⚡ 使用本地Blob缓存');
-          return cachedBlobUrl;
+        if (result.url && result.isFromCache) {
+          setBgImage(result.url);
+          setBgImageLoaded(true);
+          console.log('⚡ 即时加载缓存壁纸');
         }
       } catch (error) {
-        console.warn('读取壁纸缓存失败:', error);
+        console.warn('检查缓存失败:', error);
       }
-      return null;
     };
     
-    getCachedWallpaper().then(cachedUrl => {
-      if (cachedUrl) {
-        setBgImage(cachedUrl);
-        setBgImageLoaded(true);
-        console.log('⚡ 即时加载缓存壁纸');
-      }
-    });
+    checkCacheAndLoadWallpaper();
   }, []); // 只在组件挂载时执行一次
 
 
@@ -136,155 +121,29 @@ export default function Home({ websites, setWebsites }: HomeProps) {
   };
 
   useEffect(() => {
-    // 使用代理服务获取 Bing 官方壁纸信息
-    const getBingWallpaperInfo = async () => {
+    // 主要逻辑：使用优化的壁纸服务
+    (async () => {
       try {
-        // 使用代理服务避免 CORS 问题
-        const proxyUrl = 'https://api.allorigins.win/get?url=';
-        const bingApiUrl = 'https://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1&mkt=zh-CN';
-        const response = await fetch(proxyUrl + encodeURIComponent(bingApiUrl));
-        const data = await response.json();
-        const bingData = JSON.parse(data.contents);
-        return bingData.images[0];
-      } catch (error) {
-        console.warn('获取 Bing API 失败:', error);
-        return null;
-      }
-    };
-
-    // 根据分辨率获取壁纸URL
-    const getWallpaperUrl = async (resolution: string) => {
-      // 首先尝试获取 Bing 官方壁纸
-      const bingInfo = await getBingWallpaperInfo();
-      
-      if (bingInfo && bingInfo.urlbase) {
-        const resolutionMap = {
-          '4k': '_UHD.jpg',
-          '1080p': '_1920x1080.jpg',
-          '720p': '_1366x768.jpg',
-          'mobile': '_768x1280.jpg'
-        };
+        console.log('🖼️ 开始加载壁纸，分辨率:', wallpaperResolution);
+        setBgImageLoaded(false);
         
-        const suffix = resolutionMap[resolution as keyof typeof resolutionMap] || '_1920x1080.jpg';
-        return `https://www.bing.com${bingInfo.urlbase}${suffix}`;
-      }
-      
-      // 备用壁纸服务
-      const fallbackServices = {
-        '4k': 'https://source.unsplash.com/3840x2160/?nature,landscape',
-        '1080p': 'https://source.unsplash.com/1920x1080/?nature,landscape', 
-        '720p': 'https://source.unsplash.com/1366x768/?nature,landscape',
-        'mobile': 'https://source.unsplash.com/768x1280/?nature,landscape'
-      };
-      
-      return fallbackServices[resolution as keyof typeof fallbackServices] || fallbackServices['1080p'];
-    };
-
-    // 获取今天的日期字符串
-    const getTodayKey = () => {
-      const today = new Date();
-      return today.toISOString().split('T')[0];
-    };
-
-    // 生成缓存键
-    const getBlobCacheKey = () => `blob-${wallpaperResolution}-${getTodayKey()}`;
-
-    // 检查本地缓存
-    const getCachedWallpaper = async () => {
-      try {
-        const blobCacheKey = getBlobCacheKey();
-        console.log('🔍 检查本地缓存:', blobCacheKey);
+        const result = await optimizedWallpaperService.getWallpaper(wallpaperResolution);
         
-        const cachedBlobUrl = await improvedWallpaperCache.getCachedWallpaper(blobCacheKey);
-        if (cachedBlobUrl) {
-          console.log('⚡ 使用本地缓存');
-          return cachedBlobUrl;
-        }
-      } catch (error) {
-        console.warn('读取缓存失败:', error);
-      }
-      return null;
-    };
-
-    // 缓存壁纸（仅Blob缓存）
-    const cacheWallpaper = async (imageUrl: string) => {
-      try {
-        const blobCacheKey = getBlobCacheKey();
-        console.log('🚀 开始缓存壁纸Blob...');
-        await improvedWallpaperCache.cacheWallpaperBlob(imageUrl, blobCacheKey);
-        console.log('✅ 壁纸已缓存');
-      } catch (error) {
-        console.warn('缓存壁纸失败:', error);
-      }
-    };
-
-    const loadWallpaper = (apiUrl: string) => {
-      console.log('🖼️ 加载壁纸，分辨率:', wallpaperResolution);
-      setBgImageLoaded(false);
-      
-      const img = new Image();
-      
-      // 超时处理
-      const timeout = setTimeout(() => {
-        img.onload = null;
-        img.onerror = null;
-        console.warn('⏰ 壁纸加载超时');
-        setBgImage('');
-        setBgImageLoaded(true);
-      }, 10000); // 10秒超时
-      
-      img.onload = () => {
-        clearTimeout(timeout);
-        setBgImage(img.src);
-        setBgImageLoaded(true);
-        cacheWallpaper(img.src); // 缓存实际的图片URL
-        console.log('✅ 壁纸加载完成:', img.src);
-      };
-      
-      img.onerror = () => {
-        clearTimeout(timeout);
-        console.warn('❌ 壁纸加载失败');
-        setBgImage('');
-        setBgImageLoaded(true);
-      };
-      
-      img.src = apiUrl;
-    };
-
-    // 主要逻辑：优先使用本地缓存，无缓存时才加载新壁纸
-    getCachedWallpaper().then(async (cached) => {
-      if (cached) {
-        console.log('📦 使用本地缓存壁纸');
-        setBgImage(cached);
-        setBgImageLoaded(true);
-        
-        // 使用缓存后，异步检查是否需要更新（可以添加日期比较逻辑）
-        console.log('🔄 本地缓存已加载，可以后台检查更新');
-      } else {
-        // 无本地缓存，直接加载新壁纸
-        try {
-          const wallpaperUrl = await getWallpaperUrl(wallpaperResolution);
-          console.log('🌐 无本地缓存，加载新壁纸:', wallpaperUrl);
-          loadWallpaper(wallpaperUrl);
-        } catch (error) {
-          console.warn('获取壁纸URL失败:', error);
+        if (result.url) {
+          console.log(result.isFromCache ? '📦 使用缓存壁纸' : '🌐 加载新壁纸');
+          setBgImage(result.url);
+          setBgImageLoaded(true);
+        } else {
+          console.warn('❌ 无法获取壁纸');
           setBgImage('');
           setBgImageLoaded(true);
         }
-      }
-    }).catch(async (error) => {
-      console.warn('检查缓存失败:', error);
-      // 如果缓存检查失败，直接加载壁纸
-      try {
-        const wallpaperUrl = await getWallpaperUrl(wallpaperResolution);
-        console.log('🌐 加载壁纸:', wallpaperUrl);
-        loadWallpaper(wallpaperUrl);
       } catch (error) {
-        console.warn('获取壁纸URL失败:', error);
+        console.warn('获取壁纸失败:', error);
         setBgImage('');
         setBgImageLoaded(true);
       }
-    });
+    })();
   }, [wallpaperResolution]);
 
   // 优化的鼠标移动处理器 - 使用 RAF 节流

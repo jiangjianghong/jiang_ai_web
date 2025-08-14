@@ -32,8 +32,8 @@ function getPlugins() {
 }
 
 export default defineConfig({
-  // 始终使用 /jiang_ai_web/ 作为 base，确保本地和生产资源路径一致，防止404
-  base: '/jiang_ai_web/',
+  // 运行在基础端口上，不使用子目录
+  base: '/',
   plugins: getPlugins(),
   
   // 构建优化配置
@@ -81,7 +81,7 @@ export default defineConfig({
   server: {
     // WebSocket HMR 配置
     hmr: {
-      port: 3003, // 使用不同端口避免冲突
+      port: 3004, // 更改端口避免冲突
       host: 'localhost'
     },
     // 设置正确的MIME类型和缓存头
@@ -93,7 +93,7 @@ export default defineConfig({
     warmup: {
       clientFiles: [
         './src/main.tsx',
-        './src/App.tsx',
+        './src/MainApp.tsx',
         './src/pages/Home.tsx',
         './src/components/**/*.tsx'
       ]

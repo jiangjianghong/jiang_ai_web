@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useWorkspace } from '@/contexts/WorkspaceContext';
+import Tilt from 'react-parallax-tilt';
 import WorkspaceCard from './WorkspaceCard';
 import WorkspaceSettings from './WorkspaceSettings';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';

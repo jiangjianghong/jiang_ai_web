@@ -2,7 +2,6 @@ import { Routes, Route } from "react-router-dom";
 import Home from "@/pages/Home";
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { mockWebsites } from '@/lib/mockData';
 import { TransparencyProvider } from '@/contexts/TransparencyContext';
 import { AuthProvider } from '@/contexts/SupabaseAuthContext';
 import { SyncProvider } from '@/contexts/SyncContext';
@@ -35,7 +34,7 @@ function AppContent() {
     if (saved) {
       return saved;
     }
-    return mockWebsites;
+    return [];
   });
 
   const [showPrivacySettings, setShowPrivacySettings] = useState(false);

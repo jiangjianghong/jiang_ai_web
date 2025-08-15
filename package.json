@@ -21,6 +21,7 @@
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",
     "react-dom": "^18.3.1",
+    "react-parallax-tilt": "^1.7.304",
     "react-router-dom": "^7.3.0",
     "react-tilt": "^0.1.4",
     "react-tsparticles": "^2.12.2",

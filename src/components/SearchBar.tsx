@@ -648,18 +648,26 @@ export function SearchBar(props: SearchBarProps = {}) {
 
     const shrinkTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    // 只在动画完成时获取一次绝对位置
+    // 预计算AI图标位置，基于目标宽度而不是当前宽度
     useLayoutEffect(() => {
-        if (isExpandDone && searchBtnRef.current) {
+        if (isHovered && searchBtnRef.current) {
             const rect = searchBtnRef.current.getBoundingClientRect();
+            const currentWidth = rect.width;
+            const targetWidth = isMobile ? 320 : 520;
+            const initialWidth = isMobile ? 280 : 340;
+            const widthDiff = targetWidth - initialWidth;
+
+            // 搜索框从中心展开，搜索按钮向右移动宽度变化的一半
+            const finalButtonLeft = rect.left + widthDiff / 2;
+
             setFixedPos({
-                left: rect.left + rect.width / 2,
-                top: rect.top, // 直接用top，修正视觉中心
+                left: finalButtonLeft + rect.width / 2,
+                top: rect.top,
             });
         } else {
             setFixedPos(null);
         }
-    }, [isExpandDone, engine]);
+    }, [isHovered, isMobile, engine]);
 
     return (
         <>
@@ -980,7 +988,7 @@ export function SearchBar(props: SearchBarProps = {}) {
                                 </motion.div>
                             )}
                             {/* 悬停时显示的表情（fixed定位，圆心为放大镜按钮绝对中心） */}
-                            {isHovered && isExpandDone && fixedPos && (
+                            {isHovered && fixedPos && (
                                 <div
                                     className="fixed z-30"
                                     style={{

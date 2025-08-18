@@ -20,9 +20,10 @@ import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 interface HomeProps {
   websites: any[];
   setWebsites: (websites: any[]) => void;
+  dataInitialized?: boolean;
 }
 
-export default function Home({ websites, setWebsites }: HomeProps) {
+export default function Home({ websites, setWebsites, dataInitialized = true }: HomeProps) {
   const { parallaxEnabled, wallpaperResolution, isSettingsOpen } = useTransparency();
   const { currentUser } = useAuth();
   const { displayName } = useUserProfile();
@@ -33,8 +34,8 @@ export default function Home({ websites, setWebsites }: HomeProps) {
     getSearchBarLayout
   } = useResponsiveLayout();
   
-  // 启用自动同步
-  useAutoSync(websites);
+  // 启用自动同步（传递数据初始化状态）
+  useAutoSync(websites, dataInitialized);
   
   // 拖拽排序逻辑
   const moveCard = (dragIndex: number, hoverIndex: number) => {
@@ -263,7 +264,7 @@ export default function Home({ websites, setWebsites }: HomeProps) {
       
       <div className={classes.container}>
         <div className={classes.searchContainer}>
-          <SearchBar websites={websites} />
+          <SearchBar />
         </div>
         
         <div className={classes.cardContainer}>

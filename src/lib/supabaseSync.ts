@@ -3,6 +3,7 @@ import { supabase, TABLES } from '@/lib/supabase';
 import { User } from '@supabase/supabase-js';
 import { WallpaperResolution } from '@/contexts/TransparencyContext';
 import { logger } from './logger';
+import { sanitizeWebsiteArray, sanitizeUserSettings, isDataSafeToSync, checkDataIntegrity } from './dataValidator';
 
 // 用户设置接口
 export interface UserSettings {
@@ -83,19 +84,22 @@ export const saveUserSettings = async (
   try {
     callbacks?.onSyncStart?.();
 
+    // 使用统一的数据验证和清理工具
+    const validatedSettings = sanitizeUserSettings(settings);
+
     await retryAsync(async () => {
       // 尝试同步所有字段，如果新字段不可用则回退到基本字段
       const fullData = {
         id: user.id,
-        card_opacity: settings.cardOpacity,
-        search_bar_opacity: settings.searchBarOpacity,
-        parallax_enabled: settings.parallaxEnabled,
-        wallpaper_resolution: settings.wallpaperResolution,
-        theme: settings.theme,
-        card_color: settings.cardColor,
-        search_bar_color: settings.searchBarColor,
-        auto_sync_enabled: settings.autoSyncEnabled,
-        auto_sync_interval: settings.autoSyncInterval,
+        card_opacity: validatedSettings.cardOpacity,
+        search_bar_opacity: validatedSettings.searchBarOpacity,
+        parallax_enabled: validatedSettings.parallaxEnabled,
+        wallpaper_resolution: validatedSettings.wallpaperResolution,
+        theme: validatedSettings.theme,
+        card_color: validatedSettings.cardColor,
+        search_bar_color: validatedSettings.searchBarColor,
+        auto_sync_enabled: validatedSettings.autoSyncEnabled,
+        auto_sync_interval: validatedSettings.autoSyncInterval,
         last_sync: new Date().toISOString()
       };
 
@@ -189,7 +193,7 @@ export const getUserSettings = async (user: User): Promise<UserSettings | null> 
   }
 };
 
-// 保存用户网站数据到 Supabase
+// 保存用户网站数据到 Supabase - 增强数据验证
 export const saveUserWebsites = async (
   user: User,
   websites: WebsiteData[],
@@ -198,20 +202,47 @@ export const saveUserWebsites = async (
   try {
     callbacks?.onSyncStart?.();
 
+    // 使用统一的数据验证和清理工具
+    const sanitizedWebsites = sanitizeWebsiteArray(websites);
+
+    // 检查数据完整性
+    const integrityCheck = checkDataIntegrity(sanitizedWebsites);
+
+    if (!integrityCheck.isValid || !isDataSafeToSync(sanitizedWebsites)) {
+      logger.sync.warn('数据完整性检查失败，跳过同步以保护云端数据', {
+        issues: integrityCheck.issues,
+        validCount: integrityCheck.validCount,
+        totalCount: integrityCheck.totalCount
+      });
+      callbacks?.onSyncError?.(`数据验证失败：${integrityCheck.issues.join(', ')}`);
+      return false;
+    }
+
+    // 如果有效数据少于原数据的50%，记录警告但继续同步
+    if (websites.length > 0 && sanitizedWebsites.length < websites.length * 0.5) {
+      logger.sync.warn('检测到大量无效数据，已过滤后同步', {
+        original: websites.length,
+        sanitized: sanitizedWebsites.length
+      });
+    }
+
     await retryAsync(async () => {
       const { error } = await supabase
         .from(TABLES.USER_WEBSITES)
         .upsert({
           id: user.id,
-          websites: websites,
+          websites: sanitizedWebsites,
           last_sync: new Date().toISOString()
         });
 
       if (error) throw error;
     });
 
-    logger.sync.info('网站数据已同步到云端');
-    callbacks?.onSyncSuccess?.('网站数据已同步到云端');
+    logger.sync.info('网站数据已同步到云端', {
+      original: websites.length,
+      sanitized: sanitizedWebsites.length
+    });
+    callbacks?.onSyncSuccess?.(`网站数据已同步到云端 (${sanitizedWebsites.length}个有效网站)`);
     return true;
   } catch (error) {
     logger.sync.error('保存网站数据失败', error);

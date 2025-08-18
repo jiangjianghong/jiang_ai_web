@@ -17,33 +17,35 @@ import PrivacySettings from '@/components/PrivacySettings';
 import { useStorage } from '@/lib/storageManager';
 import { useTransparency } from '@/contexts/TransparencyContext';
 
+import { logger } from '@/utils/logger';
+
 // 内部应用组件，可以使用认证上下文
 function AppContent() {
-  console.log('🎯 AppContent 开始渲染');
-  
+  logger.debug('🎯 AppContent 开始渲染');
+
   // 使用页面标题hook
   usePageTitle();
-  
+
   // 启用资源预加载
   useResourcePreloader();
-  
+
   // 存储管理
   const storage = useStorage();
   const { currentUser } = useAuth();
-  const { 
-    setCardOpacity, 
-    setSearchBarOpacity, 
-    setParallaxEnabled, 
+  const {
+    setCardOpacity,
+    setSearchBarOpacity,
+    setParallaxEnabled,
     setWallpaperResolution,
     setCardColor,
     setSearchBarColor,
     setAutoSyncEnabled,
     setAutoSyncInterval
   } = useTransparency();
-  
+
   // 云端数据管理
   const { cloudWebsites, cloudSettings, loading: cloudLoading, mergeWithLocalData } = useCloudData(true);
-  
+
   // 本地数据状态
   const [websites, setWebsites] = useState<WebsiteData[]>(() => {
     const saved = storage.getItem<WebsiteData[]>('websites');
@@ -78,7 +80,7 @@ function AppContent() {
 
     // 云端数据加载完成，进行数据合并
     const localWebsites = storage.getItem<WebsiteData[]>('websites') || [];
-    
+
     // 创建数据标识，避免重复合并
     const currentDataId = JSON.stringify({
       cloudCount: cloudWebsites?.length || 0,
@@ -87,44 +89,44 @@ function AppContent() {
       cloudData: cloudWebsites?.map(w => w.id).sort().join(',') || '',
       localData: localWebsites.map(w => w.id).sort().join(',')
     });
-    
+
     // 如果数据标识相同，跳过合并
     if (currentDataId === lastMergedDataId) {
-      console.log('⏭️ 数据未变化，跳过重复合并');
+      logger.debug('⏭️ 数据未变化，跳过重复合并');
       setDataInitialized(true);
       return;
     }
-    
+
     // 1. 处理网站数据合并
     if (cloudWebsites && cloudWebsites.length > 0) {
       // 有云端数据，进行智能合并
-      console.log('🔄 合并本地和云端网站数据', {
+      logger.debug('🔄 合并本地和云端网站数据', {
         local: localWebsites.length,
         cloud: cloudWebsites.length
       });
-      
+
       const mergedWebsites = mergeWithLocalData(localWebsites);
       setWebsites(mergedWebsites);
-      
+
       // 立即保存合并后的数据到本地
       storage.setItem('websites', mergedWebsites);
     } else if (localWebsites.length > 0) {
       // 没有云端数据但有本地数据，使用本地数据
-      console.log('📱 使用本地网站数据（云端无数据）', { count: localWebsites.length });
+      logger.debug('📱 使用本地网站数据（云端无数据）', { count: localWebsites.length });
       setWebsites(localWebsites);
     } else {
       // 既没有云端数据也没有本地数据，使用空数组
-      console.log('🆕 新用户，无网站数据');
+      logger.debug('🆕 新用户，无网站数据');
       setWebsites([]);
     }
-    
+
     // 记录已合并的数据标识
     setLastMergedDataId(currentDataId);
 
     // 2. 处理设置数据合并（只在首次加载时应用）
     if (cloudSettings && !settingsApplied) {
-      console.log('🔄 应用云端设置数据', cloudSettings);
-      
+      logger.debug('🔄 应用云端设置数据', cloudSettings);
+
       // 应用云端设置到本地状态
       setCardOpacity(cloudSettings.cardOpacity);
       setSearchBarOpacity(cloudSettings.searchBarOpacity);
@@ -134,20 +136,20 @@ function AppContent() {
       setSearchBarColor(cloudSettings.searchBarColor);
       setAutoSyncEnabled(cloudSettings.autoSyncEnabled);
       setAutoSyncInterval(cloudSettings.autoSyncInterval);
-      
+
       // 同步主题设置
       if (cloudSettings.theme) {
         localStorage.setItem('theme', cloudSettings.theme);
         // 触发主题变更事件
         document.documentElement.setAttribute('data-theme', cloudSettings.theme);
       }
-      
+
       setSettingsApplied(true);
     } else if (!cloudSettings && !settingsApplied) {
-      console.log('📱 使用本地设置数据（云端无设置）');
+      logger.debug('📱 使用本地设置数据（云端无设置）');
       setSettingsApplied(true);
     }
-    
+
     setDataInitialized(true);
   }, [currentUser, cloudWebsites, cloudSettings, cloudLoading, storage, settingsApplied, lastMergedDataId, mergeWithLocalData, setCardOpacity, setSearchBarOpacity, setParallaxEnabled, setWallpaperResolution, setCardColor, setSearchBarColor, setAutoSyncEnabled, setAutoSyncInterval]);
 
@@ -158,7 +160,7 @@ function AppContent() {
     }
   }, [websites, storage, dataInitialized]);
 
-  console.log('✅ AppContent 渲染完成');
+  logger.debug('✅ AppContent 渲染完成');
 
   // 显示加载状态，直到数据初始化完成
   if (!dataInitialized) {
@@ -179,11 +181,11 @@ function AppContent() {
       <Routes>
         <Route path="/" element={<Home websites={websites} setWebsites={setWebsites} dataInitialized={dataInitialized} />} />
       </Routes>
-      
+
       <CookieConsent />
-      
+
       {showPrivacySettings && (
-        <PrivacySettings 
+        <PrivacySettings
           isOpen={showPrivacySettings}
           onClose={() => setShowPrivacySettings(false)}
         />
@@ -194,8 +196,8 @@ function AppContent() {
 
 // 主应用组件，包含所有Provider
 export default function MainApp() {
-  console.log('🎯 MainApp 开始渲染');
-  
+  logger.debug('🎯 MainApp 开始渲染');
+
   return (
     <DndProvider backend={HTML5Backend}>
       <TransparencyProvider>

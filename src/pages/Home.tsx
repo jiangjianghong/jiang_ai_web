@@ -16,6 +16,7 @@ import { faviconCache } from '@/lib/faviconCache';
 import { optimizedWallpaperService } from '@/lib/optimizedWallpaperService';
 import { useRAFThrottledMouseMove } from '@/hooks/useRAFThrottle';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
+import { logger } from '@/utils/logger';
 
 interface HomeProps {
   websites: any[];
@@ -57,16 +58,16 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
   useEffect(() => {
     const checkCacheAndLoadWallpaper = async () => {
       try {
-        console.log('🔍 检查壁纸缓存');
+        logger.debug('🔍 检查壁纸缓存');
         const result = await optimizedWallpaperService.getWallpaper(wallpaperResolution);
         
         if (result.url && result.isFromCache) {
           setBgImage(result.url);
           setBgImageLoaded(true);
-          console.log('⚡ 即时加载缓存壁纸');
+          logger.debug('⚡ 即时加载缓存壁纸');
         }
       } catch (error) {
-        console.warn('检查缓存失败:', error);
+        logger.warn('检查缓存失败:', error);
       }
     };
     
@@ -125,22 +126,22 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
     // 主要逻辑：使用优化的壁纸服务
     (async () => {
       try {
-        console.log('🖼️ 开始加载壁纸，分辨率:', wallpaperResolution);
+        logger.debug('🖼️ 开始加载壁纸，分辨率:', wallpaperResolution);
         setBgImageLoaded(false);
         
         const result = await optimizedWallpaperService.getWallpaper(wallpaperResolution);
         
         if (result.url) {
-          console.log(result.isFromCache ? '📦 使用缓存壁纸' : '🌐 加载新壁纸');
+          logger.debug(result.isFromCache ? '📦 使用缓存壁纸' : '🌐 加载新壁纸');
           setBgImage(result.url);
           setBgImageLoaded(true);
         } else {
-          console.warn('❌ 无法获取壁纸');
+          logger.warn('❌ 无法获取壁纸');
           setBgImage('');
           setBgImageLoaded(true);
         }
       } catch (error) {
-        console.warn('获取壁纸失败:', error);
+        logger.warn('获取壁纸失败:', error);
         setBgImage('');
         setBgImageLoaded(true);
       }
@@ -178,13 +179,13 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
     if (websites.length > 0) {
       // 延迟执行，避免阻塞首屏渲染
       const timer = setTimeout(() => {
-        console.log('🚀 开始简单批量预缓存 favicon...');
+        logger.debug('🚀 开始简单批量预缓存 favicon...');
         faviconCache.batchCacheFaviconsToIndexedDB(websites)
           .then(() => {
-            console.log('✅ Favicon 简单批量预缓存完成');
+            logger.debug('✅ Favicon 简单批量预缓存完成');
           })
           .catch(error => {
-            console.warn('❌ Favicon 简单批量预缓存失败:', error);
+            logger.warn('❌ Favicon 简单批量预缓存失败:', error);
           });
       }, 2000); // 2秒后开始，确保不影响首屏渲染
 

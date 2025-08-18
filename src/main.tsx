@@ -83,6 +83,7 @@ try {
   });
 
 } catch (error) {
+  // 保留错误日志，这对生产环境调试很重要
   console.error('❌ React应用初始化失败:', error);
 
   // 显示错误信息

@@ -41,6 +41,10 @@ export default defineConfig({
     // 复制.htaccess文件到构建目录
     copyPublicDir: true,
     
+    // 生产环境移除console语句
+    minify: 'esbuild',
+    target: 'es2015',
+    
     // 启用文件名哈希，确保缓存失效
     rollupOptions: {
       output: {
@@ -68,8 +72,10 @@ export default defineConfig({
         }
       }
     },
-    // 启用代码压缩
-    minify: 'esbuild', // 使用esbuild替代terser，速度更快
+    // esbuild配置 - 生产环境移除console
+    esbuild: {
+      drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : [],
+    },
     // 启用source map但仅在开发环境
     sourcemap: process.env.NODE_ENV !== 'production',
     // 设置chunk大小警告阈值

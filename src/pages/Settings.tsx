@@ -50,6 +50,7 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
     searchBarColor,
     autoSyncEnabled,
     autoSyncInterval,
+    searchInNewTab,
     setCardOpacity,
     setSearchBarOpacity,
     setParallaxEnabled,
@@ -59,6 +60,7 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
     setSearchBarColor,
     setAutoSyncEnabled,
     setAutoSyncInterval,
+    setSearchInNewTab,
   } = useTransparency();
   const { currentUser, logout } = useAuth();
   const { updateSyncStatus } = useSyncStatus();
@@ -723,6 +725,33 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
                 >
                   <span
                     className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 shadow-sm ${parallaxEnabled ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                  />
+                </button>
+              </div>
+
+              <div className="border-t border-gray-100"></div>
+
+              {/* 搜索行为开关 */}
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <i className="fa-solid fa-external-link-alt text-blue-500 text-sm"></i>
+                    <span className="text-sm font-medium text-gray-700 select-none">
+                      搜索打开方式
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 select-none">
+                    {searchInNewTab ? '在新标签页中打开搜索结果' : '在当前页面直接跳转'}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setSearchInNewTab(!searchInNewTab)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-all duration-200 ${searchInNewTab ? 'bg-blue-500 shadow-lg shadow-blue-200' : 'bg-gray-300'
+                    }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 shadow-sm ${searchInNewTab ? 'translate-x-6' : 'translate-x-1'
                       }`}
                   />
                 </button>

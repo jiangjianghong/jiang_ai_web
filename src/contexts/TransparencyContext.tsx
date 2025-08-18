@@ -29,6 +29,7 @@ interface TransparencyContextType {
   searchBarColor: string; // RGB字符串
   autoSyncEnabled: boolean; // 自动同步开关
   autoSyncInterval: number; // 自动同步间隔（秒）
+  searchInNewTab: boolean; // 搜索是否在新标签页打开
   setCardOpacity: (opacity: number) => void;
   setSearchBarOpacity: (opacity: number) => void;
   setParallaxEnabled: (enabled: boolean) => void;
@@ -39,6 +40,7 @@ interface TransparencyContextType {
   setSearchBarColor: (color: string) => void;
   setAutoSyncEnabled: (enabled: boolean) => void;
   setAutoSyncInterval: (interval: number) => void;
+  setSearchInNewTab: (enabled: boolean) => void;
 }
 
 const TransparencyContext = createContext<TransparencyContextType | undefined>(undefined);
@@ -106,6 +108,12 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
     return Math.max(3, Math.min(60, value)); // 限制在3-60秒之间
   });
 
+  // 搜索行为设置
+  const [searchInNewTab, setSearchInNewTab] = useState(() => {
+    const saved = localStorage.getItem('searchInNewTab');
+    return saved ? saved === 'true' : true; // 默认在新标签页打开
+  });
+
   useEffect(() => {
     localStorage.setItem('cardOpacity', cardOpacity.toString());
   }, [cardOpacity]);
@@ -138,6 +146,10 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('searchBarColor', searchBarColor);
   }, [searchBarColor]);
 
+  useEffect(() => {
+    localStorage.setItem('searchInNewTab', searchInNewTab.toString());
+  }, [searchInNewTab]);
+
   return (
     <TransparencyContext.Provider
       value={{
@@ -151,6 +163,7 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
         searchBarColor,
         autoSyncEnabled,
         autoSyncInterval,
+        searchInNewTab,
         setCardOpacity,
         setSearchBarOpacity,
         setParallaxEnabled,
@@ -161,6 +174,7 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
         setSearchBarColor,
         setAutoSyncEnabled,
         setAutoSyncInterval,
+        setSearchInNewTab,
       }}
     >
       {children}

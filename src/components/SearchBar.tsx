@@ -22,7 +22,7 @@ export function SearchBar(props: SearchBarProps = {}) {
     const { websites = [] } = props;
     const inputRef = useRef<HTMLInputElement>(null);
     const [isFocused, setIsFocused] = useState(false);
-    const { searchBarOpacity, searchBarColor, setIsSearchFocused } = useTransparency();
+    const { searchBarOpacity, searchBarColor, setIsSearchFocused, searchInNewTab } = useTransparency();
     const { isMobile } = useResponsiveLayout();
 
     // 状态变量声明移到useEffect之前
@@ -303,6 +303,15 @@ export function SearchBar(props: SearchBarProps = {}) {
         }
     };
 
+    // 根据设置打开链接的辅助函数
+    const openUrl = (url: string) => {
+        if (searchInNewTab) {
+            window.open(url, '_blank');
+        } else {
+            window.location.href = url;
+        }
+    };
+
     // 生成搜索建议 - 使用百度联想API (带CORS处理)
     const generateSuggestions = async (query: string): Promise<any[]> => {
         if (!query.trim()) return [];
@@ -573,7 +582,7 @@ export function SearchBar(props: SearchBarProps = {}) {
 
         // 如果是网站建议，直接打开网站
         if (website) {
-            window.open(website.url, '_blank');
+            openUrl(website.url);
             setSearchQuery('');
             setShowSuggestions(false);
             setWebsiteSuggestions([]);
@@ -586,7 +595,7 @@ export function SearchBar(props: SearchBarProps = {}) {
             if (selectedSuggestionIndex < websiteSuggestions.length) {
                 // 选中的是网站建议
                 const selectedWebsite = websiteSuggestions[selectedSuggestionIndex];
-                window.open(selectedWebsite.url, '_blank');
+                openUrl(selectedWebsite.url);
                 setSearchQuery('');
                 setShowSuggestions(false);
                 setWebsiteSuggestions([]);
@@ -596,7 +605,7 @@ export function SearchBar(props: SearchBarProps = {}) {
                 const suggestionIndex = selectedSuggestionIndex - websiteSuggestions.length;
                 const queryToSearch = suggestions[suggestionIndex]?.query || searchQuery;
                 if (queryToSearch.trim()) {
-                    window.open(getSearchUrl(engine, queryToSearch), '_blank');
+                    openUrl(getSearchUrl(engine, queryToSearch));
                     setSearchQuery('');
                     setShowSuggestions(false);
                     setWebsiteSuggestions([]);
@@ -608,7 +617,7 @@ export function SearchBar(props: SearchBarProps = {}) {
         // 默认搜索
         const queryToSearch = suggestionQuery || searchQuery;
         if (queryToSearch.trim()) {
-            window.open(getSearchUrl(engine, queryToSearch), '_blank');
+            openUrl(getSearchUrl(engine, queryToSearch));
             setSearchQuery('');
             setShowSuggestions(false);
             setWebsiteSuggestions([]);

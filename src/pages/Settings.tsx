@@ -330,17 +330,20 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center select-none">
+      {/* 背景遮罩 - 增强模糊效果 */}
       <div
-        className="absolute inset-0 bg-black/50"
+        className="absolute inset-0 bg-gradient-to-br from-black/40 via-black/50 to-black/60 backdrop-blur-sm"
         onClick={handleClose}
       />
+
       <motion.div
-        className="w-96 bg-white rounded-xl shadow-2xl z-50 max-h-[80vh] flex flex-col select-none"
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.9, opacity: 0 }}
-        transition={{ type: 'spring', damping: 20, stiffness: 300 }}
+        className="w-[420px] bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 z-50 max-h-[85vh] flex flex-col select-none overflow-hidden"
+        initial={{ scale: 0.8, opacity: 0, y: 20 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.8, opacity: 0, y: 20 }}
+        transition={{ type: 'spring', damping: 25, stiffness: 400 }}
       >
+        {/* 简洁的顶部标题栏 */}
         <div className="p-6 pb-0 select-none">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-medium text-gray-800 select-none">设置</h2>
@@ -352,25 +355,33 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
             </button>
           </div>
         </div>
-        <div className="flex-1 px-6 py-2 pb-6 space-y-6 overflow-y-auto select-none">
+        {/* 主要内容区域 - 优化滚动和间距 */}
+        <div className="flex-1 px-6 py-4 pb-6 space-y-8 overflow-y-auto select-none custom-scrollbar">
 
-          {/* 账号管理部分 - 移到最上面 */}
-          <div className="space-y-4 select-none">
-            <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider select-none">账号管理</h3>
+          {/* 账号管理部分 - 现代化设计 */}
+          <div className="space-y-5 select-none settings-section">
+            <div className="flex items-center gap-3 select-none">
+              <div className="w-6 h-6 bg-gradient-to-br from-emerald-400 to-green-500 rounded-lg flex items-center justify-center">
+                <i className="fa-solid fa-user text-white text-xs"></i>
+              </div>
+              <h3 className="text-base font-semibold text-gray-800 select-none">账号管理</h3>
+              <div className="flex-1 h-px bg-gradient-to-r from-gray-200 to-transparent"></div>
+            </div>
 
             {currentUser ? (
               <div className="space-y-4">
-                {/* 用户信息卡片 - 高级版 */}
-                <div className="relative bg-gradient-to-br from-slate-25 via-blue-25 to-indigo-50 rounded-2xl p-6 border border-gray-200 shadow-lg shadow-blue-50/30 backdrop-blur-sm">
-                  {/* 装饰性背景元素 */}
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400/5 to-indigo-400/5 rounded-full blur-xl"></div>
-                  <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-emerald-400/5 to-blue-400/5 rounded-full blur-xl"></div>
+                {/* 用户信息卡片 - 现代化升级版 */}
+                <div className="relative bg-gradient-to-br from-white via-blue-50/30 to-indigo-50/50 rounded-2xl p-6 border border-gray-200/60 shadow-xl shadow-blue-100/40 backdrop-blur-sm hover:shadow-2xl hover:shadow-blue-200/30 hover:-translate-y-1 transition-all duration-300">
+                  {/* 装饰性背景元素 - 增强版 */}
+                  <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-blue-400/8 to-indigo-400/8 rounded-full blur-2xl animate-pulse"></div>
+                  <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-emerald-400/8 to-blue-400/8 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-24 h-24 bg-gradient-to-r from-purple-400/5 to-pink-400/5 rounded-full blur-xl"></div>
 
                   <div className="relative z-10">
                     <div className="flex items-center gap-4 mb-4">
                       <div className="relative">
-                        <div className="w-14 h-14 bg-gradient-to-br from-emerald-400 to-green-500 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/25">
-                          <i className="fa-solid fa-cat text-white text-xl"></i>
+                        <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 via-green-500 to-teal-500 rounded-2xl flex items-center justify-center shadow-xl shadow-emerald-500/30 hover:shadow-2xl hover:shadow-emerald-500/40 transition-all duration-300 hover:scale-105">
+                          <i className="fa-solid fa-cat text-white text-2xl"></i>
                         </div>
                         <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-white shadow-sm ${currentUser.email_confirmed_at ? 'bg-white' : 'bg-white'
                           }`}>
@@ -441,8 +452,8 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
                         )}
                         <div className="flex items-center gap-2 mt-2 select-none">
                           <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium select-none ${currentUser.email_confirmed_at
-                              ? 'bg-gradient-to-r from-emerald-100 to-green-100 text-emerald-700 border border-emerald-300'
-                              : 'bg-gradient-to-r from-amber-100 to-orange-100 text-amber-700 border border-amber-300'
+                            ? 'bg-gradient-to-r from-emerald-100 to-green-100 text-emerald-700 border border-emerald-300'
+                            : 'bg-gradient-to-r from-amber-100 to-orange-100 text-amber-700 border border-amber-300'
                             }`}>
                             <i className={`fa-solid ${currentUser.email_confirmed_at ? 'fa-shield-check' : 'fa-envelope'
                               } text-xs ${currentUser.email_confirmed_at ? 'text-emerald-500' : 'text-amber-500'
@@ -488,7 +499,7 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
                 </div>
               </div>
             ) : (
-              <div className="relative bg-gradient-to-br from-slate-25 via-blue-25 to-indigo-50 rounded-2xl p-6 border border-gray-200 shadow-lg shadow-blue-50/30 backdrop-blur-sm">
+              <div className="relative bg-gradient-to-br from-slate-25 via-blue-25 to-indigo-50 rounded-2xl p-6 border border-gray-200 shadow-lg shadow-blue-50/30 backdrop-blur-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                 {/* 装饰性背景元素 */}
                 <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400/5 to-indigo-400/5 rounded-full blur-xl"></div>
                 <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-purple-400/5 to-blue-400/5 rounded-full blur-xl"></div>
@@ -510,11 +521,17 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
             )}
           </div>
 
-          <div className="space-y-4 select-none">
-            <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider select-none">云端同步</h3>
+          <div className="space-y-5 select-none settings-section">
+            <div className="flex items-center gap-3 select-none">
+              <div className="w-6 h-6 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-lg flex items-center justify-center">
+                <i className="fa-solid fa-cloud text-white text-xs"></i>
+              </div>
+              <h3 className="text-base font-semibold text-gray-800 select-none">云端同步</h3>
+              <div className="flex-1 h-px bg-gradient-to-r from-gray-200 to-transparent"></div>
+            </div>
 
-            {/* 同步控制区域 */}
-            <div className="bg-white rounded-xl p-4 border border-gray-200 space-y-4">
+            {/* 同步控制区域 - 现代化卡片 */}
+            <div className="settings-card bg-gradient-to-br from-white to-blue-50/30 rounded-2xl p-5 border border-gray-200/60 shadow-lg shadow-blue-100/30 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 space-y-5">
               {/* 同步状态显示 */}
               <SyncStatusIndicator />
 
@@ -524,23 +541,25 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
               {/* 自动同步开关 */}
               <div className="flex items-center justify-between">
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1 select-none">
-                    <i className={`fa-solid text-sm ${autoSyncEnabled ? 'fa-sync text-blue-500' : 'fa-hand-paper text-orange-500'} select-none`}></i>
-                    <span className="text-sm font-medium text-gray-700 select-none">
-                      {autoSyncEnabled ? '自动同步' : '手动同步'}
+                  <div className="flex items-center gap-3 mb-2 select-none">
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${autoSyncEnabled ? 'bg-blue-500 text-white' : 'bg-orange-500 text-white'}`}>
+                      <i className={`fa-solid text-sm ${autoSyncEnabled ? 'fa-sync' : 'fa-hand-paper'} select-none`}></i>
+                    </div>
+                    <span className="text-sm font-semibold text-gray-800 select-none">
+                      {autoSyncEnabled ? '自动同步模式' : '手动同步模式'}
                     </span>
                   </div>
-                  <p className="text-xs text-gray-500 select-none">
-                    {autoSyncEnabled ? '数据变化后自动同步到云端' : '需要手动操作同步数据'}
+                  <p className="text-xs text-gray-600 ml-11 select-none">
+                    {autoSyncEnabled ? '数据变化后自动同步到云端，保持实时更新' : '需要手动操作同步数据，完全由您控制'}
                   </p>
                 </div>
                 <button
                   onClick={() => setAutoSyncEnabled(!autoSyncEnabled)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-all duration-200 ${autoSyncEnabled ? 'bg-blue-500 shadow-lg shadow-blue-200' : 'bg-gray-300'
+                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${autoSyncEnabled ? 'bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg shadow-blue-300/50' : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
                     }`}
                 >
                   <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 shadow-sm ${autoSyncEnabled ? 'translate-x-6' : 'translate-x-1'
+                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${autoSyncEnabled ? 'translate-x-6 shadow-blue-200' : 'translate-x-1 shadow-gray-200'
                       }`}
                   />
                 </button>
@@ -602,8 +621,8 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
                   </div>
                   {syncMessage && (
                     <div className={`text-xs text-center px-3 py-2 rounded-lg ${syncMessage.includes('✅') ? 'text-green-700 bg-green-50 border border-green-200' :
-                        syncMessage.includes('❌') ? 'text-red-700 bg-red-50 border border-red-200' :
-                          'text-blue-700 bg-blue-50 border border-blue-200'
+                      syncMessage.includes('❌') ? 'text-red-700 bg-red-50 border border-red-200' :
+                        'text-blue-700 bg-blue-50 border border-blue-200'
                       }`}>
                       {syncMessage}
                     </div>
@@ -613,11 +632,17 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
             </div>
           </div>
 
-          <div className="space-y-4 select-none">
-            <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider select-none">外观设置</h3>
+          <div className="space-y-5 select-none settings-section">
+            <div className="flex items-center gap-3 select-none">
+              <div className="w-6 h-6 bg-gradient-to-br from-purple-400 to-pink-500 rounded-lg flex items-center justify-center">
+                <i className="fa-solid fa-palette text-white text-xs"></i>
+              </div>
+              <h3 className="text-base font-semibold text-gray-800 select-none">外观设置</h3>
+              <div className="flex-1 h-px bg-gradient-to-r from-gray-200 to-transparent"></div>
+            </div>
 
-            {/* 透明度控制区域 */}
-            <div className="bg-white rounded-xl p-4 border border-gray-200 space-y-4">
+            {/* 透明度控制区域 - 现代化卡片 */}
+            <div className="settings-card bg-gradient-to-br from-white to-purple-50/30 rounded-2xl p-5 border border-gray-200/60 shadow-lg shadow-purple-100/30 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 space-y-5">
               {/* 搜索框不透明度控制 */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
@@ -652,7 +677,7 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
               </div>
 
               {/* 搜索框颜色选择 */}
-              <div className="pt-3 border-t border-gray-100">
+              <div className="pt-2 border-t border-gray-100/60">
                 <ColorPicker
                   label="搜索框颜色"
                   selectedColor={searchBarColor}
@@ -661,7 +686,7 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
               </div>
 
               {/* 卡片不透明度控制 */}
-              <div className="space-y-3 pt-3 border-t border-gray-100">
+              <div className="space-y-3 pt-4 border-t border-gray-200/60">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <i className="fa-solid fa-layer-group text-blue-500 text-sm"></i>
@@ -694,7 +719,7 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
               </div>
 
               {/* 卡片颜色选择 */}
-              <div className="pt-3 border-t border-gray-100">
+              <div className="pt-2 border-t border-gray-100/60">
                 <ColorPicker
                   label="卡片颜色"
                   selectedColor={cardColor}
@@ -702,9 +727,19 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
                 />
               </div>
             </div>
+          </div>
+
+          <div className="space-y-5 select-none settings-section">
+            <div className="flex items-center gap-3 select-none">
+              <div className="w-6 h-6 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
+                <i className="fa-solid fa-cogs text-white text-xs"></i>
+              </div>
+              <h3 className="text-base font-semibold text-gray-800 select-none">功能管理</h3>
+              <div className="flex-1 h-px bg-gradient-to-r from-gray-200 to-transparent"></div>
+            </div>
 
             {/* 特效设置区域 */}
-            <div className="bg-white rounded-xl p-4 border border-gray-200 space-y-4">
+            <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 space-y-4">
               {/* 视差效果开关 */}
               <div className="flex items-center justify-between">
                 <div className="flex-1">
@@ -757,9 +792,19 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
                 </button>
               </div>
             </div>
+          </div>
+
+          <div className="space-y-5 select-none settings-section">
+            <div className="flex items-center gap-3 select-none">
+              <div className="w-6 h-6 bg-gradient-to-br from-pink-500 to-rose-600 rounded-lg flex items-center justify-center">
+                <i className="fa-solid fa-image text-white text-xs"></i>
+              </div>
+              <h3 className="text-base font-semibold text-gray-800 select-none">壁纸设置</h3>
+              <div className="flex-1 h-px bg-gradient-to-r from-gray-200 to-transparent"></div>
+            </div>
 
             {/* 壁纸设置区域 */}
-            <div className="bg-white rounded-xl p-4 border border-gray-200 space-y-4">
+            <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 space-y-4">
               <div className="flex items-center gap-2 mb-2">
                 <i className="fa-solid fa-image text-blue-500 text-sm"></i>
                 <label className="text-sm font-medium text-gray-700 select-none">
@@ -777,8 +822,8 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
                     key={option.value}
                     onClick={() => setWallpaperResolution(option.value as WallpaperResolution)}
                     className={`p-3 rounded-lg border-2 transition-all text-left select-none cursor-pointer ${wallpaperResolution === option.value
-                        ? 'border-blue-500 bg-blue-50 text-blue-700'
-                        : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
+                      ? 'border-blue-500 bg-blue-50 text-blue-700'
+                      : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
                       }`}
                   >
                     <div className="flex items-center gap-2 mb-1">
@@ -796,23 +841,31 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
             </div>
           </div>
 
-          <div className="space-y-4 select-none">
-            <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider select-none">卡片管理</h3>
+          <div className="space-y-5 select-none settings-section">
+            <div className="flex items-center gap-3 select-none">
+              <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                <i className="fa-solid fa-layer-group text-white text-xs"></i>
+              </div>
+              <h3 className="text-base font-semibold text-gray-800 select-none">卡片管理</h3>
+              <div className="flex-1 h-px bg-gradient-to-r from-gray-200 to-transparent"></div>
+            </div>
 
-            <div className="bg-white rounded-xl p-4 border border-gray-200">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
-                  <i className="fa-solid fa-plus text-white text-lg"></i>
-                </div>
-                <div className="flex-1">
-                  <div className="text-sm font-medium text-gray-700 select-none">添加新卡片</div>
-                  <div className="text-xs text-gray-500 select-none">创建新的网站快捷方式</div>
+            <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+                    <i className="fa-solid fa-layer-group text-white text-sm"></i>
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium text-gray-800 select-none">卡片收藏</div>
+                    <div className="text-xs text-gray-500 select-none">当前有 {websites.length} 个卡片</div>
+                  </div>
                 </div>
               </div>
 
               <button
                 onClick={() => setShowAddCardModal(true)}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-sm rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-200 shadow-lg shadow-blue-200 select-none"
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-b from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-600/40 hover:scale-[1.02] select-none"
               >
                 <i className="fa-solid fa-plus select-none"></i>
                 <span className="select-none">添加新卡片</span>
@@ -820,28 +873,33 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
             </div>
           </div>
 
-          <div className="space-y-4 select-none">
-            <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider select-none">数据管理</h3>
+          <div className="space-y-5 select-none settings-section">
+            <div className="flex items-center gap-3 select-none">
+              <div className="w-6 h-6 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+                <i className="fa-solid fa-database text-white text-xs"></i>
+              </div>
+              <h3 className="text-base font-semibold text-gray-800 select-none">数据管理</h3>
+              <div className="flex-1 h-px bg-gradient-to-r from-gray-200 to-transparent"></div>
+            </div>
 
-            <div className="bg-white rounded-xl p-4 border border-gray-200 space-y-4">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-8 h-8 bg-amber-500 rounded-full flex items-center justify-center">
+            <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 space-y-4">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
                   <i className="fa-solid fa-database text-white text-sm"></i>
                 </div>
-                <div className="flex-1">
-                  <div className="text-sm font-medium text-gray-700 select-none">备份与恢复</div>
+                <div>
+                  <div className="text-sm font-medium text-gray-800 select-none">备份与恢复</div>
                   <div className="text-xs text-gray-500 select-none">导出或导入您的数据</div>
                 </div>
               </div>
 
-              {/* 导入导出按钮组 */}
               <div className="grid grid-cols-2 gap-3 select-none">
                 <button
                   onClick={exportData}
                   disabled={isExporting}
                   className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 select-none ${isExporting
-                      ? 'bg-gray-400 cursor-not-allowed text-white'
-                      : 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg shadow-green-200'
+                    ? 'bg-gray-400 cursor-not-allowed text-white shadow-lg shadow-gray-400/30'
+                    : 'bg-gradient-to-b from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg shadow-green-500/30 hover:shadow-xl hover:shadow-green-600/40 hover:scale-[1.02]'
                     }`}
                 >
                   {isExporting ? (
@@ -861,8 +919,8 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isImporting}
                   className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 select-none ${isImporting
-                      ? 'bg-gray-400 cursor-not-allowed text-white'
-                      : 'bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg shadow-orange-200'
+                    ? 'bg-gray-400 cursor-not-allowed text-white shadow-lg shadow-gray-400/30'
+                    : 'bg-gradient-to-b from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg shadow-orange-500/30 hover:shadow-xl hover:shadow-orange-600/40 hover:scale-[1.02]'
                     }`}
                 >
                   {isImporting ? (
@@ -901,25 +959,31 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
             </div>
           </div>
 
-          {/* 隐私与Cookie管理 - 放在最下面 */}
-          <div className="space-y-4 select-none">
-            <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider select-none">隐私与Cookie</h3>
+          {/* 隐私与帮助 */}
+          <div className="space-y-5 select-none settings-section">
+            <div className="flex items-center gap-3 select-none">
+              <div className="w-6 h-6 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                <i className="fa-solid fa-shield-halved text-white text-xs"></i>
+              </div>
+              <h3 className="text-base font-semibold text-gray-800 select-none">隐私与帮助</h3>
+              <div className="flex-1 h-px bg-gradient-to-r from-gray-200 to-transparent"></div>
+            </div>
 
-            <div className="bg-white rounded-xl p-4 border border-gray-200 space-y-4">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
+            <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 space-y-4">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center">
                   <i className="fa-solid fa-shield-halved text-white text-sm"></i>
                 </div>
-                <div className="flex-1">
-                  <div className="text-sm font-medium text-gray-700 select-none">隐私与帮助</div>
+                <div>
+                  <div className="text-sm font-medium text-gray-800 select-none">隐私与帮助</div>
                   <div className="text-xs text-gray-500 select-none">管理隐私设置和查看使用教程</div>
                 </div>
               </div>
 
-              <div className="space-y-3">
+              <div className="grid grid-cols-1 gap-3">
                 <button
                   onClick={() => setShowPrivacySettings(true)}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white text-sm rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all duration-200 shadow-lg shadow-purple-200 select-none"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-b from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-lg shadow-purple-500/30 hover:shadow-xl hover:shadow-purple-600/40 hover:scale-[1.02] select-none"
                 >
                   <i className="fa-solid fa-shield-halved select-none"></i>
                   <span className="select-none">隐私设置</span>
@@ -929,11 +993,12 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
                   href={`${import.meta.env.BASE_URL}tutorial.html`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-indigo-100 to-indigo-200 hover:from-indigo-200 hover:to-indigo-300 text-indigo-700 text-sm rounded-lg transition-all duration-200 border border-indigo-300 font-medium select-none"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-b from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 text-sm font-medium rounded-lg transition-all duration-200 shadow-lg shadow-gray-300/30 hover:shadow-xl hover:shadow-gray-400/40 hover:scale-[1.02] select-none"
                   style={{ textDecoration: 'none' }}
                 >
                   <i className="fa-solid fa-graduation-cap select-none"></i>
                   <span className="select-none">使用教程</span>
+                  <i className="fa-solid fa-external-link-alt text-xs opacity-70 select-none"></i>
                 </a>
               </div>
 
@@ -952,8 +1017,8 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
 
                   {fixIconsMessage && (
                     <div className={`text-xs px-3 py-2 rounded-lg ${fixIconsMessage.includes('✅') ? 'text-green-700 bg-green-50 border border-green-200' :
-                        fixIconsMessage.includes('❌') ? 'text-red-700 bg-red-50 border border-red-200' :
-                          'text-blue-700 bg-blue-50 border border-blue-200'
+                      fixIconsMessage.includes('❌') ? 'text-red-700 bg-red-50 border border-red-200' :
+                        'text-blue-700 bg-blue-50 border border-blue-200'
                       }`}>
                       {isFixingIcons && !fixIconsMessage.includes('✅') && !fixIconsMessage.includes('❌') && (
                         <i className="fa-solid fa-spinner fa-spin mr-1"></i>

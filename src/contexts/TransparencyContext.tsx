@@ -16,6 +16,7 @@ export const colorOptions: ColorOption[] = [
   { name: '蓝色', rgb: '59, 130, 246', preview: '#3b82f6' },
   { name: '绿色', rgb: '34, 197, 94', preview: '#22c55e' },
   { name: '紫色', rgb: '147, 51, 234', preview: '#9333ea' },
+  { name: '粉色', rgb: '236, 72, 153', preview: '#ec4899' },
 ];
 
 interface TransparencyContextType {

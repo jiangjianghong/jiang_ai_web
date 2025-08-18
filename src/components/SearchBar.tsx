@@ -778,7 +778,7 @@ export function SearchBar(props: SearchBarProps = {}) {
                                     if (searchQuery.trim()) {
                                         const matchedWebsites = searchWebsites(searchQuery);
                                         setWebsiteSuggestions(matchedWebsites);
-                                        
+
                                         // 重新生成搜索建议
                                         generateSuggestions(searchQuery).then((newSuggestions) => {
                                             setSuggestions(newSuggestions);
@@ -834,14 +834,14 @@ export function SearchBar(props: SearchBarProps = {}) {
                                             }`}
                                         initial={{ opacity: 0, y: -10, scaleY: 0.8 }}
                                         animate={{ opacity: 1, y: 0, scaleY: 1 }}
-                                        exit={{ 
+                                        exit={{
                                             scaleY: 0,
-                                            transition: { 
+                                            transition: {
                                                 duration: 0.3,
                                                 ease: "easeInOut"
                                             }
                                         }}
-                                        transition={{ 
+                                        transition={{
                                             duration: 0.2,
                                             ease: "easeOut"
                                         }}
@@ -858,157 +858,157 @@ export function SearchBar(props: SearchBarProps = {}) {
                                             // 建议保持显示，只有取消聚焦时才隐藏
                                         }}
                                     >
-                                    {/* 网站建议部分 */}
-                                    {websiteSuggestions.length > 0 && (
-                                        <div className="border-b border-gray-200/50">
-                                            <div className={`${isMobile ? 'px-3 py-1.5' : 'px-4 py-2'} bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100`}>
-                                                <div className="flex items-center gap-2">
-                                                    <i className="fa-solid fa-globe text-blue-500 text-sm"></i>
-                                                    <span className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium text-blue-700`}>网站建议</span>
-                                                </div>
-                                            </div>
-                                            {websiteSuggestions.map((website, index) => {
-                                                const isSelected = index === selectedSuggestionIndex;
-                                                return (
-                                                    <div
-                                                        key={website.id}
-                                                        className={`${isMobile ? 'px-3 py-2' : 'px-4 py-3'} cursor-pointer transition-all duration-200 border-b border-gray-100/50 last:border-b-0 select-none ${isSelected
-                                                            ? 'bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border-blue-200'
-                                                            : 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50'
-                                                            }`}
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleSearch(e as any, undefined, website);
-                                                        }}
-                                                        onMouseEnter={() => setSelectedSuggestionIndex(index)}
-                                                        onMouseDown={(e) => e.preventDefault()}
-                                                    >
-                                                        <div className={`flex items-center ${isMobile ? 'gap-2' : 'gap-3'} select-none`}>
-                                                            {/* 网站图标 */}
-                                                            <div className={`${isMobile ? 'w-6 h-6' : 'w-8 h-8'} rounded-lg overflow-hidden bg-white shadow-sm border border-gray-200/50 flex-shrink-0`}>
-                                                                <img
-                                                                    src={website.favicon}
-                                                                    alt={website.name}
-                                                                    className="w-full h-full object-contain"
-                                                                    loading="lazy"
-                                                                    draggable="false"
-                                                                />
-                                                            </div>
-
-                                                            {/* 网站信息 */}
-                                                            <div className="flex-1 min-w-0">
-                                                                <div className={`flex items-center gap-2 ${isMobile ? 'mb-0.5' : 'mb-1'}`}>
-                                                                    <h4 className={`font-medium text-gray-800 ${isMobile ? 'text-xs' : 'text-sm'} truncate`}>{website.name}</h4>
-                                                                    {(website as any).matchType && !isMobile && (
-                                                                        <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full font-medium">
-                                                                            {(website as any).matchType}
-                                                                        </span>
-                                                                    )}
-                                                                </div>
-
-                                                                {/* URL和标签 */}
-                                                                <div className={`flex items-center gap-1 ${isMobile ? 'text-[10px]' : 'text-xs'} text-gray-500`}>
-                                                                    <span className={`truncate ${isMobile ? 'max-w-[120px]' : 'max-w-[200px]'}`}>
-                                                                        {(() => {
-                                                                            try {
-                                                                                return new URL(website.url).hostname;
-                                                                            } catch {
-                                                                                return website.url;
-                                                                            }
-                                                                        })()}
-                                                                    </span>
-
-                                                                    {/* 标签显示 */}
-                                                                    {website.tags.length > 0 && !isMobile && (
-                                                                        <>
-                                                                            <span>•</span>
-                                                                            <div className="flex gap-1">
-                                                                                {website.tags.slice(0, 2).map((tag, tagIndex) => (
-                                                                                    <span
-                                                                                        key={tagIndex}
-                                                                                        className="px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded text-xs"
-                                                                                    >
-                                                                                        {tag}
-                                                                                    </span>
-                                                                                ))}
-                                                                                {website.tags.length > 2 && (
-                                                                                    <span className="text-gray-400">+{website.tags.length - 2}</span>
-                                                                                )}
-                                                                            </div>
-                                                                        </>
-                                                                    )}
-
-                                                                    {/* 访问次数 */}
-                                                                    {website.visitCount > 0 && !isMobile && (
-                                                                        <>
-                                                                            <span>•</span>
-                                                                            <span className="text-green-600">{website.visitCount}次访问</span>
-                                                                        </>
-                                                                    )}
-                                                                </div>
-
-                                                                {/* 备注显示 */}
-                                                                {website.note && (
-                                                                    <div className="mt-1 text-xs text-gray-600 truncate">
-                                                                        {website.note}
-                                                                    </div>
-                                                                )}
-                                                            </div>
-
-                                                            {/* 快捷键提示 */}
-                                                            <div className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded">
-                                                                Enter
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    )}
-
-                                    {/* 搜索引擎建议部分 */}
-                                    {suggestions.length > 0 && (
-                                        <div>
-                                            {websiteSuggestions.length > 0 && (
-                                                <div className="px-4 py-2 bg-gradient-to-r from-gray-50 to-slate-50 border-b border-gray-100">
+                                        {/* 网站建议部分 */}
+                                        {websiteSuggestions.length > 0 && (
+                                            <div className="border-b border-gray-200/50">
+                                                <div className={`${isMobile ? 'px-3 py-1.5' : 'px-4 py-2'} bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100`}>
                                                     <div className="flex items-center gap-2">
-                                                        <i className="fa-solid fa-magnifying-glass text-gray-500 text-sm"></i>
-                                                        <span className="text-sm font-medium text-gray-700">搜索建议</span>
+                                                        <i className="fa-solid fa-globe text-blue-500 text-sm"></i>
+                                                        <span className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium text-blue-700`}>网站建议</span>
                                                     </div>
                                                 </div>
-                                            )}
-                                            {suggestions.map((suggestion, index) => {
-                                                const adjustedIndex = index + websiteSuggestions.length;
-                                                const isSelected = adjustedIndex === selectedSuggestionIndex;
-                                                return (
-                                                    <div
-                                                        key={suggestion.id}
-                                                        className={`px-4 py-3 cursor-pointer transition-colors border-b border-gray-100/50 last:border-b-0 select-none ${isSelected
-                                                            ? 'bg-blue-500/10 text-gray-800'
-                                                            : 'hover:bg-gray-50 text-gray-700'
-                                                            }`}
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            setSearchQuery(suggestion.text);
-                                                            handleSearch(e as any, suggestion.query);
-                                                        }}
-                                                        onMouseEnter={() => setSelectedSuggestionIndex(adjustedIndex)}
-                                                        onMouseDown={(e) => e.preventDefault()}
-                                                    >
-                                                        <div className="flex items-center gap-3 select-none">
-                                                            <i className="fa-solid fa-magnifying-glass text-gray-400 text-sm w-4 select-none"></i>
-                                                            <div className="flex-1 min-w-0 select-none">
-                                                                <div className="font-medium text-sm truncate select-none">{suggestion.text}</div>
-                                                            </div>
-                                                            <div className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded">
-                                                                Enter
+                                                {websiteSuggestions.map((website, index) => {
+                                                    const isSelected = index === selectedSuggestionIndex;
+                                                    return (
+                                                        <div
+                                                            key={website.id}
+                                                            className={`${isMobile ? 'px-3 py-2' : 'px-4 py-3'} cursor-pointer transition-all duration-200 border-b border-gray-100/50 last:border-b-0 select-none ${isSelected
+                                                                ? 'bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border-blue-200'
+                                                                : 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50'
+                                                                }`}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleSearch(e as any, undefined, website);
+                                                            }}
+                                                            onMouseEnter={() => setSelectedSuggestionIndex(index)}
+                                                            onMouseDown={(e) => e.preventDefault()}
+                                                        >
+                                                            <div className={`flex items-center ${isMobile ? 'gap-2' : 'gap-3'} select-none`}>
+                                                                {/* 网站图标 */}
+                                                                <div className={`${isMobile ? 'w-6 h-6' : 'w-8 h-8'} rounded-lg overflow-hidden bg-white shadow-sm border border-gray-200/50 flex-shrink-0`}>
+                                                                    <img
+                                                                        src={website.favicon}
+                                                                        alt={website.name}
+                                                                        className="w-full h-full object-contain"
+                                                                        loading="lazy"
+                                                                        draggable="false"
+                                                                    />
+                                                                </div>
+
+                                                                {/* 网站信息 */}
+                                                                <div className="flex-1 min-w-0">
+                                                                    <div className={`flex items-center gap-2 ${isMobile ? 'mb-0.5' : 'mb-1'}`}>
+                                                                        <h4 className={`font-medium text-gray-800 ${isMobile ? 'text-xs' : 'text-sm'} truncate`}>{website.name}</h4>
+                                                                        {(website as any).matchType && !isMobile && (
+                                                                            <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full font-medium">
+                                                                                {(website as any).matchType}
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+
+                                                                    {/* URL和标签 */}
+                                                                    <div className={`flex items-center gap-1 ${isMobile ? 'text-[10px]' : 'text-xs'} text-gray-500`}>
+                                                                        <span className={`truncate ${isMobile ? 'max-w-[120px]' : 'max-w-[200px]'}`}>
+                                                                            {(() => {
+                                                                                try {
+                                                                                    return new URL(website.url).hostname;
+                                                                                } catch {
+                                                                                    return website.url;
+                                                                                }
+                                                                            })()}
+                                                                        </span>
+
+                                                                        {/* 标签显示 */}
+                                                                        {website.tags.length > 0 && !isMobile && (
+                                                                            <>
+                                                                                <span>•</span>
+                                                                                <div className="flex gap-1">
+                                                                                    {website.tags.slice(0, 2).map((tag, tagIndex) => (
+                                                                                        <span
+                                                                                            key={tagIndex}
+                                                                                            className="px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded text-xs"
+                                                                                        >
+                                                                                            {tag}
+                                                                                        </span>
+                                                                                    ))}
+                                                                                    {website.tags.length > 2 && (
+                                                                                        <span className="text-gray-400">+{website.tags.length - 2}</span>
+                                                                                    )}
+                                                                                </div>
+                                                                            </>
+                                                                        )}
+
+                                                                        {/* 访问次数 */}
+                                                                        {website.visitCount > 0 && !isMobile && (
+                                                                            <>
+                                                                                <span>•</span>
+                                                                                <span className="text-green-600">{website.visitCount}次访问</span>
+                                                                            </>
+                                                                        )}
+                                                                    </div>
+
+                                                                    {/* 备注显示 */}
+                                                                    {website.note && (
+                                                                        <div className="mt-1 text-xs text-gray-600 truncate">
+                                                                            {website.note}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+
+                                                                {/* 快捷键提示 */}
+                                                                <div className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded">
+                                                                    Enter
+                                                                </div>
                                                             </div>
                                                         </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+
+                                        {/* 搜索引擎建议部分 */}
+                                        {suggestions.length > 0 && (
+                                            <div>
+                                                {websiteSuggestions.length > 0 && (
+                                                    <div className="px-4 py-2 bg-gradient-to-r from-gray-50 to-slate-50 border-b border-gray-100">
+                                                        <div className="flex items-center gap-2">
+                                                            <i className="fa-solid fa-magnifying-glass text-gray-500 text-sm"></i>
+                                                            <span className="text-sm font-medium text-gray-700">搜索建议</span>
+                                                        </div>
                                                     </div>
-                                                );
-                                            })}
-                                        </div>
-                                    )}
+                                                )}
+                                                {suggestions.map((suggestion, index) => {
+                                                    const adjustedIndex = index + websiteSuggestions.length;
+                                                    const isSelected = adjustedIndex === selectedSuggestionIndex;
+                                                    return (
+                                                        <div
+                                                            key={suggestion.id}
+                                                            className={`px-4 py-3 cursor-pointer transition-colors border-b border-gray-100/50 last:border-b-0 select-none ${isSelected
+                                                                ? 'bg-blue-500/10 text-gray-800'
+                                                                : 'hover:bg-gray-50 text-gray-700'
+                                                                }`}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setSearchQuery(suggestion.text);
+                                                                handleSearch(e as any, suggestion.query);
+                                                            }}
+                                                            onMouseEnter={() => setSelectedSuggestionIndex(adjustedIndex)}
+                                                            onMouseDown={(e) => e.preventDefault()}
+                                                        >
+                                                            <div className="flex items-center gap-3 select-none">
+                                                                <i className="fa-solid fa-magnifying-glass text-gray-400 text-sm w-4 select-none"></i>
+                                                                <div className="flex-1 min-w-0 select-none">
+                                                                    <div className="font-medium text-sm truncate select-none">{suggestion.text}</div>
+                                                                </div>
+                                                                <div className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded">
+                                                                    Enter
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
                                     </motion.div>
                                 )}
                             </AnimatePresence>

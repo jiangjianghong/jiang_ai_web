@@ -51,13 +51,23 @@ function AppContent() {
   });
 
   const [dataInitialized, setDataInitialized] = useState(false);
+  const [settingsApplied, setSettingsApplied] = useState(false);
   const [showPrivacySettings, setShowPrivacySettings] = useState(false);
+  const [lastMergedDataId, setLastMergedDataId] = useState<string>('');
+
+  // 当用户变化时重置状态
+  useEffect(() => {
+    setDataInitialized(false);
+    setSettingsApplied(false);
+    setLastMergedDataId('');
+  }, [currentUser?.id]);
 
   // 数据合并逻辑：当云端数据加载完成时，合并本地和云端数据
   useEffect(() => {
     if (!currentUser || !currentUser.email_confirmed_at) {
       // 用户未登录或邮箱未验证，直接使用本地数据
       setDataInitialized(true);
+      setSettingsApplied(true); // 重置设置应用标记
       return;
     }
 
@@ -68,6 +78,22 @@ function AppContent() {
 
     // 云端数据加载完成，进行数据合并
     const localWebsites = storage.getItem<WebsiteData[]>('websites') || [];
+    
+    // 创建数据标识，避免重复合并
+    const currentDataId = JSON.stringify({
+      cloudCount: cloudWebsites?.length || 0,
+      localCount: localWebsites.length,
+      userId: currentUser?.id,
+      cloudData: cloudWebsites?.map(w => w.id).sort().join(',') || '',
+      localData: localWebsites.map(w => w.id).sort().join(',')
+    });
+    
+    // 如果数据标识相同，跳过合并
+    if (currentDataId === lastMergedDataId) {
+      console.log('⏭️ 数据未变化，跳过重复合并');
+      setDataInitialized(true);
+      return;
+    }
     
     // 1. 处理网站数据合并
     if (cloudWebsites && cloudWebsites.length > 0) {
@@ -91,9 +117,12 @@ function AppContent() {
       console.log('🆕 新用户，无网站数据');
       setWebsites([]);
     }
+    
+    // 记录已合并的数据标识
+    setLastMergedDataId(currentDataId);
 
-    // 2. 处理设置数据合并
-    if (cloudSettings) {
+    // 2. 处理设置数据合并（只在首次加载时应用）
+    if (cloudSettings && !settingsApplied) {
       console.log('🔄 应用云端设置数据', cloudSettings);
       
       // 应用云端设置到本地状态
@@ -112,12 +141,15 @@ function AppContent() {
         // 触发主题变更事件
         document.documentElement.setAttribute('data-theme', cloudSettings.theme);
       }
-    } else {
+      
+      setSettingsApplied(true);
+    } else if (!cloudSettings && !settingsApplied) {
       console.log('📱 使用本地设置数据（云端无设置）');
+      setSettingsApplied(true);
     }
     
     setDataInitialized(true);
-  }, [currentUser, cloudWebsites, cloudLoading, mergeWithLocalData, storage]);
+  }, [currentUser, cloudWebsites, cloudSettings, cloudLoading, storage, settingsApplied, lastMergedDataId, mergeWithLocalData, setCardOpacity, setSearchBarOpacity, setParallaxEnabled, setWallpaperResolution, setCardColor, setSearchBarColor, setAutoSyncEnabled, setAutoSyncInterval]);
 
   // 持久化到存储管理器（仅在数据初始化完成后）
   useEffect(() => {

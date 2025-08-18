@@ -23,7 +23,7 @@ export function useCloudData(enabled: boolean = true): UseCloudDataResult {
     loading: false,
     error: null
   });
-  
+
   // 使用ref跟踪加载状态，避免useEffect循环
   const loadingRef = useRef(false);
   const lastUserIdRef = useRef<string | null>(null);
@@ -35,20 +35,20 @@ export function useCloudData(enabled: boolean = true): UseCloudDataResult {
       console.log('⏸️ 已有加载任务进行中，跳过重复加载');
       return;
     }
-    
+
     console.log('🔍 loadCloudData 被调用:', {
       hasUser: !!currentUser,
       userId: currentUser?.id,
       emailConfirmed: !!currentUser?.email_confirmed_at,
       userEmail: currentUser?.email
     });
-    
+
     if (!currentUser || !currentUser.email_confirmed_at) {
       console.log('❌ 无法加载云端数据 - 用户未登录或邮箱未验证');
-      setState(prev => ({ 
-        ...prev, 
+      setState(prev => ({
+        ...prev,
         error: '需要登录且验证邮箱才能加载云端数据',
-        loading: false 
+        loading: false
       }));
       return;
     }
@@ -56,7 +56,7 @@ export function useCloudData(enabled: boolean = true): UseCloudDataResult {
     console.log('🚀 开始加载云端数据...');
     loadingRef.current = true;
     setState(prev => ({ ...prev, loading: true, error: null }));
-    
+
     try {
       // 使用 Promise.allSettled 避免一个失败影响另一个
       console.log('📡 正在从Supabase获取数据...', {
@@ -104,14 +104,14 @@ export function useCloudData(enabled: boolean = true): UseCloudDataResult {
         loading: false,
         error: null
       });
-      
+
       hasInitialLoadRef.current = true;
 
-      console.log('✅ 云端数据加载完成:', { 
-        websites: websites?.length || 0, 
-        hasSettings: !!settings 
+      console.log('✅ 云端数据加载完成:', {
+        websites: websites?.length || 0,
+        hasSettings: !!settings
       });
-      
+
       // 如果有失败的操作，记录但不阻塞界面
       if (websitesResult.status === 'rejected') {
         console.warn('云端网站数据加载失败，使用本地数据:', websitesResult.reason);
@@ -119,7 +119,7 @@ export function useCloudData(enabled: boolean = true): UseCloudDataResult {
       if (settingsResult.status === 'rejected') {
         console.warn('云端设置加载失败，使用本地设置:', settingsResult.reason);
       }
-      
+
     } catch (error) {
       console.error('❌ 加载云端数据异常:', error);
       setState(prev => ({
@@ -132,18 +132,18 @@ export function useCloudData(enabled: boolean = true): UseCloudDataResult {
     }
   }, [currentUser]);
 
-  const mergeWithLocalData = (localWebsites: WebsiteData[]): WebsiteData[] => {
+  const mergeWithLocalData = useCallback((localWebsites: WebsiteData[]): WebsiteData[] => {
     if (!state.cloudWebsites) {
       return localWebsites;
     }
     return mergeWebsiteData(localWebsites, state.cloudWebsites);
-  };
+  }, [state.cloudWebsites]);
 
   // 当用户登录状态变化时，自动加载云端数据（仅在启用时）
   useEffect(() => {
     const currentUserId = currentUser?.id;
     const isEmailConfirmed = !!currentUser?.email_confirmed_at;
-    
+
     console.log('🔍 useCloudData useEffect 触发:', {
       enabled,
       hasUser: !!currentUser,
@@ -151,10 +151,10 @@ export function useCloudData(enabled: boolean = true): UseCloudDataResult {
       userId: currentUserId,
       lastUserId: lastUserIdRef.current
     });
-    
+
     // 检查用户是否发生变化
     const userChanged = lastUserIdRef.current !== currentUserId;
-    
+
     if (enabled && currentUser && isEmailConfirmed) {
       if (userChanged || !hasInitialLoadRef.current) {
         console.log('👤 检测到用户登录状态变化，开始加载云端数据...');
@@ -192,12 +192,12 @@ export function useCloudData(enabled: boolean = true): UseCloudDataResult {
   useEffect(() => {
     const handleUserSignedIn = (event: CustomEvent) => {
       const user = event.detail?.user;
-      console.log('📨 收到用户登录事件:', { 
-        hasUser: !!user, 
+      console.log('📨 收到用户登录事件:', {
+        hasUser: !!user,
         emailConfirmed: !!user?.email_confirmed_at,
-        userEmail: user?.email 
+        userEmail: user?.email
       });
-      
+
       if (user && user.email_confirmed_at) {
         console.log('🚀 收到用户登录事件，立即加载云端数据');
         // 立即触发数据加载，不等待其他条件

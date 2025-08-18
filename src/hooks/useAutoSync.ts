@@ -121,7 +121,7 @@ export function useAutoSync(websites: WebsiteData[], dataInitialized: boolean = 
           syncError: null,
           pendingChanges: 0
         });
-        console.log('✅ 同步成功:', message);
+        console.log('✅ 同步成功:', message, '- 等待下次数据变化');
       },
       onSyncError: (error) => {
         updateSyncStatus({ 
@@ -134,7 +134,7 @@ export function useAutoSync(websites: WebsiteData[], dataInitialized: boolean = 
     });
   }, [currentUser, websites, cardOpacity, searchBarOpacity, parallaxEnabled, wallpaperResolution, updateSyncStatus]);
 
-  // 简单的防抖同步
+  // 优化的自动同步逻辑：变化后延迟执行一次，直到下次变化
   useEffect(() => {
     // 如果数据还未初始化完成，不启动自动同步
     if (!dataInitialized) {
@@ -162,7 +162,7 @@ export function useAutoSync(websites: WebsiteData[], dataInitialized: boolean = 
       settings: { cardOpacity, searchBarOpacity, parallaxEnabled, wallpaperResolution, theme: localStorage.getItem('theme') || 'light', autoSyncEnabled, autoSyncInterval }
     });
 
-    // 如果数据没有变化，不重置计时器
+    // 如果数据没有变化，不重置计时器，让现有的同步继续执行
     if (currentDataFingerprint === lastSyncDataRef.current) {
       return;
     }
@@ -175,25 +175,24 @@ export function useAutoSync(websites: WebsiteData[], dataInitialized: boolean = 
       return;
     }
 
-    // 简化日志，避免频繁输出
-    if (process.env.NODE_ENV === 'development') {
-      if (lastSyncDataRef.current !== '') {
-        console.log(`🔄 检测到数据变化，将在 ${autoSyncInterval}s 后同步`);
-      }
-    }
-    
-    // 清除之前的防抖计时器
+    // 检测到数据变化，清除之前的计时器（如果存在）
     if (syncTimeoutRef.current) {
       clearTimeout(syncTimeoutRef.current);
+      console.log('🔄 检测到新变化，取消之前的同步计划');
     }
 
-    // 使用用户设置的同步间隔（转换为毫秒）
-    const syncDelayMs = autoSyncInterval * 1000;
+    // 确保同步间隔在3-60秒范围内
+    const clampedInterval = Math.max(3, Math.min(60, autoSyncInterval));
+    const syncDelayMs = clampedInterval * 1000;
 
-    // 设置同步延迟
+    console.log(`🔄 检测到数据变化，将在 ${clampedInterval}s 后执行一次同步`);
+    
+    // 设置新的同步延迟 - 只执行一次，直到下次变化
     syncTimeoutRef.current = setTimeout(() => {
-      console.log(`🚀 ${autoSyncInterval}s 延迟结束，开始同步`);
+      console.log(`🚀 ${clampedInterval}s 延迟结束，执行同步`);
       performSync(false);
+      // 同步完成后清除计时器引用
+      syncTimeoutRef.current = null;
     }, syncDelayMs);
 
     // 清理函数

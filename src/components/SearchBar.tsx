@@ -646,7 +646,7 @@ export function SearchBar(props: SearchBarProps = {}) {
         }
     };
 
-    const shrinkTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
 
     // 预计算AI图标位置，基于目标宽度而不是当前宽度
     useLayoutEffect(() => {
@@ -685,6 +685,8 @@ export function SearchBar(props: SearchBarProps = {}) {
                             setIsSearchFocused(false);
                             setIsHovered(false);
                             setIsExpandDone(false);
+                            setShowSuggestions(false);
+                            setWebsiteSuggestions([]);
                             inputRef.current?.blur();
                         }}
                     />
@@ -703,24 +705,14 @@ export function SearchBar(props: SearchBarProps = {}) {
                         onSubmit={handleSearch}
                         className="relative flex items-center justify-center"
                         onMouseEnter={() => {
-                            if (shrinkTimeout.current) {
-                                clearTimeout(shrinkTimeout.current);
-                                shrinkTimeout.current = null;
-                            }
                             setIsHovered(true);
                         }}
                         onMouseLeave={() => {
                             // 只有在未聚焦状态下才缩短搜索框
                             if (!isFocused) {
-                                if (shrinkTimeout.current) clearTimeout(shrinkTimeout.current);
-                                shrinkTimeout.current = setTimeout(() => {
-                                    setIsHovered(false);
-                                    setIsExpandDone(false);
-                                    // 延迟隐藏建议，避免鼠标移动到建议上时立即隐藏
-                                    setTimeout(() => {
-                                        setShowSuggestions(false);
-                                    }, 100);
-                                }, 200);
+                                setIsHovered(false);
+                                setIsExpandDone(false);
+                                // 建议保持显示，只有取消聚焦时才隐藏
                             }
                         }}
                     >
@@ -773,11 +765,29 @@ export function SearchBar(props: SearchBarProps = {}) {
                                 onFocus={() => {
                                     setIsFocused(true);
                                     setIsSearchFocused(true);
+                                    // 聚焦时如果有搜索内容，重新生成并显示建议
+                                    if (searchQuery.trim()) {
+                                        const matchedWebsites = searchWebsites(searchQuery);
+                                        setWebsiteSuggestions(matchedWebsites);
+                                        
+                                        // 重新生成搜索建议
+                                        generateSuggestions(searchQuery).then((newSuggestions) => {
+                                            setSuggestions(newSuggestions);
+                                            // 只要有任一类型的建议就显示下拉框
+                                            if (matchedWebsites.length > 0 || newSuggestions.length > 0) {
+                                                setShowSuggestions(true);
+                                                setSelectedSuggestionIndex(-1);
+                                            }
+                                        });
+                                    }
                                 }}
                                 onBlur={() => {
                                     setTimeout(() => {
                                         setIsFocused(false);
                                         setIsSearchFocused(false);
+                                        // 失去焦点时隐藏建议
+                                        setShowSuggestions(false);
+                                        setWebsiteSuggestions([]);
                                         // 失去焦点时，如果鼠标不在搜索框区域内，则缩短搜索框
                                         setIsHovered(false);
                                         setIsExpandDone(false);
@@ -808,32 +818,37 @@ export function SearchBar(props: SearchBarProps = {}) {
                             </button>
 
                             {/* 搜索建议列表 */}
-                            {showSuggestions && (websiteSuggestions.length > 0 || suggestions.length > 0) && (
-                                <motion.div
-                                    className={`absolute top-full left-0 right-0 mt-2 backdrop-blur-md rounded-lg shadow-lg border border-white/20 z-50 overflow-hidden overflow-y-auto ${isMobile ? 'max-h-60' : 'max-h-80'
-                                        }`}
-                                    initial={{ opacity: 0, y: -10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ duration: 0.2 }}
-                                    style={{
-                                        pointerEvents: 'auto',
-                                        backgroundColor: `rgba(255, 255, 255, 0.95)` // 更清晰的背景
-                                    }}
-                                    onMouseEnter={() => {
-                                        if (shrinkTimeout.current) {
-                                            clearTimeout(shrinkTimeout.current);
-                                            shrinkTimeout.current = null;
-                                        }
-                                    }}
-                                    onMouseLeave={() => {
-                                        // 延迟隐藏，给用户时间移动鼠标
-                                        if (shrinkTimeout.current) clearTimeout(shrinkTimeout.current);
-                                        shrinkTimeout.current = setTimeout(() => {
-                                            setShowSuggestions(false);
-                                            setWebsiteSuggestions([]);
-                                        }, 200);
-                                    }}
-                                >
+                            <AnimatePresence>
+                                {showSuggestions && (websiteSuggestions.length > 0 || suggestions.length > 0) && (
+                                    <motion.div
+                                        className={`absolute top-full left-0 right-0 mt-2 backdrop-blur-md rounded-lg shadow-lg border border-white/20 z-50 overflow-hidden overflow-y-auto ${isMobile ? 'max-h-60' : 'max-h-80'
+                                            }`}
+                                        initial={{ opacity: 0, y: -10, scaleY: 0.8 }}
+                                        animate={{ opacity: 1, y: 0, scaleY: 1 }}
+                                        exit={{ 
+                                            scaleY: 0,
+                                            transition: { 
+                                                duration: 0.3,
+                                                ease: "easeInOut"
+                                            }
+                                        }}
+                                        transition={{ 
+                                            duration: 0.2,
+                                            ease: "easeOut"
+                                        }}
+                                        style={{
+                                            pointerEvents: 'auto',
+                                            backgroundColor: `rgba(255, 255, 255, 0.95)`, // 更清晰的背景
+                                            transformOrigin: 'top center', // 从顶部固定，底部收起
+                                            overflow: 'hidden' // 确保内容被正确裁剪
+                                        }}
+                                        onMouseEnter={() => {
+                                            // 保持建议显示
+                                        }}
+                                        onMouseLeave={() => {
+                                            // 建议保持显示，只有取消聚焦时才隐藏
+                                        }}
+                                    >
                                     {/* 网站建议部分 */}
                                     {websiteSuggestions.length > 0 && (
                                         <div className="border-b border-gray-200/50">
@@ -985,8 +1000,9 @@ export function SearchBar(props: SearchBarProps = {}) {
                                             })}
                                         </div>
                                     )}
-                                </motion.div>
-                            )}
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                             {/* 悬停时显示的表情（fixed定位，圆心为放大镜按钮绝对中心） */}
                             {isHovered && fixedPos && (
                                 <div

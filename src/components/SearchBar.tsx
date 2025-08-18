@@ -719,7 +719,12 @@ export function SearchBar(props: SearchBarProps = {}) {
                         <motion.div
                             animate={{ width: isHovered ? (isMobile ? 320 : 520) : (isMobile ? 280 : 340) }}
                             initial={{ width: isMobile ? 280 : 340 }}
-                            transition={{ type: 'tween', duration: 0.28, ease: 'easeInOut' }}
+                            transition={{
+                                type: 'spring',
+                                stiffness: 150,
+                                damping: 12,
+                                mass: 1.5
+                            }}
                             style={{ display: 'flex', alignItems: 'center', position: 'relative' }}
                             onAnimationComplete={() => { if (isHovered) setIsExpandDone(true); }}
                         >
@@ -836,8 +841,8 @@ export function SearchBar(props: SearchBarProps = {}) {
                                                     <div
                                                         key={website.id}
                                                         className={`${isMobile ? 'px-3 py-2' : 'px-4 py-3'} cursor-pointer transition-all duration-200 border-b border-gray-100/50 last:border-b-0 select-none ${isSelected
-                                                                ? 'bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border-blue-200'
-                                                                : 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50'
+                                                            ? 'bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border-blue-200'
+                                                            : 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50'
                                                             }`}
                                                         onClick={(e) => {
                                                             e.stopPropagation();
@@ -947,8 +952,8 @@ export function SearchBar(props: SearchBarProps = {}) {
                                                     <div
                                                         key={suggestion.id}
                                                         className={`px-4 py-3 cursor-pointer transition-colors border-b border-gray-100/50 last:border-b-0 select-none ${isSelected
-                                                                ? 'bg-blue-500/10 text-gray-800'
-                                                                : 'hover:bg-gray-50 text-gray-700'
+                                                            ? 'bg-blue-500/10 text-gray-800'
+                                                            : 'hover:bg-gray-50 text-gray-700'
                                                             }`}
                                                         onClick={(e) => {
                                                             e.stopPropagation();

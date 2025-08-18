@@ -262,7 +262,7 @@ class FaviconCacheManager {
     }
 
     // 开始下载和缓存
-    const loadingPromise = this.loadAndCacheFavicon(originalUrl, faviconUrl, domain);
+    const loadingPromise = this.loadAndCacheFavicon(faviconUrl, domain);
     this.loadingPromises.set(domain, loadingPromise);
 
     try {
@@ -276,7 +276,7 @@ class FaviconCacheManager {
   /**
    * 下载并缓存 favicon（简化版）
    */
-  private async loadAndCacheFavicon(originalUrl: string, faviconUrl: string, domain: string): Promise<string> {
+  private async loadAndCacheFavicon(faviconUrl: string, domain: string): Promise<string> {
     const urls = this.getFaviconUrls(faviconUrl, domain);
     
     try {

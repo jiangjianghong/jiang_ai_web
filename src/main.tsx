@@ -5,7 +5,6 @@ import { Toaster } from 'sonner';
 import MainApp from "./MainApp.tsx";
 import "./index.css";
 
-const isLocalhost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
 // 检查当前路径是否包含 /jiang_ai_web/
 const hasBasePath = window.location.pathname.startsWith('/jiang_ai_web');
 const basename = hasBasePath ? "/jiang_ai_web" : undefined;
@@ -41,9 +40,9 @@ const ErrorFallback = ({ error }: { error: Error }) => (
     fontFamily: 'Arial, sans-serif'
   }}>
     <h1 style={{ color: 'red', marginBottom: '20px' }}>应用加载失败</h1>
-    <pre style={{ 
-      background: '#f5f5f5', 
-      padding: '20px', 
+    <pre style={{
+      background: '#f5f5f5',
+      padding: '20px',
       borderRadius: '8px',
       fontSize: '14px',
       maxWidth: '80%',
@@ -58,11 +57,11 @@ const ErrorFallback = ({ error }: { error: Error }) => (
 
 try {
   const rootElement = document.getElementById("root");
-  
+
   if (!rootElement) {
     throw new Error('无法找到id为"root"的元素');
   }
-  
+
   const root = createRoot(rootElement);
 
   // 渲染应用
@@ -85,7 +84,7 @@ try {
 
 } catch (error) {
   console.error('❌ React应用初始化失败:', error);
-  
+
   // 显示错误信息
   const root = createRoot(document.getElementById("root")!);
   root.render(<ErrorFallback error={error as Error} />);

@@ -265,7 +265,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
       
       <div className={classes.container}>
         <div className={classes.searchContainer}>
-          <SearchBar />
+          <SearchBar websites={websites} />
         </div>
         
         <div className={classes.cardContainer}>

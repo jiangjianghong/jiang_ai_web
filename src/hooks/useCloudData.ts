@@ -185,6 +185,11 @@ export function useCloudData(enabled: boolean = true): UseCloudDataResult {
         hasUser: !!currentUser,
         emailConfirmed: isEmailConfirmed
       });
+      // 确保在条件不满足时也设置 loading 为 false
+      setState(prev => ({
+        ...prev,
+        loading: false
+      }));
     }
   }, [currentUser?.id, currentUser?.email_confirmed_at, loadCloudData]); // 移除 enabled 依赖
 

@@ -300,9 +300,9 @@ export const WebsiteCard = memo(function WebsiteCardComponent({ id, name, url, f
           {visitCount > 0 && (
             <div className={`px-2 pb-2 select-none`}>
               <div className="text-center">
-                <span className={`px-2 py-1 bg-blue-500/20 text-blue-200 rounded-full ${isMobile ? 'text-[0.55rem]' : 'text-[0.65rem]'} border border-blue-300/30`}>
-                  <i className="fa-solid fa-eye mr-1"></i>
-                  {visitCount}次访问
+                <span className={`px-2 py-1 bg-blue-500/20 text-blue-200 rounded-full ${isMobile ? 'text-[0.55rem]' : 'text-[0.65rem]'} border border-blue-300/30 select-none`}>
+                  <i className="fa-solid fa-eye mr-1 select-none"></i>
+                  <span className="select-none">{visitCount}次访问</span>
                 </span>
               </div>
             </div>

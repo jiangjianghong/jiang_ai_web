@@ -39,8 +39,10 @@ AddType text/xml .xml
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
     
-    # 不重定向 XML 文件（用于站点验证）
+    # 不重定向验证文件（XML 和 HTML）
     RewriteCond %{REQUEST_URI} !\.xml$
+    RewriteCond %{REQUEST_URI} !^/google[a-f0-9]+\.html$
+    RewriteCond %{REQUEST_URI} !^/BingSiteAuth\.xml$
     
     # 不重定向静态资源
     RewriteCond %{REQUEST_URI} !\.(?:css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$

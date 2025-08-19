@@ -1,7 +1,7 @@
 /* 小猫动画样式 */
 .cat-container {
   position: fixed;
-  bottom: 0px;
+  bottom: 0;
   width: 100vw;
   height: 150px;
   z-index: 1000;
@@ -13,8 +13,8 @@
 :root {
   --cat-black: #000;
   --cat-white: #fff;
-  --cat-grey: rgb(97, 97, 97);
-  --cat-pink: rgb(156, 27, 77);
+  --cat-grey: rgb(97 97 97);
+  --cat-pink: rgb(156 27 77);
   --cat-time: 0.45s;
   --cat-color: var(--cat-black);
 }
@@ -65,6 +65,7 @@
     left: 130px;
     top: 176px;
   }   
+
   70% {
     top: 160px;
   }
@@ -74,6 +75,7 @@
   25% {
     top: 160px;
   }
+
   50% {
     left: 88px;
     top: 176px;
@@ -85,9 +87,11 @@
   0% {
     right: -200px;
   }
+
   25% {
     right: 100vw;
   }
+
   100% {
     right: 100vw;
   }
@@ -95,7 +99,7 @@
 
 .cat {
   position: absolute;
-  bottom: 0px;
+  bottom: 0;
   right: -200px;
   width: 188px;
   height: 260px;
@@ -119,7 +123,7 @@
   animation: paw_l var(--cat-time) infinite linear;
 }
 
-.cat .paw:after {
+.cat .paw::after {
   position: absolute;
   content: '';
   bottom: -5px;
@@ -143,7 +147,7 @@
   animation: shake var(--cat-time) infinite linear;
 }
 
-.cat:before {
+.cat::before {
   position: absolute;
   content: '';
   top: 100%;
@@ -159,7 +163,7 @@
   animation-delay: calc(var(--cat-time) / 2);
 }
 
-.cat:after {
+.cat::after {
   position: absolute;
   content: '';
   top: 100%;
@@ -193,12 +197,12 @@
     currentcolor transparent 
     transparent currentcolor;
   transform: rotateZ(45deg);
-  border-radius: 120px / 106px 120px 0 120px;
+  border-radius: 120px / 106px 120px 0;
   box-sizing: border-box;
   animation: tail var(--cat-time) infinite linear;
 }
 
-.cat .tail:after {
+.cat .tail::after {
   position: absolute;
   content: '';
   width: 20px;
@@ -257,7 +261,7 @@
   border-radius: 25px / 0 60px 50px 0;
 }
 
-.cat .main .body .leg:before {
+.cat .main .body .leg::before {
   position: absolute;
   content: '';
   bottom: -4px;
@@ -270,7 +274,7 @@
   transform: rotateZ(6deg);
 }
 
-.cat .main .body .leg:after {
+.cat .main .body .leg::after {
   position: absolute;
   content: '';
   left: 3px;
@@ -345,7 +349,7 @@
   left: 36px;
 }
 
-.cat .main .face .eye:after {
+.cat .main .face .eye::after {
   position: absolute;
   content: '';
   width: 10px;

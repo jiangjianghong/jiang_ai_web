@@ -266,6 +266,8 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
 
       <div className={classes.container}>
         <div className={classes.searchContainer}>
+          {/* SEO H1 标签 - 视觉上隐藏但对搜索引擎可见 */}
+          <h1 className="sr-only">江的标签页 jiangjiang 江江 AI web 标签页</h1>
           <SearchBar websites={websites} />
         </div>
 

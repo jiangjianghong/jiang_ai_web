@@ -3,6 +3,8 @@ AddType application/javascript .js
 AddType text/css .css
 AddType application/json .json
 AddType text/html .html
+AddType application/xml .xml
+AddType text/xml .xml
 
 # 启用Gzip压缩
 <IfModule mod_deflate.c>
@@ -27,4 +29,22 @@ AddType text/html .html
     ExpiresByType image/jpeg "access plus 1 month"
     ExpiresByType image/gif "access plus 1 month"
     ExpiresByType image/svg+xml "access plus 1 month"
+</IfModule>
+
+# SPA 路由重定向 - 排除静态文件和验证文件
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    
+    # 不重定向已存在的文件和目录
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    
+    # 不重定向 XML 文件（用于站点验证）
+    RewriteCond %{REQUEST_URI} !\.xml$
+    
+    # 不重定向静态资源
+    RewriteCond %{REQUEST_URI} !\.(?:css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$
+    
+    # 重定向到 index.html
+    RewriteRule . /index.html [L]
 </IfModule>

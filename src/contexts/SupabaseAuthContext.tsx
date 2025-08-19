@@ -215,20 +215,44 @@ export function AuthProvider({ children }: AuthProviderProps) {
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth state changed:', event, session?.user?.email);
       
+      // 更新用户状态
+      const newUser = session?.user ?? null;
+      
+      // 添加详细的用户状态日志
+      console.log('🔍 认证状态详情:', {
+        event,
+        hasUser: !!newUser,
+        userId: newUser?.id,
+        email: newUser?.email,
+        emailConfirmed: !!newUser?.email_confirmed_at,
+        emailConfirmedAt: newUser?.email_confirmed_at,
+        currentUserId: currentUser?.id,
+        currentEmailConfirmed: !!currentUser?.email_confirmed_at
+      });
+      
+      // 总是更新状态，确保数据一致性
       setSession(session);
-      setCurrentUser(session?.user ?? null);
+      setCurrentUser(newUser);
+      
       setLoading(false);
 
       // 处理认证事件
       switch (event) {
         case 'SIGNED_IN':
           setError(null);
+          // 发送自定义事件，通知其他组件用户已登录
+          if (newUser && newUser.email_confirmed_at) {
+            window.dispatchEvent(new CustomEvent('userSignedIn', { 
+              detail: { user: newUser } 
+            }));
+          }
           break;
         case 'SIGNED_OUT':
           setError(null);
           break;
         case 'TOKEN_REFRESHED':
           console.log('Token refreshed');
+          // Token 刷新不需要重新加载数据
           break;
         case 'USER_UPDATED':
           console.log('User updated');

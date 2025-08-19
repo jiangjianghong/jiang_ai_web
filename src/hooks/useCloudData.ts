@@ -40,14 +40,30 @@ export function useCloudData(enabled: boolean = true): UseCloudDataResult {
       hasUser: !!currentUser,
       userId: currentUser?.id,
       emailConfirmed: !!currentUser?.email_confirmed_at,
-      userEmail: currentUser?.email
+      userEmail: currentUser?.email,
+      emailConfirmedAt: currentUser?.email_confirmed_at,
+      userObject: currentUser
     });
 
-    if (!currentUser || !currentUser.email_confirmed_at) {
-      console.log('❌ 无法加载云端数据 - 用户未登录或邮箱未验证');
+    if (!currentUser) {
+      console.log('❌ 无法加载云端数据 - 用户未登录');
       setState(prev => ({
         ...prev,
-        error: '需要登录且验证邮箱才能加载云端数据',
+        error: '需要登录才能加载云端数据',
+        loading: false
+      }));
+      return;
+    }
+
+    if (!currentUser.email_confirmed_at) {
+      console.log('❌ 无法加载云端数据 - 邮箱未验证', {
+        email: currentUser.email,
+        emailConfirmedAt: currentUser.email_confirmed_at,
+        createdAt: currentUser.created_at
+      });
+      setState(prev => ({
+        ...prev,
+        error: '需要验证邮箱才能加载云端数据',
         loading: false
       }));
       return;
@@ -149,14 +165,17 @@ export function useCloudData(enabled: boolean = true): UseCloudDataResult {
       hasUser: !!currentUser,
       emailConfirmed: isEmailConfirmed,
       userId: currentUserId,
-      lastUserId: lastUserIdRef.current
+      lastUserId: lastUserIdRef.current,
+      hasInitialLoad: hasInitialLoadRef.current,
+      isLoading: loadingRef.current
     });
 
     // 检查用户是否发生变化
     const userChanged = lastUserIdRef.current !== currentUserId;
 
     if (enabled && currentUser && isEmailConfirmed) {
-      if (userChanged || !hasInitialLoadRef.current) {
+      // 只有在用户真正变化或者从未加载过数据时才触发加载
+      if (userChanged || (!hasInitialLoadRef.current && !loadingRef.current)) {
         console.log('👤 检测到用户登录状态变化，开始加载云端数据...');
         // 重置状态
         setState({
@@ -166,7 +185,13 @@ export function useCloudData(enabled: boolean = true): UseCloudDataResult {
           error: null
         });
         hasInitialLoadRef.current = false;
-        loadCloudData();
+        
+        // 添加小延迟确保认证状态稳定
+        setTimeout(() => {
+          loadCloudData();
+        }, 100);
+      } else {
+        console.log('⏸️ 跳过重复的数据加载请求');
       }
       lastUserIdRef.current = currentUserId || null;
     } else if (!currentUser) {
@@ -183,7 +208,8 @@ export function useCloudData(enabled: boolean = true): UseCloudDataResult {
       console.log('⏸️ 云端数据加载条件不满足:', {
         enabled,
         hasUser: !!currentUser,
-        emailConfirmed: isEmailConfirmed
+        emailConfirmed: isEmailConfirmed,
+        emailConfirmedAt: currentUser?.email_confirmed_at
       });
       // 确保在条件不满足时也设置 loading 为 false
       setState(prev => ({
@@ -191,7 +217,7 @@ export function useCloudData(enabled: boolean = true): UseCloudDataResult {
         loading: false
       }));
     }
-  }, [currentUser?.id, currentUser?.email_confirmed_at, loadCloudData]); // 移除 enabled 依赖
+  }, [currentUser?.id, currentUser?.email_confirmed_at, enabled]); // 移除 loadCloudData 依赖避免循环
 
   // 监听用户登录事件，立即触发数据加载（始终监听，不依赖enabled）
   useEffect(() => {
@@ -205,8 +231,78 @@ export function useCloudData(enabled: boolean = true): UseCloudDataResult {
 
       if (user && user.email_confirmed_at) {
         console.log('🚀 收到用户登录事件，立即加载云端数据');
-        // 立即触发数据加载，不等待其他条件
-        loadCloudData();
+        
+        // 使用事件中的用户信息创建专门的加载函数，避免闭包问题
+        const loadWithEventUser = async () => {
+          if (loadingRef.current) {
+            console.log('⏸️ 已有加载任务进行中，跳过重复加载');
+            return;
+          }
+
+          console.log('🔍 loadCloudData 被调用 (来自事件):', {
+            hasUser: !!user,
+            userId: user?.id,
+            emailConfirmed: !!user?.email_confirmed_at,
+            userEmail: user?.email,
+            emailConfirmedAt: user?.email_confirmed_at
+          });
+
+          console.log('🚀 开始加载云端数据...');
+          loadingRef.current = true;
+          setState(prev => ({ ...prev, loading: true, error: null }));
+
+          try {
+            console.log('📡 正在从Supabase获取数据...', {
+              userId: user.id,
+              userEmail: user.email,
+              emailConfirmed: user.email_confirmed_at,
+              createdAt: user.created_at
+            });
+            
+            const [websitesResult, settingsResult] = await Promise.allSettled([
+              getUserWebsites(user),
+              getUserSettings(user)
+            ]);
+
+            const websites = websitesResult.status === 'fulfilled' ? websitesResult.value : null;
+            const settings = settingsResult.status === 'fulfilled' ? settingsResult.value : null;
+
+            console.log('📊 云端数据获取结果:', {
+              websitesStatus: websitesResult.status,
+              websitesCount: websites?.length || 0,
+              websitesData: websites,
+              settingsStatus: settingsResult.status,
+              hasSettings: !!settings,
+              settingsData: settings
+            });
+
+            setState({
+              cloudWebsites: websites,
+              cloudSettings: settings,
+              loading: false,
+              error: null
+            });
+
+            hasInitialLoadRef.current = true;
+
+            console.log('✅ 云端数据加载完成:', {
+              websites: websites?.length || 0,
+              hasSettings: !!settings
+            });
+
+          } catch (error) {
+            console.error('❌ 加载云端数据异常:', error);
+            setState(prev => ({
+              ...prev,
+              loading: false,
+              error: '加载云端数据失败: ' + (error as Error).message
+            }));
+          } finally {
+            loadingRef.current = false;
+          }
+        };
+        
+        loadWithEventUser();
       } else {
         console.log('⏸️ 用户登录事件条件不满足，跳过数据加载');
       }
@@ -218,7 +314,7 @@ export function useCloudData(enabled: boolean = true): UseCloudDataResult {
       console.log('🔇 移除用户登录事件监听器');
       window.removeEventListener('userSignedIn', handleUserSignedIn as EventListener);
     };
-  }, [loadCloudData]); // 移除 enabled 依赖
+  }, []); // 移除所有依赖，避免闭包问题
 
   return {
     ...state,

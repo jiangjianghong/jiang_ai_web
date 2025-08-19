@@ -24,16 +24,23 @@ export default function SyncStatusIndicator() {
       return 300000;                  // 大于1小时时每5分钟刷新
     };
 
-    const scheduleNextRefresh = () => {
+    let timeoutId: NodeJS.Timeout;
+    
+    const scheduleRefresh = () => {
       const interval = getRefreshInterval();
-      return setTimeout(() => {
+      timeoutId = setTimeout(() => {
         setRefreshTrigger(prev => prev + 1);
-        scheduleNextRefresh();
+        scheduleRefresh();
       }, interval);
     };
 
-    const timeoutId = scheduleNextRefresh();
-    return () => clearTimeout(timeoutId);
+    scheduleRefresh();
+    
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
   }, [syncStatus.lastSyncTime]);
 
   // 如果用户未登录，不显示同步状态

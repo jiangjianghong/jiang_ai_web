@@ -187,7 +187,16 @@ export const getUserSettings = async (user: User): Promise<UserSettings | null> 
       return null;
     }
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : '未知错误';
     logger.sync.error('获取用户设置失败', error);
+    
+    // 提供更详细的错误信息，但仍然返回 null 保持兼容性
+    if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
+      logger.sync.warn('网络连接问题，将使用本地设置');
+    } else if (errorMessage.includes('auth') || errorMessage.includes('JWT')) {
+      logger.sync.warn('认证问题，可能需要重新登录');
+    }
+    
     // 离线模式下直接返回 null，不阻塞界面
     return null;
   }
@@ -278,15 +287,30 @@ export const getUserWebsites = async (user: User): Promise<WebsiteData[] | null>
       }
     }
 
-    if (data) {
-      logger.sync.info('从云端获取网站数据成功', { count: data.websites?.length || 0 });
-      return data.websites as WebsiteData[];
+    if (data && data.websites) {
+      // 验证数据格式，确保类型安全
+      if (Array.isArray(data.websites)) {
+        logger.sync.info('从云端获取网站数据成功', { count: data.websites.length });
+        return data.websites as WebsiteData[];
+      } else {
+        logger.sync.warn('云端网站数据格式异常，不是数组格式');
+        return null;
+      }
     } else {
       logger.sync.debug('用户网站数据不存在');
       return null;
     }
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : '未知错误';
     logger.sync.error('获取网站数据失败', error);
+    
+    // 提供更详细的错误信息，但仍然返回 null 保持兼容性
+    if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
+      logger.sync.warn('网络连接问题，将使用本地数据');
+    } else if (errorMessage.includes('auth') || errorMessage.includes('JWT')) {
+      logger.sync.warn('认证问题，可能需要重新登录');
+    }
+    
     // 离线模式下直接返回 null，不阻塞界面
     return null;
   }

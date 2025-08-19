@@ -62,7 +62,7 @@ export function useAutoSync(websites: WebsiteData[], dataInitialized: boolean = 
       updateSyncStatus({ 
         syncInProgress: false,
         syncError: '本地数据无效，已跳过同步以保护云端数据',
-        pendingChanges: 0
+        pendingChanges: websites.length // 修正：显示实际的无效数据数量
       });
       return;
     }
@@ -190,9 +190,14 @@ export function useAutoSync(websites: WebsiteData[], dataInitialized: boolean = 
     // 设置新的同步延迟 - 只执行一次，直到下次变化
     syncTimeoutRef.current = setTimeout(() => {
       console.log(`🚀 ${clampedInterval}s 延迟结束，执行同步`);
-      performSync(false);
-      // 同步完成后清除计时器引用
+      // 在执行同步前先清除引用，避免竞态条件
+      const currentTimeout = syncTimeoutRef.current;
       syncTimeoutRef.current = null;
+      
+      // 确保这是当前有效的超时才执行同步
+      if (currentTimeout) {
+        performSync(false);
+      }
     }, syncDelayMs);
 
     // 清理函数

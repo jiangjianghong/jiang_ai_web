@@ -265,9 +265,23 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
       )}
 
       <div className={classes.container}>
-        <div className={classes.searchContainer}>
+        {/* SEO 导航 - 视觉上隐藏但对搜索引擎可见 */}
+        <nav className="sr-only">
+          <ul>
+            <li><a href="#main-content">主要内容</a></li>
+            <li><a href="#search">搜索功能</a></li>
+            <li><a href="#bookmarks">书签收藏</a></li>
+          </ul>
+        </nav>
+        
+        <div className={classes.searchContainer} id="main-content">
           {/* SEO H1 标签 - 视觉上隐藏但对搜索引擎可见 */}
           <h1 className="sr-only">一个AI友好的个性化便签页面，创作者：江江 和 claude coze kiro coplit 页面美观好用，有诸多彩蛋</h1>
+          {/* SEO 描述段落 - 视觉上隐藏但对搜索引擎可见 */}
+          <p className="sr-only">
+            这是一个由江江创作的个性化便签页面，结合了 Claude、Coze、Kiro、Copilot 等AI工具的协助。
+            页面设计美观实用，包含多个有趣的彩蛋功能，为用户提供优质的书签管理体验。
+          </p>
           <SearchBar websites={websites} />
         </div>
 

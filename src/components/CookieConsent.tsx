@@ -96,8 +96,12 @@ export default function CookieConsent({ onAccept, onDecline, onCustomize }: Cook
             exit={{ y: 100, opacity: 0 }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
             className="fixed bottom-0 left-0 right-0 z-[9999] bg-white border-t border-gray-200 shadow-2xl"
+            role="dialog"
+            aria-label="Cookie consent banner"
+            data-nosnippet
+            data-noindex
           >
-            <div className="max-w-7xl mx-auto p-4 sm:p-6">
+            <div className="max-w-7xl mx-auto p-4 sm:p-6" data-nosnippet>
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex-1">
                   <div className="flex items-start gap-3">

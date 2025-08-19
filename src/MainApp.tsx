@@ -40,7 +40,8 @@ function AppContent() {
     setCardColor,
     setSearchBarColor,
     setAutoSyncEnabled,
-    setAutoSyncInterval
+    setAutoSyncInterval,
+    setAutoSortEnabled
   } = useTransparency();
 
   // 云端数据管理
@@ -136,6 +137,7 @@ function AppContent() {
       setSearchBarColor(cloudSettings.searchBarColor);
       setAutoSyncEnabled(cloudSettings.autoSyncEnabled);
       setAutoSyncInterval(cloudSettings.autoSyncInterval);
+      setAutoSortEnabled(cloudSettings.autoSortEnabled ?? false); // 提供默认值
 
       // 同步主题设置
       if (cloudSettings.theme) {
@@ -151,7 +153,7 @@ function AppContent() {
     }
 
     setDataInitialized(true);
-  }, [currentUser, cloudWebsites, cloudSettings, cloudLoading, storage, settingsApplied, lastMergedDataId, mergeWithLocalData, setCardOpacity, setSearchBarOpacity, setParallaxEnabled, setWallpaperResolution, setCardColor, setSearchBarColor, setAutoSyncEnabled, setAutoSyncInterval]);
+  }, [currentUser, cloudWebsites, cloudSettings, cloudLoading, storage, settingsApplied, lastMergedDataId, mergeWithLocalData, setCardOpacity, setSearchBarOpacity, setParallaxEnabled, setWallpaperResolution, setCardColor, setSearchBarColor, setAutoSyncEnabled, setAutoSyncInterval, setAutoSortEnabled]);
 
   // 持久化到存储管理器（仅在数据初始化完成后）
   useEffect(() => {

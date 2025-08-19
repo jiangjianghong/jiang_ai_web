@@ -31,6 +31,7 @@ interface TransparencyContextType {
   autoSyncEnabled: boolean; // 自动同步开关
   autoSyncInterval: number; // 自动同步间隔（秒）
   searchInNewTab: boolean; // 搜索是否在新标签页打开
+  autoSortEnabled: boolean; // 自动排序开关
   setCardOpacity: (opacity: number) => void;
   setSearchBarOpacity: (opacity: number) => void;
   setParallaxEnabled: (enabled: boolean) => void;
@@ -42,6 +43,7 @@ interface TransparencyContextType {
   setAutoSyncEnabled: (enabled: boolean) => void;
   setAutoSyncInterval: (interval: number) => void;
   setSearchInNewTab: (enabled: boolean) => void;
+  setAutoSortEnabled: (enabled: boolean) => void;
 }
 
 const TransparencyContext = createContext<TransparencyContextType | undefined>(undefined);
@@ -115,6 +117,21 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
     return saved ? saved === 'true' : true; // 默认在新标签页打开
   });
 
+  // 自动排序设置
+  const [autoSortEnabled, setAutoSortEnabled] = useState<boolean>(false);
+
+  // 初始化autoSortEnabled从localStorage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('autoSortEnabled');
+      if (saved !== null) {
+        setAutoSortEnabled(saved === 'true');
+      }
+    } catch (error) {
+      console.warn('Failed to read autoSortEnabled from localStorage:', error);
+    }
+  }, []);
+
   useEffect(() => {
     localStorage.setItem('cardOpacity', cardOpacity.toString());
   }, [cardOpacity]);
@@ -151,6 +168,10 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('searchInNewTab', searchInNewTab.toString());
   }, [searchInNewTab]);
 
+  useEffect(() => {
+    localStorage.setItem('autoSortEnabled', autoSortEnabled.toString());
+  }, [autoSortEnabled]);
+
   return (
     <TransparencyContext.Provider
       value={{
@@ -165,6 +186,7 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
         autoSyncEnabled,
         autoSyncInterval,
         searchInNewTab,
+        autoSortEnabled,
         setCardOpacity,
         setSearchBarOpacity,
         setParallaxEnabled,
@@ -176,6 +198,7 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
         setAutoSyncEnabled,
         setAutoSyncInterval,
         setSearchInNewTab,
+        setAutoSortEnabled,
       }}
     >
       {children}

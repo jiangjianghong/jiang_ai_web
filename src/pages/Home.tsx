@@ -25,19 +25,19 @@ interface HomeProps {
 }
 
 export default function Home({ websites, setWebsites, dataInitialized = true }: HomeProps) {
-  const { parallaxEnabled, wallpaperResolution, isSettingsOpen } = useTransparency();
+  const { parallaxEnabled, wallpaperResolution, isSettingsOpen, autoSortEnabled } = useTransparency();
   const { currentUser } = useAuth();
   const { displayName } = useUserProfile();
   const { isWorkspaceOpen, setIsWorkspaceOpen } = useWorkspace();
-  const { 
-    isMobile, 
-    getGridClasses, 
+  const {
+    isMobile,
+    getGridClasses,
     getSearchBarLayout
   } = useResponsiveLayout();
-  
+
   // 启用自动同步（传递数据初始化状态）
   useAutoSync(websites, dataInitialized);
-  
+
   // 拖拽排序逻辑
   const moveCard = (dragIndex: number, hoverIndex: number) => {
     const newWebsites = [...websites];
@@ -60,7 +60,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
       try {
         logger.debug('🔍 检查壁纸缓存');
         const result = await optimizedWallpaperService.getWallpaper(wallpaperResolution);
-        
+
         if (result.url && result.isFromCache) {
           setBgImage(result.url);
           setBgImageLoaded(true);
@@ -70,31 +70,32 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
         logger.warn('检查缓存失败:', error);
       }
     };
-    
+
     checkCacheAndLoadWallpaper();
   }, []); // 只在组件挂载时执行一次
 
 
-  // 根据访问次数自动排序卡片
-  const sortedWebsites = [...websites].sort((a, b) => {
-    // 首先按访问次数降序排序
-    const visitDiff = (b.visitCount || 0) - (a.visitCount || 0);
-    if (visitDiff !== 0) return visitDiff;
-    
-    // 如果访问次数相同，按最后访问时间降序排序
-    const dateA = new Date(a.lastVisit || '2000-01-01').getTime();
-    const dateB = new Date(b.lastVisit || '2000-01-01').getTime();
-    return dateB - dateA;
-  });
+  // 根据设置决定是否自动排序卡片
+  const displayWebsites = autoSortEnabled ?
+    [...websites].sort((a, b) => {
+      // 首先按访问次数降序排序
+      const visitDiff = (b.visitCount || 0) - (a.visitCount || 0);
+      if (visitDiff !== 0) return visitDiff;
+
+      // 如果访问次数相同，按最后访问时间降序排序
+      const dateA = new Date(a.lastVisit || '2000-01-01').getTime();
+      const dateB = new Date(b.lastVisit || '2000-01-01').getTime();
+      return dateB - dateA;
+    }) : websites;
 
   // 处理用户名框点击事件
   const handleUserNameClick = () => {
     if (isAnimating) return; // 防止动画期间重复点击
-    
+
     setClickCount(prev => prev + 1);
     setIsAnimating(true);
     setShowGreeting(true);
-    
+
     // 1秒后开始淡出
     setTimeout(() => {
       setShowGreeting(false);
@@ -128,9 +129,9 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
       try {
         logger.debug('🖼️ 开始加载壁纸，分辨率:', wallpaperResolution);
         setBgImageLoaded(false);
-        
+
         const result = await optimizedWallpaperService.getWallpaper(wallpaperResolution);
-        
+
         if (result.url) {
           logger.debug(result.isFromCache ? '📦 使用缓存壁纸' : '🌐 加载新壁纸');
           setBgImage(result.url);
@@ -197,20 +198,20 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
   const getResponsiveClasses = () => {
     const searchBarLayout = getSearchBarLayout();
     const gridClasses = getGridClasses();
-    
+
     return {
       container: `relative min-h-screen ${isMobile ? 'pt-[25vh]' : 'pt-[33vh]'}`,
       searchContainer: searchBarLayout.containerClass,
       cardContainer: `${isMobile ? 'pt-8 pb-4' : 'pt-16 pb-8'} px-4 max-w-6xl mx-auto`,
       gridLayout: gridClasses,
-      userInfo: isMobile 
-        ? 'fixed top-2 right-2 z-40 scale-90' 
+      userInfo: isMobile
+        ? 'fixed top-2 right-2 z-40 scale-90'
         : 'fixed top-4 right-4 z-40',
-      workspaceButton: isMobile 
-        ? 'fixed top-2 left-2 z-40 scale-90' 
+      workspaceButton: isMobile
+        ? 'fixed top-2 left-2 z-40 scale-90'
         : 'fixed top-4 left-4 z-40',
-      settingsButton: isMobile 
-        ? 'fixed bottom-2 right-2 z-[9999] p-2 bg-white/10 rounded-full backdrop-blur-sm' 
+      settingsButton: isMobile
+        ? 'fixed bottom-2 right-2 z-[9999] p-2 bg-white/10 rounded-full backdrop-blur-sm'
         : 'fixed bottom-4 right-4 z-[9999]'
     };
   };
@@ -221,18 +222,18 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
     <>
       {/* 邮箱验证横幅 */}
       <EmailVerificationBanner />
-      
+
       {/* 壁纸背景层 - 响应式优化 */}
-      <div 
+      <div
         className="fixed top-0 left-0 w-full h-full -z-10"
-        style={{ 
+        style={{
           backgroundImage: bgImage ? `url(${bgImage})` : undefined,
           backgroundSize: 'cover',
           backgroundPosition: isMobile ? 'center center' : 'center top',
           backgroundRepeat: 'no-repeat',
           filter: bgImageLoaded ? 'none' : 'blur(2px)',
-          transform: !isSettingsOpen && parallaxEnabled && !isMobile && mousePosition ? 
-            `translate(${mousePosition.x * 0.02}px, ${mousePosition.y * 0.02}px) scale(1.05)` : 
+          transform: !isSettingsOpen && parallaxEnabled && !isMobile && mousePosition ?
+            `translate(${mousePosition.x * 0.02}px, ${mousePosition.y * 0.02}px) scale(1.05)` :
             'translate(0px, 0px) scale(1)',
           transition: 'filter 1.5s ease-out, transform 0.3s ease-out',
         }}
@@ -240,10 +241,10 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
 
       {/* 渐变遮罩层 - 响应式调整 */}
       {bgImage && (
-        <div 
+        <div
           className="fixed top-0 left-0 w-full h-full -z-10"
           style={{
-            background: isMobile 
+            background: isMobile
               ? 'linear-gradient(to bottom, rgba(30, 41, 59, 0.6) 0%, rgba(30, 41, 59, 0.4) 50%, rgba(30, 41, 59, 0.2) 100%)'
               : 'linear-gradient(to bottom, rgba(30, 41, 59, 0.7) 0%, rgba(30, 41, 59, 0.3) 50%, rgba(30, 41, 59, 0.1) 100%)',
             opacity: bgImageLoaded ? 0 : 1,
@@ -252,7 +253,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
           }}
         />
       )}
-      
+
       {/* 壁纸加载指示器 - 响应式位置 */}
       {!bgImageLoaded && bgImage && (
         <div className={`fixed ${isMobile ? 'top-2 left-2' : 'top-4 left-4'} z-40 bg-black/30 backdrop-blur-sm rounded-lg px-4 py-2`}>
@@ -262,36 +263,42 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
           </div>
         </div>
       )}
-      
+
       <div className={classes.container}>
         <div className={classes.searchContainer}>
           <SearchBar websites={websites} />
         </div>
-        
+
         <div className={classes.cardContainer}>
-          <motion.div 
+          <motion.div
             className={classes.gridLayout}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5 }}
           >
-            {sortedWebsites.map((website, idx) => (
-              <WebsiteCard
-                key={website.id}
-                {...website}
-                index={idx}
-                moveCard={moveCard}
-                onSave={handleSaveCard}
-                onDelete={(id) => {
-                  setWebsites(websites.filter(card => card.id !== id));
-                }}
-              />
-            ))}
+            {displayWebsites.map((website, idx) => {
+              // 当启用自动排序时，需要找到原始数组中的索引
+              const originalIndex = autoSortEnabled ?
+                websites.findIndex(w => w.id === website.id) : idx;
+
+              return (
+                <WebsiteCard
+                  key={website.id}
+                  {...website}
+                  index={originalIndex}
+                  moveCard={moveCard}
+                  onSave={handleSaveCard}
+                  onDelete={(id) => {
+                    setWebsites(websites.filter(card => card.id !== id));
+                  }}
+                />
+              );
+            })}
           </motion.div>
         </div>
 
         {showSettings && (
-          <Settings 
+          <Settings
             onClose={() => setShowSettings(false)}
             websites={websites}
             setWebsites={setWebsites}
@@ -326,7 +333,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
                 {displayName}
               </span>
             </button>
-            
+
             {/* 问候语气泡 - 响应式调整 */}
             {showGreeting && !isMobile && (
               <div className={`absolute top-full right-0 mt-2 bg-white/95 backdrop-blur-sm rounded-lg px-4 py-3 shadow-lg border border-white/20 transition-opacity duration-300 ${showGreeting ? 'opacity-100' : 'opacity-0'}`}>
@@ -357,9 +364,9 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
 
         {/* 动画猫 - 仅在非移动端显示 */}
         {!isMobile && <AnimatedCat />}
-        
+
         {/* 工作空间模态框 */}
-        <WorkspaceModal 
+        <WorkspaceModal
           isOpen={isWorkspaceOpen}
           onClose={() => setIsWorkspaceOpen(false)}
         />

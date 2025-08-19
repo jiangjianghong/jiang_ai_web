@@ -16,6 +16,7 @@ export interface UserSettings {
   searchBarColor: string;   // 搜索框颜色 (RGB字符串)
   autoSyncEnabled: boolean; // 自动同步开关
   autoSyncInterval: number; // 自动同步间隔（秒）
+  autoSortEnabled?: boolean; // 自动排序开关（可选，向后兼容）
   lastSync: string;
 }
 

@@ -51,6 +51,7 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
     autoSyncEnabled,
     autoSyncInterval,
     searchInNewTab,
+    autoSortEnabled,
     setCardOpacity,
     setSearchBarOpacity,
     setParallaxEnabled,
@@ -61,6 +62,7 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
     setAutoSyncEnabled,
     setAutoSyncInterval,
     setSearchInNewTab,
+    setAutoSortEnabled,
   } = useTransparency();
   const { currentUser, logout } = useAuth();
   const { updateSyncStatus } = useSyncStatus();
@@ -259,6 +261,7 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
         searchBarColor,
         autoSyncEnabled,
         autoSyncInterval,
+        autoSortEnabled,
         lastSync: new Date().toISOString()
       };
 
@@ -303,6 +306,7 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
         setSearchBarColor(cloudSettings.searchBarColor);
         setAutoSyncEnabled(cloudSettings.autoSyncEnabled);
         setAutoSyncInterval(cloudSettings.autoSyncInterval);
+        setAutoSortEnabled(cloudSettings.autoSortEnabled ?? false); // 提供默认值
         localStorage.setItem('theme', cloudSettings.theme || 'light');
       }
 
@@ -787,6 +791,33 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
                 >
                   <span
                     className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 shadow-sm ${searchInNewTab ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                  />
+                </button>
+              </div>
+
+              <div className="border-t border-gray-100"></div>
+
+              {/* 自动排序开关 */}
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <i className="fa-solid fa-sort text-blue-500 text-sm"></i>
+                    <span className="text-sm font-medium text-gray-700 select-none">
+                      卡片自动排序
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 select-none">
+                    {autoSortEnabled ? '按访问次数自动排序卡片' : '保持手动拖拽的顺序'}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setAutoSortEnabled(!autoSortEnabled)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-all duration-200 ${autoSortEnabled ? 'bg-blue-500 shadow-lg shadow-blue-200' : 'bg-gray-300'
+                    }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 shadow-sm ${autoSortEnabled ? 'translate-x-6' : 'translate-x-1'
                       }`}
                   />
                 </button>

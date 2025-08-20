@@ -730,9 +730,9 @@ export function SearchBar(props: SearchBarProps = {}) {
                             initial={{ width: isMobile ? 280 : 340 }}
                             transition={{
                                 type: 'spring',
-                                stiffness: 150,
-                                damping: 12,
-                                mass: 1.5
+                                stiffness: 200,
+                                damping: 5,
+                                mass: 0.6
                             }}
                             style={{ display: 'flex', alignItems: 'center', position: 'relative' }}
                             onAnimationComplete={() => { if (isHovered) setIsExpandDone(true); }}
@@ -821,7 +821,7 @@ export function SearchBar(props: SearchBarProps = {}) {
                                     whileHover={{ scale: 1.22, rotate: 18, color: '#fff' }}
                                     whileTap={{ scale: 0.95, rotate: 0 }}
                                     animate={{ color: isHovered ? '#fff' : undefined }}
-                                    transition={{ type: 'spring', stiffness: 350, damping: 18 }}
+                                    transition={{ type: 'spring', stiffness: 350, damping: 6 }}
                                     style={{ display: 'inline-block' }}
                                 />
                             </button>
@@ -842,8 +842,10 @@ export function SearchBar(props: SearchBarProps = {}) {
                                             }
                                         }}
                                         transition={{
-                                            duration: 0.2,
-                                            ease: "easeOut"
+                                            type: "spring",
+                                            stiffness: 280,
+                                            damping: 6,
+                                            mass: 0.5
                                         }}
                                         style={{
                                             pointerEvents: 'auto',
@@ -1046,7 +1048,7 @@ export function SearchBar(props: SearchBarProps = {}) {
                                                     transition={{
                                                         type: 'spring',
                                                         stiffness: 400,
-                                                        damping: 22,
+                                                        damping: 8,
                                                         delay: 0.08 * i,
                                                     }}
                                                     style={{

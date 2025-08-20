@@ -43,8 +43,6 @@
     "postcss": "^8.5.3",
     "rimraf": "^6.0.1",
     "shx": "^0.3.4",
-    "stylelint-config-standard": "^39.0.0",
-    "stylelint-config-tailwindcss": "^1.0.0",
     "tailwindcss": "^3.4.17",
     "typescript": "~5.7.2",
     "vite": "^6.2.0",

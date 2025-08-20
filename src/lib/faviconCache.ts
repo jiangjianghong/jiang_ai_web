@@ -4,6 +4,7 @@
  */
 
 import { indexedDBCache } from './indexedDBCache';
+import { createManagedBlobUrl, releaseManagedBlobUrl } from './memoryManager';
 
 interface FaviconMetadata {
   domain: string;
@@ -23,9 +24,18 @@ class FaviconCacheManager {
   private defaultExpiry = 7 * 24 * 60 * 60 * 1000; // 7天缓存（减少频繁更新）
   private metadata: FaviconCacheStorage = {};
   private loadingPromises: Map<string, Promise<string>> = new Map();
+  private blobUrlCache = new Map<string, string>(); // domain -> blobUrl 映射
 
   constructor() {
     this.loadMetadata();
+
+    // 预加载所有有效缓存的 Blob URL
+    this.preloadBlobUrls();
+
+    // 定期清理过期的 Blob URL（每5分钟）
+    setInterval(() => {
+      this.cleanupExpiredBlobUrls();
+    }, 5 * 60 * 1000);
   }
 
   /**
@@ -42,6 +52,51 @@ class FaviconCacheManager {
       console.warn('加载 favicon 元数据失败:', error);
       this.metadata = {};
     }
+  }
+
+  /**
+   * 预加载所有有效缓存的 Blob URL
+   */
+  private async preloadBlobUrls(): Promise<void> {
+    const now = Date.now();
+    const validDomains = Object.entries(this.metadata)
+      .filter(([, meta]) => now < meta.expiry)
+      .map(([domain]) => domain);
+
+    console.log(`🚀 开始预加载 ${validDomains.length} 个 favicon Blob URL`);
+
+    // 批量预加载，避免阻塞
+    const batchSize = 5;
+    for (let i = 0; i < validDomains.length; i += batchSize) {
+      const batch = validDomains.slice(i, i + batchSize);
+
+      await Promise.all(batch.map(async (domain) => {
+        try {
+          // 如果已有 Blob URL 缓存，跳过
+          if (this.blobUrlCache.has(domain)) {
+            return;
+          }
+
+          const cacheKey = this.getFaviconCacheKey(domain);
+          const blob = await indexedDBCache.get(cacheKey);
+
+          if (blob) {
+            const blobUrl = createManagedBlobUrl(blob, 'favicon');
+            this.blobUrlCache.set(domain, blobUrl);
+            console.log(`✅ 预加载 Blob URL: ${domain}`);
+          }
+        } catch (error) {
+          console.warn(`预加载 Blob URL 失败: ${domain}`, error);
+        }
+      }));
+
+      // 小延迟避免阻塞主线程
+      if (i + batchSize < validDomains.length) {
+        await new Promise(resolve => setTimeout(resolve, 10));
+      }
+    }
+
+    console.log(`🎉 预加载完成，共 ${this.blobUrlCache.size} 个 Blob URL`);
   }
 
   /**
@@ -163,10 +218,17 @@ class FaviconCacheManager {
         };
         this.saveMetadata();
 
-        // 创建 Blob URL
-        const blobUrl = URL.createObjectURL(blob);
+        // 释放旧的 Blob URL（如果存在）
+        const oldBlobUrl = this.blobUrlCache.get(domain);
+        if (oldBlobUrl) {
+          releaseManagedBlobUrl(oldBlobUrl);
+        }
+
+        // 创建新的 Blob URL 并使用内存管理器
+        const blobUrl = createManagedBlobUrl(blob, 'favicon');
+        this.blobUrlCache.set(domain, blobUrl);
         console.log(`✅ Favicon 文件缓存成功: ${domain} (${(blob.size / 1024).toFixed(1)}KB)`);
-        
+
         return blobUrl;
       } catch (error) {
         console.log(`❌ Favicon 下载失败: ${domain} -> ${url} (${error})`);
@@ -201,7 +263,17 @@ class FaviconCacheManager {
       
       if (blob) {
         console.log(`📁 使用缓存 favicon 文件: ${domain} (${(blob.size / 1024).toFixed(1)}KB)`);
-        return URL.createObjectURL(blob);
+
+        // 检查是否已有 Blob URL 缓存
+        const existingBlobUrl = this.blobUrlCache.get(domain);
+        if (existingBlobUrl) {
+          return existingBlobUrl;
+        }
+
+        // 创建新的 Blob URL 并使用内存管理器
+        const blobUrl = createManagedBlobUrl(blob, 'favicon');
+        this.blobUrlCache.set(domain, blobUrl);
+        return blobUrl;
       }
     } catch (error) {
       console.warn(`读取 favicon 缓存失败: ${domain}`, error);
@@ -215,6 +287,13 @@ class FaviconCacheManager {
    */
   private async deleteFaviconFile(domain: string): Promise<void> {
     try {
+      // 释放 Blob URL
+      const blobUrl = this.blobUrlCache.get(domain);
+      if (blobUrl) {
+        releaseManagedBlobUrl(blobUrl);
+        this.blobUrlCache.delete(domain);
+      }
+
       const cacheKey = this.getFaviconCacheKey(domain);
       await indexedDBCache.delete(cacheKey);
       console.log(`🗑️ 删除过期 favicon 缓存: ${domain}`);
@@ -224,17 +303,25 @@ class FaviconCacheManager {
   }
 
   /**
-   * 获取缓存的 favicon URL（同步检查）
+   * 获取缓存的 favicon URL（同步检查，优先返回 Blob URL）
    */
   getCachedFavicon(url: string): string | null {
     const domain = this.extractDomain(url);
+
+    // 优先检查 Blob URL 缓存
+    const blobUrl = this.blobUrlCache.get(domain);
+    if (blobUrl) {
+      console.log(`🚀 使用 Blob URL 缓存: ${domain}`);
+      return blobUrl;
+    }
+
+    // 检查元数据缓存
     const meta = this.metadata[domain];
-    
     if (meta && Date.now() < meta.expiry) {
       // 有有效的缓存元数据，返回原始URL表示已缓存
       return meta.originalUrl;
     }
-    
+
     return null;
   }
 
@@ -303,6 +390,45 @@ class FaviconCacheManager {
   }
 
   /**
+   * 轻量级预加载方法 - 只预加载没有缓存的图标
+   */
+  async preloadFavicons(websites: Array<{ url: string; favicon: string }>): Promise<void> {
+    const uncachedWebsites = websites.filter(website => {
+      const cached = this.getCachedFavicon(website.url);
+      return !cached;
+    });
+
+    if (uncachedWebsites.length === 0) {
+      console.log('📦 所有图标都已缓存，跳过预加载');
+      return;
+    }
+
+    console.log(`🚀 开始预加载 ${uncachedWebsites.length} 个未缓存的图标`);
+
+    // 分批预加载，避免同时发起太多请求
+    const batchSize = 3;
+    for (let i = 0; i < uncachedWebsites.length; i += batchSize) {
+      const batch = uncachedWebsites.slice(i, i + batchSize);
+
+      // 并行处理当前批次
+      await Promise.allSettled(batch.map(async (website) => {
+        try {
+          await this.getFavicon(website.url, website.favicon);
+        } catch (error) {
+          console.warn(`预加载图标失败: ${website.url}`, error);
+        }
+      }));
+
+      // 批次间延迟，避免过度占用网络资源
+      if (i + batchSize < uncachedWebsites.length) {
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+    }
+
+    console.log('✅ 图标预加载完成');
+  }
+
+  /**
    * 批量缓存 favicon（文件缓存版）
    */
   async batchCacheFaviconsToIndexedDB(websites: Array<{ url: string; favicon: string }>): Promise<void> {
@@ -361,6 +487,29 @@ class FaviconCacheManager {
   }
 
   /**
+   * 清理过期的 Blob URL
+   */
+  cleanupExpiredBlobUrls(): void {
+    const now = Date.now();
+    const expiredDomains: string[] = [];
+
+    for (const [domain, meta] of Object.entries(this.metadata)) {
+      if (now > meta.expiry) {
+        expiredDomains.push(domain);
+      }
+    }
+
+    for (const domain of expiredDomains) {
+      const blobUrl = this.blobUrlCache.get(domain);
+      if (blobUrl) {
+        releaseManagedBlobUrl(blobUrl);
+        this.blobUrlCache.delete(domain);
+        console.log(`🗑️ 清理过期 Blob URL: ${domain}`);
+      }
+    }
+  }
+
+  /**
    * 清理所有缓存
    */
   async clearCache(): Promise<void> {
@@ -368,10 +517,11 @@ class FaviconCacheManager {
     for (const domain of Object.keys(this.metadata)) {
       await this.deleteFaviconFile(domain);
     }
-    
+
     this.metadata = {};
     this.loadingPromises.clear();
-    
+    this.blobUrlCache.clear();
+
     try {
       localStorage.removeItem(this.metadataKey);
     } catch (error) {

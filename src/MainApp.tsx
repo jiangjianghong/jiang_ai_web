@@ -164,19 +164,19 @@ function AppContent() {
 
   logger.debug('✅ AppContent 渲染完成');
 
-  // 显示加载状态，直到数据初始化完成
-  if (!dataInitialized) {
-    return (
-      <div className="fixed inset-0 bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-          <p className="text-white/80 text-lg">
-            {cloudLoading ? '正在加载云端数据...' : '正在初始化数据...'}
-          </p>
-        </div>
-      </div>
-    );
-  }
+  // 注释掉加载状态，直接显示应用内容
+  // if (!dataInitialized) {
+  //   return (
+  //     <div className="fixed inset-0 bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center">
+  //       <div className="text-center">
+  //         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+  //         <p className="text-white/80 text-lg">
+  //           {cloudLoading ? '正在加载云端数据...' : '正在初始化数据...'}
+  //         </p>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <>

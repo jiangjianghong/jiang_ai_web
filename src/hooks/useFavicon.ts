@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { faviconCache } from '@/lib/faviconCache';
 import { isDefaultIcon } from '@/lib/iconPath';
+import { releaseManagedBlobUrl } from '@/lib/memoryManager';
 
 /**
  * 使用 favicon 缓存的 Hook（极简版 - 防止切换）
@@ -10,12 +11,25 @@ import { isDefaultIcon } from '@/lib/iconPath';
  */
 export function useFavicon(originalUrl: string, faviconUrl: string) {
   const [currentFaviconUrl, setCurrentFaviconUrl] = useState<string>(() => {
-    // 初始化时先检查缓存，避免闪烁
+    // 初始化时先检查缓存，优先使用 Blob URL
     const cached = faviconCache.getCachedFavicon(originalUrl);
-    return cached && !isDefaultIcon(cached) ? cached : faviconUrl;
+    if (cached && !isDefaultIcon(cached)) {
+      console.log(`🚀 初始化使用缓存图标: ${originalUrl} -> ${cached.substring(0, 50)}...`);
+      return cached;
+    }
+    return faviconUrl;
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(false);
+  const currentBlobUrlRef = useRef<string | null>(null);
+
+  // 清理当前的 Blob URL
+  const cleanupCurrentBlobUrl = () => {
+    if (currentBlobUrlRef.current && currentBlobUrlRef.current.startsWith('blob:')) {
+      releaseManagedBlobUrl(currentBlobUrlRef.current);
+      currentBlobUrlRef.current = null;
+    }
+  };
 
   // 处理 favicon URL，检测并通过代理访问有 CORS 问题的 URL
   const processeFaviconUrl = (url: string): string => {
@@ -50,6 +64,24 @@ export function useFavicon(originalUrl: string, faviconUrl: string) {
 
 
 
+  // 立即检查缓存的 effect（无防抖）
+  useEffect(() => {
+    const checkImmediateCache = async () => {
+      const cached = faviconCache.getCachedFavicon(originalUrl);
+      if (cached && !isDefaultIcon(cached) && cached !== currentFaviconUrl) {
+        console.log(`⚡ 立即使用缓存图标: ${originalUrl}`);
+        const processedUrl = processeFaviconUrl(cached);
+        cleanupCurrentBlobUrl();
+        setCurrentFaviconUrl(processedUrl);
+        currentBlobUrlRef.current = processedUrl.startsWith('blob:') ? processedUrl : null;
+        setError(false);
+        setIsLoading(false);
+      }
+    };
+
+    checkImmediateCache();
+  }, [originalUrl]); // 只依赖 originalUrl，避免频繁触发
+
   useEffect(() => {
     // 防抖：避免在短时间内频繁更新
     const timeoutId = setTimeout(() => {
@@ -69,7 +101,9 @@ export function useFavicon(originalUrl: string, faviconUrl: string) {
         console.log('📦 使用缓存图标:', originalUrl);
         const cachedProcessedUrl = processeFaviconUrl(cached);
         if (currentFaviconUrl !== cachedProcessedUrl) {
+          cleanupCurrentBlobUrl();
           setCurrentFaviconUrl(cachedProcessedUrl);
+          currentBlobUrlRef.current = cachedProcessedUrl.startsWith('blob:') ? cachedProcessedUrl : null;
         }
         setError(false);
         setIsLoading(false);
@@ -83,7 +117,9 @@ export function useFavicon(originalUrl: string, faviconUrl: string) {
 
       // 更新当前URL（如果需要）
       if (currentFaviconUrl !== processedFaviconUrl) {
+        cleanupCurrentBlobUrl();
         setCurrentFaviconUrl(processedFaviconUrl);
+        currentBlobUrlRef.current = processedFaviconUrl.startsWith('blob:') ? processedFaviconUrl : null;
       }
       setError(false);
       setIsLoading(false);
@@ -95,7 +131,10 @@ export function useFavicon(originalUrl: string, faviconUrl: string) {
           .then((url: string) => {
             if (url !== faviconUrl && !isDefaultIcon(url)) {
               console.log('✅ 获取到更好的图标:', url);
-              setCurrentFaviconUrl(processeFaviconUrl(url));
+              const processedUrl = processeFaviconUrl(url);
+              cleanupCurrentBlobUrl();
+              setCurrentFaviconUrl(processedUrl);
+              currentBlobUrlRef.current = processedUrl.startsWith('blob:') ? processedUrl : null;
             }
             setError(false);
           })
@@ -111,6 +150,13 @@ export function useFavicon(originalUrl: string, faviconUrl: string) {
 
     return () => clearTimeout(timeoutId);
   }, [originalUrl, faviconUrl]);
+
+  // 组件卸载时清理 Blob URL
+  useEffect(() => {
+    return () => {
+      cleanupCurrentBlobUrl();
+    };
+  }, []);
 
   return {
     faviconUrl: currentFaviconUrl,

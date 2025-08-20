@@ -149,6 +149,20 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
     })();
   }, [wallpaperResolution]);
 
+  // 预加载当前页面的图标
+  useEffect(() => {
+    if (websites.length > 0) {
+      // 延迟预加载，避免阻塞首屏渲染
+      const timer = setTimeout(() => {
+        faviconCache.preloadFavicons(websites).catch(err => {
+          console.warn('批量预加载图标失败:', err);
+        });
+      }, 500); // 延迟500ms，确保首屏渲染完成
+
+      return () => clearTimeout(timer);
+    }
+  }, [websites]);
+
   // 优化的鼠标移动处理器 - 使用 RAF 节流
   const handleMouseMove = useCallback((e: MouseEvent) => {
     setMousePosition({ x: e.clientX, y: e.clientY });

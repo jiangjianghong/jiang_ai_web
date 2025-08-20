@@ -9,17 +9,7 @@ import "./index.css";
 const hasBasePath = window.location.pathname.startsWith('/jiang_ai_web');
 const basename = hasBasePath ? "/jiang_ai_web" : undefined;
 
-// 移除加载骨架屏的函数
-const removeLoadingSkeleton = () => {
-  const skeleton = document.getElementById('loading-skeleton');
-  if (skeleton) {
-    skeleton.style.opacity = '0';
-    skeleton.style.transition = 'opacity 0.3s ease-out';
-    setTimeout(() => {
-      skeleton.remove();
-    }, 300);
-  }
-};
+
 
 // 简化日志输出
 
@@ -74,13 +64,7 @@ try {
     </StrictMode>
   );
 
-  // 应用渲染完成后移除骨架屏
-  // 使用微任务确保React已完成首次渲染
-  queueMicrotask(() => {
-    requestAnimationFrame(() => {
-      removeLoadingSkeleton();
-    });
-  });
+
 
 } catch (error) {
   // 保留错误日志，这对生产环境调试很重要

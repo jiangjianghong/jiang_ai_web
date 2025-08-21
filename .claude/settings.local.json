@@ -11,8 +11,11 @@
       "Bash(claude config get:*)",
       "Bash(claude config list:*)",
       "Bash(claude --permission-mode bypassPermissions)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(npm run typecheck)",
+      "Bash(npm run build)"
     ],
-    "deny": []
+    "deny": [],
+    "defaultMode": "acceptEdits"
   }
 }

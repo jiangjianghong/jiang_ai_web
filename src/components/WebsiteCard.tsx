@@ -200,15 +200,19 @@ export const WebsiteCard = memo(function WebsiteCardComponent({ id, name, url, f
             backgroundColor: `rgba(${cardColor}, ${cardOpacity})`,
             backdropFilter: 'blur(10px)',
             border: '1px solid rgba(255, 255, 255, 0.2)',
+            boxShadow: isDragging ? '0 20px 40px rgba(0,0,0,0.3)' : 'none', // 拖拽时添加阴影
           }}
           animate={{
-            opacity: isDragging ? 0.3 : 1,
+            opacity: isDragging ? 0.5 : 1,
             zIndex: isDragging ? 50 : 0,
+            rotate: isDragging ? 5 : 0, // 拖拽时轻微旋转
+            scale: isDragging ? 1.05 : 1, // 拖拽时轻微放大
           }}
           transition={{
             type: "spring",
             stiffness: 200,
             damping: 15,
+            duration: 0.2,
           }}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
@@ -314,7 +318,7 @@ export const WebsiteCard = memo(function WebsiteCardComponent({ id, name, url, f
           </div>
 
           {/* 悬停效果边框 */}
-          {!isMobile && isHovered && (
+          {!isMobile && isHovered && !isDragging && (
             <motion.div
               className="absolute inset-0 rounded-lg ring-2 ring-white/30 pointer-events-none"
               initial={{ opacity: 0, scale: 0.95 }}
@@ -322,6 +326,24 @@ export const WebsiteCard = memo(function WebsiteCardComponent({ id, name, url, f
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.4, ease: "easeOut" }}
             />
+          )}
+
+          {/* 拖拽时的占位提示 */}
+          {isDragging && (
+            <motion.div
+              className="absolute inset-0 rounded-lg border-2 border-dashed border-white/50 bg-white/10 pointer-events-none flex items-center justify-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <motion.div
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ duration: 1, repeat: Infinity }}
+                className="text-white/60 text-sm"
+              >
+                <i className="fa-solid fa-arrows-up-down-left-right"></i>
+              </motion.div>
+            </motion.div>
           )}
 
           {/* 悬停时的阴影效果 */}

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { z } from 'zod';
+import Tilt from 'react-parallax-tilt';
 import { uploadFaviconToStorage } from '@/lib/supabaseFaviconUpload';
 
 const websiteSchema = z.object({
@@ -298,18 +299,46 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 select-none">
-      <motion.div
-        className="w-full max-w-md bg-white rounded-xl shadow-xl p-6 select-none"
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.9 }}
-        transition={{ type: 'spring', damping: 25 }}
+      <Tilt
+        tiltEnable={true}
+        tiltReverse={false}  // 正常倾斜方向
+        tiltMaxAngleX={8}    // 较小的倾斜角度
+        tiltMaxAngleY={8}    // 较小的倾斜角度
+        perspective={1200}   // 更远的透视距离
+        transitionSpeed={800} // 稍慢的过渡速度
+        scale={1.02}         // 轻微缩放
+        glareEnable={true}
+        glareMaxOpacity={0.15} // 更轻微的光泽
+        glareColor="rgba(255,255,255,0.8)" // 白色光泽
+        glarePosition="all"
       >
+        <motion.div
+          className="w-full max-w-md bg-white rounded-xl shadow-xl p-6 select-none"
+          initial={{ opacity: 0, scale: 0.9, rotateX: -10 }}
+          animate={{ opacity: 1, scale: 1, rotateX: 0 }}
+          exit={{ opacity: 0, scale: 0.9, rotateX: 10 }}
+          transition={{ 
+            type: 'spring', 
+            damping: 25,
+            stiffness: 200,
+            duration: 0.4
+          }}
+          style={{
+            background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255,255,255,0.3)',
+          }}
+        >
         <div className="flex justify-between items-center mb-4 select-none">
-          <h2 className="text-xl font-semibold select-none">编辑卡片</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700 select-none">
+          <h2 className="text-xl font-semibold select-none bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">编辑卡片</h2>
+          <motion.button 
+            onClick={onClose} 
+            className="text-gray-500 hover:text-gray-700 select-none p-2 rounded-full hover:bg-gray-100 transition-colors"
+            whileHover={{ scale: 1.1, rotate: 90 }}
+            whileTap={{ scale: 0.9 }}
+          >
             <i className="fa-solid fa-xmark select-none"></i>
-          </button>
+          </motion.button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -324,14 +353,28 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
                 className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="https://example.com"
               />
-              <button
+              <motion.button
                 type="button"
                 onClick={handleAutoFetch}
                 disabled={autoFetching || !formData.url}
-                className="px-3 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:bg-blue-300 select-none"
+                className="px-3 py-2 text-white rounded-md select-none bg-gradient-to-b from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-blue-300 disabled:to-blue-400 disabled:cursor-not-allowed shadow-sm"
+                whileHover={!(autoFetching || !formData.url) ? { scale: 1.05, y: -1 } : {}}
+                whileTap={!(autoFetching || !formData.url) ? { scale: 0.95, y: 0 } : {}}
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
               >
-                {autoFetching ? '获取中...' : '自动获取'}
-              </button>
+                {autoFetching ? (
+                  <>
+                    <motion.i 
+                      className="fa-solid fa-spinner mr-1"
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    />
+                    获取中...
+                  </>
+                ) : (
+                  '自动获取'
+                )}
+              </motion.button>
             </div>
             {errors.url && <p className="mt-1 text-sm text-red-500 select-none">{errors.url}</p>}
           </div>
@@ -443,14 +486,17 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
                     placeholder="输入标签名称..."
                     maxLength={10}
                   />
-                  <button
+                  <motion.button
                     type="button"
                     onClick={handleAddTag}
                     disabled={!newTag.trim() || formTags.includes(newTag.trim())}
-                    className="px-3 py-2 bg-blue-500 text-white text-sm rounded-md hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                    className="px-3 py-2 text-white text-sm rounded-md select-none bg-gradient-to-b from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed shadow-sm"
+                    whileHover={!((!newTag.trim() || formTags.includes(newTag.trim()))) ? { scale: 1.05, y: -1 } : {}}
+                    whileTap={!((!newTag.trim() || formTags.includes(newTag.trim()))) ? { scale: 0.95, y: 0 } : {}}
+                    transition={{ type: "spring", stiffness: 400, damping: 25 }}
                   >
                     添加
-                  </button>
+                  </motion.button>
                 </div>
               )}
               
@@ -479,27 +525,37 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
 
            <div className="flex flex-col gap-4 pt-4 select-none">
               <div className="flex gap-2 select-none">
-                <button
+                <motion.button
                   type="button"
                   onClick={onClose}
-                  className="flex-1 px-4 py-2 text-gray-700 border rounded-md hover:bg-gray-50 select-none"
+                  className="flex-1 px-4 py-2 text-gray-700 border rounded-md select-none bg-gradient-to-b from-gray-50 to-gray-100 hover:from-gray-100 hover:to-gray-200 shadow-sm border-gray-200"
+                  whileHover={{ scale: 1.02, y: -1 }}
+                  whileTap={{ scale: 0.98, y: 0 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 25 }}
                 >
                   取消
-                </button>
-                <button
+                </motion.button>
+                <motion.button
                   type="submit"
                   disabled={uploading}
-                  className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed select-none"
+                  className="flex-1 px-4 py-2 text-white rounded-md select-none bg-gradient-to-b from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-blue-300 disabled:to-blue-400 disabled:cursor-not-allowed shadow-md"
+                  whileHover={!uploading ? { scale: 1.02, y: -1 } : {}}
+                  whileTap={!uploading ? { scale: 0.98, y: 0 } : {}}
+                  transition={{ type: "spring", stiffness: 400, damping: 25 }}
                 >
                   {uploading ? (
                     <>
-                      <i className="fa-solid fa-spinner fa-spin mr-2"></i>
+                      <motion.i 
+                        className="fa-solid fa-spinner mr-2"
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      />
                       上传中...
                     </>
                   ) : (
                     '保存'
                   )}
-                </button>
+                </motion.button>
               </div>
               
               {/* 保存错误提示 */}
@@ -510,7 +566,7 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
               )}
               
               {onDelete && (
-                <button
+                <motion.button
                   type="button"
                   onClick={() => {
                     if (confirm('确定要删除这个卡片吗？')) {
@@ -518,10 +574,18 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
                       onClose();
                     }
                   }}
-                  className="w-full px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 shadow-md select-none"
+                  className="w-full px-4 py-2 text-white rounded-md select-none bg-gradient-to-b from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 shadow-md border border-red-400"
+                  whileHover={{ scale: 1.02, y: -1 }}
+                  whileTap={{ scale: 0.98, y: 0 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 25 }}
                 >
-                  <i className="fa-solid fa-trash mr-2 select-none"></i>删除卡片
-                </button>
+                  <motion.i 
+                    className="fa-solid fa-trash mr-2 select-none"
+                    whileHover={{ rotate: [0, -10, 10, 0] }}
+                    transition={{ duration: 0.5 }}
+                  />
+                  删除卡片
+                </motion.button>
               )}
             </div>
 
@@ -529,6 +593,7 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
 
         </form>
       </motion.div>
+      </Tilt>
     </div>
   );
 }

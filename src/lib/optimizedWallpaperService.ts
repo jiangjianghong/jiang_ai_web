@@ -6,6 +6,7 @@ import { errorHandler } from './errorHandler';
 import { memoryManager } from './memoryManager';
 import { createWallpaperRequest } from './requestManager';
 import { createTimeoutSignal } from './abortUtils';
+import { customWallpaperManager } from './customWallpaperManager';
 
 // 移除未使用的接口
 
@@ -184,6 +185,29 @@ class OptimizedWallpaperService {
     needsUpdate: boolean;
   }> {
     try {
+      // 0. 如果是自定义壁纸，直接返回
+      if (resolution === 'custom') {
+        const customUrl = await customWallpaperManager.getCustomWallpaper();
+        if (customUrl) {
+          logger.wallpaper.info('使用自定义壁纸');
+          return {
+            url: customUrl,
+            isFromCache: true,
+            isToday: true,
+            needsUpdate: false
+          };
+        } else {
+          // 没有自定义壁纸，使用备用图片
+          logger.wallpaper.warn('未找到自定义壁纸，使用备用图片');
+          return {
+            url: this.fallbackImage,
+            isFromCache: false,
+            isToday: true,
+            needsUpdate: false
+          };
+        }
+      }
+
       // 1. 首先尝试智能缓存
       const cachedResult = await this.getSmartCache(resolution);
 

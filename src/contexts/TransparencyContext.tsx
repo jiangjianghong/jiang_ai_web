@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
-export type WallpaperResolution = '4k' | '1080p' | '720p' | 'mobile';
+export type WallpaperResolution = '4k' | '1080p' | '720p' | 'mobile' | 'custom';
 
 export type ColorOption = {
   name: string;
@@ -32,6 +32,7 @@ interface TransparencyContextType {
   autoSyncInterval: number; // 自动同步间隔（秒）
   searchInNewTab: boolean; // 搜索是否在新标签页打开
   autoSortEnabled: boolean; // 自动排序开关
+  customWallpaperUrl: string; // 自定义壁纸URL
   setCardOpacity: (opacity: number) => void;
   setSearchBarOpacity: (opacity: number) => void;
   setParallaxEnabled: (enabled: boolean) => void;
@@ -44,6 +45,7 @@ interface TransparencyContextType {
   setAutoSyncInterval: (interval: number) => void;
   setSearchInNewTab: (enabled: boolean) => void;
   setAutoSortEnabled: (enabled: boolean) => void;
+  setCustomWallpaperUrl: (url: string) => void;
 }
 
 const TransparencyContext = createContext<TransparencyContextType | undefined>(undefined);
@@ -120,6 +122,12 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
   // 自动排序设置
   const [autoSortEnabled, setAutoSortEnabled] = useState<boolean>(false);
 
+  // 自定义壁纸URL
+  const [customWallpaperUrl, setCustomWallpaperUrl] = useState(() => {
+    const saved = localStorage.getItem('customWallpaperUrl');
+    return saved || '';
+  });
+
   // 初始化autoSortEnabled从localStorage
   useEffect(() => {
     try {
@@ -172,6 +180,10 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('autoSortEnabled', autoSortEnabled.toString());
   }, [autoSortEnabled]);
 
+  useEffect(() => {
+    localStorage.setItem('customWallpaperUrl', customWallpaperUrl);
+  }, [customWallpaperUrl]);
+
   return (
     <TransparencyContext.Provider
       value={{
@@ -187,6 +199,7 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
         autoSyncInterval,
         searchInNewTab,
         autoSortEnabled,
+        customWallpaperUrl,
         setCardOpacity,
         setSearchBarOpacity,
         setParallaxEnabled,
@@ -199,6 +212,7 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
         setAutoSyncInterval,
         setSearchInNewTab,
         setAutoSortEnabled,
+        setCustomWallpaperUrl,
       }}
     >
       {children}

@@ -39,6 +39,7 @@ function AppContent() {
     setWallpaperResolution,
     setCardColor,
     setSearchBarColor,
+    setCustomWallpaperUrl,
     setAutoSyncEnabled,
     setAutoSyncInterval,
     setAutoSortEnabled

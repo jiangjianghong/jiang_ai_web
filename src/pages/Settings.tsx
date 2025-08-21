@@ -7,6 +7,7 @@ import PrivacySettings from '@/components/PrivacySettings';
 import ConfirmModal from '@/components/ConfirmModal';
 import { ColorPicker } from '@/components/ColorPicker';
 import { useTransparency, WallpaperResolution } from '@/contexts/TransparencyContext';
+import { customWallpaperManager } from '@/lib/customWallpaperManager';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { useSyncStatus } from '@/contexts/SyncContext';
 import { useUserProfile } from '@/contexts/UserProfileContext';
@@ -34,6 +35,16 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
   const [isFixingIcons, setIsFixingIcons] = useState(false);
   const [fixIconsMessage, setFixIconsMessage] = useState('');
 
+  // 自定义壁纸相关状态
+  const [customWallpaperInfo, setCustomWallpaperInfo] = useState<{
+    exists: boolean;
+    size?: number;
+    sizeText?: string;
+  }>({ exists: false });
+  const [uploadingWallpaper, setUploadingWallpaper] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const [isGlobalDragOver, setIsGlobalDragOver] = useState(false);
+
   // 使用统一的数据管理Hook
   const {
     exportAllData,
@@ -59,6 +70,7 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
     setIsSettingsOpen,
     setCardColor,
     setSearchBarColor,
+    setCustomWallpaperUrl,
     setAutoSyncEnabled,
     setAutoSyncInterval,
     setSearchInNewTab,
@@ -73,6 +85,175 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
   useEffect(() => {
     setNewName(displayName || '');
   }, [displayName]);
+
+  // 加载自定义壁纸信息
+  useEffect(() => {
+    const loadCustomWallpaperInfo = async () => {
+      const info = await customWallpaperManager.getWallpaperInfo();
+      setCustomWallpaperInfo(info);
+    };
+    loadCustomWallpaperInfo();
+  }, []);
+
+  // 全局拖拽检测
+  useEffect(() => {
+    let dragCounter = 0;
+
+    const handleGlobalDragEnter = (e: DragEvent) => {
+      e.preventDefault();
+      dragCounter++;
+
+      // 检查是否拖拽的是图片文件
+      const items = Array.from(e.dataTransfer?.items || []);
+      const hasImageFile = items.some(item => item.type.startsWith('image/'));
+
+      if (hasImageFile && !uploadingWallpaper) {
+        setIsGlobalDragOver(true);
+      }
+    };
+
+    const handleGlobalDragLeave = (e: DragEvent) => {
+      e.preventDefault();
+      dragCounter--;
+
+      if (dragCounter === 0) {
+        setIsGlobalDragOver(false);
+      }
+    };
+
+    const handleGlobalDrop = (e: DragEvent) => {
+      e.preventDefault();
+      dragCounter = 0;
+      setIsGlobalDragOver(false);
+    };
+
+    const handleGlobalDragOver = (e: DragEvent) => {
+      e.preventDefault();
+    };
+
+    document.addEventListener('dragenter', handleGlobalDragEnter);
+    document.addEventListener('dragleave', handleGlobalDragLeave);
+    document.addEventListener('dragover', handleGlobalDragOver);
+    document.addEventListener('drop', handleGlobalDrop);
+
+    return () => {
+      document.removeEventListener('dragenter', handleGlobalDragEnter);
+      document.removeEventListener('dragleave', handleGlobalDragLeave);
+      document.removeEventListener('dragover', handleGlobalDragOver);
+      document.removeEventListener('drop', handleGlobalDrop);
+    };
+  }, [uploadingWallpaper]);
+
+  // 处理文件上传的通用逻辑
+  const processWallpaperFile = async (file: File) => {
+    if (!file) return;
+
+    setUploadingWallpaper(true);
+
+    try {
+      const result = await customWallpaperManager.uploadWallpaper(file);
+
+      if (result.success && result.url) {
+        // 更新自定义壁纸URL
+        setCustomWallpaperUrl(result.url);
+        // 切换到自定义壁纸
+        setWallpaperResolution('custom');
+        // 更新壁纸信息
+        const info = await customWallpaperManager.getWallpaperInfo();
+        setCustomWallpaperInfo(info);
+
+        setSyncMessage('自定义壁纸上传成功！');
+        setTimeout(() => setSyncMessage(''), 3000);
+      } else {
+        setSyncMessage(result.error || '上传失败');
+        setTimeout(() => setSyncMessage(''), 3000);
+      }
+    } catch (error) {
+      setSyncMessage('上传失败，请重试');
+      setTimeout(() => setSyncMessage(''), 3000);
+    } finally {
+      setUploadingWallpaper(false);
+    }
+  };
+
+  // 处理自定义壁纸上传
+  const handleWallpaperUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    await processWallpaperFile(file);
+
+    // 清空文件输入
+    if (event.target) {
+      event.target.value = '';
+    }
+  };
+
+  // 拖拽处理函数
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!uploadingWallpaper) {
+      setIsDragOver(true);
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // 只有当鼠标真正离开拖拽区域时才设置为false
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const x = e.clientX;
+    const y = e.clientY;
+
+    if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
+      setIsDragOver(false);
+    }
+  };
+
+  const handleWallpaperDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+
+    if (uploadingWallpaper) return;
+
+    const files = Array.from(e.dataTransfer.files);
+    const imageFile = files.find(file => file.type.startsWith('image/'));
+
+    if (imageFile) {
+      await processWallpaperFile(imageFile);
+    } else {
+      setSyncMessage('请拖拽图片文件 (JPG、PNG、WebP)');
+      setTimeout(() => setSyncMessage(''), 3000);
+    }
+  };
+
+  // 删除自定义壁纸
+  const handleDeleteCustomWallpaper = async () => {
+    const success = await customWallpaperManager.deleteCustomWallpaper();
+
+    if (success) {
+      setCustomWallpaperUrl('');
+      setCustomWallpaperInfo({ exists: false });
+
+      // 如果当前使用的是自定义壁纸，切换到默认分辨率
+      if (wallpaperResolution === 'custom') {
+        setWallpaperResolution('1080p');
+      }
+
+      setSyncMessage('自定义壁纸已删除');
+      setTimeout(() => setSyncMessage(''), 3000);
+    } else {
+      setSyncMessage('删除失败，请重试');
+      setTimeout(() => setSyncMessage(''), 3000);
+    }
+  };
 
   // 处理用户名保存
   const handleSaveName = async () => {
@@ -375,16 +556,12 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
             {currentUser ? (
               <div className="space-y-4">
                 {/* 用户信息卡片 - 现代化升级版 */}
-                <div className="relative bg-gradient-to-br from-white via-blue-50/30 to-indigo-50/50 rounded-2xl p-6 border border-gray-200/60 shadow-xl shadow-blue-100/40 backdrop-blur-sm hover:shadow-2xl hover:shadow-blue-200/30 hover:-translate-y-1 transition-all duration-300">
-                  {/* 装饰性背景元素 - 增强版 */}
-                  <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-blue-400/8 to-indigo-400/8 rounded-full blur-2xl animate-pulse"></div>
-                  <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-emerald-400/8 to-blue-400/8 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-24 h-24 bg-gradient-to-r from-purple-400/5 to-pink-400/5 rounded-full blur-xl"></div>
+                <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
 
-                  <div className="relative z-10">
+                  <div>
                     <div className="flex items-center gap-4 mb-4">
                       <div className="relative">
-                        <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 via-green-500 to-teal-500 rounded-2xl flex items-center justify-center shadow-xl shadow-emerald-500/30 hover:shadow-2xl hover:shadow-emerald-500/40 transition-all duration-300 hover:scale-105">
+                        <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 via-green-500 to-teal-500 rounded-2xl flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
                           <i className="fa-solid fa-cat text-white text-2xl"></i>
                         </div>
                         <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-white shadow-sm ${currentUser.email_confirmed_at ? 'bg-white' : 'bg-white'
@@ -503,14 +680,11 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
                 </div>
               </div>
             ) : (
-              <div className="relative bg-gradient-to-br from-slate-25 via-blue-25 to-indigo-50 rounded-2xl p-6 border border-gray-200 shadow-lg shadow-blue-50/30 backdrop-blur-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                {/* 装饰性背景元素 */}
-                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400/5 to-indigo-400/5 rounded-full blur-xl"></div>
-                <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-purple-400/5 to-blue-400/5 rounded-full blur-xl"></div>
+              <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
 
-                <div className="relative z-10">
+                <div>
                   <div className="flex items-center gap-4 mb-6">
-                    <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/25">
+                    <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
                       <i className="fa-solid fa-cat text-white text-xl"></i>
                     </div>
                     <div className="flex-1">
@@ -535,7 +709,7 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
             </div>
 
             {/* 同步控制区域 - 现代化卡片 */}
-            <div className="settings-card bg-gradient-to-br from-white to-blue-50/30 rounded-2xl p-5 border border-gray-200/60 shadow-lg shadow-blue-100/30 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 space-y-5">
+            <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 space-y-5">
               {/* 同步状态显示 */}
               <SyncStatusIndicator />
 
@@ -609,7 +783,7 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
                     <button
                       onClick={handleUploadToCloud}
                       disabled={isManualSyncing}
-                      className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-sm rounded-lg hover:from-blue-600 hover:to-blue-700 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed transition-all duration-200 shadow-lg shadow-blue-200 select-none"
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-sm rounded-lg hover:from-blue-600 hover:to-blue-700 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed transition-all duration-200 shadow-lg select-none"
                     >
                       <i className={`fa-solid ${isManualSyncing ? 'fa-spinner fa-spin' : 'fa-cloud-upload-alt'} select-none`}></i>
                       <span className="select-none">{isManualSyncing ? '上传中...' : '上传到云端'}</span>
@@ -617,7 +791,7 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
                     <button
                       onClick={handleDownloadFromCloud}
                       disabled={isManualSyncing}
-                      className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white text-sm rounded-lg hover:from-green-600 hover:to-green-700 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed transition-all duration-200 shadow-lg shadow-green-200 select-none"
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white text-sm rounded-lg hover:from-green-600 hover:to-green-700 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed transition-all duration-200 shadow-lg select-none"
                     >
                       <i className={`fa-solid ${isManualSyncing ? 'fa-spinner fa-spin' : 'fa-cloud-download-alt'} select-none`}></i>
                       <span className="select-none">{isManualSyncing ? '下载中...' : '从云端下载'}</span>
@@ -646,7 +820,7 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
             </div>
 
             {/* 透明度控制区域 - 现代化卡片 */}
-            <div className="settings-card bg-gradient-to-br from-white to-purple-50/30 rounded-2xl p-5 border border-gray-200/60 shadow-lg shadow-purple-100/30 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 space-y-5">
+            <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 space-y-5">
               {/* 搜索框不透明度控制 */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
@@ -743,7 +917,7 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
             </div>
 
             {/* 特效设置区域 */}
-            <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 space-y-4">
+            <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 space-y-4">
               {/* 视差效果开关 */}
               <div className="flex items-center justify-between">
                 <div className="flex-1">
@@ -759,11 +933,11 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
                 </div>
                 <button
                   onClick={() => setParallaxEnabled(!parallaxEnabled)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-all duration-200 ${parallaxEnabled ? 'bg-blue-500 shadow-lg shadow-blue-200' : 'bg-gray-300'
+                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${parallaxEnabled ? 'bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg shadow-blue-300/50' : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
                     }`}
                 >
                   <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 shadow-sm ${parallaxEnabled ? 'translate-x-6' : 'translate-x-1'
+                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${parallaxEnabled ? 'translate-x-6 shadow-blue-200' : 'translate-x-1 shadow-gray-200'
                       }`}
                   />
                 </button>
@@ -786,11 +960,11 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
                 </div>
                 <button
                   onClick={() => setSearchInNewTab(!searchInNewTab)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-all duration-200 ${searchInNewTab ? 'bg-blue-500 shadow-lg shadow-blue-200' : 'bg-gray-300'
+                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${searchInNewTab ? 'bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg shadow-blue-300/50' : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
                     }`}
                 >
                   <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 shadow-sm ${searchInNewTab ? 'translate-x-6' : 'translate-x-1'
+                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${searchInNewTab ? 'translate-x-6 shadow-blue-200' : 'translate-x-1 shadow-gray-200'
                       }`}
                   />
                 </button>
@@ -813,11 +987,11 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
                 </div>
                 <button
                   onClick={() => setAutoSortEnabled(!autoSortEnabled)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-all duration-200 ${autoSortEnabled ? 'bg-blue-500 shadow-lg shadow-blue-200' : 'bg-gray-300'
+                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${autoSortEnabled ? 'bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg shadow-blue-300/50' : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
                     }`}
                 >
                   <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 shadow-sm ${autoSortEnabled ? 'translate-x-6' : 'translate-x-1'
+                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${autoSortEnabled ? 'translate-x-6 shadow-blue-200' : 'translate-x-1 shadow-gray-200'
                       }`}
                   />
                 </button>
@@ -835,40 +1009,165 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
             </div>
 
             {/* 壁纸设置区域 */}
-            <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 space-y-4">
-              <div className="flex items-center gap-2 mb-2">
-                <i className="fa-solid fa-image text-blue-500 text-sm"></i>
-                <label className="text-sm font-medium text-gray-700 select-none">
-                  壁纸分辨率
-                </label>
+            <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 space-y-5">
+
+              {/* 壁纸分辨率选择 */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <i className="fa-solid fa-image text-blue-500 text-sm"></i>
+                    <label className="text-sm font-medium text-gray-700 select-none">
+                      壁纸分辨率
+                    </label>
+                  </div>
+                  <div className="relative group">
+                    <i className="fa-solid fa-info-circle text-gray-400 text-xs cursor-help"></i>
+                    <div className="absolute bottom-full right-0 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+                      💡 更改分辨率后会重新加载壁纸并更新缓存
+                      <div className="absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 select-none">
+                  {[
+                    { value: '4k', label: '4K 超高清', desc: '大屏设备', icon: 'fa-desktop' },
+                    { value: '1080p', label: '1080p 高清', desc: '推荐', icon: 'fa-laptop' },
+                    { value: '720p', label: '720p 标清', desc: '网络较慢', icon: 'fa-wifi' },
+                    { value: 'mobile', label: '竖屏壁纸', desc: '移动设备', icon: 'fa-mobile-alt' }
+                  ].map((option) => (
+                    <button
+                      key={option.value}
+                      onClick={() => setWallpaperResolution(option.value as WallpaperResolution)}
+                      className={`group p-3 rounded-lg border-2 transition-all duration-200 text-left select-none cursor-pointer ${wallpaperResolution === option.value
+                        ? 'border-blue-500 bg-blue-50 text-blue-700'
+                        : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
+                        }`}
+                    >
+                      <div className="flex items-center gap-2 mb-1">
+                        <i className={`fa-solid ${option.icon} text-sm transition-colors ${wallpaperResolution === option.value ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500'
+                          } select-none`}></i>
+                        <div className="font-medium text-sm select-none">{option.label}</div>
+                      </div>
+                      <div className="text-xs text-gray-500 select-none">{option.desc}</div>
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div className="grid grid-cols-2 gap-3 select-none">
-                {[
-                  { value: '4k', label: '4K 超高清', desc: '大屏设备', icon: 'fa-desktop' },
-                  { value: '1080p', label: '1080p 高清', desc: '推荐', icon: 'fa-laptop' },
-                  { value: '720p', label: '720p 标清', desc: '网络较慢', icon: 'fa-wifi' },
-                  { value: 'mobile', label: '竖屏壁纸', desc: '移动设备', icon: 'fa-mobile-alt' }
-                ].map((option) => (
+
+              {/* 自定义壁纸管理 */}
+              <div className="pt-4 border-t border-gray-200">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <i className="fa-solid fa-upload text-blue-500 text-sm"></i>
+                      <span className="text-sm font-medium text-gray-700">自定义壁纸</span>
+                    </div>
+                    <div className="relative group">
+                      <i className="fa-solid fa-info-circle text-gray-400 text-xs cursor-help"></i>
+                      <div className="absolute bottom-full right-0 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+                        <div className="space-y-1">
+                          <div>• 支持 JPG、PNG、WebP 格式</div>
+                          <div>• 文件大小不超过 10MB</div>
+                          <div>• 图片会自动压缩优化</div>
+                          {customWallpaperInfo.exists && (
+                            <div>• 当前壁纸: {customWallpaperInfo.sizeText}</div>
+                          )}
+                        </div>
+                        <div className="absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 自定义壁纸选项卡 */}
                   <button
-                    key={option.value}
-                    onClick={() => setWallpaperResolution(option.value as WallpaperResolution)}
-                    className={`p-3 rounded-lg border-2 transition-all text-left select-none cursor-pointer ${wallpaperResolution === option.value
+                    onClick={() => setWallpaperResolution('custom')}
+                    className={`w-full p-3 rounded-lg border-2 transition-all duration-200 text-left select-none cursor-pointer ${wallpaperResolution === 'custom'
                       ? 'border-blue-500 bg-blue-50 text-blue-700'
                       : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
                       }`}
                   >
                     <div className="flex items-center gap-2 mb-1">
-                      <i className={`fa-solid ${option.icon} text-sm ${wallpaperResolution === option.value ? 'text-blue-500' : 'text-gray-400'
+                      <i className={`fa-solid fa-image text-sm transition-colors ${wallpaperResolution === 'custom' ? 'text-blue-500' : 'text-gray-400'
                         } select-none`}></i>
-                      <div className="font-medium text-sm select-none">{option.label}</div>
+                      <div className="font-medium text-sm select-none">自定义壁纸</div>
+                      {customWallpaperInfo.exists && (
+                        <span className="ml-auto text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
+                          已上传
+                        </span>
+                      )}
                     </div>
-                    <div className="text-xs text-gray-500 select-none">{option.desc}</div>
+                    <div className="text-xs text-gray-500 select-none">
+                      {customWallpaperInfo.exists ? customWallpaperInfo.sizeText : '点击下方上传图片'}
+                    </div>
                   </button>
-                ))}
+
+                  {/* 拖拽上传区域 */}
+                  <div className="flex gap-3">
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      onChange={handleWallpaperUpload}
+                      className="hidden"
+                      id="wallpaper-upload"
+                      disabled={uploadingWallpaper}
+                    />
+                    <div
+                      className={`flex-1 relative ${uploadingWallpaper ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                      onDrop={handleWallpaperDrop}
+                      onDragOver={handleDragOver}
+                      onDragEnter={handleDragEnter}
+                      onDragLeave={handleDragLeave}
+                    >
+                      <label
+                        htmlFor="wallpaper-upload"
+                        className={`flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium rounded-lg border-2 border-dashed transition-all w-full ${uploadingWallpaper
+                          ? 'border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed'
+                          : isDragOver
+                            ? 'border-blue-500 bg-blue-100 text-blue-700'
+                            : isGlobalDragOver
+                              ? 'border-blue-400 bg-blue-50 text-blue-600 animate-pulse'
+                              : 'border-blue-300 bg-white text-blue-600 hover:border-blue-400 hover:bg-blue-50'
+                          }`}
+                      >
+                        {uploadingWallpaper ? (
+                          <>
+                            <i className="fa-solid fa-spinner fa-spin"></i>
+                            <span>上传中...</span>
+                          </>
+                        ) : isDragOver ? (
+                          <>
+                            <i className="fa-solid fa-hand-point-down text-lg"></i>
+                            <span>拖动到此处上传</span>
+                          </>
+                        ) : isGlobalDragOver ? (
+                          <>
+                            <i className="fa-solid fa-download text-lg"></i>
+                            <span>拖动到此处上传壁纸</span>
+                          </>
+                        ) : (
+                          <>
+                            <i className="fa-solid fa-cloud-upload-alt"></i>
+                            <span>{customWallpaperInfo.exists ? '更换壁纸' : '点击或拖拽上传壁纸'}</span>
+                          </>
+                        )}
+                      </label>
+                    </div>
+
+                    {/* 删除按钮 */}
+                    {customWallpaperInfo.exists && (
+                      <button
+                        onClick={handleDeleteCustomWallpaper}
+                        className="px-4 py-3 text-sm font-medium text-red-600 bg-white border border-red-300 rounded-lg hover:bg-red-50 hover:border-red-400 transition-all duration-200"
+                        disabled={uploadingWallpaper}
+                        title="删除自定义壁纸"
+                      >
+                        <i className="fa-solid fa-trash"></i>
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
-              <p className="text-xs text-gray-500 bg-gray-50 p-2 rounded select-none">
-                💡 更改分辨率后会重新加载壁纸并更新缓存
-              </p>
             </div>
           </div>
 
@@ -896,7 +1195,7 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
 
               <button
                 onClick={() => setShowAddCardModal(true)}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-b from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-600/40 hover:scale-[1.02] select-none"
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-b from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-[1.02] select-none"
               >
                 <i className="fa-solid fa-plus select-none"></i>
                 <span className="select-none">添加新卡片</span>
@@ -1014,7 +1313,7 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
               <div className="grid grid-cols-1 gap-3">
                 <button
                   onClick={() => setShowPrivacySettings(true)}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-b from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-lg shadow-purple-500/30 hover:shadow-xl hover:shadow-purple-600/40 hover:scale-[1.02] select-none"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-b from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-[1.02] select-none"
                 >
                   <i className="fa-solid fa-shield-halved select-none"></i>
                   <span className="select-none">隐私设置</span>
@@ -1024,7 +1323,7 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
                   href={`${import.meta.env.BASE_URL}tutorial.html`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-b from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 text-sm font-medium rounded-lg transition-all duration-200 shadow-lg shadow-gray-300/30 hover:shadow-xl hover:shadow-gray-400/40 hover:scale-[1.02] select-none"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-b from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 text-sm font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-[1.02] select-none"
                   style={{ textDecoration: 'none' }}
                 >
                   <i className="fa-solid fa-graduation-cap select-none"></i>

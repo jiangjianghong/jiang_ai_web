@@ -243,7 +243,7 @@ class FaviconCacheManager {
     
     // 所有尝试失败，返回默认图标
     console.log(`🔄 所有 favicon 尝试失败，使用默认图标: ${domain}`);
-    return '/icon/icon.jpg';
+    return '/icon/favicon.png';
   }
 
   /**
@@ -340,7 +340,7 @@ class FaviconCacheManager {
     // 如果网络不可用，直接返回默认图标
     if (!navigator.onLine) {
       console.log(`🔌 网络不可用，使用默认图标: ${domain}`);
-      return '/icon/icon.jpg';
+      return '/icon/favicon.png';
     }
 
     // 检查是否正在加载
@@ -371,7 +371,7 @@ class FaviconCacheManager {
       return result;
     } catch (error) {
       console.warn(`获取 favicon 失败: ${domain}`, error);
-      return '/icon/icon.jpg';
+      return '/icon/favicon.png';
     }
   }
 
@@ -461,7 +461,7 @@ class FaviconCacheManager {
           console.log(`🔄 [${i + index + 1}/${websites.length}] 处理: ${domain}`);
           
           const result = await this.getFavicon(site.url, site.favicon);
-          if (result && result !== '/icon/icon.jpg') {
+          if (result && result !== '/icon/favicon.png') {
             successCount++;
             console.log(`✅ 文件缓存成功: ${domain}`);
           } else {

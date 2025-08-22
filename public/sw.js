@@ -29,7 +29,7 @@ const STATIC_CACHE_URLS = [
 // 可选缓存URL（这些文件可能不存在）
 const OPTIONAL_CACHE_URLS = [
   `${basePath}/404.html`,
-  `${basePath}/icon/icon.jpg`,
+  `${basePath}/icon/favicon.png`,
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/webfonts/fa-solid-900.woff2'
 ];
 

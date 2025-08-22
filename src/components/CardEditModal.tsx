@@ -70,7 +70,7 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
   const getFaviconUrls = (domain: string): string[] => {
     // 代理服务前缀
     const proxyPrefix = 'https://api.allorigins.win/raw?url=';
-    
+
     return [
       // 使用代理访问 favicon.im（支持国内访问，速度快）
       proxyPrefix + encodeURIComponent(`https://favicon.im/${domain}?larger=true`),
@@ -85,23 +85,11 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
       `https://${domain}/favicon.ico`,
       `https://${domain}/favicon.png`,
       // 兜底：默认图标
-      '/icon/icon.jpg'
+      '/icon/favicon.png'
     ];
   };
 
-  /**
-   * 处理 favicon URL，检测并通过代理访问有 CORS 问题的 URL
-   */
-  const processeFaviconUrl = (url: string): string => {
-    const proxyPrefix = 'https://api.allorigins.win/raw?url=';
-    
-    // 检查是否是需要代理的URL
-    if (url.includes('favicon.im')) {
-      return proxyPrefix + encodeURIComponent(url);
-    }
-    
-    return url;
-  };
+
 
   /**
    * 测试图标URL是否可用
@@ -126,7 +114,7 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
     try {
       setAutoFetching(true);
       const domain = new URL(formData.url).hostname;
-      
+
       // 清除该域名的 favicon 缓存，确保获取最新图标
       const extractDomain = (url: string) => {
         try {
@@ -135,10 +123,10 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
           return url.replace(/^(https?:\/\/)?(www\.)?/, '').split('/')[0];
         }
       };
-      
+
       const cacheDomain = extractDomain(formData.url);
       console.log('🧹 清除域名缓存:', cacheDomain);
-      
+
       // 清除旧的缓存
       try {
         const cacheKey = 'favicon-cache-simple';
@@ -151,13 +139,13 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
       } catch (error) {
         console.warn('清除缓存失败:', error);
       }
-      
+
       // 尝试多个图标服务，优先使用国内访问稳定的服务
       const faviconUrls = getFaviconUrls(cacheDomain);
-      let newFaviconUrl = '/icon/icon.jpg'; // 默认图标
-      
+      let newFaviconUrl = '/icon/favicon.png'; // 默认图标
+
       console.log('🔍 开始尝试获取图标，优先使用国内稳定服务...');
-      
+
       // 逐个尝试图标URL，找到第一个可用的
       for (const url of faviconUrls) {
         try {
@@ -171,7 +159,7 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
           continue;
         }
       }
-      
+
       // 自动获取favicon
       setFormData(prev => ({
         ...prev,
@@ -190,7 +178,7 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
         delete newErrors.url;
         return newErrors;
       });
-      
+
       console.log('✅ 自动获取完成，最终图标:', newFaviconUrl);
     } catch (error) {
       console.error('自动获取信息失败:', error);
@@ -202,10 +190,10 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       setUploading(true);
-      
+
       const result = websiteSchema.safeParse(formData);
       if (!result.success) {
         const newErrors: Record<string, string> = {};
@@ -218,10 +206,10 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
 
       // 使用独立的标签，不从备注中提取
       const cleanedNote = formData.note || '';
-      
+
       // 只有当图标发生变化时才上传到 Firebase Storage
       let finalFaviconUrl = formData.favicon;
-      
+
       if (formData.favicon !== favicon) {
         console.log('🔄 图标已变更，开始上传到数据库...');
         try {
@@ -234,7 +222,7 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
       } else {
         console.log('📋 图标未变更，跳过上传');
       }
-      
+
       // 如果 favicon 发生了变化，清除缓存
       if (formData.favicon !== favicon) {
         console.log('🔄 Favicon 已更改，清除缓存');
@@ -245,7 +233,7 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
             return url.replace(/^(https?:\/\/)?(www\.)?/, '').split('/')[0];
           }
         };
-        
+
         const cacheDomain = extractDomain(formData.url);
         try {
           const cacheKey = 'favicon-cache-simple';
@@ -260,7 +248,7 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
           console.warn('清除缓存失败:', error);
         }
       }
-      
+
       // 保存逻辑
       onSave({
         id,
@@ -286,7 +274,7 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
       ...prev,
       [name]: value
     }));
-    
+
     // 清除错误
     if (errors[name]) {
       setErrors(prev => {
@@ -317,8 +305,8 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
           initial={{ opacity: 0, scale: 0.9, rotateX: -10 }}
           animate={{ opacity: 1, scale: 1, rotateX: 0 }}
           exit={{ opacity: 0, scale: 0.9, rotateX: 10 }}
-          transition={{ 
-            type: 'spring', 
+          transition={{
+            type: 'spring',
             damping: 25,
             stiffness: 200,
             duration: 0.4
@@ -329,201 +317,201 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
             border: '1px solid rgba(255,255,255,0.3)',
           }}
         >
-        <div className="flex justify-between items-center mb-4 select-none">
-          <h2 className="text-xl font-semibold select-none bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">编辑卡片</h2>
-          <motion.button 
-            onClick={onClose} 
-            className="text-gray-500 hover:text-gray-700 select-none p-2 rounded-full hover:bg-gray-100 transition-colors"
-            whileHover={{ scale: 1.1, rotate: 90 }}
-            whileTap={{ scale: 0.9 }}
-          >
-            <i className="fa-solid fa-xmark select-none"></i>
-          </motion.button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1 select-none">网址</label>
-            <div className="flex gap-2">
-              <input
-                type="url"
-                name="url"
-                value={formData.url}
-                onChange={handleChange}
-                className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="https://example.com"
-              />
-              <motion.button
-                type="button"
-                onClick={handleAutoFetch}
-                disabled={autoFetching || !formData.url}
-                className="px-3 py-2 text-white rounded-md select-none bg-gradient-to-b from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-blue-300 disabled:to-blue-400 disabled:cursor-not-allowed shadow-sm"
-                whileHover={!(autoFetching || !formData.url) ? { scale: 1.05, y: -1 } : {}}
-                whileTap={!(autoFetching || !formData.url) ? { scale: 0.95, y: 0 } : {}}
-                transition={{ type: "spring", stiffness: 400, damping: 25 }}
-              >
-                {autoFetching ? (
-                  <>
-                    <motion.i 
-                      className="fa-solid fa-spinner mr-1"
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                    />
-                    获取中...
-                  </>
-                ) : (
-                  '自动获取'
-                )}
-              </motion.button>
-            </div>
-            {errors.url && <p className="mt-1 text-sm text-red-500 select-none">{errors.url}</p>}
+          <div className="flex justify-between items-center mb-4 select-none">
+            <h2 className="text-xl font-semibold select-none bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">编辑卡片</h2>
+            <motion.button
+              onClick={onClose}
+              className="text-gray-500 hover:text-gray-700 select-none p-2 rounded-full hover:bg-gray-100 transition-colors"
+              whileHover={{ scale: 1.1, rotate: 90 }}
+              whileTap={{ scale: 0.9 }}
+            >
+              <i className="fa-solid fa-xmark select-none"></i>
+            </motion.button>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1 select-none">网站名</label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="网站名称"
-            />
-            {errors.name && <p className="mt-1 text-sm text-red-500 select-none">{errors.name}</p>}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1 select-none">图标</label>
-            <div className="flex items-center gap-3">
-              <div className="flex-1">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1 select-none">网址</label>
+              <div className="flex gap-2">
                 <input
                   type="url"
-                  name="favicon"
-                  value={formData.favicon}
+                  name="url"
+                  value={formData.url}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="https://example.com/favicon.ico"
+                  className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="https://example.com"
                 />
+                <motion.button
+                  type="button"
+                  onClick={handleAutoFetch}
+                  disabled={autoFetching || !formData.url}
+                  className="px-3 py-2 text-white rounded-md select-none bg-gradient-to-b from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-blue-300 disabled:to-blue-400 disabled:cursor-not-allowed shadow-sm"
+                  whileHover={!(autoFetching || !formData.url) ? { scale: 1.05, y: -1 } : {}}
+                  whileTap={!(autoFetching || !formData.url) ? { scale: 0.95, y: 0 } : {}}
+                  transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                >
+                  {autoFetching ? (
+                    <>
+                      <motion.i
+                        className="fa-solid fa-spinner mr-1"
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      />
+                      获取中...
+                    </>
+                  ) : (
+                    '自动获取'
+                  )}
+                </motion.button>
               </div>
-              <span className="text-gray-400 select-none">或</span>
-              <label className="cursor-pointer select-none">
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      const reader = new FileReader();
-                      reader.onload = (event) => {
-                        if (event.target?.result) {
-                          setFormData(prev => ({
-                            ...prev,
-                            favicon: event.target?.result as string
-                          }));
-                        }
-                      };
-                      reader.readAsDataURL(file);
-                    }
-                  }}
-                />
-                <div className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-sm text-gray-700 transition-colors select-none">
-                  <i className="fa-solid fa-upload mr-1 select-none"></i>上传
-                </div>
-              </label>
+              {errors.url && <p className="mt-1 text-sm text-red-500 select-none">{errors.url}</p>}
             </div>
-            {formData.favicon && (
-              <div className="mt-2 flex items-center select-none">
-                <img 
-                  src={formData.favicon} 
-                  alt="图标预览" 
-                  className="w-8 h-8 rounded mr-2 select-none"
-                />
-                <span className="text-xs text-gray-500 truncate max-w-xs select-none">
-                  {formData.favicon.startsWith('data:image') ? '上传的图标' : formData.favicon}
-                </span>
-              </div>
-            )}
-            {errors.favicon && <p className="mt-1 text-sm text-red-500 select-none">{errors.favicon}</p>}
-          </div>
 
-          {/* 独立的标签编辑区域 */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1 select-none">
-              标签 (最多2个)
-            </label>
-            <div className="space-y-2">
-              {/* 现有标签显示 */}
-              {formTags.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {formTags.map((tag, index) => (
-                    <span
-                      key={index}
-                      className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
-                    >
-                      {tag}
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveTag(index)}
-                        className="hover:bg-blue-200 rounded-full p-0.5 transition-colors"
-                      >
-                        <i className="fa-solid fa-times text-xs"></i>
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              )}
-              
-              {/* 添加新标签 */}
-              {formTags.length < 2 && (
-                <div className="flex gap-2">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1 select-none">网站名</label>
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="网站名称"
+              />
+              {errors.name && <p className="mt-1 text-sm text-red-500 select-none">{errors.name}</p>}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1 select-none">图标</label>
+              <div className="flex items-center gap-3">
+                <div className="flex-1">
                   <input
-                    type="text"
-                    value={newTag}
-                    onChange={(e) => setNewTag(e.target.value)}
-                    onKeyDown={handleTagKeyDown}
-                    className="flex-1 px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="输入标签名称..."
-                    maxLength={10}
+                    type="url"
+                    name="favicon"
+                    value={formData.favicon}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="https://example.com/favicon.ico"
                   />
-                  <motion.button
-                    type="button"
-                    onClick={handleAddTag}
-                    disabled={!newTag.trim() || formTags.includes(newTag.trim())}
-                    className="px-3 py-2 text-white text-sm rounded-md select-none bg-gradient-to-b from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed shadow-sm"
-                    whileHover={!((!newTag.trim() || formTags.includes(newTag.trim()))) ? { scale: 1.05, y: -1 } : {}}
-                    whileTap={!((!newTag.trim() || formTags.includes(newTag.trim()))) ? { scale: 0.95, y: 0 } : {}}
-                    transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                  >
-                    添加
-                  </motion.button>
+                </div>
+                <span className="text-gray-400 select-none">或</span>
+                <label className="cursor-pointer select-none">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                          if (event.target?.result) {
+                            setFormData(prev => ({
+                              ...prev,
+                              favicon: event.target?.result as string
+                            }));
+                          }
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                  />
+                  <div className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-sm text-gray-700 transition-colors select-none">
+                    <i className="fa-solid fa-upload mr-1 select-none"></i>上传
+                  </div>
+                </label>
+              </div>
+              {formData.favicon && (
+                <div className="mt-2 flex items-center select-none">
+                  <img
+                    src={formData.favicon}
+                    alt="图标预览"
+                    className="w-8 h-8 rounded mr-2 select-none"
+                  />
+                  <span className="text-xs text-gray-500 truncate max-w-xs select-none">
+                    {formData.favicon.startsWith('data:image') ? '上传的图标' : formData.favicon}
+                  </span>
                 </div>
               )}
-              
-              <div className="text-xs text-gray-500">
-                {formTags.length === 0 && "为网站添加分类标签，便于管理"}
-                {formTags.length === 1 && "还可以添加1个标签"}
-                {formTags.length === 2 && "已达到标签数量上限"}
+              {errors.favicon && <p className="mt-1 text-sm text-red-500 select-none">{errors.favicon}</p>}
+            </div>
+
+            {/* 独立的标签编辑区域 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1 select-none">
+                标签 (最多2个)
+              </label>
+              <div className="space-y-2">
+                {/* 现有标签显示 */}
+                {formTags.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {formTags.map((tag, index) => (
+                      <span
+                        key={index}
+                        className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
+                      >
+                        {tag}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveTag(index)}
+                          className="hover:bg-blue-200 rounded-full p-0.5 transition-colors"
+                        >
+                          <i className="fa-solid fa-times text-xs"></i>
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {/* 添加新标签 */}
+                {formTags.length < 2 && (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={newTag}
+                      onChange={(e) => setNewTag(e.target.value)}
+                      onKeyDown={handleTagKeyDown}
+                      className="flex-1 px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="输入标签名称..."
+                      maxLength={10}
+                    />
+                    <motion.button
+                      type="button"
+                      onClick={handleAddTag}
+                      disabled={!newTag.trim() || formTags.includes(newTag.trim())}
+                      className="px-3 py-2 text-white text-sm rounded-md select-none bg-gradient-to-b from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed shadow-sm"
+                      whileHover={!((!newTag.trim() || formTags.includes(newTag.trim()))) ? { scale: 1.05, y: -1 } : {}}
+                      whileTap={!((!newTag.trim() || formTags.includes(newTag.trim()))) ? { scale: 0.95, y: 0 } : {}}
+                      transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                    >
+                      添加
+                    </motion.button>
+                  </div>
+                )}
+
+                <div className="text-xs text-gray-500">
+                  {formTags.length === 0 && "为网站添加分类标签，便于管理"}
+                  {formTags.length === 1 && "还可以添加1个标签"}
+                  {formTags.length === 2 && "已达到标签数量上限"}
+                </div>
               </div>
             </div>
-          </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1 select-none">
-              备注
-            </label>
-            <textarea
-              name="note"
-              value={formData.note}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              rows={3}
-              placeholder="网站用途说明..."
-            />
-          </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1 select-none">
+                备注
+              </label>
+              <textarea
+                name="note"
+                value={formData.note}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                rows={3}
+                placeholder="网站用途说明..."
+              />
+            </div>
 
 
-           <div className="flex flex-col gap-4 pt-4 select-none">
+            <div className="flex flex-col gap-4 pt-4 select-none">
               <div className="flex gap-2 select-none">
                 <motion.button
                   type="button"
@@ -545,7 +533,7 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
                 >
                   {uploading ? (
                     <>
-                      <motion.i 
+                      <motion.i
                         className="fa-solid fa-spinner mr-2"
                         animate={{ rotate: 360 }}
                         transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
@@ -557,14 +545,14 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
                   )}
                 </motion.button>
               </div>
-              
+
               {/* 保存错误提示 */}
               {errors.submit && (
                 <p className="text-red-500 text-sm text-center select-none">
                   {errors.submit}
                 </p>
               )}
-              
+
               {onDelete && (
                 <motion.button
                   type="button"
@@ -579,7 +567,7 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
                   whileTap={{ scale: 0.98, y: 0 }}
                   transition={{ type: "spring", stiffness: 400, damping: 25 }}
                 >
-                  <motion.i 
+                  <motion.i
                     className="fa-solid fa-trash mr-2 select-none"
                     whileHover={{ rotate: [0, -10, 10, 0] }}
                     transition={{ duration: 0.5 }}
@@ -591,8 +579,8 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
 
 
 
-        </form>
-      </motion.div>
+          </form>
+        </motion.div>
       </Tilt>
     </div>
   );

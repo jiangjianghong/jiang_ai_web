@@ -71,7 +71,7 @@ async function getBingWallpaperMetadata(): Promise<any> {
 async function fetchWallpaperImage(imageUrl: string): Promise<ArrayBuffer | null> {
   try {
     console.log(`尝试获取壁纸: ${imageUrl}`);
-    
+
     const response = await fetch(imageUrl, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (compatible; WallpaperBot/1.0)',
@@ -93,10 +93,11 @@ async function fetchWallpaperImage(imageUrl: string): Promise<ArrayBuffer | null
 }
 
 // 主处理函数
+// @ts-ignore: Deno global
 Deno.serve(async (req) => {
   const { url, method } = req;
   const requestUrl = new URL(url);
-  
+
   // 处理CORS预检请求
   if (method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -106,10 +107,10 @@ Deno.serve(async (req) => {
     // 获取参数
     const resolution = requestUrl.searchParams.get('resolution') || 'uhd';
     const forceRefresh = requestUrl.searchParams.get('refresh') === 'true';
-    
+
     // 验证分辨率参数
     const targetResolution = RESOLUTIONS[resolution] || RESOLUTIONS['uhd'];
-    
+
     console.log(`壁纸请求: ${resolution} (${targetResolution})`);
 
     // 生成缓存键 - 基于日期和分辨率
@@ -117,7 +118,9 @@ Deno.serve(async (req) => {
     const cacheKey = `wallpaper-${today}-${resolution}.jpg`;
 
     // 获取Supabase环境变量
+    // @ts-ignore: Deno global
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    // @ts-ignore: Deno global
     const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY');
 
     // 如果不强制刷新，先检查缓存
@@ -128,7 +131,7 @@ Deno.serve(async (req) => {
             'Authorization': `Bearer ${supabaseKey}`,
           },
         });
-        
+
         if (cacheResponse.ok) {
           console.log(`使用缓存壁纸: ${cacheKey}`);
           const cachedData = await cacheResponse.arrayBuffer();
@@ -179,14 +182,14 @@ Deno.serve(async (req) => {
     if (!wallpaperData) {
       console.log('所有壁纸源都失败');
       return new Response(
-        JSON.stringify({ 
+        JSON.stringify({
           error: '无法获取壁纸',
           resolution: targetResolution,
           date: today,
-          fallback: '/icon/icon.jpg'
-        }), 
-        { 
-          status: 404, 
+          fallback: '/icon/favicon.png'
+        }),
+        {
+          status: 404,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
       );
@@ -224,14 +227,14 @@ Deno.serve(async (req) => {
 
   } catch (error) {
     console.error('壁纸服务错误:', error);
-    
+
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         error: '壁纸服务内部错误',
-        message: error.message 
-      }), 
-      { 
-        status: 500, 
+        message: error.message
+      }),
+      {
+        status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     );

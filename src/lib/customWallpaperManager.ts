@@ -102,7 +102,7 @@ class CustomWallpaperManager {
       await indexedDBCache.delete(this.CUSTOM_WALLPAPER_KEY);
       
       // 清理内存中的 Blob URL
-      memoryManager.cleanup('custom-wallpaper');
+      memoryManager.cleanupCategory('custom-wallpaper');
       
       logger.wallpaper.info('删除自定义壁纸成功');
       return true;

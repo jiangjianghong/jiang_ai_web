@@ -1,14 +1,20 @@
+// @ts-ignore: Deno runtime
 // Favicon Service - 基于Supabase的跨域代理和缓存服务
 // 作为公开镜像源的备用方案，解决跨域限制和缓存问题
 
-import { serve } from "https://deno.land/std@0.224.0/http/server.ts"
+// @ts-ignore: Deno import
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+// @ts-ignore: Deno import
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+// @ts-ignore: Deno import
 import { corsHeaders } from '../_shared/cors.ts'
 
 console.log("Favicon Service function started")
 
 // 初始化Supabase客户端
+// @ts-ignore: Deno global
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+// @ts-ignore: Deno global
 const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const supabase = createClient(supabaseUrl, supabaseKey)
 
@@ -24,7 +30,7 @@ const FAVICON_SOURCES = [
 serve(async (req) => {
   const { url, method } = req
   const requestUrl = new URL(url)
-  
+
   // 处理 CORS 预检请求
   if (method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -35,13 +41,13 @@ serve(async (req) => {
     const domain = requestUrl.searchParams.get('domain')
     const size = parseInt(requestUrl.searchParams.get('size') || '32')
     const forceRefresh = requestUrl.searchParams.get('refresh') === 'true'
-    
+
     if (!domain) {
       return new Response(
-        JSON.stringify({ error: '缺少domain参数' }), 
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        JSON.stringify({ error: '缺少domain参数' }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
       )
     }
@@ -49,7 +55,7 @@ serve(async (req) => {
     // 清理域名
     const cleanDomain = domain.replace(/^(https?:\/\/)?(www\.)?/, '').split('/')[0]
     const cacheKey = `favicons/${cleanDomain}-${size}.ico`
-    
+
     console.log(`Favicon请求: ${cleanDomain} (size: ${size})`)
 
     // 如果不强制刷新，先检查Supabase Storage中是否有缓存
@@ -58,7 +64,7 @@ serve(async (req) => {
         const { data: existingFile } = await supabase.storage
           .from('favicons')
           .download(cacheKey)
-        
+
         if (existingFile) {
           console.log(`使用缓存的favicon: ${cacheKey}`)
           return new Response(existingFile, {
@@ -81,10 +87,10 @@ serve(async (req) => {
 
     for (const source of FAVICON_SOURCES) {
       const faviconUrl = source(cleanDomain)
-      
+
       try {
         console.log(`尝试获取favicon: ${faviconUrl}`)
-        
+
         const response = await fetch(faviconUrl, {
           headers: {
             'User-Agent': 'Mozilla/5.0 (compatible; FaviconBot/1.0)',
@@ -111,14 +117,14 @@ serve(async (req) => {
     if (!faviconData) {
       console.log(`所有favicon源都失败，返回默认图标`)
       return new Response(
-        JSON.stringify({ 
+        JSON.stringify({
           error: '无法获取favicon',
           domain: cleanDomain,
-          fallback: '/icon/icon.jpg'
-        }), 
-        { 
-          status: 404, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          fallback: '/icon/favicon.png'
+        }),
+        {
+          status: 404,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
       )
     }
@@ -155,18 +161,18 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Favicon服务错误:', error)
-    
+
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         error: 'Favicon服务内部错误',
-        message: error.message 
-      }), 
-      { 
-        status: 500, 
-        headers: { 
-          ...corsHeaders, 
-          'Content-Type': 'application/json' 
-        } 
+        message: error.message
+      }),
+      {
+        status: 500,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        }
       }
     )
   }

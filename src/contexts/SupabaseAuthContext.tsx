@@ -79,7 +79,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isNetworkOnline, setIsNetworkOnline] = useState(isOnline());
+  const [isNetworkOnline, setIsNetworkOnline] = useState(() => isOnline());
   const [isSupabaseConnected, setIsSupabaseConnected] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useWorkspace } from '@/contexts/WorkspaceContext';
 import Tilt from 'react-parallax-tilt';
@@ -11,7 +11,7 @@ interface WorkspaceModalProps {
   onClose: () => void;
 }
 
-export default function WorkspaceModal({ isOpen, onClose }: WorkspaceModalProps) {
+function WorkspaceModalComponent({ isOpen, onClose }: WorkspaceModalProps) {
   const {
     workspaceItems,
     isLoading,
@@ -295,3 +295,6 @@ export default function WorkspaceModal({ isOpen, onClose }: WorkspaceModalProps)
     </AnimatePresence>
   );
 }
+
+const WorkspaceModal = memo(WorkspaceModalComponent);
+export default WorkspaceModal;

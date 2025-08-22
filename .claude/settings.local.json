@@ -13,7 +13,8 @@
       "Bash(claude --permission-mode bypassPermissions)",
       "WebSearch",
       "Bash(npm run typecheck)",
-      "Bash(npm run build)"
+      "Bash(npm run build)",
+      "Bash(npx tsc:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"

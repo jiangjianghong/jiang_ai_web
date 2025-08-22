@@ -14,7 +14,6 @@ class MemoryManager {
   private blobUrls = new Map<string, BlobUrlInfo>();
   private maxAge = 30 * 60 * 1000; // 30分钟
   private maxTotalSize = 200 * 1024 * 1024; // 200MB
-  private cleanupInterval: number;
 
   static getInstance(): MemoryManager {
     if (!MemoryManager.instance) {
@@ -24,11 +23,6 @@ class MemoryManager {
   }
 
   constructor() {
-    // 定期清理过期的 Blob URL
-    this.cleanupInterval = window.setInterval(() => {
-      this.cleanup();
-    }, 5 * 60 * 1000); // 每5分钟清理一次
-
     // 页面卸载时清理所有 Blob URL
     window.addEventListener('beforeunload', () => {
       this.cleanup(true);
@@ -227,10 +221,6 @@ class MemoryManager {
 
   // 销毁管理器
   destroy(): void {
-    if (this.cleanupInterval) {
-      clearInterval(this.cleanupInterval);
-    }
-    
     this.cleanup(true);
     logger.info('内存管理器已销毁');
   }

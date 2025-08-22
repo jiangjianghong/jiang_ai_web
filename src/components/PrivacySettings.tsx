@@ -8,8 +8,8 @@ interface PrivacySettingsProps {
 }
 
 export default function PrivacySettings({ isOpen, onClose }: PrivacySettingsProps) {
-  const [stats, setStats] = useState(storageManager.getStorageStats());
-  const [consentStatus, setConsentStatus] = useState(storageManager.getConsentStatus());
+  const [stats, setStats] = useState(() => storageManager.getStorageStats());
+  const [consentStatus, setConsentStatus] = useState(() => storageManager.getConsentStatus());
 
   useEffect(() => {
     if (isOpen) {

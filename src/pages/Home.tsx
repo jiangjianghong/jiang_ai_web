@@ -89,7 +89,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
     }) : websites;
 
   // 处理用户名框点击事件
-  const handleUserNameClick = () => {
+  const handleUserNameClick = useCallback(() => {
     if (isAnimating) return; // 防止动画期间重复点击
 
     setClickCount(prev => prev + 1);
@@ -104,9 +104,9 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
         setIsAnimating(false);
       }, 300); // 等待淡出动画完成
     }, 1000);
-  };
+  }, [isAnimating]);
 
-  const handleSaveCard = (updatedCard: {
+  const handleSaveCard = useCallback((updatedCard: {
     id: string;
     name: string;
     url: string;
@@ -121,7 +121,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
         card.id === updatedCard.id ? { ...card, ...updatedCard } : card
       )
     );
-  };
+  }, [websites, setWebsites]);
 
   useEffect(() => {
     // 主要逻辑：使用优化的壁纸服务

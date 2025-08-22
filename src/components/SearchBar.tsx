@@ -1,4 +1,4 @@
-import { useState, useRef, useLayoutEffect, useEffect, useCallback } from 'react';
+import { useState, useRef, useLayoutEffect, useEffect, useCallback, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTransparency } from '@/contexts/TransparencyContext';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
@@ -18,7 +18,7 @@ interface SearchBarProps {
     websites?: WebsiteData[];
 }
 
-export function SearchBar(props: SearchBarProps = {}) {
+function SearchBarComponent(props: SearchBarProps = {}) {
     const { websites = [] } = props;
     const inputRef = useRef<HTMLInputElement>(null);
     const [isFocused, setIsFocused] = useState(false);
@@ -1049,3 +1049,8 @@ export function SearchBar(props: SearchBarProps = {}) {
         </>
     );
 }
+
+export const SearchBar = memo(SearchBarComponent, (prevProps, nextProps) => {
+    if (!prevProps || !nextProps) return false;
+    return prevProps.websites === nextProps.websites;
+});

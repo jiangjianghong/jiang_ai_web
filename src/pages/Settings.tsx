@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, memo } from 'react';
 import { motion } from 'framer-motion';
 import CardEditModal from '@/components/CardEditModal';
 import SyncStatusIndicator from '@/components/SyncStatusIndicator';
@@ -21,7 +21,7 @@ interface SettingsProps {
   setWebsites: (websites: WebsiteData[]) => void;
 }
 
-export default function Settings({ onClose, websites, setWebsites }: SettingsProps) {
+function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
   const [showAddCardModal, setShowAddCardModal] = useState(false);
   const [showPrivacySettings, setShowPrivacySettings] = useState(false);
   const [showImportConfirm, setShowImportConfirm] = useState(false);
@@ -1407,4 +1407,7 @@ export default function Settings({ onClose, websites, setWebsites }: SettingsPro
     </div>
   );
 }
+
+const Settings = memo(SettingsComponent);
+export default Settings;
 

@@ -4,7 +4,7 @@ import { useDrag, useDrop } from 'react-dnd';
 import Tilt from 'react-parallax-tilt';
 import CardEditModal from './CardEditModal';
 import { useTransparency } from '@/contexts/TransparencyContext';
-import { useFavicon } from '@/hooks/useFavicon';
+import { useLazyFavicon } from '@/hooks/useLazyFavicon';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 
 interface WebsiteCardProps {
@@ -28,7 +28,7 @@ export const WebsiteCard = memo(function WebsiteCardComponent({ id, name, url, f
   const cardRef = useRef<HTMLDivElement>(null);
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
   const { cardOpacity, cardColor } = useTransparency();
-  const { faviconUrl, isLoading, error } = useFavicon(url, favicon);
+  const { faviconUrl, isLoading, error } = useLazyFavicon(url, favicon, cardRef);
   const { isMobile, getCardClasses } = useResponsiveLayout();
 
 

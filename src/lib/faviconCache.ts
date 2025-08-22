@@ -31,11 +31,6 @@ class FaviconCacheManager {
 
     // 预加载所有有效缓存的 Blob URL
     this.preloadBlobUrls();
-
-    // 定期清理过期的 Blob URL（每5分钟）
-    setInterval(() => {
-      this.cleanupExpiredBlobUrls();
-    }, 5 * 60 * 1000);
   }
 
   /**

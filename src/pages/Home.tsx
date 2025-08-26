@@ -8,9 +8,8 @@ import { useTransparency } from '@/contexts/TransparencyContext';
 import { useAuth } from '../contexts/SupabaseAuthContext';
 import { useUserProfile } from '@/contexts/UserProfileContext';
 import { useAutoSync } from '@/hooks/useAutoSync';
-import Settings from '@/pages/Settings';
 import EmailVerificationBanner from '@/components/EmailVerificationBanner';
-import WorkspaceModal from '@/components/Workspace/WorkspaceModal';
+import { LazySettings, LazyWorkspaceModal } from '@/utils/lazyComponents';
 import { useWorkspace } from '@/contexts/WorkspaceContext';
 import { faviconCache } from '@/lib/faviconCache';
 import { optimizedWallpaperService } from '@/lib/optimizedWallpaperService';
@@ -25,7 +24,7 @@ interface HomeProps {
 }
 
 export default function Home({ websites, setWebsites, dataInitialized = true }: HomeProps) {
-  const { parallaxEnabled, wallpaperResolution, isSettingsOpen, autoSortEnabled } = useTransparency();
+  const { parallaxEnabled, wallpaperResolution, isSettingsOpen, autoSortEnabled, customWallpaperUrl } = useTransparency();
   const { currentUser } = useAuth();
   const { displayName } = useUserProfile();
   const { isWorkspaceOpen, setIsWorkspaceOpen } = useWorkspace();
@@ -59,12 +58,26 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
     const checkCacheAndLoadWallpaper = async () => {
       try {
         logger.debug('🔍 检查壁纸缓存');
+        
+        // 如果有自定义壁纸，直接使用
+        if (customWallpaperUrl && customWallpaperUrl.trim()) {
+          setBgImage(customWallpaperUrl);
+          setBgImageLoaded(true);
+          logger.debug('⚡ 即时加载自定义壁纸');
+          return;
+        }
+
         const result = await optimizedWallpaperService.getWallpaper(wallpaperResolution);
 
         if (result.url && result.isFromCache) {
           setBgImage(result.url);
           setBgImageLoaded(true);
-          logger.debug('⚡ 即时加载缓存壁纸');
+          logger.debug('⚡ 即时加载缓存壁纸', { isToday: result.isToday });
+          
+          // 如果缓存的不是今天的壁纸，记录警告
+          if (!result.isToday) {
+            logger.warn('⚠️ 使用的是过期壁纸缓存，将在后台更新');
+          }
         }
       } catch (error) {
         logger.warn('检查缓存失败:', error);
@@ -89,7 +102,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
     }) : websites;
 
   // 处理用户名框点击事件
-  const handleUserNameClick = useCallback(() => {
+  const handleUserNameClick = () => {
     if (isAnimating) return; // 防止动画期间重复点击
 
     setClickCount(prev => prev + 1);
@@ -104,9 +117,9 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
         setIsAnimating(false);
       }, 300); // 等待淡出动画完成
     }, 1000);
-  }, [isAnimating]);
+  };
 
-  const handleSaveCard = useCallback((updatedCard: {
+  const handleSaveCard = (updatedCard: {
     id: string;
     name: string;
     url: string;
@@ -121,7 +134,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
         card.id === updatedCard.id ? { ...card, ...updatedCard } : card
       )
     );
-  }, [websites, setWebsites]);
+  };
 
   useEffect(() => {
     // 主要逻辑：使用优化的壁纸服务
@@ -129,6 +142,14 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
       try {
         logger.debug('🖼️ 开始加载壁纸，分辨率:', wallpaperResolution);
         setBgImageLoaded(false);
+
+        // 如果有自定义壁纸URL，优先使用
+        if (customWallpaperUrl && customWallpaperUrl.trim()) {
+          logger.debug('🎨 使用自定义壁纸:', customWallpaperUrl);
+          setBgImage(customWallpaperUrl);
+          setBgImageLoaded(true);
+          return;
+        }
 
         const result = await optimizedWallpaperService.getWallpaper(wallpaperResolution);
 
@@ -147,7 +168,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
         setBgImageLoaded(true);
       }
     })();
-  }, [wallpaperResolution]);
+  }, [wallpaperResolution, customWallpaperUrl]);
 
   // 预加载当前页面的图标
   useEffect(() => {
@@ -290,7 +311,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
         
         <div className={classes.searchContainer} id="main-content">
           {/* SEO H1 标签 - 视觉上隐藏但对搜索引擎可见 */}
-          <h1 className="sr-only">一个AI友好的个性化便签页面，创作者：江江 和 claude coze kiro coplit 页面美观好用，有诸多彩蛋</h1>
+          <h1 className="sr-only">你好呀，这里是一个AI友好的个性化便签页面，创作者：江江 和 claude coze kiro coplit 页面美观好用，有诸多彩蛋（**新标签页**，**new tab**,**AI tab**,**notion tab**,**个性化**，**标签页**）</h1>
           {/* SEO 描述段落 - 视觉上隐藏但对搜索引擎可见 */}
           <p className="sr-only">
             这是一个由江江创作的个性化便签页面，结合了 Claude、Coze、Kiro、Copilot 等AI工具的协助。
@@ -328,7 +349,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
         </div>
 
         {showSettings && (
-          <Settings
+          <LazySettings
             onClose={() => setShowSettings(false)}
             websites={websites}
             setWebsites={setWebsites}
@@ -396,7 +417,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
         {!isMobile && <AnimatedCat />}
 
         {/* 工作空间模态框 */}
-        <WorkspaceModal
+        <LazyWorkspaceModal
           isOpen={isWorkspaceOpen}
           onClose={() => setIsWorkspaceOpen(false)}
         />

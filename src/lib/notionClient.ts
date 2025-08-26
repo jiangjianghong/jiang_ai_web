@@ -1,5 +1,4 @@
 // Notion API 客户端
-import { smartProxy } from './smartProxy';
 
 interface NotionPage {
   id: string;
@@ -270,7 +269,7 @@ export class NotionClient {
   }
 
   // 将Notion页面转换为工作空间项目
-  parseWorkspaceItems(pages: NotionPage[], databaseProperties: any): WorkspaceItem[] {
+  parseWorkspaceItems(pages: NotionPage[], _databaseProperties?: any): WorkspaceItem[] {
     return pages.filter(page => page && page.properties).map(page => {
       const properties = page.properties;
       
@@ -343,7 +342,7 @@ export class NotionClient {
   }
 
   // 不提取网站图标，使用简单字母图标
-  private extractIcon(url: string): string {
+  private extractIcon(_url?: string): string {
     return ''; // 不使用外部图标，统一使用字母图标
   }
 

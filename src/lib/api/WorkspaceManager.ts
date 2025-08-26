@@ -102,7 +102,7 @@ export class WorkspaceManager {
       }
       
       // Convert to workspace items
-      const workspaceItems = this.notionClient.parseWorkspaceItems(pages, database.properties);
+      const workspaceItems = this.notionClient.parseWorkspaceItems(pages);
       
       // Cache data
       this.cacheWorkspaceItems(workspaceItems);

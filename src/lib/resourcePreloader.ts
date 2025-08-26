@@ -122,8 +122,8 @@ class ResourcePreloader {
       const fontFace = new FontFace(fontFamily, `url(${fontUrl})`);
       fontFace.load().then(() => {
         document.fonts.add(fontFace);
-      }).catch(error => {
-        // 字体预加载失败不是关键错误，保持console.warn
+      }).catch(() => {
+        // 字体预加载失败不是关键错误，保持静默
       });
     }
   }

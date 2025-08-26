@@ -14,7 +14,8 @@
       "WebSearch",
       "Bash(npm run typecheck)",
       "Bash(npm run build)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"

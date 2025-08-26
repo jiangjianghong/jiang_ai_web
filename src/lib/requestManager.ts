@@ -99,7 +99,7 @@ class RequestManager {
   }
 
   // 处理请求队列
-  private async processQueue(): void {
+  private async processQueue(): Promise<void> {
     // 检查是否有空闲的并发槽位
     while (this.activeRequests.size < this.maxConcurrent && this.queue.length > 0) {
       const task = this.queue.shift()!;
@@ -108,7 +108,7 @@ class RequestManager {
   }
 
   // 执行单个请求任务
-  private async executeTask(task: RequestTask): void {
+  private async executeTask(task: RequestTask): Promise<void> {
     const controller = new AbortController();
     this.activeRequests.set(task.id, controller);
 
@@ -123,7 +123,7 @@ class RequestManager {
       // 合并 AbortSignal
       const combinedOptions: RequestInit = {
         ...task.options,
-        signal: this.combineSignals(controller.signal, task.options.signal)
+        signal: this.combineSignals(controller.signal, task.options.signal ?? undefined)
       };
 
       let response: Response;
@@ -280,7 +280,7 @@ class RequestManager {
     let cancelledCount = 0;
 
     // 取消所有活动请求
-    for (const [id, controller] of this.activeRequests.entries()) {
+    for (const [, controller] of this.activeRequests.entries()) {
       controller.abort();
       cancelledCount++;
     }

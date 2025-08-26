@@ -113,7 +113,7 @@ class ErrorHandler {
   }
 
   // 错误分类和用户友好消息
-  categorizeError(error: Error, context?: string): ErrorInfo {
+  categorizeError(error: Error, _context?: string): ErrorInfo {
     const message = error.message.toLowerCase();
     
     // 网络相关错误
@@ -221,7 +221,7 @@ class ErrorHandler {
       maxAttempts: 3,
       baseDelay: 2000,
       maxDelay: 8000,
-      shouldRetry: (error: Error, attempt: number) => {
+      shouldRetry: (error: Error, _attempt: number) => {
         // 壁纸加载失败时的重试策略
         const message = error.message.toLowerCase();
         
@@ -233,7 +233,7 @@ class ErrorHandler {
         // 网络错误和服务器错误可以重试
         return (message.includes('network') || 
                 message.includes('timeout') ||
-                message.includes('http 5')) && attempt < 3;
+                message.includes('http 5')) && _attempt < 3;
       }
     };
   }
@@ -244,7 +244,7 @@ class ErrorHandler {
       maxAttempts: 2, // favicon 失败影响较小，减少重试次数
       baseDelay: 1000,
       maxDelay: 3000,
-      shouldRetry: (error: Error, attempt: number) => {
+      shouldRetry: (error: Error, _attempt: number) => {
         const message = error.message.toLowerCase();
         return message.includes('network') || message.includes('timeout');
       }

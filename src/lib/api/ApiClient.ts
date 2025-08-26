@@ -1,4 +1,4 @@
-import { CorsProxyService, ProxyResponse, createCacheKey, ResponseCache } from '../proxy';
+import { CorsProxyService, createCacheKey, ResponseCache } from '../proxy';
 
 /**
  * API client that uses the CORS proxy service

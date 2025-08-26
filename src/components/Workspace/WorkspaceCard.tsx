@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { WorkspaceItem } from '@/contexts/WorkspaceContext';
 
@@ -8,7 +8,6 @@ interface WorkspaceCardProps {
 }
 
 export default function WorkspaceCard({ item, onClick }: WorkspaceCardProps) {
-  const [imageError, setImageError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
   // 生成简单图标
@@ -198,11 +197,3 @@ export default function WorkspaceCard({ item, onClick }: WorkspaceCardProps) {
 
 // 添加 CSS 样式到全局样式或使用 Tailwind 的 @layer 指令
 // 确保 line-clamp 工作正常
-const styles = `
-  .line-clamp-2 {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-`;

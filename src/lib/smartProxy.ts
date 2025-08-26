@@ -1,6 +1,5 @@
 // 智能代理管理器 - 自动选择最快的可用代理
 // 针对中国网络环境优化
-import { getApiPath } from './pathUtils';
 import { logger } from './logger';
 import { createTimeoutSignal } from './abortUtils';
 
@@ -50,7 +49,7 @@ class SmartProxyManager {
       proxy.available = false;
       proxy.speed = Infinity;
       proxy.lastCheck = Date.now();
-      logger.warn(`${proxy.name} 不可用`, error.message);
+      logger.warn(`${proxy.name} 不可用`, error instanceof Error ? error.message : error);
       return Infinity;
     }
   }
@@ -71,7 +70,7 @@ class SmartProxyManager {
   async checkAllProxies(testUrl?: string): Promise<void> {
     logger.info('检测所有代理可用性');
     
-    const results = await Promise.allSettled(
+    await Promise.allSettled(
       this.proxies.map(proxy => this.checkProxy(proxy, testUrl))
     );
     
@@ -136,10 +135,10 @@ class SmartProxyManager {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
       } catch (error) {
-        logger.warn(`代理 ${proxy.name} 失败`, error.message);
+        logger.warn(`代理 ${proxy.name} 失败`, error instanceof Error ? error.message : error);
         proxy.available = false;
         proxy.lastCheck = Date.now();
-        lastError = error;
+        lastError = error instanceof Error ? error : new Error(String(error));
         continue;
       }
     }

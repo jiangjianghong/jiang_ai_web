@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useWorkspace } from '@/contexts/WorkspaceContext';
 import NotionGuide from './NotionGuide';
 import { parseNotionUrl, isValidDatabaseId } from '@/lib/notionUrlParser';
@@ -63,11 +63,6 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
 
   // 验证表单
   const isFormValid = apiKey.trim().length > 0 && databaseId.length > 0 && isValidDatabaseId(databaseId);
-
-  // 使用默认的 Supabase 代理
-  const getProxyConfig = () => {
-    return undefined; // 让 NotionClient 使用默认的 Supabase 代理
-  };
 
   // 处理连接测试
   const handleTestConnection = async () => {

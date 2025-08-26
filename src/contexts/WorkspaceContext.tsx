@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { workspaceManager, WorkspaceManager } from '@/lib/notionClient';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { workspaceManager } from '@/lib/notionClient';
 
 interface WorkspaceItem {
   id: string;
@@ -50,7 +50,6 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const [isConfigured, setIsConfigured] = useState(false);
   const [lastSync, setLastSync] = useState<string | null>(null);
-  const [hasAutoSynced, setHasAutoSynced] = useState(false);
 
   // 初始化时检查配置状态
   useEffect(() => {
@@ -94,7 +93,6 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       const items = await workspaceManager.syncWorkspaceData();
       setWorkspaceItems(items);
       setLastSync(new Date().toISOString());
-      setHasAutoSynced(false); // 重置，允许下次自动同步
       console.log('✅ 工作空间数据同步成功');
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : '同步失败';

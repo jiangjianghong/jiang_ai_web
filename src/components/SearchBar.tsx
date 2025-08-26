@@ -29,7 +29,6 @@ function SearchBarComponent(props: SearchBarProps = {}) {
     const [searchQuery, setSearchQuery] = useState('');
     const [isHovered, setIsHovered] = useState(false);
     const [engine, setEngine] = useState<'bing' | 'google'>('bing');
-    const [isExpandDone, setIsExpandDone] = useState(false);
     const [suggestions, setSuggestions] = useState<any[]>([]);
     const [websiteSuggestions, setWebsiteSuggestions] = useState<WebsiteData[]>([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
@@ -174,7 +173,6 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                     e.preventDefault(); // 阻止输入空格
                     setIsFocused(false);
                     setIsHovered(false);
-                    setIsExpandDone(false);
                     setIsSearchFocused(false);
                     inputRef.current?.blur(); // 失去焦点
                     console.log('设置状态: focused=false, hovered=false, searchFocused=false'); // 调试信息
@@ -604,7 +602,6 @@ function SearchBarComponent(props: SearchBarProps = {}) {
     useLayoutEffect(() => {
         if (isHovered && searchBtnRef.current) {
             const rect = searchBtnRef.current.getBoundingClientRect();
-            const currentWidth = rect.width;
             const targetWidth = isMobile ? 320 : 520;
             const initialWidth = isMobile ? 280 : 340;
             const widthDiff = targetWidth - initialWidth;
@@ -636,7 +633,6 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                             setIsFocused(false);
                             setIsSearchFocused(false);
                             setIsHovered(false);
-                            setIsExpandDone(false);
                             setShowSuggestions(false);
                             setWebsiteSuggestions([]);
                             inputRef.current?.blur();
@@ -663,8 +659,7 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                             // 只有在未聚焦状态下才缩短搜索框
                             if (!isFocused) {
                                 setIsHovered(false);
-                                setIsExpandDone(false);
-                                // 建议保持显示，只有取消聚焦时才隐藏
+                                    // 建议保持显示，只有取消聚焦时才隐藏
                             }
                         }}
                     >
@@ -678,7 +673,7 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                                 mass: 0.6
                             }}
                             style={{ display: 'flex', alignItems: 'center', position: 'relative' }}
-                            onAnimationComplete={() => { if (isHovered) setIsExpandDone(true); }}
+                            onAnimationComplete={() => { /* Animation complete */ }}
                         >
                             {/* 搜索引擎切换按钮和“搜索”字样 */}
                             <div className="relative flex items-center">
@@ -742,8 +737,7 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                                         setWebsiteSuggestions([]);
                                         // 失去焦点时，如果鼠标不在搜索框区域内，则缩短搜索框
                                         setIsHovered(false);
-                                        setIsExpandDone(false);
-                                    }, 150);
+                                                }, 150);
                                 }}
                                 placeholder="🧸搜点啥捏..."
                                 className="backdrop-blur-md border border-white/20 rounded-full pl-4 py-2 text-white placeholder-white/60 outline-none text-base transition-all duration-200 pr-12 w-full ml-3"

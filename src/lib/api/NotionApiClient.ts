@@ -49,17 +49,15 @@ export interface WorkspaceItem {
  * Client for interacting with the Notion API
  */
 export class NotionApiClient {
-  private apiClient: ApiClient;
   private apiKey: string;
   private baseUrl = 'https://api.notion.com/v1';
   
   /**
    * Create a new Notion API client
-   * @param apiClient The API client to use
    * @param apiKey The Notion API key
    */
-  constructor(apiClient: ApiClient, apiKey: string) {
-    this.apiClient = apiClient;
+  constructor(_apiClient: ApiClient, apiKey: string) {
+    // apiClient parameter kept for compatibility but not used
     this.apiKey = apiKey;
   }
   
@@ -125,8 +123,8 @@ export class NotionApiClient {
           console.log('✅ Notion API 请求成功');
           return data;
         } catch (error) {
-          console.warn(`❌ 代理服务失败: ${proxyUrl.split('?')[0]}`, error.message);
-          lastError = error;
+          console.warn(`❌ 代理服务失败: ${proxyUrl.split('?')[0]}`, error instanceof Error ? error.message : error);
+          lastError = error instanceof Error ? error : new Error(String(error));
           continue;
         }
       }
@@ -137,12 +135,14 @@ export class NotionApiClient {
       console.error('❌ Notion API 请求失败:', error);
       
       // Provide more specific error messages
-      if (error.message.includes('400')) {
-        throw new Error('请求格式错误。可能是API密钥格式不正确或数据库ID无效');
-      } else if (error.message.includes('401')) {
-        throw new Error('API密钥无效或已过期，请检查配置');
-      } else if (error.message.includes('404')) {
-        throw new Error('数据库不存在或Integration未被添加到数据库');
+      if (error instanceof Error) {
+        if (error.message.includes('400')) {
+          throw new Error('请求格式错误。可能是API密钥格式不正确或数据库ID无效');
+        } else if (error.message.includes('401')) {
+          throw new Error('API密钥无效或已过期，请检查配置');
+        } else if (error.message.includes('404')) {
+          throw new Error('数据库不存在或Integration未被添加到数据库');
+        }
       }
       
       throw error;
@@ -193,9 +193,8 @@ export class NotionApiClient {
   /**
    * Convert Notion pages to workspace items
    * @param pages The Notion pages
-   * @param databaseProperties The database properties
    */
-  parseWorkspaceItems(pages: NotionPage[], databaseProperties: any): WorkspaceItem[] {
+  parseWorkspaceItems(pages: NotionPage[]): WorkspaceItem[] {
     return pages.filter(page => page && page.properties).map(page => {
       const properties = page.properties;
       
@@ -248,7 +247,7 @@ export class NotionApiClient {
         isActive: typeof isActive === 'boolean' ? isActive : true,
         lastSync: new Date().toISOString(),
         notionId: page.id,
-        icon: this.extractIcon(url),
+        icon: this.extractIcon(),
         username: username || undefined,
         password: password || undefined
       };
@@ -259,7 +258,7 @@ export class NotionApiClient {
    * Extract an icon from a URL
    * @param url The URL
    */
-  private extractIcon(url: string): string {
+  private extractIcon(): string {
     return ''; // Don't use external icons, use letter icons instead
   }
   

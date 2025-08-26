@@ -1,6 +1,7 @@
 // 优化的壁纸加载Hook - 解决白屏问题，提升用户体验
 import { useState, useEffect, useCallback } from 'react';
 import { optimizedWallpaperService } from '@/lib/optimizedWallpaperService';
+import { memoryManager } from '@/lib/memoryManager';
 import { logger } from '@/lib/logger';
 import { errorHandler } from '@/lib/errorHandler';
 
@@ -153,16 +154,14 @@ export function useOptimizedWallpaper(resolution: string) {
   const refreshWallpaper = useCallback(async () => {
     logger.wallpaper.info('强制刷新壁纸');
     
-    // 清理今天的缓存
+    // 清理wallpaper类别的所有BlobURL
+    memoryManager.cleanupCategory('wallpaper');
+    
+    // 清理今天的IndexedDB缓存
     try {
-      const stats = await optimizedWallpaperService.getCacheStats();
-      const todayKey = `wallpaper-optimized:${resolution}-${new Date().toISOString().split('T')[0]}`;
-      
-      if (stats.cacheKeys.includes(todayKey)) {
-        logger.wallpaper.debug('清理今天的壁纸缓存');
-      }
+      await optimizedWallpaperService.clearTodayCache(resolution);
     } catch (error) {
-      logger.wallpaper.warn('清理缓存失败', error);
+      logger.wallpaper.warn('清理IndexedDB缓存失败', error);
     }
 
     // 重新加载

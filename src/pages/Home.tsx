@@ -25,7 +25,7 @@ interface HomeProps {
 }
 
 export default function Home({ websites, setWebsites, dataInitialized = true }: HomeProps) {
-  const { parallaxEnabled, wallpaperResolution, isSettingsOpen, autoSortEnabled, customWallpaperUrl } = useTransparency();
+  const { parallaxEnabled, wallpaperResolution, isSettingsOpen, autoSortEnabled } = useTransparency();
   const { currentUser } = useAuth();
   const { displayName } = useUserProfile();
   const { isWorkspaceOpen, setIsWorkspaceOpen } = useWorkspace();

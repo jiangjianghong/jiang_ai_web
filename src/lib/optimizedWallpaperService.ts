@@ -63,12 +63,30 @@ class OptimizedWallpaperService {
   // 智能获取缓存（今天 > 昨天 > 更早）
   private async getSmartCache(resolution: string): Promise<{ url: string; isToday: boolean } | null> {
     try {
+      // 清理可能已失效的wallpaper类别BlobURL
+      const existingWallpaperUrls = memoryManager.getUrlsByCategory('wallpaper');
+      for (const url of existingWallpaperUrls) {
+        // 测试BlobURL是否还有效
+        try {
+          const response = await fetch(url, { method: 'HEAD' });
+          if (!response.ok) {
+            memoryManager.revokeBlobUrl(url);
+            logger.wallpaper.debug('清理无效的BlobURL', { url: url.substring(0, 50) });
+          }
+        } catch {
+          // BlobURL无效，清理掉
+          memoryManager.revokeBlobUrl(url);
+          logger.wallpaper.debug('清理无效的BlobURL', { url: url.substring(0, 50) });
+        }
+      }
+
       // 1. 优先尝试今天的缓存
       const todayKey = this.getTodayCacheKey(resolution);
       const todayCache = await indexedDBCache.get(todayKey) as Blob;
 
       if (todayCache) {
         logger.wallpaper.info('使用今天的壁纸缓存');
+        // 每次都重新创建BlobURL，确保有效性
         return {
           url: memoryManager.createBlobUrl(todayCache, 'wallpaper'),
           isToday: true
@@ -332,6 +350,24 @@ class OptimizedWallpaperService {
     } catch (error) {
       logger.wallpaper.warn('清理过期缓存失败', error);
     }
+  }
+
+  // 清理特定日期的缓存
+  async clearCacheForDate(resolution: string, date?: string): Promise<void> {
+    try {
+      const dateStr = date || new Date().toISOString().split('T')[0];
+      const cacheKey = `wallpaper-optimized:${resolution}-${dateStr}`;
+      
+      await indexedDBCache.delete(cacheKey);
+      logger.wallpaper.info('已清理指定日期的壁纸缓存', { key: cacheKey });
+    } catch (error) {
+      logger.wallpaper.warn('清理指定日期缓存失败', error);
+    }
+  }
+
+  // 清理今天的缓存
+  async clearTodayCache(resolution: string): Promise<void> {
+    await this.clearCacheForDate(resolution);
   }
 
   // 获取缓存统计

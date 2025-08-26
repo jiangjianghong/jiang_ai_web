@@ -61,7 +61,7 @@ class CustomWallpaperManager {
       );
 
       // 创建 Blob URL
-      const blobUrl = memoryManager.createBlobUrl(processedBlob, 'custom-wallpaper');
+      const blobUrl = await memoryManager.createBlobUrl(processedBlob, 'custom-wallpaper');
 
       logger.wallpaper.info('自定义壁纸上传成功', {
         originalSize: `${(file.size / 1024 / 1024).toFixed(2)}MB`,
@@ -86,7 +86,7 @@ class CustomWallpaperManager {
       
       if (blob) {
         logger.wallpaper.info('获取自定义壁纸成功');
-        return memoryManager.createBlobUrl(blob, 'custom-wallpaper');
+        return await memoryManager.createBlobUrl(blob, 'custom-wallpaper');
       }
 
       return null;

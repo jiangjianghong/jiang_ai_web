@@ -13,6 +13,7 @@ interface WallpaperState {
   needsUpdate: boolean;
   error: string | null;
   loadProgress: number;
+  preloadWarning?: string; // 预加载警告（不阻止使用）
 }
 
 export function useOptimizedWallpaper(resolution: string) {
@@ -23,7 +24,8 @@ export function useOptimizedWallpaper(resolution: string) {
     isToday: false,
     needsUpdate: false,
     error: null,
-    loadProgress: 0
+    loadProgress: 0,
+    preloadWarning: undefined
   });
 
   // 预加载图片并监听加载进度
@@ -74,7 +76,8 @@ export function useOptimizedWallpaper(resolution: string) {
         ...prev, 
         isLoading: true, 
         error: null,
-        loadProgress: 0
+        loadProgress: 0,
+        preloadWarning: undefined // 清除之前的预加载警告
       }));
 
       logger.wallpaper.info('开始加载壁纸', { resolution });
@@ -98,7 +101,8 @@ export function useOptimizedWallpaper(resolution: string) {
           isToday: result.isToday,
           needsUpdate: result.needsUpdate,
           error: null,
-          loadProgress: 100
+          loadProgress: 100,
+          preloadWarning: undefined
         });
 
         // 如果需要更新，显示提示
@@ -117,22 +121,25 @@ export function useOptimizedWallpaper(resolution: string) {
             isToday: result.isToday,
             needsUpdate: result.needsUpdate,
             error: null,
-            loadProgress: 100
+            loadProgress: 100,
+            preloadWarning: undefined
           });
 
           logger.wallpaper.info('壁纸加载完成');
         } catch (preloadError) {
+          const preloadWarning = `图片预加载失败: ${preloadError instanceof Error ? preloadError.message : '未知错误'}`;
           logger.wallpaper.warn('图片预加载失败，但仍然使用该URL', preloadError);
           
-          // 即使预加载失败，也使用该URL（让浏览器自己处理）
+          // 即使预加载失败，也使用该URL（让浏览器自己处理），但记录警告
           setWallpaperState({
             url: result.url,
             isLoading: false,
             isFromCache: result.isFromCache,
             isToday: result.isToday,
             needsUpdate: result.needsUpdate,
-            error: null,
-            loadProgress: 100
+            error: null, // 预加载失败不是致命错误
+            loadProgress: 100,
+            preloadWarning
           });
         }
       }
@@ -199,6 +206,7 @@ export function useOptimizedWallpaper(resolution: string) {
     needsUpdate: wallpaperState.needsUpdate,
     error: wallpaperState.error,
     loadProgress: wallpaperState.loadProgress,
+    preloadWarning: wallpaperState.preloadWarning,
     
     // 方法
     refreshWallpaper,
@@ -206,6 +214,7 @@ export function useOptimizedWallpaper(resolution: string) {
     
     // 便利属性
     hasError: !!wallpaperState.error,
+    hasWarning: !!wallpaperState.preloadWarning,
     isReady: !wallpaperState.isLoading && !!wallpaperState.url,
     showLoadingIndicator: wallpaperState.isLoading && wallpaperState.loadProgress < 100,
     showUpdateHint: wallpaperState.needsUpdate && wallpaperState.isFromCache

@@ -12,14 +12,52 @@ import { customWallpaperManager } from './customWallpaperManager';
 
 class OptimizedWallpaperService {
   private static instance: OptimizedWallpaperService;
-  private loadingPromises = new Map<string, Promise<string>>();
+  private loadingPromises = new Map<string, Promise<{
+    url: string;
+    isFromCache: boolean;
+    isToday: boolean;
+    needsUpdate: boolean;
+  }>>();
   private fallbackImage = '/icon/favicon.png'; // 本地备用图片
+  private cleanupTimer: number | null = null; // 定时清理器ID
 
   static getInstance(): OptimizedWallpaperService {
     if (!OptimizedWallpaperService.instance) {
       OptimizedWallpaperService.instance = new OptimizedWallpaperService();
+      // 启动定时清理
+      OptimizedWallpaperService.instance.startCleanupTimer();
     }
     return OptimizedWallpaperService.instance;
+  }
+
+  // 启动定时清理
+  private startCleanupTimer(): void {
+    if (this.cleanupTimer !== null) {
+      return; // 已经启动了
+    }
+
+    logger.wallpaper.info('启动定时清理任务（每6小时）');
+    this.cleanupTimer = setInterval(() => {
+      this.cleanupExpiredCache().catch(error => {
+        logger.wallpaper.error('定期清理缓存失败', error);
+      });
+    }, 6 * 60 * 60 * 1000) as any; // 6小时
+
+    // 页面关闭时清理定时器
+    if (typeof window !== 'undefined') {
+      window.addEventListener('beforeunload', () => {
+        this.stopCleanupTimer();
+      });
+    }
+  }
+
+  // 停止定时清理
+  private stopCleanupTimer(): void {
+    if (this.cleanupTimer !== null) {
+      clearInterval(this.cleanupTimer);
+      this.cleanupTimer = null;
+      logger.wallpaper.info('停止定时清理任务');
+    }
   }
 
   // 获取今天的缓存键
@@ -63,22 +101,7 @@ class OptimizedWallpaperService {
   // 智能获取缓存（今天 > 昨天 > 更早）
   private async getSmartCache(resolution: string): Promise<{ url: string; isToday: boolean } | null> {
     try {
-      // 清理可能已失效的wallpaper类别BlobURL
-      const existingWallpaperUrls = memoryManager.getUrlsByCategory('wallpaper');
-      for (const url of existingWallpaperUrls) {
-        // 测试BlobURL是否还有效
-        try {
-          const response = await fetch(url, { method: 'HEAD' });
-          if (!response.ok) {
-            memoryManager.revokeBlobUrl(url);
-            logger.wallpaper.debug('清理无效的BlobURL', { url: url.substring(0, 50) });
-          }
-        } catch {
-          // BlobURL无效，清理掉
-          memoryManager.revokeBlobUrl(url);
-          logger.wallpaper.debug('清理无效的BlobURL', { url: url.substring(0, 50) });
-        }
-      }
+      // 注意：BlobURL由memoryManager统一管理生命周期，不需要手动检测有效性
 
       // 1. 优先尝试今天的缓存
       const todayKey = this.getTodayCacheKey(resolution);
@@ -88,7 +111,7 @@ class OptimizedWallpaperService {
         logger.wallpaper.info('使用今天的壁纸缓存');
         // 每次都重新创建BlobURL，确保有效性
         return {
-          url: memoryManager.createBlobUrl(todayCache, 'wallpaper'),
+          url: await memoryManager.createBlobUrl(todayCache, 'wallpaper'),
           isToday: true
         };
       }
@@ -100,7 +123,7 @@ class OptimizedWallpaperService {
       if (yesterdayCache) {
         logger.wallpaper.info('使用昨天的壁纸缓存作为降级');
         return {
-          url: memoryManager.createBlobUrl(yesterdayCache, 'wallpaper'),
+          url: await memoryManager.createBlobUrl(yesterdayCache, 'wallpaper'),
           isToday: false
         };
       }
@@ -120,7 +143,7 @@ class OptimizedWallpaperService {
         if (latestCache) {
           logger.wallpaper.info('使用最新可用的壁纸缓存', { key: latestKey });
           return {
-            url: memoryManager.createBlobUrl(latestCache, 'wallpaper'),
+            url: await memoryManager.createBlobUrl(latestCache, 'wallpaper'),
             isToday: false
           };
         }
@@ -151,7 +174,7 @@ class OptimizedWallpaperService {
       });
 
       const blob = await response.blob();
-      const blobUrl = memoryManager.createBlobUrl(blob, 'wallpaper');
+      const blobUrl = await memoryManager.createBlobUrl(blob, 'wallpaper');
 
       // 异步缓存到IndexedDB
       const cacheKey = this.getTodayCacheKey(resolution);
@@ -181,12 +204,13 @@ class OptimizedWallpaperService {
 
     // 防止重复加载
     if (this.loadingPromises.has(cacheKey)) {
-      const url = await this.loadingPromises.get(cacheKey)!;
-      return { url, isFromCache: true, isToday: true, needsUpdate: false };
+      const result = await this.loadingPromises.get(cacheKey)!;
+      logger.wallpaper.debug('返回正在加载的壁纸结果', { resolution, isFromCache: result.isFromCache });
+      return result;
     }
 
     const loadingPromise = this._getWallpaperInternal(resolution);
-    this.loadingPromises.set(cacheKey, loadingPromise.then(result => result.url));
+    this.loadingPromises.set(cacheKey, loadingPromise);
 
     try {
       const result = await loadingPromise;
@@ -411,13 +435,6 @@ class OptimizedWallpaperService {
 
 // 导出单例
 export const optimizedWallpaperService = OptimizedWallpaperService.getInstance();
-
-// 定期清理过期缓存（每6小时）
-setInterval(() => {
-  optimizedWallpaperService.cleanupExpiredCache().catch(error => {
-    logger.wallpaper.error('定期清理缓存失败', error);
-  });
-}, 6 * 60 * 60 * 1000);
 
 // 页面空闲时预加载壁纸
 if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {

@@ -104,7 +104,10 @@ class IndexedDBCache {
           const now = Date.now();
           if (now - result.timestamp > result.ttl) {
             console.log(`🗑️ IndexedDB 缓存已过期，删除: ${key}`);
-            this.delete(key);
+            // 异步删除过期项，但不等待完成以避免阻塞读取
+            this.delete(key).catch(error => {
+              console.warn('删除过期缓存项失败:', error);
+            });
             resolve(null);
             return;
           }
@@ -143,7 +146,10 @@ class IndexedDBCache {
           // 检查是否过期
           const now = Date.now();
           if (now - result.timestamp > result.ttl) {
-            this.delete(key);
+            // 异步删除过期项，但不等待完成以避免阻塞检查
+            this.delete(key).catch(error => {
+              console.warn('删除过期缓存项失败:', error);
+            });
             resolve(false);
             return;
           }
@@ -187,34 +193,59 @@ class IndexedDBCache {
   async cleanup(): Promise<void> {
     try {
       const db = await this.ensureDB();
-      const transaction = db.transaction([this.storeName], 'readwrite');
-      const store = transaction.objectStore(this.storeName);
-      const request = store.openCursor();
-
-      let deletedCount = 0;
+      
+      // 第一步：收集需要删除的键
+      const keysToDelete: string[] = [];
       const now = Date.now();
+      
+      const readTransaction = db.transaction([this.storeName], 'readonly');
+      const readStore = readTransaction.objectStore(this.storeName);
+      const readRequest = readStore.openCursor();
 
-      return new Promise((resolve, reject) => {
-        request.onsuccess = (event) => {
+      await new Promise<void>((resolve, reject) => {
+        readRequest.onsuccess = (event) => {
           const cursor = (event.target as IDBRequest).result;
           if (cursor) {
             const data = cursor.value;
             if (now - data.timestamp > data.ttl) {
-              cursor.delete();
-              deletedCount++;
+              keysToDelete.push(data.key);
             }
             cursor.continue();
           } else {
-            console.log(`🧹 IndexedDB 清理完成，删除 ${deletedCount} 个过期缓存`);
             resolve();
           }
         };
 
-        request.onerror = () => {
-          console.error('IndexedDB 清理失败:', request.error);
-          reject(request.error);
+        readRequest.onerror = () => {
+          console.error('IndexedDB 读取过期项失败:', readRequest.error);
+          reject(readRequest.error);
         };
       });
+
+      // 第二步：批量删除收集到的键
+      if (keysToDelete.length > 0) {
+        const deleteTransaction = db.transaction([this.storeName], 'readwrite');
+        const deleteStore = deleteTransaction.objectStore(this.storeName);
+        
+        for (const key of keysToDelete) {
+          deleteStore.delete(key);
+        }
+
+        await new Promise<void>((resolve, reject) => {
+          deleteTransaction.oncomplete = () => {
+            console.log(`🧹 IndexedDB 清理完成，删除 ${keysToDelete.length} 个过期缓存`);
+            resolve();
+          };
+
+          deleteTransaction.onerror = () => {
+            console.error('IndexedDB 批量删除失败:', deleteTransaction.error);
+            reject(deleteTransaction.error);
+          };
+        });
+      } else {
+        console.log('🧹 IndexedDB 清理完成，没有过期缓存需要删除');
+      }
+
     } catch (error) {
       console.error('IndexedDB 清理异常:', error);
     }

@@ -7,34 +7,67 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# Build outputs
+dist/
+dist-ssr/
+build/
+out/
 
 # Environment variables
 .env
 .env.local
 .env.production
 .env.development
+.env.test
 
-# Test and development files
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*~
+
+# OS generated files
+Thumbs.db
+*.tmp
+*.bak
+*.swp
+.cache/
+
+# Package manager lockfiles (optional - uncomment if you want to ignore them)
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# Testing
+coverage/
+.nyc_output/
+.coverage/
+*.lcov
+
+# Debugging and development
 *test*
 *mock*
 *debug*
 *.test.*
 *.spec.*
+.eslintcache
 
 # Cloud sync temporary files
 .tmp.*
@@ -46,4 +79,24 @@ dist-ssr
 .OneDrive/
 .icloud/
 
+# Deployment
 .vercel
+.netlify/
+.firebase/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Supabase local development
+supabase/.branches/
+supabase/.temp/
+
+# Local development
+.local
+*.local
+
+# ai
+.claude/
+.kiro

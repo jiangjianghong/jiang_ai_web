@@ -33,6 +33,11 @@ export function useFavicon(originalUrl: string, faviconUrl: string) {
 
   // 处理 favicon URL，检测并通过代理访问有 CORS 问题的 URL
   const processeFaviconUrl = (url: string): string => {
+    // 安全检查：确保 url 是有效字符串
+    if (!url || typeof url !== 'string') {
+      return '/icon/favicon.png';
+    }
+    
     const proxyPrefix = 'https://api.allorigins.win/raw?url=';
 
     // 检查是否是需要代理的URL

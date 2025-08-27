@@ -51,7 +51,7 @@ export default function LoginModal({ onClose }: LoginModalProps) {
     } catch (error: any) {
       console.error('认证失败:', error);
       
-      // 处理常见的 Firebase 错误
+      // 处理认证错误
       // Supabase的错误处理已经在AuthContext中完成，这里不需要额外处理
       setLocalError(error.message || (isLogin ? '登录失败，请重试' : '注册失败，请重试'));
     } finally {

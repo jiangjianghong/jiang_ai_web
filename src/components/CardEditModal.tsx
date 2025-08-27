@@ -207,7 +207,7 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
       // 使用独立的标签，不从备注中提取
       const cleanedNote = formData.note || '';
 
-      // 只有当图标发生变化时才上传到 Firebase Storage
+      // 处理图标变化时的逻辑
       let finalFaviconUrl = formData.favicon;
 
       if (formData.favicon !== favicon) {

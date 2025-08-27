@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { WebsiteCard } from '@/components/WebsiteCard';
 import { SearchBar } from '@/components/SearchBar';
+import { TimeDisplay } from '@/components/TimeDisplay';
 import { AnimatedCat } from '@/components/AnimatedCat';
 // 拖拽逻辑已迁移到 WebsiteCard
 import { motion } from 'framer-motion';
@@ -24,7 +25,7 @@ interface HomeProps {
 }
 
 export default function Home({ websites, setWebsites, dataInitialized = true }: HomeProps) {
-  const { parallaxEnabled, wallpaperResolution, isSettingsOpen, autoSortEnabled, customWallpaperUrl } = useTransparency();
+  const { parallaxEnabled, wallpaperResolution, isSettingsOpen, autoSortEnabled, customWallpaperUrl, timeComponentEnabled } = useTransparency();
   const { currentUser } = useAuth();
   const { displayName } = useUserProfile();
   const { isWorkspaceOpen, setIsWorkspaceOpen } = useWorkspace();
@@ -309,7 +310,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
           </ul>
         </nav>
         
-        <div className={classes.searchContainer} id="main-content">
+        <div className={`${classes.searchContainer} relative`} id="main-content">
           {/* SEO H1 标签 - 视觉上隐藏但对搜索引擎可见 */}
           <h1 className="sr-only">你好呀，这里是一个AI友好的个性化便签页面，创作者：江江 和 claude coze kiro coplit 页面美观好用，有诸多彩蛋（**新标签页**，**new tab**,**AI tab**,**notion tab**,**个性化**，**标签页**）</h1>
           {/* SEO 描述段落 - 视觉上隐藏但对搜索引擎可见 */}
@@ -317,6 +318,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
             这是一个由江江创作的个性化便签页面，结合了 Claude、Coze、Kiro、Copilot 等AI工具的协助。
             页面设计美观实用，包含多个有趣的彩蛋功能，为用户提供优质的书签管理体验。
           </p>
+          {timeComponentEnabled && <TimeDisplay />}
           <SearchBar websites={websites} />
         </div>
 

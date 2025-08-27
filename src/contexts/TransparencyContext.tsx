@@ -33,6 +33,7 @@ interface TransparencyContextType {
   searchInNewTab: boolean; // 搜索是否在新标签页打开
   autoSortEnabled: boolean; // 自动排序开关
   customWallpaperUrl: string; // 自定义壁纸URL
+  timeComponentEnabled: boolean; // 时间组件显示开关
   setCardOpacity: (opacity: number) => void;
   setSearchBarOpacity: (opacity: number) => void;
   setParallaxEnabled: (enabled: boolean) => void;
@@ -46,6 +47,7 @@ interface TransparencyContextType {
   setSearchInNewTab: (enabled: boolean) => void;
   setAutoSortEnabled: (enabled: boolean) => void;
   setCustomWallpaperUrl: (url: string) => void;
+  setTimeComponentEnabled: (enabled: boolean) => void;
 }
 
 const TransparencyContext = createContext<TransparencyContextType | undefined>(undefined);
@@ -128,6 +130,12 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
     return saved || '';
   });
 
+  // 时间组件显示开关
+  const [timeComponentEnabled, setTimeComponentEnabled] = useState(() => {
+    const saved = localStorage.getItem('timeComponentEnabled');
+    return saved ? saved === 'true' : true; // 默认开启
+  });
+
   // 初始化autoSortEnabled从localStorage
   useEffect(() => {
     try {
@@ -184,6 +192,10 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('customWallpaperUrl', customWallpaperUrl);
   }, [customWallpaperUrl]);
 
+  useEffect(() => {
+    localStorage.setItem('timeComponentEnabled', timeComponentEnabled.toString());
+  }, [timeComponentEnabled]);
+
   return (
     <TransparencyContext.Provider
       value={{
@@ -200,6 +212,7 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
         searchInNewTab,
         autoSortEnabled,
         customWallpaperUrl,
+        timeComponentEnabled,
         setCardOpacity,
         setSearchBarOpacity,
         setParallaxEnabled,
@@ -213,6 +226,7 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
         setSearchInNewTab,
         setAutoSortEnabled,
         setCustomWallpaperUrl,
+        setTimeComponentEnabled,
       }}
     >
       {children}

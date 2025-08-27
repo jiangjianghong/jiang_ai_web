@@ -63,6 +63,8 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
     autoSyncInterval,
     searchInNewTab,
     autoSortEnabled,
+    customWallpaperUrl,
+    timeComponentEnabled,
     setCardOpacity,
     setSearchBarOpacity,
     setParallaxEnabled,
@@ -75,6 +77,7 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
     setAutoSyncInterval,
     setSearchInNewTab,
     setAutoSortEnabled,
+    setTimeComponentEnabled,
   } = useTransparency();
   const { currentUser, logout } = useAuth();
   const { updateSyncStatus } = useSyncStatus();
@@ -938,6 +941,33 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                 >
                   <span
                     className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${parallaxEnabled ? 'translate-x-6 shadow-blue-200' : 'translate-x-1 shadow-gray-200'
+                      }`}
+                  />
+                </button>
+              </div>
+
+              <div className="border-t border-gray-100"></div>
+
+              {/* 时间组件开关 */}
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <i className="fa-solid fa-clock text-blue-500 text-sm"></i>
+                    <span className="text-sm font-medium text-gray-700 select-none">
+                      时间组件
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 select-none">
+                    {timeComponentEnabled ? '在搜索框上方显示当前时间和日期' : '隐藏时间和日期显示'}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setTimeComponentEnabled(!timeComponentEnabled)}
+                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${timeComponentEnabled ? 'bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg shadow-blue-300/50' : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
+                    }`}
+                >
+                  <span
+                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${timeComponentEnabled ? 'translate-x-6 shadow-blue-200' : 'translate-x-1 shadow-gray-200'
                       }`}
                   />
                 </button>

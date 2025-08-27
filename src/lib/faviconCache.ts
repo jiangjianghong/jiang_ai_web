@@ -76,7 +76,7 @@ class FaviconCacheManager {
           const blob = await indexedDBCache.get(cacheKey);
 
           if (blob) {
-            const blobUrl = createManagedBlobUrl(blob, 'favicon');
+            const blobUrl = await createManagedBlobUrl(blob, 'favicon');
             this.blobUrlCache.set(domain, blobUrl);
             console.log(`✅ 预加载 Blob URL: ${domain}`);
           }
@@ -213,14 +213,22 @@ class FaviconCacheManager {
         };
         this.saveMetadata();
 
-        // 释放旧的 Blob URL（如果存在）
+        // 释放旧的 Blob URL（如果存在）- 增强安全检查
         const oldBlobUrl = this.blobUrlCache.get(domain);
-        if (oldBlobUrl) {
-          releaseManagedBlobUrl(oldBlobUrl);
+        if (oldBlobUrl && oldBlobUrl.startsWith('blob:')) {
+          try {
+            releaseManagedBlobUrl(oldBlobUrl);
+            this.blobUrlCache.delete(domain);
+            console.log(`🗑️ 安全释放旧的 Blob URL: ${domain}`);
+          } catch (error) {
+            console.warn(`释放旧 Blob URL 失败: ${domain}`, error);
+            // 即使释放失败，也要从缓存中删除引用
+            this.blobUrlCache.delete(domain);
+          }
         }
 
         // 创建新的 Blob URL 并使用内存管理器
-        const blobUrl = createManagedBlobUrl(blob, 'favicon');
+        const blobUrl = await createManagedBlobUrl(blob, 'favicon');
         this.blobUrlCache.set(domain, blobUrl);
         console.log(`✅ Favicon 文件缓存成功: ${domain} (${(blob.size / 1024).toFixed(1)}KB)`);
 
@@ -242,7 +250,7 @@ class FaviconCacheManager {
   }
 
   /**
-   * 从缓存中获取 favicon 文件
+   * 从缓存中获取 favicon 文件 - 增强错误处理
    */
   private async getCachedFaviconFile(domain: string): Promise<string | null> {
     try {
@@ -261,20 +269,54 @@ class FaviconCacheManager {
 
         // 检查是否已有 Blob URL 缓存
         const existingBlobUrl = this.blobUrlCache.get(domain);
-        if (existingBlobUrl) {
+        if (existingBlobUrl && existingBlobUrl.startsWith('blob:')) {
           return existingBlobUrl;
         }
 
         // 创建新的 Blob URL 并使用内存管理器
-        const blobUrl = createManagedBlobUrl(blob, 'favicon');
-        this.blobUrlCache.set(domain, blobUrl);
-        return blobUrl;
+        try {
+          const blobUrl = await createManagedBlobUrl(blob, 'favicon');
+          this.blobUrlCache.set(domain, blobUrl);
+          return blobUrl;
+        } catch (blobError) {
+          console.warn(`创建 Blob URL 失败: ${domain}`, blobError);
+          return null;
+        }
       }
     } catch (error) {
       console.warn(`读取 favicon 缓存失败: ${domain}`, error);
+      
+      // 如果是 IndexedDB 错误，尝试清理损坏的元数据
+      if (error && typeof error === 'object' && 'name' in error && (error as Error).name === 'InvalidStateError') {
+        try {
+          delete this.metadata[domain];
+          this.saveMetadata();
+          console.log(`清理损坏的元数据: ${domain}`);
+        } catch (cleanupError) {
+          console.warn(`清理元数据失败: ${domain}`, cleanupError);
+        }
+      }
     }
     
     return null;
+  }
+
+  /**
+   * 安全地释放 Blob URL
+   */
+  private safeBlobUrlCleanup(domain: string): void {
+    const blobUrl = this.blobUrlCache.get(domain);
+    if (blobUrl && blobUrl.startsWith('blob:')) {
+      try {
+        releaseManagedBlobUrl(blobUrl);
+        this.blobUrlCache.delete(domain);
+        console.log(`🗑️ 安全清理 Blob URL: ${domain}`);
+      } catch (error) {
+        console.warn(`清理 Blob URL 失败: ${domain}`, error);
+        // 强制从缓存中删除，避免内存泄漏
+        this.blobUrlCache.delete(domain);
+      }
+    }
   }
 
   /**
@@ -282,12 +324,8 @@ class FaviconCacheManager {
    */
   private async deleteFaviconFile(domain: string): Promise<void> {
     try {
-      // 释放 Blob URL
-      const blobUrl = this.blobUrlCache.get(domain);
-      if (blobUrl) {
-        releaseManagedBlobUrl(blobUrl);
-        this.blobUrlCache.delete(domain);
-      }
+      // 安全地释放 Blob URL
+      this.safeBlobUrlCleanup(domain);
 
       const cacheKey = this.getFaviconCacheKey(domain);
       await indexedDBCache.delete(cacheKey);
@@ -482,7 +520,7 @@ class FaviconCacheManager {
   }
 
   /**
-   * 清理过期的 Blob URL
+   * 清理过期的 Blob URL - 增强安全性
    */
   cleanupExpiredBlobUrls(): void {
     const now = Date.now();
@@ -494,34 +532,64 @@ class FaviconCacheManager {
       }
     }
 
+    let cleanedCount = 0;
     for (const domain of expiredDomains) {
-      const blobUrl = this.blobUrlCache.get(domain);
-      if (blobUrl) {
-        releaseManagedBlobUrl(blobUrl);
-        this.blobUrlCache.delete(domain);
-        console.log(`🗑️ 清理过期 Blob URL: ${domain}`);
+      try {
+        this.safeBlobUrlCleanup(domain);
+        cleanedCount++;
+      } catch (error) {
+        console.warn(`清理过期域名失败: ${domain}`, error);
       }
+    }
+
+    if (cleanedCount > 0) {
+      console.log(`🧹 清理完成，删除 ${cleanedCount} 个过期 Blob URL`);
     }
   }
 
   /**
-   * 清理所有缓存
+   * 清理所有缓存 - 增强安全性
    */
   async clearCache(): Promise<void> {
+    console.log('🧹 开始清理所有 favicon 缓存...');
+    
     // 清理所有文件缓存
-    for (const domain of Object.keys(this.metadata)) {
-      await this.deleteFaviconFile(domain);
+    const domains = Object.keys(this.metadata);
+    let cleanedFiles = 0;
+    let cleanedBlobs = 0;
+
+    for (const domain of domains) {
+      try {
+        await this.deleteFaviconFile(domain);
+        cleanedFiles++;
+      } catch (error) {
+        console.warn(`清理域名缓存失败: ${domain}`, error);
+      }
     }
 
+    // 清理所有 Blob URL 缓存
+    for (const [domain] of this.blobUrlCache) {
+      try {
+        this.safeBlobUrlCleanup(domain);
+        cleanedBlobs++;
+      } catch (error) {
+        console.warn(`清理 Blob URL 失败: ${domain}`, error);
+      }
+    }
+
+    // 清理内存数据结构
     this.metadata = {};
     this.loadingPromises.clear();
     this.blobUrlCache.clear();
 
+    // 清理 localStorage
     try {
       localStorage.removeItem(this.metadataKey);
     } catch (error) {
-      console.warn('清理 favicon 缓存失败:', error);
+      console.warn('清理 localStorage 失败:', error);
     }
+
+    console.log(`✅ favicon 缓存清理完成: 文件=${cleanedFiles}, Blob=${cleanedBlobs}`);
   }
 
   /**

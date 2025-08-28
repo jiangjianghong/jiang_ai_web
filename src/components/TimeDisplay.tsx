@@ -41,6 +41,13 @@ export function TimeDisplay() {
   };
 
   const formatDate = (date: Date) => {
+    // 检查是否有任何日期元素被启用
+    const hasAnyDateElement = showYear || showMonth || showDay || showWeekday;
+    
+    if (!hasAnyDateElement) {
+      return ''; // 如果没有任何日期元素，返回空字符串
+    }
+
     // 根据独立设置构建日期显示选项
     const options: Intl.DateTimeFormatOptions = {};
 
@@ -67,9 +74,12 @@ export function TimeDisplay() {
     return date.toLocaleDateString('zh-CN', options);
   };
 
+  // 检查是否有任何日期元素被启用，用于调整时间位置
+  const hasAnyDateElement = showYear || showMonth || showDay || showWeekday;
+
   return (
     <div className="absolute left-0 right-0 z-50 flex justify-center px-4 select-none pointer-events-none"
-         style={{ top: '-80px' }} // 绝对定位，不影响文档流
+         style={{ top: '-45px' }} // 向下移动到-45px
     >
       <motion.div
         className="w-full flex justify-center"
@@ -84,7 +94,9 @@ export function TimeDisplay() {
         <div
           className="relative flex flex-col items-center select-none pointer-events-none"
           style={{ 
-            minHeight: '60px' // 固定最小高度，确保布局稳定
+            minHeight: '60px', // 固定最小高度，确保布局稳定
+            // 当没有日期元素时，时间向下移动以居中显示
+            transform: hasAnyDateElement ? 'translateY(0)' : 'translateY(15px)'
           }}
         >
           <div className="text-white/80 font-mono text-2xl font-semibold tracking-wide mb-1 drop-shadow-sm">

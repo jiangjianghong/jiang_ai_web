@@ -641,7 +641,7 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                 )}
             </AnimatePresence>
 
-            <div className="relative left-0 right-0 z-50 flex justify-center px-4 select-none">
+            <div className="relative left-0 right-0 z-50 flex justify-center px-4 select-none" style={{ transform: 'translateX(-47px)' }}>
                 <motion.div
                     className="w-full flex justify-center"
                     initial={{ opacity: 0, y: -20 }}

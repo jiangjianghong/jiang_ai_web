@@ -460,6 +460,13 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
         autoSyncEnabled,
         autoSyncInterval,
         autoSortEnabled,
+        timeComponentEnabled,
+        showFullDate,
+        showSeconds,
+        showWeekday,
+        showYear,
+        showMonth,
+        showDay,
         lastSync: new Date().toISOString()
       };
 
@@ -505,6 +512,16 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
         setAutoSyncEnabled(cloudSettings.autoSyncEnabled);
         setAutoSyncInterval(cloudSettings.autoSyncInterval);
         setAutoSortEnabled(cloudSettings.autoSortEnabled ?? false); // 提供默认值
+        
+        // 时间设置同步
+        setTimeComponentEnabled(cloudSettings.timeComponentEnabled ?? true);
+        setShowFullDate(cloudSettings.showFullDate ?? true);
+        setShowSeconds(cloudSettings.showSeconds ?? true);
+        setShowWeekday(cloudSettings.showWeekday ?? true);
+        setShowYear(cloudSettings.showYear ?? true);
+        setShowMonth(cloudSettings.showMonth ?? true);
+        setShowDay(cloudSettings.showDay ?? true);
+        
         localStorage.setItem('theme', cloudSettings.theme || 'light');
       }
 

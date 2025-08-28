@@ -17,6 +17,13 @@ export interface UserSettings {
   autoSyncEnabled: boolean; // 自动同步开关
   autoSyncInterval: number; // 自动同步间隔（秒）
   autoSortEnabled?: boolean; // 自动排序开关（可选，向后兼容）
+  timeComponentEnabled?: boolean; // 时间组件显示开关
+  showFullDate?: boolean; // 是否显示完整日期
+  showSeconds?: boolean; // 是否精确到秒
+  showWeekday?: boolean; // 是否显示星期
+  showYear?: boolean; // 是否显示年份
+  showMonth?: boolean; // 是否显示月份
+  showDay?: boolean; // 是否显示日期
   lastSync: string;
 }
 

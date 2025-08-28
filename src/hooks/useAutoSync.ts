@@ -13,7 +13,15 @@ export function useAutoSync(websites: WebsiteData[], dataInitialized: boolean = 
     parallaxEnabled, 
     wallpaperResolution,
     autoSyncEnabled,
-    autoSyncInterval
+    autoSyncInterval,
+    autoSortEnabled,
+    timeComponentEnabled,
+    showFullDate,
+    showSeconds,
+    showWeekday,
+    showYear,
+    showMonth,
+    showDay
   } = useTransparency();
   
   // 用于存储上次同步的数据指纹，避免重复同步
@@ -89,6 +97,14 @@ export function useAutoSync(websites: WebsiteData[], dataInitialized: boolean = 
       searchBarColor: localStorage.getItem('searchBarColor') || '255, 255, 255',
       autoSyncEnabled,
       autoSyncInterval,
+      autoSortEnabled,
+      timeComponentEnabled,
+      showFullDate,
+      showSeconds,
+      showWeekday,
+      showYear,
+      showMonth,
+      showDay,
       lastSync: new Date().toISOString()
     };
 
@@ -111,7 +127,7 @@ export function useAutoSync(websites: WebsiteData[], dataInitialized: boolean = 
         // 更新数据指纹，标记为已同步
         const currentDataFingerprint = JSON.stringify({
           websites: validWebsites.map(w => ({ id: w.id, name: w.name, url: w.url, visitCount: w.visitCount })),
-          settings: { cardOpacity, searchBarOpacity, parallaxEnabled, wallpaperResolution, theme: settings.theme, autoSyncEnabled, autoSyncInterval }
+          settings: { cardOpacity, searchBarOpacity, parallaxEnabled, wallpaperResolution, theme: settings.theme, autoSyncEnabled, autoSyncInterval, autoSortEnabled, timeComponentEnabled, showFullDate, showSeconds, showWeekday, showYear, showMonth, showDay }
         });
         lastSyncDataRef.current = currentDataFingerprint;
         
@@ -159,7 +175,7 @@ export function useAutoSync(websites: WebsiteData[], dataInitialized: boolean = 
     
     const currentDataFingerprint = JSON.stringify({
       websites: validWebsitesForFingerprint.map(w => ({ id: w.id, name: w.name, url: w.url, visitCount: w.visitCount })),
-      settings: { cardOpacity, searchBarOpacity, parallaxEnabled, wallpaperResolution, theme: localStorage.getItem('theme') || 'light', autoSyncEnabled, autoSyncInterval }
+      settings: { cardOpacity, searchBarOpacity, parallaxEnabled, wallpaperResolution, theme: localStorage.getItem('theme') || 'light', autoSyncEnabled, autoSyncInterval, autoSortEnabled, timeComponentEnabled, showFullDate, showSeconds, showWeekday, showYear, showMonth, showDay }
     });
 
     // 如果数据没有变化，不重置计时器，让现有的同步继续执行
@@ -206,7 +222,7 @@ export function useAutoSync(websites: WebsiteData[], dataInitialized: boolean = 
         clearTimeout(syncTimeoutRef.current);
       }
     };
-  }, [currentUser, websites, cardOpacity, searchBarOpacity, parallaxEnabled, wallpaperResolution, autoSyncEnabled, autoSyncInterval, performSync, dataInitialized]);
+  }, [currentUser, websites, cardOpacity, searchBarOpacity, parallaxEnabled, wallpaperResolution, autoSyncEnabled, autoSyncInterval, autoSortEnabled, timeComponentEnabled, showFullDate, showSeconds, showWeekday, showYear, showMonth, showDay, performSync, dataInitialized]);
 
   // 组件卸载时清理计时器
   useEffect(() => {

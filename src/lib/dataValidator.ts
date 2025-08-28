@@ -116,6 +116,14 @@ export const sanitizeUserSettings = (settings: any): UserSettings => {
     autoSyncInterval: typeof settings.autoSyncInterval === 'number' && settings.autoSyncInterval >= 3 && settings.autoSyncInterval <= 300 
       ? settings.autoSyncInterval 
       : 30,
+    autoSortEnabled: typeof settings.autoSortEnabled === 'boolean' ? settings.autoSortEnabled : false,
+    timeComponentEnabled: typeof settings.timeComponentEnabled === 'boolean' ? settings.timeComponentEnabled : true,
+    showFullDate: typeof settings.showFullDate === 'boolean' ? settings.showFullDate : true,
+    showSeconds: typeof settings.showSeconds === 'boolean' ? settings.showSeconds : true,
+    showWeekday: typeof settings.showWeekday === 'boolean' ? settings.showWeekday : true,
+    showYear: typeof settings.showYear === 'boolean' ? settings.showYear : true,
+    showMonth: typeof settings.showMonth === 'boolean' ? settings.showMonth : true,
+    showDay: typeof settings.showDay === 'boolean' ? settings.showDay : true,
     lastSync: typeof settings.lastSync === 'string' ? settings.lastSync : new Date().toISOString()
   };
 };

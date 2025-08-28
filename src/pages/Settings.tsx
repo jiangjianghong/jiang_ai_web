@@ -65,6 +65,13 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
     autoSortEnabled,
     customWallpaperUrl,
     timeComponentEnabled,
+    showFullDate,
+    showSeconds,
+    showWeekday,
+    showYear,
+    showMonth,
+    showDay,
+    dateDisplayMode,
     setCardOpacity,
     setSearchBarOpacity,
     setParallaxEnabled,
@@ -78,6 +85,13 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
     setSearchInNewTab,
     setAutoSortEnabled,
     setTimeComponentEnabled,
+    setShowFullDate,
+    setShowSeconds,
+    setShowWeekday,
+    setShowYear,
+    setShowMonth,
+    setShowDay,
+    setDateDisplayMode,
   } = useTransparency();
   const { currentUser, logout } = useAuth();
   const { updateSyncStatus } = useSyncStatus();
@@ -948,31 +962,6 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
 
               <div className="border-t border-gray-100"></div>
 
-              {/* 时间组件开关 */}
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <i className="fa-solid fa-clock text-blue-500 text-sm"></i>
-                    <span className="text-sm font-medium text-gray-700 select-none">
-                      时间组件
-                    </span>
-                  </div>
-                  <p className="text-xs text-gray-500 select-none">
-                    {timeComponentEnabled ? '在搜索框上方显示当前时间和日期' : '隐藏时间和日期显示'}
-                  </p>
-                </div>
-                <button
-                  onClick={() => setTimeComponentEnabled(!timeComponentEnabled)}
-                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${timeComponentEnabled ? 'bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg shadow-blue-300/50' : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
-                    }`}
-                >
-                  <span
-                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${timeComponentEnabled ? 'translate-x-6 shadow-blue-200' : 'translate-x-1 shadow-gray-200'
-                      }`}
-                  />
-                </button>
-              </div>
-
               <div className="border-t border-gray-100"></div>
 
               {/* 搜索行为开关 */}
@@ -1026,6 +1015,168 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                   />
                 </button>
               </div>
+            </div>
+          </div>
+
+          <div className="space-y-5 select-none settings-section">
+            <div className="flex items-center gap-3 select-none">
+              <div className="w-6 h-6 bg-gradient-to-br from-orange-400 to-yellow-500 rounded-lg flex items-center justify-center">
+                <i className="fa-solid fa-clock text-white text-xs"></i>
+              </div>
+              <h3 className="text-base font-semibold text-gray-800 select-none">时间设置</h3>
+              <div className="flex-1 h-px bg-gradient-to-r from-gray-200 to-transparent"></div>
+            </div>
+
+            {/* 时间设置区域 */}
+            <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 space-y-4">
+              {/* 时间组件开关 */}
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <i className="fa-solid fa-clock text-orange-500 text-sm"></i>
+                    <span className="text-sm font-medium text-gray-700 select-none">
+                      显示时间组件
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 select-none">
+                    {timeComponentEnabled ? '在搜索框上方显示当前时间和日期' : '隐藏时间和日期显示'}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setTimeComponentEnabled(!timeComponentEnabled)}
+                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${timeComponentEnabled ? 'bg-gradient-to-r from-orange-500 to-yellow-500 shadow-lg shadow-orange-300/50' : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
+                    }`}
+                >
+                  <span
+                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${timeComponentEnabled ? 'translate-x-6 shadow-orange-200' : 'translate-x-1 shadow-gray-200'
+                      }`}
+                  />
+                </button>
+              </div>
+
+              {timeComponentEnabled && (
+                <>
+                  <div className="border-t border-gray-100"></div>
+
+                  {/* 年月日独立开关 */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <i className="fa-solid fa-calendar text-orange-500 text-sm"></i>
+                      <span className="text-sm font-medium text-gray-700 select-none">日期显示控制</span>
+                    </div>
+                    
+                    <div className="grid grid-cols-3 gap-3">
+                      {/* 年份开关 */}
+                      <div className="flex flex-col items-center space-y-2">
+                        <button
+                          onClick={() => setShowYear(!showYear)}
+                          className={`w-full p-3 rounded-lg border-2 transition-all duration-200 text-center select-none cursor-pointer ${showYear
+                            ? 'border-orange-500 bg-orange-50 text-orange-700'
+                            : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
+                            }`}
+                        >
+                          <div className="flex items-center justify-center gap-2 mb-1">
+                            <i className={`fa-solid fa-calendar-alt text-sm transition-colors ${showYear ? 'text-orange-500' : 'text-gray-400'
+                              } select-none`}></i>
+                            <div className="font-medium text-sm select-none">年份</div>
+                          </div>
+                          <div className="text-xs text-gray-500 select-none">2024年</div>
+                        </button>
+                      </div>
+
+                      {/* 月份开关 */}
+                      <div className="flex flex-col items-center space-y-2">
+                        <button
+                          onClick={() => setShowMonth(!showMonth)}
+                          className={`w-full p-3 rounded-lg border-2 transition-all duration-200 text-center select-none cursor-pointer ${showMonth
+                            ? 'border-orange-500 bg-orange-50 text-orange-700'
+                            : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
+                            }`}
+                        >
+                          <div className="flex items-center justify-center gap-2 mb-1">
+                            <i className={`fa-solid fa-calendar-check text-sm transition-colors ${showMonth ? 'text-orange-500' : 'text-gray-400'
+                              } select-none`}></i>
+                            <div className="font-medium text-sm select-none">月份</div>
+                          </div>
+                          <div className="text-xs text-gray-500 select-none">8月</div>
+                        </button>
+                      </div>
+
+                      {/* 日期开关 */}
+                      <div className="flex flex-col items-center space-y-2">
+                        <button
+                          onClick={() => setShowDay(!showDay)}
+                          className={`w-full p-3 rounded-lg border-2 transition-all duration-200 text-center select-none cursor-pointer ${showDay
+                            ? 'border-orange-500 bg-orange-50 text-orange-700'
+                            : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
+                            }`}
+                        >
+                          <div className="flex items-center justify-center gap-2 mb-1">
+                            <i className={`fa-solid fa-calendar-day text-sm transition-colors ${showDay ? 'text-orange-500' : 'text-gray-400'
+                              } select-none`}></i>
+                            <div className="font-medium text-sm select-none">日期</div>
+                          </div>
+                          <div className="text-xs text-gray-500 select-none">28日</div>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-gray-100"></div>
+
+                  {/* 显示星期开关 */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <i className="fa-solid fa-calendar-week text-orange-500 text-sm"></i>
+                        <span className="text-sm font-medium text-gray-700 select-none">
+                          显示星期
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-500 select-none">
+                        {showWeekday ? '显示当前是星期几' : '隐藏星期信息'}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setShowWeekday(!showWeekday)}
+                      className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${showWeekday ? 'bg-gradient-to-r from-orange-500 to-yellow-500 shadow-lg shadow-orange-300/50' : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
+                        }`}
+                    >
+                      <span
+                        className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${showWeekday ? 'translate-x-6 shadow-orange-200' : 'translate-x-1 shadow-gray-200'
+                          }`}
+                      />
+                    </button>
+                  </div>
+
+                  <div className="border-t border-gray-100"></div>
+
+                  {/* 精确到秒设置 */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <i className="fa-solid fa-stopwatch text-orange-500 text-sm"></i>
+                        <span className="text-sm font-medium text-gray-700 select-none">
+                          精确到秒
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-500 select-none">
+                        {showSeconds ? '显示精确的秒数时间' : '只显示时:分，冒号每秒闪烁'}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setShowSeconds(!showSeconds)}
+                      className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${showSeconds ? 'bg-gradient-to-r from-orange-500 to-yellow-500 shadow-lg shadow-orange-300/50' : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
+                        }`}
+                    >
+                      <span
+                        className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${showSeconds ? 'translate-x-6 shadow-orange-200' : 'translate-x-1 shadow-gray-200'
+                          }`}
+                      />
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 

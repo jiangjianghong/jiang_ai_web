@@ -34,6 +34,13 @@ interface TransparencyContextType {
   autoSortEnabled: boolean; // 自动排序开关
   customWallpaperUrl: string; // 自定义壁纸URL
   timeComponentEnabled: boolean; // 时间组件显示开关
+  showFullDate: boolean; // 是否显示完整日期（年月日周）
+  showSeconds: boolean; // 是否精确到秒
+  showWeekday: boolean; // 是否显示星期
+  showYear: boolean; // 是否显示年份
+  showMonth: boolean; // 是否显示月份
+  showDay: boolean; // 是否显示日期
+  dateDisplayMode: 'yearMonth' | 'yearMonthDay'; // 日期显示模式
   setCardOpacity: (opacity: number) => void;
   setSearchBarOpacity: (opacity: number) => void;
   setParallaxEnabled: (enabled: boolean) => void;
@@ -48,6 +55,13 @@ interface TransparencyContextType {
   setAutoSortEnabled: (enabled: boolean) => void;
   setCustomWallpaperUrl: (url: string) => void;
   setTimeComponentEnabled: (enabled: boolean) => void;
+  setShowFullDate: (enabled: boolean) => void;
+  setShowSeconds: (enabled: boolean) => void;
+  setShowWeekday: (enabled: boolean) => void;
+  setShowYear: (enabled: boolean) => void;
+  setShowMonth: (enabled: boolean) => void;
+  setShowDay: (enabled: boolean) => void;
+  setDateDisplayMode: (mode: 'yearMonth' | 'yearMonthDay') => void;
 }
 
 const TransparencyContext = createContext<TransparencyContextType | undefined>(undefined);
@@ -136,6 +150,42 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
     return saved ? saved === 'true' : true; // 默认开启
   });
 
+  // 时间显示格式设置
+  const [showFullDate, setShowFullDate] = useState(() => {
+    const saved = localStorage.getItem('showFullDate');
+    return saved ? saved === 'true' : true; // 默认显示完整日期
+  });
+
+  const [showSeconds, setShowSeconds] = useState(() => {
+    const saved = localStorage.getItem('showSeconds');
+    return saved ? saved === 'true' : true; // 默认精确到秒
+  });
+
+  const [showWeekday, setShowWeekday] = useState(() => {
+    const saved = localStorage.getItem('showWeekday');
+    return saved ? saved === 'true' : true; // 默认显示星期
+  });
+
+  const [showYear, setShowYear] = useState(() => {
+    const saved = localStorage.getItem('showYear');
+    return saved ? saved === 'true' : true; // 默认显示年份
+  });
+
+  const [showMonth, setShowMonth] = useState(() => {
+    const saved = localStorage.getItem('showMonth');
+    return saved ? saved === 'true' : true; // 默认显示月份
+  });
+
+  const [showDay, setShowDay] = useState(() => {
+    const saved = localStorage.getItem('showDay');
+    return saved ? saved === 'true' : true; // 默认显示日期
+  });
+
+  const [dateDisplayMode, setDateDisplayMode] = useState<'yearMonth' | 'yearMonthDay'>(() => {
+    const saved = localStorage.getItem('dateDisplayMode') as 'yearMonth' | 'yearMonthDay';
+    return saved || 'yearMonthDay'; // 默认显示年月日
+  });
+
   // 初始化autoSortEnabled从localStorage
   useEffect(() => {
     try {
@@ -196,6 +246,34 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('timeComponentEnabled', timeComponentEnabled.toString());
   }, [timeComponentEnabled]);
 
+  useEffect(() => {
+    localStorage.setItem('showFullDate', showFullDate.toString());
+  }, [showFullDate]);
+
+  useEffect(() => {
+    localStorage.setItem('showSeconds', showSeconds.toString());
+  }, [showSeconds]);
+
+  useEffect(() => {
+    localStorage.setItem('showWeekday', showWeekday.toString());
+  }, [showWeekday]);
+
+  useEffect(() => {
+    localStorage.setItem('showYear', showYear.toString());
+  }, [showYear]);
+
+  useEffect(() => {
+    localStorage.setItem('showMonth', showMonth.toString());
+  }, [showMonth]);
+
+  useEffect(() => {
+    localStorage.setItem('showDay', showDay.toString());
+  }, [showDay]);
+
+  useEffect(() => {
+    localStorage.setItem('dateDisplayMode', dateDisplayMode);
+  }, [dateDisplayMode]);
+
   return (
     <TransparencyContext.Provider
       value={{
@@ -213,6 +291,13 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
         autoSortEnabled,
         customWallpaperUrl,
         timeComponentEnabled,
+        showFullDate,
+        showSeconds,
+        showWeekday,
+        showYear,
+        showMonth,
+        showDay,
+        dateDisplayMode,
         setCardOpacity,
         setSearchBarOpacity,
         setParallaxEnabled,
@@ -227,6 +312,13 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
         setAutoSortEnabled,
         setCustomWallpaperUrl,
         setTimeComponentEnabled,
+        setShowFullDate,
+        setShowSeconds,
+        setShowWeekday,
+        setShowYear,
+        setShowMonth,
+        setShowDay,
+        setDateDisplayMode,
       }}
     >
       {children}

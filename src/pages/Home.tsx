@@ -318,7 +318,8 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
             这是一个由江江创作的个性化便签页面，结合了 Claude、Coze、Kiro、Copilot 等AI工具的协助。
             页面设计美观实用，包含多个有趣的彩蛋功能，为用户提供优质的书签管理体验。
           </p>
-          {timeComponentEnabled && <TimeDisplay />}
+          {/* 时间组件始终渲染，通过透明度控制显示，避免影响布局 */}
+          <TimeDisplay />
           <SearchBar websites={websites} />
         </div>
 

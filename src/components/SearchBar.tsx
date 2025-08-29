@@ -145,10 +145,11 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                     // 切换引擎并触发彩带动画
                     setEngine(prevEngine => prevEngine === 'bing' ? 'google' : 'bing');
 
-                    // 触发彩带动画 - 使用搜索框中心位置
-                    if (inputRef.current) {
-                        const rect = inputRef.current.getBoundingClientRect();
-                        const centerX = rect.left + 60; // 搜索引擎按钮的大概位置
+                    // 触发彩带动画 - 从搜索引擎按钮位置
+                    const engineButton = document.querySelector('.fa-brands.fa-microsoft, .fa-brands.fa-google')?.closest('button');
+                    if (engineButton) {
+                        const rect = engineButton.getBoundingClientRect();
+                        const centerX = rect.left + rect.width / 2;
                         const centerY = rect.top + rect.height / 2;
                         createFireworkEffect(centerX, centerY);
                     }
@@ -207,10 +208,11 @@ function SearchBarComponent(props: SearchBarProps = {}) {
         const newEngine = engineList[(idx + 1) % engineList.length].key as any;
         setEngine(newEngine);
 
-        // 触发彩带动画
-        if (searchBarRef.current) {
-            const rect = searchBarRef.current.getBoundingClientRect();
-            const centerX = rect.left + 60; // 搜索引擎按钮的大概位置
+        // 触发彩带动画 - 从搜索引擎按钮位置
+        const engineButton = document.querySelector('.fa-brands.fa-microsoft, .fa-brands.fa-google')?.closest('button');
+        if (engineButton) {
+            const rect = engineButton.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
             const centerY = rect.top + rect.height / 2;
             createFireworkEffect(centerX, centerY);
         }
@@ -750,7 +752,7 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                                         className="absolute z-30"
                                         style={{
                                             left: '50%',     // 按钮中心
-                                            top: 'calc(50% - 15px)',  // 向上调整6px
+                                            top: 'calc(50% - 15px)',  // 向上调整15px
                                             width: 0,
                                             height: 0,
                                             pointerEvents: 'auto',

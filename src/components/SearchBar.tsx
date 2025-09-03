@@ -2,6 +2,7 @@ import { useState, useRef, useLayoutEffect, useEffect, useCallback, memo } from 
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTransparency } from '@/contexts/TransparencyContext';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
+import validator from 'validator';
 
 interface WebsiteData {
     id: string;
@@ -259,6 +260,77 @@ function SearchBarComponent(props: SearchBarProps = {}) {
         }
     };
 
+    // 检测输入是否为URL
+    const isValidURL = (input: string): boolean => {
+        const trimmedInput = input.trim();
+        
+        // 空输入直接返回false
+        if (!trimmedInput) return false;
+        
+        try {
+            // 处理各种URL格式
+            let urlToCheck = trimmedInput;
+            
+            // 如果没有协议，尝试添加https://
+            if (!trimmedInput.match(/^https?:\/\//i)) {
+                urlToCheck = `https://${trimmedInput}`;
+            }
+            
+            // 使用validator.js检验URL
+            if (!validator.isURL(urlToCheck, {
+                protocols: ['http', 'https'],
+                require_protocol: true,
+                require_valid_protocol: true,
+                allow_underscores: true,
+                allow_trailing_dot: false,
+                allow_protocol_relative_urls: false
+            })) {
+                return false;
+            }
+            
+            // 进一步验证URL格式
+            const url = new URL(urlToCheck);
+            
+            // 检查域名格式
+            const hostname = url.hostname.toLowerCase();
+            
+            // 域名必须包含点号（除非是localhost）
+            if (hostname !== 'localhost' && hostname !== '127.0.0.1' && !hostname.includes('.')) {
+                return false;
+            }
+            
+            // 检查是否是有效的域名格式
+            if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
+                // 简单的域名验证：至少包含一个点，且TLD至少2个字符
+                const parts = hostname.split('.');
+                if (parts.length < 2) return false;
+                
+                const tld = parts[parts.length - 1];
+                if (tld.length < 2) return false;
+                
+                // 检查是否包含有效字符
+                if (!/^[a-z0-9.-]+$/i.test(hostname)) return false;
+            }
+            
+            return true;
+        } catch {
+            return false;
+        }
+    };
+
+    // 格式化URL，确保有正确的协议
+    const formatURL = (input: string): string => {
+        const trimmedInput = input.trim();
+        
+        // 如果已经有协议，直接返回
+        if (trimmedInput.match(/^https?:\/\//i)) {
+            return trimmedInput;
+        }
+        
+        // 否则添加https://
+        return `https://${trimmedInput}`;
+    };
+
     // 生成搜索建议 - 使用百度联想API (带CORS处理)
     const generateSuggestions = async (query: string): Promise<any[]> => {
         if (!query.trim()) return [];
@@ -506,13 +578,38 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                 const matchedWebsites = searchWebsites(searchQuery);
                 setWebsiteSuggestions(matchedWebsites);
 
-                // 总是生成搜索建议，与网站卡片并存
-                generateSuggestions(searchQuery).then((newSuggestions) => {
-                    setSuggestions(newSuggestions);
-                    // 只要有任一类型的建议就显示下拉框
-                    setShowSuggestions(matchedWebsites.length > 0 || newSuggestions.length > 0);
-                    setSelectedSuggestionIndex(-1);
-                });
+                // 检测是否为URL输入
+                const isURL = isValidURL(searchQuery);
+
+                if (isURL) {
+                    // 如果是URL，优先显示直接访问选项
+                    const formattedURL = formatURL(searchQuery);
+                    const urlSuggestion = {
+                        id: 'direct-visit',
+                        text: `直接访问: ${formattedURL}`,
+                        query: formattedURL,
+                        isDirectVisit: true,
+                        displayUrl: formattedURL
+                    };
+                    
+                    // 生成常规搜索建议作为备选
+                    generateSuggestions(searchQuery).then((newSuggestions) => {
+                        // URL建议放在最前面
+                        const allSuggestions = [urlSuggestion, ...newSuggestions];
+                        setSuggestions(allSuggestions);
+                        // 只要有任一类型的建议就显示下拉框
+                        setShowSuggestions(matchedWebsites.length > 0 || allSuggestions.length > 0);
+                        setSelectedSuggestionIndex(-1);
+                    });
+                } else {
+                    // 总是生成搜索建议，与网站卡片并存
+                    generateSuggestions(searchQuery).then((newSuggestions) => {
+                        setSuggestions(newSuggestions);
+                        // 只要有任一类型的建议就显示下拉框
+                        setShowSuggestions(matchedWebsites.length > 0 || newSuggestions.length > 0);
+                        setSelectedSuggestionIndex(-1);
+                    });
+                }
             } else {
                 setSuggestions([]);
                 setWebsiteSuggestions([]);
@@ -524,12 +621,21 @@ function SearchBarComponent(props: SearchBarProps = {}) {
         return () => clearTimeout(debounceTimer);
     }, [searchQuery, websites]);
 
-    const handleSearch = (e: React.FormEvent, suggestionQuery?: string, website?: WebsiteData) => {
+    const handleSearch = (e: React.FormEvent, suggestionQuery?: string, website?: WebsiteData, isDirectVisit?: boolean) => {
         e.preventDefault();
 
         // 如果是网站建议，直接打开网站
         if (website) {
             openUrl(website.url);
+            setSearchQuery('');
+            setShowSuggestions(false);
+            setWebsiteSuggestions([]);
+            return;
+        }
+
+        // 如果是直接访问URL
+        if (isDirectVisit && suggestionQuery) {
+            openUrl(suggestionQuery);
             setSearchQuery('');
             setShowSuggestions(false);
             setWebsiteSuggestions([]);
@@ -550,7 +656,19 @@ function SearchBarComponent(props: SearchBarProps = {}) {
             } else {
                 // 选中的是搜索引擎建议
                 const suggestionIndex = selectedSuggestionIndex - websiteSuggestions.length;
-                const queryToSearch = suggestions[suggestionIndex]?.query || searchQuery;
+                const selectedSuggestion = suggestions[suggestionIndex];
+                
+                // 检查是否是直接访问建议
+                if (selectedSuggestion?.isDirectVisit) {
+                    openUrl(selectedSuggestion.query);
+                    setSearchQuery('');
+                    setShowSuggestions(false);
+                    setWebsiteSuggestions([]);
+                    return;
+                }
+                
+                // 常规搜索
+                const queryToSearch = selectedSuggestion?.query || searchQuery;
                 if (queryToSearch.trim()) {
                     openUrl(getSearchUrl(engine, queryToSearch));
                     setSearchQuery('');
@@ -561,10 +679,17 @@ function SearchBarComponent(props: SearchBarProps = {}) {
             }
         }
 
-        // 默认搜索
+        // 默认搜索或直接访问
         const queryToSearch = suggestionQuery || searchQuery;
         if (queryToSearch.trim()) {
-            openUrl(getSearchUrl(engine, queryToSearch));
+            // 检测是否为URL
+            if (isValidURL(queryToSearch)) {
+                // 直接访问URL
+                openUrl(formatURL(queryToSearch));
+            } else {
+                // 搜索引擎搜索
+                openUrl(getSearchUrl(engine, queryToSearch));
+            }
             setSearchQuery('');
             setShowSuggestions(false);
             setWebsiteSuggestions([]);
@@ -701,15 +826,42 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                                         const matchedWebsites = searchWebsites(searchQuery);
                                         setWebsiteSuggestions(matchedWebsites);
 
-                                        // 重新生成搜索建议
-                                        generateSuggestions(searchQuery).then((newSuggestions) => {
-                                            setSuggestions(newSuggestions);
-                                            // 只要有任一类型的建议就显示下拉框
-                                            if (matchedWebsites.length > 0 || newSuggestions.length > 0) {
-                                                setShowSuggestions(true);
-                                                setSelectedSuggestionIndex(-1);
-                                            }
-                                        });
+                                        // 检测是否为URL输入
+                                        const isURL = isValidURL(searchQuery);
+
+                                        if (isURL) {
+                                            // 如果是URL，优先显示直接访问选项
+                                            const formattedURL = formatURL(searchQuery);
+                                            const urlSuggestion = {
+                                                id: 'direct-visit',
+                                                text: `直接访问: ${formattedURL}`,
+                                                query: formattedURL,
+                                                isDirectVisit: true,
+                                                displayUrl: formattedURL
+                                            };
+                                            
+                                            // 生成常规搜索建议作为备选
+                                            generateSuggestions(searchQuery).then((newSuggestions) => {
+                                                // URL建议放在最前面
+                                                const allSuggestions = [urlSuggestion, ...newSuggestions];
+                                                setSuggestions(allSuggestions);
+                                                // 只要有任一类型的建议就显示下拉框
+                                                if (matchedWebsites.length > 0 || allSuggestions.length > 0) {
+                                                    setShowSuggestions(true);
+                                                    setSelectedSuggestionIndex(-1);
+                                                }
+                                            });
+                                        } else {
+                                            // 重新生成搜索建议
+                                            generateSuggestions(searchQuery).then((newSuggestions) => {
+                                                setSuggestions(newSuggestions);
+                                                // 只要有任一类型的建议就显示下拉框
+                                                if (matchedWebsites.length > 0 || newSuggestions.length > 0) {
+                                                    setShowSuggestions(true);
+                                                    setSelectedSuggestionIndex(-1);
+                                                }
+                                            });
+                                        }
                                     }
                                 }}
                                 onBlur={() => {
@@ -989,27 +1141,58 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                                                 {suggestions.map((suggestion, index) => {
                                                     const adjustedIndex = index + websiteSuggestions.length;
                                                     const isSelected = adjustedIndex === selectedSuggestionIndex;
+                                                    const isDirectVisit = (suggestion as any).isDirectVisit;
+                                                    
                                                     return (
                                                         <div
                                                             key={suggestion.id}
-                                                            className={`px-4 py-3 cursor-pointer transition-colors border-b border-gray-100/50 last:border-b-0 select-none ${isSelected
-                                                                ? 'bg-blue-500/10 text-gray-800'
-                                                                : 'hover:bg-gray-50 text-gray-700'
-                                                                }`}
+                                                            className={`px-4 py-3 cursor-pointer transition-colors border-b border-gray-100/50 last:border-b-0 select-none ${
+                                                                isSelected
+                                                                    ? isDirectVisit 
+                                                                        ? 'bg-green-500/10 text-gray-800 border-l-4 border-green-500'
+                                                                        : 'bg-blue-500/10 text-gray-800'
+                                                                    : isDirectVisit
+                                                                        ? 'hover:bg-green-50 text-gray-700 border-l-4 border-transparent hover:border-green-200'
+                                                                        : 'hover:bg-gray-50 text-gray-700'
+                                                            }`}
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
-                                                                setSearchQuery(suggestion.text);
-                                                                handleSearch(e as any, suggestion.query);
+                                                                if (isDirectVisit) {
+                                                                    handleSearch(e as any, suggestion.query, undefined, true);
+                                                                } else {
+                                                                    setSearchQuery(suggestion.text);
+                                                                    handleSearch(e as any, suggestion.query);
+                                                                }
                                                             }}
                                                             onMouseEnter={() => setSelectedSuggestionIndex(adjustedIndex)}
                                                             onMouseDown={(e) => e.preventDefault()}
                                                         >
                                                             <div className="flex items-center gap-3 select-none">
-                                                                <i className="fa-solid fa-magnifying-glass text-gray-400 text-sm w-4 select-none"></i>
+                                                                {isDirectVisit ? (
+                                                                    <div className="flex items-center gap-2">
+                                                                        <i className="fa-solid fa-external-link-alt text-green-600 text-sm w-4 select-none"></i>
+                                                                        <div className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium">
+                                                                            直接访问
+                                                                        </div>
+                                                                    </div>
+                                                                ) : (
+                                                                    <i className="fa-solid fa-magnifying-glass text-gray-400 text-sm w-4 select-none"></i>
+                                                                )}
                                                                 <div className="flex-1 min-w-0 select-none">
-                                                                    <div className="font-medium text-sm truncate select-none">{suggestion.text}</div>
+                                                                    {isDirectVisit ? (
+                                                                        <div>
+                                                                            <div className="font-medium text-sm text-green-700 select-none">直接访问网站</div>
+                                                                            <div className="text-xs text-green-600 truncate select-none">{(suggestion as any).displayUrl}</div>
+                                                                        </div>
+                                                                    ) : (
+                                                                        <div className="font-medium text-sm truncate select-none">{suggestion.text}</div>
+                                                                    )}
                                                                 </div>
-                                                                <div className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded">
+                                                                <div className={`text-xs px-2 py-1 rounded ${
+                                                                    isDirectVisit 
+                                                                        ? 'text-green-600 bg-green-100'
+                                                                        : 'text-gray-400 bg-gray-100'
+                                                                }`}>
                                                                     Enter
                                                                 </div>
                                                             </div>

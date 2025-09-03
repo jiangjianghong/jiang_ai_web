@@ -361,18 +361,20 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
 
         {/* 工作空间触发按钮 - 响应式调整 */}
         <div className={classes.workspaceButton}>
-          <button
-            onClick={() => setIsWorkspaceOpen(true)}
-            className={`bg-white/20 backdrop-blur-sm rounded-lg ${isMobile ? 'px-2 py-1' : 'px-3 py-2'} flex items-center space-x-2 hover:bg-white/30 transition-colors cursor-pointer group`}
-            title="工作空间"
-          >
-            <i className={`fa-solid fa-briefcase text-white/80 group-hover:text-white transition-colors ${isMobile ? 'text-xs' : ''}`}></i>
-            {!isMobile && (
-              <span className="text-white/90 text-sm font-medium group-hover:text-white transition-colors">
-                工作空间
-              </span>
-            )}
-          </button>
+          <div className="relative group">
+            <button
+              onClick={() => setIsWorkspaceOpen(true)}
+              className="flex items-center justify-center transition-all duration-200 cursor-pointer p-2"
+            >
+              <i className={`fa-solid fa-briefcase text-white/70 group-hover:text-white group-hover:drop-shadow-lg transition-all duration-200 ${isMobile ? 'text-sm' : 'text-lg'}`}></i>
+            </button>
+            
+            {/* 自定义悬停提示 */}
+            <div className="absolute left-1/2 transform -translate-x-1/2 top-full mt-2 px-3 py-1.5 bg-gray-900/90 text-white text-xs rounded-lg shadow-lg backdrop-blur-sm border border-white/10 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none z-50">
+              工作空间
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-gray-900/90"></div>
+            </div>
+          </div>
         </div>
 
         {/* 用户信息显示 - 响应式调整 */}

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { WebsiteCard } from '@/components/WebsiteCard';
 import { SearchBar } from '@/components/SearchBar';
 import { TimeDisplay } from '@/components/TimeDisplay';
+import { PoemDisplay } from '@/components/PoemDisplay';
 import { AnimatedCat } from '@/components/AnimatedCat';
 // 拖拽逻辑已迁移到 WebsiteCard
 import { motion } from 'framer-motion';
@@ -387,6 +388,9 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
             <i className={`fa-solid fa-sliders ${isMobile ? 'text-base' : 'text-lg'}`}></i>
           </button>
         </div>
+
+        {/* 诗句显示 - 页面下方 */}
+        <PoemDisplay />
 
         {/* 动画猫 - 仅在非移动端显示 */}
         {!isMobile && <AnimatedCat />}

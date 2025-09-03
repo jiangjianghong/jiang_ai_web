@@ -99,7 +99,7 @@ export function TimeDisplay() {
             transform: hasAnyDateElement ? 'translateY(0)' : 'translateY(15px)'
           }}
         >
-          <div className="text-white/80 font-mono text-2xl font-semibold tracking-wide mb-1 drop-shadow-sm">
+          <div className="text-white/80 font-mono text-4xl font-semibold tracking-wide mb-1 drop-shadow-sm">
             {formatTime(currentTime)}
           </div>
           {/* 始终占据固定空间，通过透明度控制显示 */}

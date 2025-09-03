@@ -271,9 +271,9 @@ function SearchBarComponent(props: SearchBarProps = {}) {
             // 处理各种URL格式
             let urlToCheck = trimmedInput;
             
-            // 如果没有协议，尝试添加https://
+            // 如果没有协议，尝试添加http://
             if (!trimmedInput.match(/^https?:\/\//i)) {
-                urlToCheck = `https://${trimmedInput}`;
+                urlToCheck = `http://${trimmedInput}`;
             }
             
             // 使用validator.js检验URL
@@ -327,8 +327,8 @@ function SearchBarComponent(props: SearchBarProps = {}) {
             return trimmedInput;
         }
         
-        // 否则添加https://
-        return `https://${trimmedInput}`;
+        // 否则添加http://
+        return `http://${trimmedInput}`;
     };
 
     // 生成搜索建议 - 使用百度联想API (带CORS处理)
@@ -812,6 +812,7 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                             {/* 分隔符 */}
                             <span className="mx-2 text-white/30 select-none font-normal text-base z-10">|</span>
                             <span className="text-white/60 select-none font-normal text-base z-10"></span>
+                            <div className="relative flex-1">
                             <input
                                 ref={inputRef}
                                 type="text"
@@ -883,113 +884,12 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                                     maxWidth: '100%'
                                 }}
                             />
-                            <button
-                                ref={searchBtnRef}
-                                type="submit"
-                                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-white/70 hover:text-white transition-colors bg-transparent border-none outline-none group select-none"
-                                style={{ pointerEvents: 'auto' }}
-                            >
-                                <motion.i
-                                    className="fa-solid fa-magnifying-glass text-sm"
-                                    whileHover={{ scale: 1.22, rotate: 18, color: '#fff' }}
-                                    whileTap={{ scale: 0.95, rotate: 0 }}
-                                    animate={{ color: isHovered ? '#fff' : undefined }}
-                                    transition={{ type: 'spring', stiffness: 350, damping: 6 }}
-                                    style={{ display: 'inline-block' }}
-                                />
-                                
-                                {/* 悬停时显示的AI图标（以搜索图标为圆心） */}
-                                {isHovered && (
-                                    <div
-                                        className="absolute z-30"
-                                        style={{
-                                            left: '50%',     // 按钮中心
-                                            top: 'calc(50% - 15px)',  // 向上调整15px
-                                            width: 0,
-                                            height: 0,
-                                            pointerEvents: 'auto',
-                                            transform: 'translate(-50%, -50%)',
-                                        }}
-                                    >
-                                        <div style={{ position: 'absolute', left: 0, top: 0 }}>
-                                            {emojiList.map((emoji, i, arr) => {
-                                                // -60°到60°，右上半圆分布，半径增大为44
-                                                const N = arr.length;
-                                                const angle = (-60 + (120 / (N - 1)) * i) * (Math.PI / 180);
-                                                const r = 44;
-                                                const x = r * Math.cos(angle);
-                                                const y = r * Math.sin(angle);
-                                                const rectHeight = 19;
-                                                const rectWidth = rectHeight * 3.6;
-                                                return (
-                                                    <motion.span
-                                                        key={i}
-                                                        role="img"
-                                                        aria-label={emojiNames[i]}
-                                                        initial={{ x: 0, y: 0, scale: 0.3, opacity: 0, filter: 'none' }}
-                                                        animate={{ x, y, scale: 1.18, opacity: 1, filter: 'none' }}
-                                                        whileHover={{ scale: 1.38, filter: 'drop-shadow(0 0 4px #fff) drop-shadow(0 0 8px #fff)' }}
-                                                        transition={{
-                                                            type: 'spring',
-                                                            stiffness: 400,
-                                                            damping: 8,
-                                                            delay: 0.08 * i,
-                                                        }}
-                                                        style={{
-                                                            position: 'absolute',
-                                                            left: 0,
-                                                            top: 0,
-                                                            fontSize: 22,
-                                                            cursor: 'pointer',
-                                                            userSelect: 'none',
-                                                            zIndex: 2,
-                                                            willChange: 'filter, transform',
-                                                        }}
-                                                        onClick={() => window.open(emojiLinks[i], '_blank')}
-                                                        onMouseEnter={() => setHoveredEmojiIdx(i)}
-                                                        onMouseLeave={() => setHoveredEmojiIdx(null)}
-                                                    >
-                                                        {emoji}
-                                                        {hoveredEmojiIdx === i && (
-                                                            <div
-                                                                style={{
-                                                                    position: 'absolute',
-                                                                    left: 28,
-                                                                    top: '50%',
-                                                                    transform: 'translateY(-50%)',
-                                                                    height: rectHeight,
-                                                                    width: rectWidth,
-                                                                    background: 'rgba(255,255,255,0.98)',
-                                                                    color: '#222',
-                                                                    borderRadius: rectHeight / 2,
-                                                                    display: 'flex',
-                                                                    alignItems: 'center',
-                                                                    justifyContent: 'center',
-                                                                    boxShadow: '0 2px 12px #0003',
-                                                                    fontSize: 14,
-                                                                    fontWeight: 500,
-                                                                    pointerEvents: 'auto',
-                                                                    zIndex: 10,
-                                                                    padding: '0 10px',
-                                                                    whiteSpace: 'nowrap',
-                                                                }}
-                                                            >
-                                                                <span style={{ userSelect: 'none' }}>{emojiNames[i]}</span>
-                                                            </div>
-                                                        )}
-                                                    </motion.span>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-                                )}
-                            </button>
-
-                            {/* 搜索建议列表 */}
+                            
+                            {/* 搜索建议列表 - 现在相对于输入框定位 */}
                             <AnimatePresence>
                                 {showSuggestions && (websiteSuggestions.length > 0 || suggestions.length > 0) && (
                                     <motion.div
-                                        className={`absolute top-full left-0 right-0 mt-2 backdrop-blur-md rounded-lg shadow-lg border border-white/20 z-50 overflow-hidden overflow-y-auto ${isMobile ? 'max-h-60' : 'max-h-80'
+                                        className={`absolute top-full left-3 right-0 mt-2 backdrop-blur-md rounded-lg shadow-lg border border-white/20 z-50 overflow-hidden overflow-y-auto ${isMobile ? 'max-h-60' : 'max-h-80'
                                             }`}
                                         initial={{ opacity: 0, y: -10, scaleY: 0.8 }}
                                         animate={{ opacity: 1, y: 0, scaleY: 1 }}
@@ -1204,6 +1104,109 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                                     </motion.div>
                                 )}
                             </AnimatePresence>
+                            </div>
+                            <button
+                                ref={searchBtnRef}
+                                type="submit"
+                                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-white/70 hover:text-white transition-colors bg-transparent border-none outline-none group select-none"
+                                style={{ pointerEvents: 'auto' }}
+                            >
+                                <motion.i
+                                    className="fa-solid fa-magnifying-glass text-sm"
+                                    whileHover={{ scale: 1.22, rotate: 18, color: '#fff' }}
+                                    whileTap={{ scale: 0.95, rotate: 0 }}
+                                    animate={{ color: isHovered ? '#fff' : undefined }}
+                                    transition={{ type: 'spring', stiffness: 350, damping: 6 }}
+                                    style={{ display: 'inline-block' }}
+                                />
+                                
+                                {/* 悬停时显示的AI图标（以搜索图标为圆心） */}
+                                {isHovered && (
+                                    <div
+                                        className="absolute z-30"
+                                        style={{
+                                            left: '50%',     // 按钮中心
+                                            top: 'calc(50% - 15px)',  // 向上调整15px
+                                            width: 0,
+                                            height: 0,
+                                            pointerEvents: 'auto',
+                                            transform: 'translate(-50%, -50%)',
+                                        }}
+                                    >
+                                        <div style={{ position: 'absolute', left: 0, top: 0 }}>
+                                            {emojiList.map((emoji, i, arr) => {
+                                                // -60°到60°，右上半圆分布，半径增大为44
+                                                const N = arr.length;
+                                                const angle = (-60 + (120 / (N - 1)) * i) * (Math.PI / 180);
+                                                const r = 44;
+                                                const x = r * Math.cos(angle);
+                                                const y = r * Math.sin(angle);
+                                                const rectHeight = 19;
+                                                const rectWidth = rectHeight * 3.6;
+                                                return (
+                                                    <motion.span
+                                                        key={i}
+                                                        role="img"
+                                                        aria-label={emojiNames[i]}
+                                                        initial={{ x: 0, y: 0, scale: 0.3, opacity: 0, filter: 'none' }}
+                                                        animate={{ x, y, scale: 1.18, opacity: 1, filter: 'none' }}
+                                                        whileHover={{ scale: 1.38, filter: 'drop-shadow(0 0 4px #fff) drop-shadow(0 0 8px #fff)' }}
+                                                        transition={{
+                                                            type: 'spring',
+                                                            stiffness: 400,
+                                                            damping: 8,
+                                                            delay: 0.08 * i,
+                                                        }}
+                                                        style={{
+                                                            position: 'absolute',
+                                                            left: 0,
+                                                            top: 0,
+                                                            fontSize: 22,
+                                                            cursor: 'pointer',
+                                                            userSelect: 'none',
+                                                            zIndex: 2,
+                                                            willChange: 'filter, transform',
+                                                        }}
+                                                        onClick={() => window.open(emojiLinks[i], '_blank')}
+                                                        onMouseEnter={() => setHoveredEmojiIdx(i)}
+                                                        onMouseLeave={() => setHoveredEmojiIdx(null)}
+                                                    >
+                                                        {emoji}
+                                                        {hoveredEmojiIdx === i && (
+                                                            <div
+                                                                style={{
+                                                                    position: 'absolute',
+                                                                    left: 28,
+                                                                    top: '50%',
+                                                                    transform: 'translateY(-50%)',
+                                                                    height: rectHeight,
+                                                                    width: rectWidth,
+                                                                    background: 'rgba(255,255,255,0.98)',
+                                                                    color: '#222',
+                                                                    borderRadius: rectHeight / 2,
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    justifyContent: 'center',
+                                                                    boxShadow: '0 2px 12px #0003',
+                                                                    fontSize: 14,
+                                                                    fontWeight: 500,
+                                                                    pointerEvents: 'auto',
+                                                                    zIndex: 10,
+                                                                    padding: '0 10px',
+                                                                    whiteSpace: 'nowrap',
+                                                                }}
+                                                            >
+                                                                <span style={{ userSelect: 'none' }}>{emojiNames[i]}</span>
+                                                            </div>
+                                                        )}
+                                                    </motion.span>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+                            </button>
+
                         </motion.div>
                     </form>
                 </motion.div>

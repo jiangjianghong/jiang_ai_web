@@ -32,11 +32,11 @@ export function TimeDisplay() {
     
     if (showSeconds) {
       const seconds = date.getSeconds().toString().padStart(2, '0');
-      return `${hours}:${minutes}:${seconds}`;
+      return { text: `${hours}:${minutes}:${seconds}`, colonOpacity: 1 };
     } else {
-      // 不精确到秒时，冒号闪烁效果
-      const colon = isColonVisible ? ':' : ' ';
-      return `${hours}${colon}${minutes}`;
+      // 不精确到秒时，冒号透明度闪烁效果
+      const colonOpacity = isColonVisible ? 1 : 0.3;
+      return { text: `${hours}:${minutes}`, colonOpacity };
     }
   };
 
@@ -100,7 +100,39 @@ export function TimeDisplay() {
           }}
         >
           <div className="text-white/80 font-mono text-4xl font-semibold tracking-wide mb-1 drop-shadow-sm">
-            {formatTime(currentTime)}
+            {(() => {
+              const timeData = formatTime(currentTime);
+              if (showSeconds || timeData.text.includes(':')) {
+                // 显示秒数或包含冒号的时间
+                const parts = timeData.text.split(':');
+                return (
+                  <>
+                    {parts[0]}
+                    <span 
+                      className="transition-opacity duration-200" 
+                      style={{ opacity: timeData.colonOpacity }}
+                    >
+                      :
+                    </span>
+                    {parts[1]}
+                    {parts[2] && (
+                      <>
+                        <span 
+                          className="transition-opacity duration-200" 
+                          style={{ opacity: timeData.colonOpacity }}
+                        >
+                          :
+                        </span>
+                        {parts[2]}
+                      </>
+                    )}
+                  </>
+                );
+              } else {
+                // 没有冒号的情况，直接显示
+                return timeData.text;
+              }
+            })()}
           </div>
           {/* 始终占据固定空间，通过透明度控制显示 */}
           <div className="text-white/60 text-sm font-medium drop-shadow-sm h-5 flex items-center justify-center min-w-[200px]">

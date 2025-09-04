@@ -21,7 +21,19 @@ interface WebsiteCardProps {
   onDelete?: (id: string) => void;
 }
 
-export const WebsiteCard = memo(function WebsiteCardComponent({ id, name, url, favicon, tags, visitCount, note, index, moveCard, onSave, onDelete }: WebsiteCardProps) {
+export const WebsiteCard = memo(function WebsiteCardComponent({
+  id,
+  name,
+  url,
+  favicon,
+  tags,
+  visitCount,
+  note,
+  index,
+  moveCard,
+  onSave,
+  onDelete,
+}: WebsiteCardProps) {
   const [showEditModal, setShowEditModal] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [, setClickAnimation] = useState(false);
@@ -30,7 +42,6 @@ export const WebsiteCard = memo(function WebsiteCardComponent({ id, name, url, f
   const { cardOpacity, cardColor } = useTransparency();
   const { faviconUrl, isLoading, error } = useLazyFavicon(url, favicon, cardRef);
   const { isMobile, getCardClasses } = useResponsiveLayout();
-
 
   const { autoSortEnabled } = useTransparency();
 
@@ -153,7 +164,7 @@ export const WebsiteCard = memo(function WebsiteCardComponent({ id, name, url, f
       tags,
       note,
       visitCount: visitCount + 1,
-      lastVisit: new Date().toISOString().split('T')[0]
+      lastVisit: new Date().toISOString().split('T')[0],
     });
   };
 
@@ -182,9 +193,9 @@ export const WebsiteCard = memo(function WebsiteCardComponent({ id, name, url, f
       {/* 使用Tilt组件实现3D效果 */}
       <Tilt
         tiltEnable={!isMobile && !isDragging && !autoSortEnabled}
-        tiltReverse={true}  // 反转倾斜方向（按下效果）
-        tiltMaxAngleX={25}  // 增加X轴倾斜角度
-        tiltMaxAngleY={25}  // 增加Y轴倾斜角度
+        tiltReverse={true} // 反转倾斜方向（按下效果）
+        tiltMaxAngleX={25} // 增加X轴倾斜角度
+        tiltMaxAngleY={25} // 增加Y轴倾斜角度
         perspective={1000}
         transitionSpeed={1000}
         scale={1.02}
@@ -209,7 +220,7 @@ export const WebsiteCard = memo(function WebsiteCardComponent({ id, name, url, f
             scale: isDragging ? 1.05 : 1, // 拖拽时轻微放大
           }}
           transition={{
-            type: "spring",
+            type: 'spring',
             stiffness: 200,
             damping: 15,
             duration: 0.2,
@@ -221,19 +232,23 @@ export const WebsiteCard = memo(function WebsiteCardComponent({ id, name, url, f
           onTouchMove={clearLongPress}
           onTouchCancel={clearLongPress}
           onClick={handleCardClick}
-          whileTap={isMobile ? {
-            scale: 0.95,
-            transition: { duration: 0.1, ease: "easeInOut" }
-          } : {}}
+          whileTap={
+            isMobile
+              ? {
+                  scale: 0.95,
+                  transition: { duration: 0.1, ease: 'easeInOut' },
+                }
+              : {}
+          }
           initial={{ opacity: 0, y: 20 }}
           whileInView={{
             opacity: 1,
             y: 0,
             transition: {
               duration: 0.4,
-              ease: "easeOut",
-              delay: 0.05
-            }
+              ease: 'easeOut',
+              delay: 0.05,
+            },
           }}
           viewport={{ once: true }}
           ref={cardRef}
@@ -245,8 +260,9 @@ export const WebsiteCard = memo(function WebsiteCardComponent({ id, name, url, f
                 e.stopPropagation();
                 setShowEditModal(true);
               }}
-              className={`p-1 text-white/50 hover:text-white select-none transition-all duration-500 ease-out ${isMobile ? 'text-xs bg-black/20 rounded-full' : ''
-                } ${isHovered && !isMobile ? 'opacity-100' : isMobile ? 'opacity-70' : 'opacity-0'}`}
+              className={`p-1 text-white/50 hover:text-white select-none transition-all duration-500 ease-out ${
+                isMobile ? 'text-xs bg-black/20 rounded-full' : ''
+              } ${isHovered && !isMobile ? 'opacity-100' : isMobile ? 'opacity-70' : 'opacity-0'}`}
             >
               <i className="fa-solid fa-gear text-xs select-none"></i>
             </button>
@@ -255,7 +271,9 @@ export const WebsiteCard = memo(function WebsiteCardComponent({ id, name, url, f
           <div className={`h-full flex flex-col ${isMobile ? 'pt-2' : 'pt-3'} select-none`}>
             {/* 网站图标和名称区域 */}
             <div className={`flex flex-col items-center ${isMobile ? 'px-1' : 'px-2'} select-none`}>
-              <div className={`${isMobile ? 'w-8 h-8 mb-1' : 'w-11 h-11 mb-1'} rounded-md overflow-hidden select-none relative`}>
+              <div
+                className={`${isMobile ? 'w-8 h-8 mb-1' : 'w-11 h-11 mb-1'} rounded-md overflow-hidden select-none relative`}
+              >
                 <img
                   src={faviconUrl}
                   alt={`${name} favicon`}
@@ -265,15 +283,21 @@ export const WebsiteCard = memo(function WebsiteCardComponent({ id, name, url, f
                 />
                 {/* 状态指示器 */}
                 {isLoading && (
-                  <div className={`absolute top-0 right-0 ${isMobile ? 'w-1.5 h-1.5' : 'w-2 h-2'} bg-yellow-400 rounded-full animate-pulse`}
-                    title="加载中..."></div>
+                  <div
+                    className={`absolute top-0 right-0 ${isMobile ? 'w-1.5 h-1.5' : 'w-2 h-2'} bg-yellow-400 rounded-full animate-pulse`}
+                    title="加载中..."
+                  ></div>
                 )}
                 {!isLoading && error && (
-                  <div className={`absolute top-0 right-0 ${isMobile ? 'w-1.5 h-1.5' : 'w-2 h-2'} bg-red-400 rounded-full`}
-                    title="加载失败"></div>
+                  <div
+                    className={`absolute top-0 right-0 ${isMobile ? 'w-1.5 h-1.5' : 'w-2 h-2'} bg-red-400 rounded-full`}
+                    title="加载失败"
+                  ></div>
                 )}
               </div>
-              <h3 className={`${isMobile ? 'text-[0.65rem]' : 'text-xs'} font-medium text-white text-center line-clamp-2 px-2 mt-1 select-none`}>
+              <h3
+                className={`${isMobile ? 'text-[0.65rem]' : 'text-xs'} font-medium text-white text-center line-clamp-2 px-2 mt-1 select-none`}
+              >
                 {name}
               </h3>
             </div>
@@ -290,7 +314,7 @@ export const WebsiteCard = memo(function WebsiteCardComponent({ id, name, url, f
             {/* 标签区域 */}
             <div className={`mt-0 ${isMobile ? 'px-1 pb-1' : 'px-3 pb-2'} select-none`}>
               <div className="flex flex-wrap gap-1 justify-center select-none">
-                {tags.slice(0, isMobile ? 2 : 6).map(tag => (
+                {tags.slice(0, isMobile ? 2 : 6).map((tag) => (
                   <span
                     key={tag}
                     className={`px-1.5 py-0.5 bg-white/20 rounded-full ${isMobile ? 'text-[0.55rem]' : 'text-[0.65rem]'} text-white ${isMobile ? 'max-w-[45px]' : 'max-w-[60px]'} truncate select-none`}
@@ -305,7 +329,9 @@ export const WebsiteCard = memo(function WebsiteCardComponent({ id, name, url, f
             {visitCount > 0 && (
               <div className={`px-2 pb-2 select-none`}>
                 <div className="text-center">
-                  <span className={`px-2 py-1 bg-blue-500/20 text-blue-200 rounded-full ${isMobile ? 'text-[0.55rem]' : 'text-[0.65rem]'} border border-blue-300/30 select-none`}>
+                  <span
+                    className={`px-2 py-1 bg-blue-500/20 text-blue-200 rounded-full ${isMobile ? 'text-[0.55rem]' : 'text-[0.65rem]'} border border-blue-300/30 select-none`}
+                  >
                     <i className="fa-solid fa-eye mr-1 select-none"></i>
                     <span className="select-none">{visitCount}次访问</span>
                   </span>
@@ -324,7 +350,7 @@ export const WebsiteCard = memo(function WebsiteCardComponent({ id, name, url, f
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.4, ease: "easeOut" }}
+              transition={{ duration: 0.4, ease: 'easeOut' }}
             />
           )}
 
@@ -353,7 +379,7 @@ export const WebsiteCard = memo(function WebsiteCardComponent({ id, name, url, f
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.5, ease: "easeOut" }}
+              transition={{ duration: 0.5, ease: 'easeOut' }}
               style={{
                 boxShadow: '0 8px 25px rgba(0,0,0,0.2)',
                 zIndex: -1,

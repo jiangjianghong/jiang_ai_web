@@ -55,13 +55,13 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const config = workspaceManager.getConfig();
     setIsConfigured(!!config?.apiKey && !!config?.databaseId);
-    
+
     // 加载Notion缓存的项目
     const cachedItems = workspaceManager.getCachedWorkspaceItems();
     if (cachedItems.length > 0) {
       setWorkspaceItems(cachedItems);
     }
-    
+
     // 获取缓存信息
     const cacheInfo = workspaceManager.getCacheInfo();
     setLastSync(cacheInfo?.lastSync || null);
@@ -98,7 +98,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       const errorMessage = error instanceof Error ? error.message : '同步失败';
       setError(errorMessage);
       console.error('❌ 工作空间数据同步失败:', errorMessage);
-      
+
       // 尝试使用缓存数据
       const cachedItems = workspaceManager.getCachedWorkspaceItems();
       if (cachedItems.length > 0) {
@@ -113,7 +113,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   // 测试连接
   const testConnection = async (): Promise<boolean> => {
     if (!isConfigured) return false;
-    
+
     try {
       const isConnected = await workspaceManager.testConnection();
       if (!isConnected) {
@@ -168,11 +168,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     getConfiguration: () => workspaceManager.getConfig(),
   };
 
-  return (
-    <WorkspaceContext.Provider value={value}>
-      {children}
-    </WorkspaceContext.Provider>
-  );
+  return <WorkspaceContext.Provider value={value}>{children}</WorkspaceContext.Provider>;
 }
 
 export function useWorkspace() {

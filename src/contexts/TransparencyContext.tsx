@@ -73,7 +73,7 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
     if (value > 1) value = value / 100; // 兼容旧数据
     return Math.max(0.05, Math.min(1, value)); // 限制范围
   });
-  
+
   const [searchBarOpacity, setSearchBarOpacity] = useState(() => {
     const saved = localStorage.getItem('searchBarOpacity');
     let value = saved ? parseFloat(saved) : 0.1; // 默认值设置为 0.1
@@ -104,7 +104,7 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
     if (isPortrait) {
       return 'mobile';
     }
-    
+
     // 对于宽屏设备，默认使用1080p
     return '1080p';
   };

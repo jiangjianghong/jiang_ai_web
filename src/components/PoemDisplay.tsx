@@ -31,7 +31,7 @@ export function PoemDisplay() {
 
     // 每10分钟更新一次诗句
     const interval = setInterval(fetchPoem, 10 * 60 * 1000);
-    
+
     return () => clearInterval(interval);
   }, []);
 
@@ -45,7 +45,7 @@ export function PoemDisplay() {
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    
+
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
@@ -55,9 +55,9 @@ export function PoemDisplay() {
     <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 pointer-events-none">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
-        animate={{ 
-          opacity: isSearchFocused ? 1 : 0, 
-          y: isSearchFocused ? 0 : 20
+        animate={{
+          opacity: isSearchFocused ? 1 : 0,
+          y: isSearchFocused ? 0 : 20,
         }}
         transition={{ duration: 0.6, delay: isSearchFocused ? 0.6 : 0 }}
         className="relative"
@@ -66,8 +66,14 @@ export function PoemDisplay() {
           {loading ? (
             <div className="flex items-center justify-center space-x-2">
               <div className="w-1.5 h-1.5 bg-white/60 rounded-full animate-pulse"></div>
-              <div className="w-1.5 h-1.5 bg-white/60 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-              <div className="w-1.5 h-1.5 bg-white/60 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+              <div
+                className="w-1.5 h-1.5 bg-white/60 rounded-full animate-pulse"
+                style={{ animationDelay: '0.2s' }}
+              ></div>
+              <div
+                className="w-1.5 h-1.5 bg-white/60 rounded-full animate-pulse"
+                style={{ animationDelay: '0.4s' }}
+              ></div>
             </div>
           ) : (
             <motion.div
@@ -78,21 +84,21 @@ export function PoemDisplay() {
             >
               {/* 左引号 */}
               <span className="absolute left-4 top-2 text-white/30 text-2xl font-serif">"</span>
-              
+
               {/* 诗句内容 */}
               <p className="text-white/90 text-sm font-medium tracking-wide leading-relaxed px-4 py-1 font-serif">
                 {poem}
               </p>
-              
+
               {/* 右引号 */}
               <span className="absolute right-4 bottom-2 text-white/30 text-2xl font-serif">"</span>
-              
+
               {/* 装饰性分割线 */}
               <div className="absolute left-1/2 transform -translate-x-1/2 -bottom-1 w-16 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
             </motion.div>
           )}
         </div>
-        
+
         {/* 光晕效果 */}
         <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 rounded-2xl blur-xl -z-10 opacity-50"></div>
       </motion.div>

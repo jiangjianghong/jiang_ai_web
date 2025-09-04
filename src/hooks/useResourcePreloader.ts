@@ -21,10 +21,10 @@ export function useResourcePreloader(enabled: boolean = true) {
         'https://source.unsplash.com',
         'https://www.google.com',
         'https://icons.duckduckgo.com',
-        'https://favicon.im'
+        'https://favicon.im',
       ];
 
-      preconnectDomains.forEach(domain => {
+      preconnectDomains.forEach((domain) => {
         const link = document.createElement('link');
         link.rel = 'preconnect';
         link.href = domain;
@@ -41,7 +41,7 @@ export function useResourcePreloader(enabled: boolean = true) {
           'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/webfonts/fa-solid-900.woff2',
         ];
 
-        fontAwesomeUrls.forEach(url => {
+        fontAwesomeUrls.forEach((url) => {
           resourcePreloader.queuePreload(url);
         });
       }
@@ -57,7 +57,7 @@ export function useResourcePreloader(enabled: boolean = true) {
    * 预加载网站 favicon
    */
   const preloadFavicons = (websites: Array<{ url: string; favicon: string }>) => {
-    const faviconUrls = websites.map(site => site.favicon);
+    const faviconUrls = websites.map((site) => site.favicon);
     resourcePreloader.preloadImages(faviconUrls);
   };
 
@@ -78,6 +78,6 @@ export function useResourcePreloader(enabled: boolean = true) {
   return {
     preloadFavicons,
     preloadImage,
-    getPreloadStats
+    getPreloadStats,
   };
 }

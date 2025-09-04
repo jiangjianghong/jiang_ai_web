@@ -6,7 +6,7 @@ import { CorsProxyService, createCacheKey, ResponseCache } from '../proxy';
 export class ApiClient {
   private proxyService: CorsProxyService;
   private cache: ResponseCache;
-  
+
   /**
    * Create a new API client
    * @param proxyService The CORS proxy service to use
@@ -15,7 +15,7 @@ export class ApiClient {
     this.proxyService = proxyService;
     this.cache = new ResponseCache();
   }
-  
+
   /**
    * Make a GET request
    * @param url The URL to request
@@ -25,38 +25,38 @@ export class ApiClient {
   async get<T>(url: string, options?: RequestInit, useCache = true): Promise<T> {
     const fetchOptions: RequestInit = {
       method: 'GET',
-      ...options
+      ...options,
     };
-    
+
     // Check cache first if enabled
     if (useCache) {
       const cacheKey = createCacheKey(url, fetchOptions);
       const cached = this.cache.get<T>(cacheKey);
-      
+
       if (cached) {
         return cached;
       }
     }
-    
+
     const response = await this.proxyService.fetch<T>(url, fetchOptions);
-    
+
     if (response.error) {
       throw response.error;
     }
-    
+
     if (!response.data) {
       throw new Error('No data received from proxy');
     }
-    
+
     // Cache the response if enabled
     if (useCache) {
       const cacheKey = createCacheKey(url, fetchOptions);
       this.cache.set(cacheKey, response.data);
     }
-    
+
     return response.data;
   }
-  
+
   /**
    * Make a POST request
    * @param url The URL to request
@@ -69,24 +69,24 @@ export class ApiClient {
       body: JSON.stringify(data),
       headers: {
         'Content-Type': 'application/json',
-        ...(options?.headers || {})
+        ...(options?.headers || {}),
       },
-      ...options
+      ...options,
     };
-    
+
     const response = await this.proxyService.fetch<T>(url, fetchOptions);
-    
+
     if (response.error) {
       throw response.error;
     }
-    
+
     if (!response.data) {
       throw new Error('No data received from proxy');
     }
-    
+
     return response.data;
   }
-  
+
   /**
    * Make a PUT request
    * @param url The URL to request
@@ -99,24 +99,24 @@ export class ApiClient {
       body: JSON.stringify(data),
       headers: {
         'Content-Type': 'application/json',
-        ...(options?.headers || {})
+        ...(options?.headers || {}),
       },
-      ...options
+      ...options,
     };
-    
+
     const response = await this.proxyService.fetch<T>(url, fetchOptions);
-    
+
     if (response.error) {
       throw response.error;
     }
-    
+
     if (!response.data) {
       throw new Error('No data received from proxy');
     }
-    
+
     return response.data;
   }
-  
+
   /**
    * Make a DELETE request
    * @param url The URL to request
@@ -125,29 +125,29 @@ export class ApiClient {
   async delete<T>(url: string, options?: RequestInit): Promise<T> {
     const fetchOptions: RequestInit = {
       method: 'DELETE',
-      ...options
+      ...options,
     };
-    
+
     const response = await this.proxyService.fetch<T>(url, fetchOptions);
-    
+
     if (response.error) {
       throw response.error;
     }
-    
+
     if (!response.data) {
       throw new Error('No data received from proxy');
     }
-    
+
     return response.data;
   }
-  
+
   /**
    * Clear the response cache
    */
   clearCache(): void {
     this.cache.clear();
   }
-  
+
   /**
    * Get the proxy service
    */

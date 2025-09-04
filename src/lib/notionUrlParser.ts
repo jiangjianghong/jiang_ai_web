@@ -17,13 +17,13 @@ export interface NotionUrlParseResult {
  */
 export function parseNotionUrl(input: string): NotionUrlParseResult {
   const originalUrl = input.trim();
-  
+
   if (!originalUrl) {
     return {
       databaseId: null,
       isValid: false,
       originalUrl,
-      error: '输入不能为空'
+      error: '输入不能为空',
     };
   }
 
@@ -34,7 +34,7 @@ export function parseNotionUrl(input: string): NotionUrlParseResult {
       return {
         databaseId: originalUrl.toLowerCase(),
         isValid: true,
-        originalUrl
+        originalUrl,
       };
     }
 
@@ -42,11 +42,11 @@ export function parseNotionUrl(input: string): NotionUrlParseResult {
     if (originalUrl.includes('notion.so')) {
       try {
         const url = new URL(originalUrl);
-        
+
         // 从路径中提取数据库 ID
         // 路径格式通常是 /workspace/databaseId 或 /databaseId
-        const pathParts = url.pathname.split('/').filter(part => part.length > 0);
-        
+        const pathParts = url.pathname.split('/').filter((part) => part.length > 0);
+
         // 查找32位十六进制字符串
         for (const part of pathParts) {
           const cleanPart = part.replace(/-/g, ''); // 移除可能的连字符
@@ -54,7 +54,7 @@ export function parseNotionUrl(input: string): NotionUrlParseResult {
             return {
               databaseId: cleanPart.toLowerCase(),
               isValid: true,
-              originalUrl
+              originalUrl,
             };
           }
         }
@@ -65,7 +65,7 @@ export function parseNotionUrl(input: string): NotionUrlParseResult {
           return {
             databaseId: vParam.toLowerCase(),
             isValid: true,
-            originalUrl
+            originalUrl,
           };
         }
 
@@ -73,26 +73,28 @@ export function parseNotionUrl(input: string): NotionUrlParseResult {
           databaseId: null,
           isValid: false,
           originalUrl,
-          error: '无法从 Notion URL 中提取有效的数据库 ID'
+          error: '无法从 Notion URL 中提取有效的数据库 ID',
         };
       } catch (urlError) {
         return {
           databaseId: null,
           isValid: false,
           originalUrl,
-          error: 'URL 格式无效'
+          error: 'URL 格式无效',
         };
       }
     }
 
     // 情况3: 可能是格式化的数据库 ID（带连字符）
-    const formattedIdMatch = originalUrl.match(/([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})/i);
+    const formattedIdMatch = originalUrl.match(
+      /([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})/i
+    );
     if (formattedIdMatch) {
       const cleanId = formattedIdMatch[1].replace(/-/g, '');
       return {
         databaseId: cleanId.toLowerCase(),
         isValid: true,
-        originalUrl
+        originalUrl,
       };
     }
 
@@ -102,7 +104,7 @@ export function parseNotionUrl(input: string): NotionUrlParseResult {
       return {
         databaseId: anyIdMatch[0].toLowerCase(),
         isValid: true,
-        originalUrl
+        originalUrl,
       };
     }
 
@@ -110,14 +112,14 @@ export function parseNotionUrl(input: string): NotionUrlParseResult {
       databaseId: null,
       isValid: false,
       originalUrl,
-      error: '输入不是有效的 Notion 数据库 URL 或 ID'
+      error: '输入不是有效的 Notion 数据库 URL 或 ID',
     };
   } catch (error) {
     return {
       databaseId: null,
       isValid: false,
       originalUrl,
-      error: error instanceof Error ? error.message : '解析失败'
+      error: error instanceof Error ? error.message : '解析失败',
     };
   }
 }
@@ -144,12 +146,12 @@ export function formatDatabaseIdAsUuid(id: string): string {
   if (cleanId.length !== 32) {
     return cleanId;
   }
-  
+
   return [
     cleanId.slice(0, 8),
     cleanId.slice(8, 12),
     cleanId.slice(12, 16),
     cleanId.slice(16, 20),
-    cleanId.slice(20, 32)
+    cleanId.slice(20, 32),
   ].join('-');
 }

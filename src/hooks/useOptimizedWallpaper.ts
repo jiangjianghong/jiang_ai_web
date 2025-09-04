@@ -25,7 +25,7 @@ export function useOptimizedWallpaper(resolution: string) {
     needsUpdate: false,
     error: null,
     loadProgress: 0,
-    preloadWarning: undefined
+    preloadWarning: undefined,
   });
 
   // 预加载图片并监听加载进度
@@ -33,12 +33,12 @@ export function useOptimizedWallpaper(resolution: string) {
     return new Promise((resolve, reject) => {
       const img = new Image();
       let loadProgress = 0;
-      
+
       // 模拟加载进度（因为Image对象不提供真实进度）
       const progressInterval = setInterval(() => {
         if (loadProgress < 90) {
           loadProgress += Math.random() * 20;
-          setWallpaperState(prev => ({ ...prev, loadProgress: Math.min(loadProgress, 90) }));
+          setWallpaperState((prev) => ({ ...prev, loadProgress: Math.min(loadProgress, 90) }));
         }
       }, 100);
 
@@ -55,7 +55,7 @@ export function useOptimizedWallpaper(resolution: string) {
       img.onload = () => {
         cleanup();
         clearTimeout(timeout);
-        setWallpaperState(prev => ({ ...prev, loadProgress: 100 }));
+        setWallpaperState((prev) => ({ ...prev, loadProgress: 100 }));
         resolve();
       };
 
@@ -72,23 +72,23 @@ export function useOptimizedWallpaper(resolution: string) {
   // 加载壁纸的主要逻辑
   const loadWallpaper = useCallback(async () => {
     try {
-      setWallpaperState(prev => ({ 
-        ...prev, 
-        isLoading: true, 
+      setWallpaperState((prev) => ({
+        ...prev,
+        isLoading: true,
         error: null,
         loadProgress: 0,
-        preloadWarning: undefined // 清除之前的预加载警告
+        preloadWarning: undefined, // 清除之前的预加载警告
       }));
 
       logger.wallpaper.info('开始加载壁纸', { resolution });
 
       // 获取壁纸
       const result = await optimizedWallpaperService.getWallpaper(resolution);
-      
+
       logger.wallpaper.debug('壁纸获取结果', {
         isFromCache: result.isFromCache,
         isToday: result.isToday,
-        needsUpdate: result.needsUpdate
+        needsUpdate: result.needsUpdate,
       });
 
       // 如果是从缓存获取的，可能需要预加载验证
@@ -102,7 +102,7 @@ export function useOptimizedWallpaper(resolution: string) {
           needsUpdate: result.needsUpdate,
           error: null,
           loadProgress: 100,
-          preloadWarning: undefined
+          preloadWarning: undefined,
         });
 
         // 如果需要更新，显示提示
@@ -113,7 +113,7 @@ export function useOptimizedWallpaper(resolution: string) {
         // 新下载的图片，需要预加载确保显示
         try {
           await preloadImage(result.url);
-          
+
           setWallpaperState({
             url: result.url,
             isLoading: false,
@@ -122,14 +122,14 @@ export function useOptimizedWallpaper(resolution: string) {
             needsUpdate: result.needsUpdate,
             error: null,
             loadProgress: 100,
-            preloadWarning: undefined
+            preloadWarning: undefined,
           });
 
           logger.wallpaper.info('壁纸加载完成');
         } catch (preloadError) {
           const preloadWarning = `图片预加载失败: ${preloadError instanceof Error ? preloadError.message : '未知错误'}`;
           logger.wallpaper.warn('图片预加载失败，但仍然使用该URL', preloadError);
-          
+
           // 即使预加载失败，也使用该URL（让浏览器自己处理），但记录警告
           setWallpaperState({
             url: result.url,
@@ -139,20 +139,19 @@ export function useOptimizedWallpaper(resolution: string) {
             needsUpdate: result.needsUpdate,
             error: null, // 预加载失败不是致命错误
             loadProgress: 100,
-            preloadWarning
+            preloadWarning,
           });
         }
       }
-
     } catch (error) {
       const errorInfo = errorHandler.handleError(error as Error, 'wallpaper-hook');
       logger.wallpaper.error('壁纸加载失败', errorInfo);
-      
-      setWallpaperState(prev => ({
+
+      setWallpaperState((prev) => ({
         ...prev,
         isLoading: false,
         error: errorInfo.userMessage,
-        loadProgress: 0
+        loadProgress: 0,
       }));
     }
   }, [resolution, preloadImage]);
@@ -160,10 +159,10 @@ export function useOptimizedWallpaper(resolution: string) {
   // 强制刷新壁纸
   const refreshWallpaper = useCallback(async () => {
     logger.wallpaper.info('强制刷新壁纸');
-    
+
     // 清理wallpaper类别的所有BlobURL
     memoryManager.cleanupCategory('wallpaper');
-    
+
     // 清理今天的IndexedDB缓存
     try {
       await optimizedWallpaperService.clearTodayCache(resolution);
@@ -207,16 +206,16 @@ export function useOptimizedWallpaper(resolution: string) {
     error: wallpaperState.error,
     loadProgress: wallpaperState.loadProgress,
     preloadWarning: wallpaperState.preloadWarning,
-    
+
     // 方法
     refreshWallpaper,
     getCacheStats,
-    
+
     // 便利属性
     hasError: !!wallpaperState.error,
     hasWarning: !!wallpaperState.preloadWarning,
     isReady: !wallpaperState.isLoading && !!wallpaperState.url,
     showLoadingIndicator: wallpaperState.isLoading && wallpaperState.loadProgress < 100,
-    showUpdateHint: wallpaperState.needsUpdate && wallpaperState.isFromCache
+    showUpdateHint: wallpaperState.needsUpdate && wallpaperState.isFromCache,
   };
 }

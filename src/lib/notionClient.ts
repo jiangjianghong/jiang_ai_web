@@ -58,7 +58,7 @@ export class NotionClient {
 
   private async makeRequest(endpoint: string, options: RequestInit = {}): Promise<any> {
     const targetUrl = this.baseUrl + endpoint;
-    
+
     console.log('🔍 Notion API 请求详情:');
     console.log('- 目标URL:', targetUrl);
     console.log('- 使用智能代理:', !this.corsProxy);
@@ -73,23 +73,25 @@ export class NotionClient {
           const proxyUrl = this.corsProxy + endpoint;
           console.log('🚀 使用 Supabase Edge Functions 代理:', options.method || 'GET', proxyUrl);
           console.log('🔑 认证头:', this.apiKey.substring(0, 20) + '...');
-          
+
           const response = await fetch(proxyUrl, {
             method: options.method || 'GET',
             headers: {
-              'Authorization': this.apiKey.startsWith('Bearer ') ? this.apiKey : `Bearer ${this.apiKey}`,
+              Authorization: this.apiKey.startsWith('Bearer ')
+                ? this.apiKey
+                : `Bearer ${this.apiKey}`,
               'Content-Type': 'application/json',
               'Notion-Version': '2022-06-28',
             },
             ...(options.body && { body: options.body }),
           });
-          
+
           console.log('📡 Supabase 代理响应状态:', response.status, response.statusText);
-          
+
           if (!response.ok) {
             const errorText = await response.text();
             console.error('❌ Supabase 代理请求失败:', errorText);
-            
+
             // 提供更具体的错误信息
             if (response.status === 401) {
               throw new Error('API密钥无效或已过期，请检查配置');
@@ -99,7 +101,7 @@ export class NotionClient {
               throw new Error(`Supabase 代理请求失败: ${response.status} ${response.statusText}`);
             }
           }
-          
+
           const data = await response.json();
           console.log('✅ Supabase 代理请求成功');
           console.log('📋 返回数据:', data);
@@ -109,22 +111,22 @@ export class NotionClient {
         // 使用公共CORS代理服务
         const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
         console.log('- 公共代理请求URL:', proxyUrl);
-        
+
         const response = await fetch(proxyUrl, {
           method: options.method || 'GET',
           headers: {
-            'Authorization': `Bearer ${this.apiKey}`,
+            Authorization: `Bearer ${this.apiKey}`,
             'Content-Type': 'application/json',
             'Notion-Version': '2022-06-28',
           },
           ...(options.body && { body: options.body }),
         });
         console.log('📡 Vercel代理响应状态:', response.status, response.statusText);
-        
+
         if (!response.ok) {
           const errorText = await response.text();
           console.error('❌ Vercel代理请求失败:', errorText);
-          
+
           // 提供更具体的错误信息
           if (response.status === 400) {
             throw new Error('请求格式错误。可能是API密钥格式不正确或数据库ID无效');
@@ -136,28 +138,29 @@ export class NotionClient {
             throw new Error(`Vercel代理请求失败: ${response.status} ${response.statusText}`);
           }
         }
-        
+
         // 检查响应内容类型
         const contentType = response.headers.get('content-type') || '';
         console.log('响应内容类型:', contentType);
-        
+
         if (!contentType.includes('application/json')) {
           const text = await response.text();
           console.error('收到非JSON响应:', text.substring(0, 200));
           throw new Error('服务器返回了非JSON响应，可能是认证失败或配置错误');
         }
-        
+
         const data = await response.json();
         console.log('✅ Vercel代理请求成功');
         return data;
-        
       } catch (error) {
         console.error('❌ 代理请求失败:', error);
-        
+
         if (error instanceof Error && error.message.includes('Failed to fetch')) {
-          throw new Error('无法连接到代理服务器。建议：\n1. 检查网络连接\n2. 尝试关闭代理直连\n3. 使用浏览器CORS插件');
+          throw new Error(
+            '无法连接到代理服务器。建议：\n1. 检查网络连接\n2. 尝试关闭代理直连\n3. 使用浏览器CORS插件'
+          );
         }
-        
+
         throw error instanceof Error ? error : new Error(String(error));
       }
     }
@@ -177,11 +180,11 @@ export class NotionClient {
       for (const proxyUrl of proxyServices) {
         try {
           console.log('🔄 尝试代理服务:', proxyUrl.split('?')[0]);
-          
+
           const response = await fetch(proxyUrl, {
             method: options.method || 'GET',
             headers: {
-              'Authorization': `Bearer ${this.apiKey}`,
+              Authorization: `Bearer ${this.apiKey}`,
               'Content-Type': 'application/json',
               'Notion-Version': '2022-06-28',
             },
@@ -195,7 +198,7 @@ export class NotionClient {
             console.error('❌ Notion API错误详情:');
             console.error('状态码:', response.status);
             console.error('响应内容:', errorText);
-            
+
             // 提供更具体的错误信息
             if (response.status === 400) {
               throw new Error('请求格式错误。可能是API密钥格式不正确或数据库ID无效');
@@ -212,7 +215,10 @@ export class NotionClient {
           console.log('✅ 公共代理请求成功');
           return data;
         } catch (error) {
-          console.warn(`❌ 代理服务失败: ${proxyUrl.split('?')[0]}`, error instanceof Error ? error.message : String(error));
+          console.warn(
+            `❌ 代理服务失败: ${proxyUrl.split('?')[0]}`,
+            error instanceof Error ? error.message : String(error)
+          );
           lastError = error instanceof Error ? error : new Error(String(error));
           continue;
         }
@@ -222,11 +228,13 @@ export class NotionClient {
       throw lastError || new Error('所有CORS代理服务都不可用');
     } catch (error) {
       console.error('❌ 公共代理请求失败:', error);
-      
+
       if (error instanceof Error && error.message.includes('Failed to fetch')) {
-        throw new Error('无法连接到代理服务器。建议：\n1. 检查网络连接\n2. 尝试使用浏览器CORS插件\n3. 稍后重试');
+        throw new Error(
+          '无法连接到代理服务器。建议：\n1. 检查网络连接\n2. 尝试使用浏览器CORS插件\n3. 稍后重试'
+        );
       }
-      
+
       throw error instanceof Error ? error : new Error(String(error));
     }
   }
@@ -250,7 +258,7 @@ export class NotionClient {
       const body: any = {
         page_size: 100, // 每页最多100条
       };
-      
+
       if (filter) body.filter = filter;
       if (sorts) body.sorts = sorts;
       if (startCursor) body.start_cursor = startCursor;
@@ -270,75 +278,80 @@ export class NotionClient {
 
   // 将Notion页面转换为工作空间项目
   parseWorkspaceItems(pages: NotionPage[], _databaseProperties?: any): WorkspaceItem[] {
-    return pages.filter(page => page && page.properties).map(page => {
-      const properties = page.properties;
-      
-      // 尝试从不同属性中提取信息
-      const getPropertyValue = (propName: string, fallbackNames: string[] = []) => {
-        const allNames = [propName, ...fallbackNames];
-        for (const name of allNames) {
-          const prop = properties[name];
-          if (prop && prop.type) {
-            try {
-              switch (prop.type) {
-                case 'title':
-                  return prop.title?.[0]?.plain_text || '';
-                case 'rich_text':
-                  return prop.rich_text?.[0]?.plain_text || '';
-                case 'url':
-                  return prop.url || '';
-                case 'select':
-                  return prop.select?.name || '';
-                case 'checkbox':
-                  return prop.checkbox !== undefined ? prop.checkbox : false;
-                case 'multi_select':
-                  return prop.multi_select?.[0]?.name || '';
-                default:
-                  return prop.plain_text || prop.name || '';
+    return pages
+      .filter((page) => page && page.properties)
+      .map((page) => {
+        const properties = page.properties;
+
+        // 尝试从不同属性中提取信息
+        const getPropertyValue = (propName: string, fallbackNames: string[] = []) => {
+          const allNames = [propName, ...fallbackNames];
+          for (const name of allNames) {
+            const prop = properties[name];
+            if (prop && prop.type) {
+              try {
+                switch (prop.type) {
+                  case 'title':
+                    return prop.title?.[0]?.plain_text || '';
+                  case 'rich_text':
+                    return prop.rich_text?.[0]?.plain_text || '';
+                  case 'url':
+                    return prop.url || '';
+                  case 'select':
+                    return prop.select?.name || '';
+                  case 'checkbox':
+                    return prop.checkbox !== undefined ? prop.checkbox : false;
+                  case 'multi_select':
+                    return prop.multi_select?.[0]?.name || '';
+                  default:
+                    return prop.plain_text || prop.name || '';
+                }
+              } catch (error) {
+                console.warn(
+                  `解析属性 ${name} 失败:`,
+                  error instanceof Error ? error.message : String(error)
+                );
+                continue;
               }
-            } catch (error) {
-              console.warn(`解析属性 ${name} 失败:`, error instanceof Error ? error.message : String(error));
-              continue;
             }
           }
-        }
-        return '';
-      };
+          return '';
+        };
 
-      const title = getPropertyValue('Name', ['名称', 'Title', '标题']);
-      const url = getPropertyValue('URL', ['网址', 'Link', '链接']);
-      const description = getPropertyValue('Description', ['描述', '说明', 'Notes']);
-      const category = getPropertyValue('Category', ['分类', '类别', 'Type']);
-      const isActive = getPropertyValue('Active', ['激活', '启用', 'Enabled']) || true;
-      const username = getPropertyValue('Username', ['账号', '用户名', 'Account']);
-      const password = getPropertyValue('Password', ['密码', 'Pass', 'Pwd']);
+        const title = getPropertyValue('Name', ['名称', 'Title', '标题']);
+        const url = getPropertyValue('URL', ['网址', 'Link', '链接']);
+        const description = getPropertyValue('Description', ['描述', '说明', 'Notes']);
+        const category = getPropertyValue('Category', ['分类', '类别', 'Type']);
+        const isActive = getPropertyValue('Active', ['激活', '启用', 'Enabled']) || true;
+        const username = getPropertyValue('Username', ['账号', '用户名', 'Account']);
+        const password = getPropertyValue('Password', ['密码', 'Pass', 'Pwd']);
 
-      // 调试：输出解析结果
-      console.log('🔍 页面解析结果:', {
-        pageId: page.id,
-        title,
-        url,
-        description,
-        category,
-        username,
-        password,
-        availableProperties: Object.keys(properties)
+        // 调试：输出解析结果
+        console.log('🔍 页面解析结果:', {
+          pageId: page.id,
+          title,
+          url,
+          description,
+          category,
+          username,
+          password,
+          availableProperties: Object.keys(properties),
+        });
+
+        return {
+          id: `notion-${page.id}`,
+          title: title || 'Untitled',
+          url: url || page.url,
+          description,
+          category: category || 'Default',
+          isActive: typeof isActive === 'boolean' ? isActive : true,
+          lastSync: new Date().toISOString(),
+          notionId: page.id,
+          icon: this.extractIcon(url),
+          username: username || undefined,
+          password: password || undefined,
+        };
       });
-
-      return {
-        id: `notion-${page.id}`,
-        title: title || 'Untitled',
-        url: url || page.url,
-        description,
-        category: category || 'Default',
-        isActive: typeof isActive === 'boolean' ? isActive : true,
-        lastSync: new Date().toISOString(),
-        notionId: page.id,
-        icon: this.extractIcon(url),
-        username: username || undefined,
-        password: password || undefined
-      };
-    });
   }
 
   // 不提取网站图标，使用简单字母图标
@@ -372,13 +385,13 @@ export class WorkspaceManager {
     // 如果没有指定代理，使用默认的 Supabase 代理
     const finalProxy = corsProxy || this.getDefaultSupabaseProxy();
     this.notionClient = new NotionClient(apiKey, finalProxy);
-    
+
     // 保存配置
     const config = {
       apiKey,
       databaseId,
       corsProxy: finalProxy,
-      lastConfigured: new Date().toISOString()
+      lastConfigured: new Date().toISOString(),
     };
     localStorage.setItem(this.configKey, JSON.stringify(config));
   }
@@ -434,42 +447,42 @@ export class WorkspaceManager {
 
     try {
       console.log('🔄 开始同步工作空间数据...');
-      
+
       // 获取数据库结构
       const database = await this.notionClient.getDatabase(config.databaseId);
       console.log('📊 数据库信息获取成功:', database.title?.[0]?.plain_text || '未知数据库');
-      
+
       // 查询所有页面
       const pages = await this.notionClient.queryDatabase(config.databaseId);
       console.log(`📄 获取到 ${pages.length} 个页面`);
-      
+
       // 调试：检查页面数据结构
       if (pages.length > 0) {
         console.log('🔍 第一个页面数据示例:', {
           id: pages[0]?.id,
           hasProperties: !!pages[0]?.properties,
-          propertyKeys: pages[0]?.properties ? Object.keys(pages[0].properties) : '无属性'
+          propertyKeys: pages[0]?.properties ? Object.keys(pages[0].properties) : '无属性',
         });
       }
-      
+
       // 转换为工作空间项目
       const workspaceItems = this.notionClient.parseWorkspaceItems(pages, database.properties);
-      
+
       // 缓存数据
       this.cacheWorkspaceItems(workspaceItems);
-      
+
       console.log(`✅ 同步完成，获取到 ${workspaceItems.length} 个工作空间项目`);
       return workspaceItems;
     } catch (error) {
       console.error('❌ 同步工作空间数据失败:', error);
-      
+
       // 返回缓存数据作为备用
       const cachedItems = this.getCachedWorkspaceItems();
       if (cachedItems.length > 0) {
         console.warn('⚠️ 使用缓存数据，共 ' + cachedItems.length + ' 个项目');
         return cachedItems;
       }
-      
+
       throw error;
     }
   }
@@ -480,7 +493,7 @@ export class WorkspaceManager {
       const cacheData = {
         items,
         lastSync: new Date().toISOString(),
-        version: '1.0'
+        version: '1.0',
       };
       localStorage.setItem(this.cacheKey, JSON.stringify(cacheData));
     } catch (error) {
@@ -497,7 +510,10 @@ export class WorkspaceManager {
         return items || [];
       }
     } catch (error) {
-      console.warn('读取缓存工作空间数据失败:', error instanceof Error ? error.message : String(error));
+      console.warn(
+        '读取缓存工作空间数据失败:',
+        error instanceof Error ? error.message : String(error)
+      );
     }
     return [];
   }

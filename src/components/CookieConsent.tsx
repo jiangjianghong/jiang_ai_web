@@ -28,7 +28,7 @@ export default function CookieConsent({ onAccept, onDecline, onCustomize }: Cook
     localStorage.setItem('cookie-consent', 'accepted');
     localStorage.setItem('cookie-consent-date', new Date().toISOString());
     setIsVisible(false);
-    
+
     // 延迟隐藏组件，等待动画完成
     setTimeout(() => {
       setShowConsent(false);
@@ -43,25 +43,25 @@ export default function CookieConsent({ onAccept, onDecline, onCustomize }: Cook
     localStorage.setItem('cookie-consent', 'declined');
     localStorage.setItem('cookie-consent-date', new Date().toISOString());
     setIsVisible(false);
-    
+
     // 清除可能已存在的非必要数据
     try {
       // 保留必要的功能性数据，清除其他数据
       const essentialKeys = ['cookie-consent', 'cookie-consent-date'];
       const keysToRemove: string[] = [];
-      
+
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
         if (key && !essentialKeys.includes(key)) {
           keysToRemove.push(key);
         }
       }
-      
-      keysToRemove.forEach(key => localStorage.removeItem(key));
+
+      keysToRemove.forEach((key) => localStorage.removeItem(key));
     } catch (error) {
       console.error('清理存储数据失败:', error);
     }
-    
+
     setTimeout(() => {
       setShowConsent(false);
       onDecline?.();
@@ -88,7 +88,7 @@ export default function CookieConsent({ onAccept, onDecline, onCustomize }: Cook
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/20 z-[9998] pointer-events-none"
           />
-          
+
           {/* Cookie同意横幅 */}
           <motion.div
             initial={{ y: 100, opacity: 0 }}
@@ -124,9 +124,11 @@ export default function CookieConsent({ onAccept, onDecline, onCustomize }: Cook
                       </p>
                       <p className="text-xs text-gray-500 mt-2">
                         您可以随时在浏览器设置中管理这些Cookie。了解更多请查看我们的
-                        <button 
+                        <button
                           className="text-blue-600 hover:text-blue-800 underline mx-1"
-                          onClick={() => window.open('https://github.com/your-repo/privacy-policy', '_blank')}
+                          onClick={() =>
+                            window.open('https://github.com/your-repo/privacy-policy', '_blank')
+                          }
                         >
                           隐私政策
                         </button>
@@ -134,7 +136,7 @@ export default function CookieConsent({ onAccept, onDecline, onCustomize }: Cook
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                   <button
                     onClick={handleCustomize}
@@ -160,7 +162,7 @@ export default function CookieConsent({ onAccept, onDecline, onCustomize }: Cook
                 </div>
               </div>
             </div>
-            
+
             {/* 进度指示器 */}
             <div className="h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
           </motion.div>

@@ -21,14 +21,14 @@ class CustomWallpaperManager {
     if (!this.ALLOWED_TYPES.includes(file.type)) {
       return {
         valid: false,
-        error: '仅支持 JPG、PNG、WebP 格式的图片'
+        error: '仅支持 JPG、PNG、WebP 格式的图片',
       };
     }
 
     if (file.size > this.MAX_FILE_SIZE) {
       return {
         valid: false,
-        error: `文件大小不能超过 ${this.MAX_FILE_SIZE / 1024 / 1024}MB`
+        error: `文件大小不能超过 ${this.MAX_FILE_SIZE / 1024 / 1024}MB`,
       };
     }
 
@@ -47,7 +47,7 @@ class CustomWallpaperManager {
       logger.wallpaper.info('开始上传自定义壁纸', {
         name: file.name,
         size: `${(file.size / 1024 / 1024).toFixed(2)}MB`,
-        type: file.type
+        type: file.type,
       });
 
       // 压缩图片（可选）
@@ -65,16 +65,15 @@ class CustomWallpaperManager {
 
       logger.wallpaper.info('自定义壁纸上传成功', {
         originalSize: `${(file.size / 1024 / 1024).toFixed(2)}MB`,
-        processedSize: `${(processedBlob.size / 1024 / 1024).toFixed(2)}MB`
+        processedSize: `${(processedBlob.size / 1024 / 1024).toFixed(2)}MB`,
       });
 
       return { success: true, url: blobUrl };
-
     } catch (error) {
       logger.wallpaper.error('上传自定义壁纸失败', error);
-      return { 
-        success: false, 
-        error: error instanceof Error ? error.message : '上传失败' 
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : '上传失败',
       };
     }
   }
@@ -82,8 +81,8 @@ class CustomWallpaperManager {
   // 获取自定义壁纸
   async getCustomWallpaper(): Promise<string | null> {
     try {
-      const blob = await indexedDBCache.get(this.CUSTOM_WALLPAPER_KEY) as Blob;
-      
+      const blob = (await indexedDBCache.get(this.CUSTOM_WALLPAPER_KEY)) as Blob;
+
       if (blob) {
         logger.wallpaper.info('获取自定义壁纸成功');
         return await memoryManager.createBlobUrl(blob, 'custom-wallpaper');
@@ -100,10 +99,10 @@ class CustomWallpaperManager {
   async deleteCustomWallpaper(): Promise<boolean> {
     try {
       await indexedDBCache.delete(this.CUSTOM_WALLPAPER_KEY);
-      
+
       // 清理内存中的 Blob URL
       memoryManager.cleanupCategory('custom-wallpaper');
-      
+
       logger.wallpaper.info('删除自定义壁纸成功');
       return true;
     } catch (error) {
@@ -134,9 +133,9 @@ class CustomWallpaperManager {
           // 计算合适的尺寸（最大4K）
           const maxWidth = 3840;
           const maxHeight = 2160;
-          
+
           let { width, height } = img;
-          
+
           if (width > maxWidth || height > maxHeight) {
             const ratio = Math.min(maxWidth / width, maxHeight / height);
             width = Math.floor(width * ratio);
@@ -178,13 +177,13 @@ class CustomWallpaperManager {
     sizeText?: string;
   }> {
     try {
-      const blob = await indexedDBCache.get(this.CUSTOM_WALLPAPER_KEY) as Blob;
-      
+      const blob = (await indexedDBCache.get(this.CUSTOM_WALLPAPER_KEY)) as Blob;
+
       if (blob) {
         return {
           exists: true,
           size: blob.size,
-          sizeText: `${(blob.size / 1024 / 1024).toFixed(2)}MB`
+          sizeText: `${(blob.size / 1024 / 1024).toFixed(2)}MB`,
         };
       }
 

@@ -20,21 +20,24 @@ class SmartProxyManager {
       priority: 1,
       available: true,
       speed: 0,
-      lastCheck: 0
-    }
+      lastCheck: 0,
+    },
   ];
 
   // 检测代理可用性和速度
-  async checkProxy(proxy: ProxyConfig, testUrl: string = 'https://httpbin.org/get'): Promise<number> {
+  async checkProxy(
+    proxy: ProxyConfig,
+    testUrl: string = 'https://httpbin.org/get'
+  ): Promise<number> {
     const start = Date.now();
-    
+
     try {
       const proxyUrl = this.buildProxyUrl(proxy.url, testUrl);
-      const response = await fetch(proxyUrl, { 
+      const response = await fetch(proxyUrl, {
         method: 'GET',
-        signal: createTimeoutSignal(5000) // 5秒超时
+        signal: createTimeoutSignal(5000), // 5秒超时
       });
-      
+
       if (response.ok) {
         const speed = Date.now() - start;
         proxy.speed = speed;
@@ -69,11 +72,9 @@ class SmartProxyManager {
   // 检测所有代理
   async checkAllProxies(testUrl?: string): Promise<void> {
     logger.info('检测所有代理可用性');
-    
-    await Promise.allSettled(
-      this.proxies.map(proxy => this.checkProxy(proxy, testUrl))
-    );
-    
+
+    await Promise.allSettled(this.proxies.map((proxy) => this.checkProxy(proxy, testUrl)));
+
     // 按速度排序
     this.proxies.sort((a, b) => {
       if (!a.available && !b.available) return 0;
@@ -81,10 +82,10 @@ class SmartProxyManager {
       if (!b.available) return -1;
       return a.speed - b.speed;
     });
-    
-    const available = this.proxies.filter(p => p.available);
+
+    const available = this.proxies.filter((p) => p.available);
     logger.info(`代理检测完成: ${available.length}/${this.proxies.length} 可用`);
-    
+
     if (available.length > 0) {
       logger.info(`最快代理: ${available[0].name} (${available[0].speed}ms)`);
     }
@@ -92,14 +93,14 @@ class SmartProxyManager {
 
   // 获取最佳代理
   getBestProxy(): ProxyConfig | null {
-    const available = this.proxies.filter(p => p.available);
+    const available = this.proxies.filter((p) => p.available);
     return available.length > 0 ? available[0] : null;
   }
 
   // 使用最佳可用代理发送请求
   async request(targetUrl: string, options: RequestInit = {}): Promise<Response> {
-    const availableProxies = this.proxies.filter(p => p.available);
-    
+    const availableProxies = this.proxies.filter((p) => p.available);
+
     if (availableProxies.length === 0) {
       throw new Error('没有可用的代理服务器');
     }
@@ -117,12 +118,13 @@ class SmartProxyManager {
           headers: {
             ...options.headers,
             // 如果是Notion请求，确保传递认证头
-            ...(targetUrl.includes('api.notion.com') && options.headers && {
-              'Authorization': (options.headers as any)['Authorization'],
-              'Content-Type': 'application/json',
-              'Notion-Version': '2022-06-28'
-            })
-          }
+            ...(targetUrl.includes('api.notion.com') &&
+              options.headers && {
+                Authorization: (options.headers as any)['Authorization'],
+                'Content-Type': 'application/json',
+                'Notion-Version': '2022-06-28',
+              }),
+          },
         });
 
         // 如果请求成功，更新代理状态并返回响应
@@ -150,13 +152,13 @@ class SmartProxyManager {
   // 获取代理状态
   getStatus() {
     return {
-      proxies: this.proxies.map(p => ({
+      proxies: this.proxies.map((p) => ({
         name: p.name,
         available: p.available,
         speed: p.speed,
-        lastCheck: new Date(p.lastCheck).toLocaleString()
+        lastCheck: new Date(p.lastCheck).toLocaleString(),
       })),
-      bestProxy: this.getBestProxy()?.name || '无'
+      bestProxy: this.getBestProxy()?.name || '无',
     };
   }
 }

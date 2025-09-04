@@ -15,27 +15,27 @@ export default function SyncStatusIndicator() {
     // 根据上次同步时间确定刷新频率
     const getRefreshInterval = () => {
       if (!syncStatus.lastSyncTime) return 60000; // 1分钟
-      
+
       const now = new Date();
       const diff = Math.floor((now.getTime() - syncStatus.lastSyncTime.getTime()) / 1000);
-      
-      if (diff < 60) return 1000;     // 小于1分钟时每秒刷新
-      if (diff < 3600) return 60000;  // 小于1小时时每分钟刷新
-      return 300000;                  // 大于1小时时每5分钟刷新
+
+      if (diff < 60) return 1000; // 小于1分钟时每秒刷新
+      if (diff < 3600) return 60000; // 小于1小时时每分钟刷新
+      return 300000; // 大于1小时时每5分钟刷新
     };
 
     let timeoutId: NodeJS.Timeout;
-    
+
     const scheduleRefresh = () => {
       const interval = getRefreshInterval();
       timeoutId = setTimeout(() => {
-        setRefreshTrigger(prev => prev + 1);
+        setRefreshTrigger((prev) => prev + 1);
         scheduleRefresh();
       }, interval);
     };
 
     scheduleRefresh();
-    
+
     return () => {
       if (timeoutId) {
         clearTimeout(timeoutId);
@@ -48,10 +48,10 @@ export default function SyncStatusIndicator() {
 
   const formatLastSyncTime = (time: Date | null) => {
     if (!time) return '从未同步';
-    
+
     const now = new Date();
     const diff = Math.floor((now.getTime() - time.getTime()) / 1000);
-    
+
     if (diff < 60) return `${diff}秒前`;
     if (diff < 3600) return `${Math.floor(diff / 60)}分钟前`;
     if (diff < 86400) return `${Math.floor(diff / 3600)}小时前`;
@@ -94,26 +94,22 @@ export default function SyncStatusIndicator() {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             {getStatusIcon()}
-            <span className="text-sm font-medium text-gray-700">
-              {getStatusText()}
-            </span>
+            <span className="text-sm font-medium text-gray-700">{getStatusText()}</span>
           </div>
-          
+
           {/* 网络状态指示器 */}
           <div className="flex items-center space-x-1">
-            <div className={`w-2 h-2 rounded-full ${
-              syncStatus.isOnline ? 'bg-green-500' : 'bg-red-500'
-            }`}></div>
-            <span className="text-xs text-gray-500">
-              {syncStatus.isOnline ? '在线' : '离线'}
-            </span>
+            <div
+              className={`w-2 h-2 rounded-full ${
+                syncStatus.isOnline ? 'bg-green-500' : 'bg-red-500'
+              }`}
+            ></div>
+            <span className="text-xs text-gray-500">{syncStatus.isOnline ? '在线' : '离线'}</span>
           </div>
         </div>
-        
-        <p className="text-xs text-gray-500">
-          {getStatusDetail()}
-        </p>
-        
+
+        <p className="text-xs text-gray-500">{getStatusDetail()}</p>
+
         {/* 错误详情展示 */}
         <AnimatePresence>
           {syncStatus.syncError && (
@@ -130,7 +126,7 @@ export default function SyncStatusIndicator() {
             </motion.div>
           )}
         </AnimatePresence>
-        
+
         {/* 同步进度条 */}
         <AnimatePresence>
           {syncStatus.syncInProgress && (
@@ -142,9 +138,9 @@ export default function SyncStatusIndicator() {
             >
               <motion.div
                 className="bg-blue-500 h-1 rounded-full"
-                initial={{ width: "0%" }}
-                animate={{ width: "100%" }}
-                transition={{ duration: 2, ease: "easeInOut" }}
+                initial={{ width: '0%' }}
+                animate={{ width: '100%' }}
+                transition={{ duration: 2, ease: 'easeInOut' }}
               />
             </motion.div>
           )}

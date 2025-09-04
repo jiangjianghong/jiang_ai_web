@@ -19,7 +19,7 @@ export interface ErrorInfo {
 
 class ErrorHandler {
   private static instance: ErrorHandler;
-  
+
   static getInstance(): ErrorHandler {
     if (!ErrorHandler.instance) {
       ErrorHandler.instance = new ErrorHandler();
@@ -41,17 +41,17 @@ class ErrorHandler {
         'AbortError',
         'TypeError', // 通常是网络问题
       ];
-      
-      const isRetryable = retryableErrors.some(type => 
-        error.name.includes(type) || error.message.includes(type.toLowerCase())
+
+      const isRetryable = retryableErrors.some(
+        (type) => error.name.includes(type) || error.message.includes(type.toLowerCase())
       );
-      
+
       // HTTP 5xx 错误也可以重试
-      const isServerError = error.message.includes('HTTP 5') || 
-                           error.message.includes('Internal Server Error');
-      
+      const isServerError =
+        error.message.includes('HTTP 5') || error.message.includes('Internal Server Error');
+
       return (isRetryable || isServerError) && attempt < 3;
-    }
+    },
   };
 
   // 带重试的异步函数执行
@@ -62,23 +62,23 @@ class ErrorHandler {
   ): Promise<T> {
     const config = { ...this.defaultRetryOptions, ...options };
     let lastError: Error;
-    
+
     for (let attempt = 1; attempt <= config.maxAttempts; attempt++) {
       try {
         const result = await fn();
-        
+
         if (attempt > 1) {
           logger.info(`重试成功`, { context, attempt, totalAttempts: config.maxAttempts });
         }
-        
+
         return result;
       } catch (error) {
         lastError = error as Error;
-        
+
         logger.warn(`尝试 ${attempt}/${config.maxAttempts} 失败`, {
           context,
           error: lastError.message,
-          attempt
+          attempt,
         });
 
         // 检查是否应该重试
@@ -101,7 +101,7 @@ class ErrorHandler {
     logger.error(`所有重试都失败`, {
       context,
       error: lastError!.message,
-      totalAttempts: config.maxAttempts
+      totalAttempts: config.maxAttempts,
     });
 
     throw lastError!;
@@ -109,22 +109,26 @@ class ErrorHandler {
 
   // 延迟函数
   private delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   // 错误分类和用户友好消息
   categorizeError(error: Error, _context?: string): ErrorInfo {
     const message = error.message.toLowerCase();
-    
+
     // 网络相关错误
-    if (message.includes('network') || message.includes('fetch') || 
-        message.includes('cors') || error.name === 'TypeError') {
+    if (
+      message.includes('network') ||
+      message.includes('fetch') ||
+      message.includes('cors') ||
+      error.name === 'TypeError'
+    ) {
       return {
         message: error.message,
         userMessage: '网络连接出现问题，请检查网络后重试',
         category: 'network',
         recoverable: true,
-        retryable: true
+        retryable: true,
       };
     }
 
@@ -135,7 +139,7 @@ class ErrorHandler {
         userMessage: '请求超时，请稍后重试',
         category: 'timeout',
         recoverable: true,
-        retryable: true
+        retryable: true,
       };
     }
 
@@ -144,22 +148,23 @@ class ErrorHandler {
       const isClientError = message.includes('4');
       return {
         message: error.message,
-        userMessage: isClientError ? '请求出现问题，请刷新页面重试' : '服务器暂时不可用，请稍后重试',
+        userMessage: isClientError
+          ? '请求出现问题，请刷新页面重试'
+          : '服务器暂时不可用，请稍后重试',
         category: isClientError ? 'client-error' : 'server-error',
         recoverable: !isClientError,
-        retryable: !isClientError
+        retryable: !isClientError,
       };
     }
 
     // 缓存相关错误
-    if (message.includes('indexeddb') || message.includes('cache') || 
-        message.includes('storage')) {
+    if (message.includes('indexeddb') || message.includes('cache') || message.includes('storage')) {
       return {
         message: error.message,
         userMessage: '本地存储出现问题，部分功能可能受影响',
         category: 'storage',
         recoverable: true,
-        retryable: false
+        retryable: false,
       };
     }
 
@@ -170,7 +175,7 @@ class ErrorHandler {
         userMessage: '权限不足，请重新登录',
         category: 'permission',
         recoverable: true,
-        retryable: false
+        retryable: false,
       };
     }
 
@@ -180,21 +185,21 @@ class ErrorHandler {
       userMessage: '出现未知错误，请刷新页面重试',
       category: 'unknown',
       recoverable: false,
-      retryable: false
+      retryable: false,
     };
   }
 
   // 处理错误并返回用户友好的信息
   handleError(error: Error, context?: string): ErrorInfo {
     const errorInfo = this.categorizeError(error, context);
-    
+
     logger.error(`错误处理`, {
       context,
       category: errorInfo.category,
       message: errorInfo.message,
       userMessage: errorInfo.userMessage,
       recoverable: errorInfo.recoverable,
-      retryable: errorInfo.retryable
+      retryable: errorInfo.retryable,
     });
 
     return errorInfo;
@@ -203,15 +208,19 @@ class ErrorHandler {
   // 创建带有重试功能的 fetch 包装器
   createRetryableFetch(options: RetryOptions = {}) {
     return async (url: string, init?: RequestInit): Promise<Response> => {
-      return this.withRetry(async () => {
-        const response = await fetch(url, init);
-        
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        
-        return response;
-      }, options, `fetch ${url}`);
+      return this.withRetry(
+        async () => {
+          const response = await fetch(url, init);
+
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+
+          return response;
+        },
+        options,
+        `fetch ${url}`
+      );
     };
   }
 
@@ -224,17 +233,20 @@ class ErrorHandler {
       shouldRetry: (error: Error, _attempt: number) => {
         // 壁纸加载失败时的重试策略
         const message = error.message.toLowerCase();
-        
+
         // CORS 错误不重试（需要使用代理）
         if (message.includes('cors')) {
           return false;
         }
-        
+
         // 网络错误和服务器错误可以重试
-        return (message.includes('network') || 
-                message.includes('timeout') ||
-                message.includes('http 5')) && _attempt < 3;
-      }
+        return (
+          (message.includes('network') ||
+            message.includes('timeout') ||
+            message.includes('http 5')) &&
+          _attempt < 3
+        );
+      },
     };
   }
 
@@ -247,7 +259,7 @@ class ErrorHandler {
       shouldRetry: (error: Error, _attempt: number) => {
         const message = error.message.toLowerCase();
         return message.includes('network') || message.includes('timeout');
-      }
+      },
     };
   }
 }
@@ -261,10 +273,10 @@ export function setupGlobalErrorHandler(): void {
   window.addEventListener('unhandledrejection', (event) => {
     const error = event.reason instanceof Error ? event.reason : new Error(String(event.reason));
     const errorInfo = errorHandler.handleError(error, 'unhandledrejection');
-    
+
     logger.error('未处理的 Promise 错误', {
       error: errorInfo.message,
-      userMessage: errorInfo.userMessage
+      userMessage: errorInfo.userMessage,
     });
 
     // 阻止默认的错误处理（避免控制台报错）
@@ -275,13 +287,13 @@ export function setupGlobalErrorHandler(): void {
   window.addEventListener('error', (event) => {
     const error = event.error instanceof Error ? event.error : new Error(event.message);
     const errorInfo = errorHandler.handleError(error, 'javascript-error');
-    
+
     logger.error('未处理的 JavaScript 错误', {
       error: errorInfo.message,
       userMessage: errorInfo.userMessage,
       filename: event.filename,
       lineno: event.lineno,
-      colno: event.colno
+      colno: event.colno,
     });
   });
 

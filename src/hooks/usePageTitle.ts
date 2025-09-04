@@ -4,7 +4,7 @@ export const usePageTitle = () => {
   useEffect(() => {
     // 设置初始标题
     document.title = '江的标签页';
-    
+
     const handleVisibilityChange = () => {
       if (document.hidden) {
         // 页面失去焦点时显示哭哭表情

@@ -31,7 +31,7 @@ class IndexedDBCache {
 
       request.onupgradeneeded = (event) => {
         const db = (event.target as IDBOpenDBRequest).result;
-        
+
         // 创建存储空间
         if (!db.objectStoreNames.contains(this.storeName)) {
           const store = db.createObjectStore(this.storeName, { keyPath: 'key' });
@@ -63,11 +63,11 @@ class IndexedDBCache {
         timestamp: Date.now(),
         ttl,
         size: blob.size,
-        type: blob.type
+        type: blob.type,
       };
 
       const request = store.put(data);
-      
+
       return new Promise((resolve, reject) => {
         request.onsuccess = () => {
           console.log(`💾 IndexedDB 保存成功: ${key} (${(blob.size / 1024 / 1024).toFixed(2)}MB)`);
@@ -105,14 +105,16 @@ class IndexedDBCache {
           if (now - result.timestamp > result.ttl) {
             console.log(`🗑️ IndexedDB 缓存已过期，删除: ${key}`);
             // 异步删除过期项，但不等待完成以避免阻塞读取
-            this.delete(key).catch(error => {
+            this.delete(key).catch((error) => {
               console.warn('删除过期缓存项失败:', error);
             });
             resolve(null);
             return;
           }
 
-          console.log(`✅ IndexedDB 缓存命中: ${key} (${(result.size / 1024 / 1024).toFixed(2)}MB)`);
+          console.log(
+            `✅ IndexedDB 缓存命中: ${key} (${(result.size / 1024 / 1024).toFixed(2)}MB)`
+          );
           resolve(result.blob);
         };
 
@@ -147,7 +149,7 @@ class IndexedDBCache {
           const now = Date.now();
           if (now - result.timestamp > result.ttl) {
             // 异步删除过期项，但不等待完成以避免阻塞检查
-            this.delete(key).catch(error => {
+            this.delete(key).catch((error) => {
               console.warn('删除过期缓存项失败:', error);
             });
             resolve(false);
@@ -193,11 +195,11 @@ class IndexedDBCache {
   async cleanup(): Promise<void> {
     try {
       const db = await this.ensureDB();
-      
+
       // 第一步：收集需要删除的键
       const keysToDelete: string[] = [];
       const now = Date.now();
-      
+
       const readTransaction = db.transaction([this.storeName], 'readonly');
       const readStore = readTransaction.objectStore(this.storeName);
       const readRequest = readStore.openCursor();
@@ -226,7 +228,7 @@ class IndexedDBCache {
       if (keysToDelete.length > 0) {
         const deleteTransaction = db.transaction([this.storeName], 'readwrite');
         const deleteStore = deleteTransaction.objectStore(this.storeName);
-        
+
         for (const key of keysToDelete) {
           deleteStore.delete(key);
         }
@@ -245,7 +247,6 @@ class IndexedDBCache {
       } else {
         console.log('🧹 IndexedDB 清理完成，没有过期缓存需要删除');
       }
-
     } catch (error) {
       console.error('IndexedDB 清理异常:', error);
     }

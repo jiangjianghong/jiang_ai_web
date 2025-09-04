@@ -20,21 +20,22 @@ export function useNetworkStatus(): NetworkStatus {
     connectionType: 'unknown',
     effectiveType: 'unknown',
     downlink: 0,
-    rtt: 0
+    rtt: 0,
   });
 
   useEffect(() => {
     const updateNetworkStatus = () => {
-      const connection = (navigator as any).connection || 
-                        (navigator as any).mozConnection || 
-                        (navigator as any).webkitConnection;
+      const connection =
+        (navigator as any).connection ||
+        (navigator as any).mozConnection ||
+        (navigator as any).webkitConnection;
 
       setNetworkStatus({
         isOnline: navigator.onLine,
         connectionType: connection?.type || 'unknown',
         effectiveType: connection?.effectiveType || 'unknown',
         downlink: connection?.downlink || 0,
-        rtt: connection?.rtt || 0
+        rtt: connection?.rtt || 0,
       });
     };
 
@@ -68,7 +69,7 @@ export function useOfflineCapabilities(): OfflineCapabilities {
   const [capabilities, setCapabilities] = useState<OfflineCapabilities>({
     isOfflineReady: false,
     hasServiceWorker: 'serviceWorker' in navigator,
-    cacheStatus: 'loading'
+    cacheStatus: 'loading',
   });
 
   useEffect(() => {
@@ -77,23 +78,23 @@ export function useOfflineCapabilities(): OfflineCapabilities {
         if ('serviceWorker' in navigator) {
           const registration = await navigator.serviceWorker.ready;
           const hasCache = await caches.has('v1');
-          
-          setCapabilities(prev => ({
+
+          setCapabilities((prev) => ({
             ...prev,
             isOfflineReady: !!registration && hasCache,
-            cacheStatus: hasCache ? 'ready' : 'loading'
+            cacheStatus: hasCache ? 'ready' : 'loading',
           }));
         } else {
-          setCapabilities(prev => ({
+          setCapabilities((prev) => ({
             ...prev,
-            cacheStatus: 'error'
+            cacheStatus: 'error',
           }));
         }
       } catch (error) {
         console.error('检查离线能力失败:', error);
-        setCapabilities(prev => ({
+        setCapabilities((prev) => ({
           ...prev,
-          cacheStatus: 'error'
+          cacheStatus: 'error',
         }));
       }
     };
@@ -122,7 +123,7 @@ export function usePWAInstall(): PWAInstallPrompt {
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
       const isIOSStandalone = (window.navigator as any).standalone === true;
-      
+
       setIsInstalled(isStandalone || (isIOS && isIOSStandalone));
     };
 
@@ -139,7 +140,7 @@ export function usePWAInstall(): PWAInstallPrompt {
     };
 
     checkInstalled();
-    
+
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
 
@@ -155,7 +156,7 @@ export function usePWAInstall(): PWAInstallPrompt {
     try {
       deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
-      
+
       if (outcome === 'accepted') {
         setIsInstalled(true);
         setIsInstallable(false);
@@ -178,7 +179,7 @@ export function usePWAInstall(): PWAInstallPrompt {
     isInstallable,
     isInstalled,
     promptInstall,
-    dismissPrompt
+    dismissPrompt,
   };
 }
 
@@ -195,7 +196,7 @@ export function useAdaptiveLoading(): AdaptiveLoadingConfig {
     enableImageOptimization: true,
     enablePrefetch: true,
     batchSize: 5,
-    delay: 0
+    delay: 0,
   });
 
   useEffect(() => {
@@ -206,7 +207,7 @@ export function useAdaptiveLoading(): AdaptiveLoadingConfig {
         enableImageOptimization: true,
         enablePrefetch: false,
         batchSize: 1,
-        delay: 0
+        delay: 0,
       });
       return;
     }
@@ -217,21 +218,21 @@ export function useAdaptiveLoading(): AdaptiveLoadingConfig {
         enableImageOptimization: true,
         enablePrefetch: false,
         batchSize: 1,
-        delay: 1000
+        delay: 1000,
       });
     } else if (effectiveType === '3g' || downlink < 1.5) {
       setConfig({
         enableImageOptimization: true,
         enablePrefetch: false,
         batchSize: 3,
-        delay: 500
+        delay: 500,
       });
     } else if (effectiveType === '4g' || downlink >= 1.5) {
       setConfig({
         enableImageOptimization: false,
         enablePrefetch: true,
         batchSize: 5,
-        delay: 200
+        delay: 200,
       });
     } else {
       // 高速网络
@@ -239,7 +240,7 @@ export function useAdaptiveLoading(): AdaptiveLoadingConfig {
         enableImageOptimization: false,
         enablePrefetch: true,
         batchSize: 10,
-        delay: 0
+        delay: 0,
       });
     }
   }, [networkStatus]);

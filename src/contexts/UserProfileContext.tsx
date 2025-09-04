@@ -34,18 +34,22 @@ export function UserProfileProvider({ children }: UserProfileProviderProps) {
   // 更新显示名称
   const updateDisplayName = async (name: string): Promise<boolean> => {
     if (!currentUser || !currentUser.email_confirmed_at) return false;
-    
+
     setLoading(true);
     try {
       const success = await saveUserProfile(currentUser, name);
       if (success) {
         // 立即更新本地状态
-        setUserProfile(prev => prev ? { 
-          ...prev, 
-          displayName: name,
-          updatedAt: new Date().toISOString()
-        } : null);
-        
+        setUserProfile((prev) =>
+          prev
+            ? {
+                ...prev,
+                displayName: name,
+                updatedAt: new Date().toISOString(),
+              }
+            : null
+        );
+
         return true;
       }
       return false;
@@ -90,12 +94,8 @@ export function UserProfileProvider({ children }: UserProfileProviderProps) {
     userProfile,
     displayName,
     updateDisplayName,
-    loading
+    loading,
   };
 
-  return (
-    <UserProfileContext.Provider value={value}>
-      {children}
-    </UserProfileContext.Provider>
-  );
+  return <UserProfileContext.Provider value={value}>{children}</UserProfileContext.Provider>;
 }

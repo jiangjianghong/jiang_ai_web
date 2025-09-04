@@ -33,7 +33,7 @@ class MemoryManager {
 
     logger.debug('内存管理器已初始化', {
       maxAge: this.maxAge,
-      maxTotalSize: this.maxTotalSize
+      maxTotalSize: this.maxTotalSize,
     });
   }
 
@@ -44,7 +44,7 @@ class MemoryManager {
       const sampleSize = Math.min(blob.size, 1024);
       const sample = blob.slice(0, sampleSize);
       const arrayBuffer = await sample.arrayBuffer();
-      
+
       // 简单哈希算法（FNV-1a）
       let hash = 2166136261;
       const bytes = new Uint8Array(arrayBuffer);
@@ -52,7 +52,7 @@ class MemoryManager {
         hash ^= bytes[i];
         hash *= 16777619;
       }
-      
+
       // 组合大小、类型和内容哈希
       return `${blob.size}-${blob.type}-${hash.toString(36)}`;
     } catch (error) {
@@ -65,7 +65,7 @@ class MemoryManager {
   async createBlobUrl(blob: Blob, category: string = 'general'): Promise<string> {
     // 生成Blob标识
     const blobKey = await this.generateBlobKey(blob);
-    
+
     // 检查是否已存在相同的Blob
     const existingUrl = this.blobKeyToUrl.get(blobKey);
     if (existingUrl && this.blobUrls.has(existingUrl)) {
@@ -74,14 +74,14 @@ class MemoryManager {
       logger.debug('复用现有 Blob URL', {
         category,
         blobKey: blobKey.substring(0, 20),
-        refs: this.blobUrls.get(existingUrl)!.refs
+        refs: this.blobUrls.get(existingUrl)!.refs,
       });
       return existingUrl;
     }
-    
+
     // 创建新的Blob URL
     const url = URL.createObjectURL(blob);
-    
+
     const info: BlobUrlInfo = {
       url,
       size: blob.size,
@@ -89,7 +89,7 @@ class MemoryManager {
       category,
       refs: 1,
       blobKey,
-      lastAccessTime: Date.now()
+      lastAccessTime: Date.now(),
     };
 
     this.blobUrls.set(url, info);
@@ -99,7 +99,7 @@ class MemoryManager {
       category,
       size: `${(blob.size / 1024 / 1024).toFixed(2)}MB`,
       blobKey: blobKey.substring(0, 20),
-      totalUrls: this.blobUrls.size
+      totalUrls: this.blobUrls.size,
     });
 
     // 检查是否需要清理
@@ -136,7 +136,7 @@ class MemoryManager {
     if (info) {
       info.refs--;
       logger.debug('减少 Blob URL 引用', { url: url.substring(0, 50), refs: info.refs });
-      
+
       if (info.refs <= 0) {
         this.revokeBlobUrl(url);
         return true;
@@ -152,18 +152,18 @@ class MemoryManager {
       try {
         URL.revokeObjectURL(url);
         this.blobUrls.delete(url);
-        
+
         // 清理去重映射
         this.blobKeyToUrl.delete(info.blobKey);
-        
+
         logger.debug('释放 Blob URL', {
           category: info.category,
           size: `${(info.size / 1024 / 1024).toFixed(2)}MB`,
           age: `${((Date.now() - info.createdAt) / 1000).toFixed(1)}s`,
           blobKey: info.blobKey.substring(0, 20),
-          totalUrls: this.blobUrls.size
+          totalUrls: this.blobUrls.size,
         });
-        
+
         return true;
       } catch (error) {
         logger.warn('释放 Blob URL 失败', { url: url.substring(0, 50), error });
@@ -175,13 +175,13 @@ class MemoryManager {
   // 检查内存使用情况
   private checkMemoryUsage(): void {
     const stats = this.getStats();
-    
+
     if (stats.totalSize > this.maxTotalSize) {
       logger.warn('内存使用超限，开始清理', {
         currentSize: `${(stats.totalSize / 1024 / 1024).toFixed(2)}MB`,
-        maxSize: `${(this.maxTotalSize / 1024 / 1024).toFixed(2)}MB`
+        maxSize: `${(this.maxTotalSize / 1024 / 1024).toFixed(2)}MB`,
       });
-      
+
       this.cleanup();
     }
   }
@@ -191,7 +191,7 @@ class MemoryManager {
     const now = Date.now();
     let cleanedCount = 0;
     let cleanedSize = 0;
-    
+
     // 智能清理策略：
     // 1. 强制清理：清理所有
     // 2. 超过最大年龄：清理
@@ -199,17 +199,19 @@ class MemoryManager {
     // 4. 引用计数为0且创建时间较久：清理（1分钟）
 
     // 按最后访问时间排序，优先清理最久未访问的
-    const sortedUrls = Array.from(this.blobUrls.entries())
-      .sort(([, a], [, b]) => a.lastAccessTime - b.lastAccessTime);
+    const sortedUrls = Array.from(this.blobUrls.entries()).sort(
+      ([, a], [, b]) => a.lastAccessTime - b.lastAccessTime
+    );
 
     for (const [url, info] of sortedUrls) {
       const age = now - info.createdAt;
       const timeSinceLastAccess = now - info.lastAccessTime;
-      
-      const shouldClean = forceAll || 
-                         age > this.maxAge || // 超过最大年龄
-                         (info.refs <= 0 && timeSinceLastAccess > 5 * 60 * 1000) || // 无引用且5分钟未访问
-                         (info.refs <= 0 && age > 60 * 1000); // 无引用且创建超过1分钟
+
+      const shouldClean =
+        forceAll ||
+        age > this.maxAge || // 超过最大年龄
+        (info.refs <= 0 && timeSinceLastAccess > 5 * 60 * 1000) || // 无引用且5分钟未访问
+        (info.refs <= 0 && age > 60 * 1000); // 无引用且创建超过1分钟
 
       if (shouldClean) {
         if (this.revokeBlobUrl(url)) {
@@ -224,7 +226,7 @@ class MemoryManager {
         cleanedCount,
         cleanedSize: `${(cleanedSize / 1024 / 1024).toFixed(2)}MB`,
         remainingUrls: this.blobUrls.size,
-        forceAll
+        forceAll,
       });
     }
   }
@@ -261,7 +263,7 @@ class MemoryManager {
       totalSize,
       byCategory,
       oldestAge,
-      averageAge: this.blobUrls.size > 0 ? totalAge / this.blobUrls.size : 0
+      averageAge: this.blobUrls.size > 0 ? totalAge / this.blobUrls.size : 0,
     };
   }
 
@@ -275,7 +277,7 @@ class MemoryManager {
   // 清理特定类别的 URL
   cleanupCategory(category: string): number {
     let cleanedCount = 0;
-    
+
     for (const [url, info] of this.blobUrls.entries()) {
       if (info.category === category) {
         if (this.revokeBlobUrl(url)) {

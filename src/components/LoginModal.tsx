@@ -15,14 +15,21 @@ export default function LoginModal({ onClose }: LoginModalProps) {
   const [showVerificationMessage, setShowVerificationMessage] = useState(false);
   const [verificationEmail, setVerificationEmail] = useState('');
 
-  const { login, register, loginWithGoogle, sendVerificationEmail, error: authError, successMessage } = useAuth();
+  const {
+    login,
+    register,
+    loginWithGoogle,
+    sendVerificationEmail,
+    error: authError,
+    successMessage,
+  } = useAuth();
 
   // 组合错误显示：优先显示本地验证错误，然后是认证错误
   const displayError = localError || authError;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email || !password) {
       setLocalError('请填写完整信息');
       return;
@@ -50,7 +57,7 @@ export default function LoginModal({ onClose }: LoginModalProps) {
       }
     } catch (error: any) {
       console.error('认证失败:', error);
-      
+
       // 处理认证错误
       // Supabase的错误处理已经在AuthContext中完成，这里不需要额外处理
       setLocalError(error.message || (isLogin ? '登录失败，请重试' : '注册失败，请重试'));
@@ -62,7 +69,7 @@ export default function LoginModal({ onClose }: LoginModalProps) {
   const handleGoogleLogin = async () => {
     setLoading(true);
     setLocalError('');
-    
+
     try {
       await loginWithGoogle();
       onClose();
@@ -84,11 +91,8 @@ export default function LoginModal({ onClose }: LoginModalProps) {
   };
 
   return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 select-none">
-      <div 
-        className="absolute inset-0 bg-black/50"
-        onClick={onClose}
-      />
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 select-none">
+      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
       <motion.div
         className="w-96 bg-white rounded-xl shadow-2xl z-50 p-6 select-none"
         initial={{ scale: 0.9, opacity: 0 }}
@@ -100,10 +104,7 @@ export default function LoginModal({ onClose }: LoginModalProps) {
           <h2 className="text-2xl font-bold text-gray-800 select-none">
             {isLogin ? '登录' : '注册'}
           </h2>
-          <button 
-            onClick={onClose} 
-            className="text-gray-500 hover:text-gray-700 select-none"
-          >
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700 select-none">
             <i className="fa-solid fa-xmark text-xl select-none"></i>
           </button>
         </div>
@@ -122,9 +123,7 @@ export default function LoginModal({ onClose }: LoginModalProps) {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1 select-none">
-              邮箱
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1 select-none">邮箱</label>
             <input
               type="email"
               value={email}
@@ -136,9 +135,7 @@ export default function LoginModal({ onClose }: LoginModalProps) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1 select-none">
-              密码
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1 select-none">密码</label>
             <input
               type="password"
               value={password}
@@ -154,7 +151,7 @@ export default function LoginModal({ onClose }: LoginModalProps) {
             disabled={loading}
             className="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white py-2 px-4 rounded-md transition-colors select-none"
           >
-            {loading ? '处理中...' : (isLogin ? '登录' : '注册')}
+            {loading ? '处理中...' : isLogin ? '登录' : '注册'}
           </button>
         </form>
 
@@ -192,8 +189,8 @@ export default function LoginModal({ onClose }: LoginModalProps) {
                   注册成功！请验证您的邮箱
                 </h4>
                 <p className="text-sm text-green-700 mt-1 select-none">
-                  我们已向 <strong className="select-none">{verificationEmail}</strong> 发送了验证邮件。
-                  请点击邮件中的链接完成验证后登录。
+                  我们已向 <strong className="select-none">{verificationEmail}</strong>{' '}
+                  发送了验证邮件。 请点击邮件中的链接完成验证后登录。
                 </p>
                 <div className="mt-3 flex space-x-2">
                   <button

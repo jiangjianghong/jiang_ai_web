@@ -7,8 +7,6 @@ import { AnimatedCat } from '@/components/AnimatedCat';
 // 拖拽逻辑已迁移到 WebsiteCard
 import { motion } from 'framer-motion';
 import { useTransparency } from '@/contexts/TransparencyContext';
-import { useAuth } from '../contexts/SupabaseAuthContext';
-import { useUserProfile } from '@/contexts/UserProfileContext';
 import { useAutoSync } from '@/hooks/useAutoSync';
 import EmailVerificationBanner from '@/components/EmailVerificationBanner';
 import { LazySettings, LazyWorkspaceModal } from '@/utils/lazyComponents';
@@ -26,15 +24,15 @@ interface HomeProps {
 }
 
 export default function Home({ websites, setWebsites, dataInitialized = true }: HomeProps) {
-  const { parallaxEnabled, wallpaperResolution, isSettingsOpen, autoSortEnabled, customWallpaperUrl, timeComponentEnabled } = useTransparency();
-  const { currentUser } = useAuth();
-  const { displayName } = useUserProfile();
-  const { isWorkspaceOpen, setIsWorkspaceOpen } = useWorkspace();
   const {
-    isMobile,
-    getGridClasses,
-    getSearchBarLayout
-  } = useResponsiveLayout();
+    parallaxEnabled,
+    wallpaperResolution,
+    isSettingsOpen,
+    autoSortEnabled,
+    customWallpaperUrl,
+  } = useTransparency();
+  const { isWorkspaceOpen, setIsWorkspaceOpen } = useWorkspace();
+  const { isMobile, getGridClasses, getSearchBarLayout } = useResponsiveLayout();
 
   // 启用自动同步（传递数据初始化状态）
   useAutoSync(websites, dataInitialized);
@@ -51,16 +49,13 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
   const [bgImageLoaded, setBgImageLoaded] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [mousePosition, setMousePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-  const [showGreeting, setShowGreeting] = useState(false);
-  const [clickCount, setClickCount] = useState(0);
-  const [isAnimating, setIsAnimating] = useState(false);
 
   // 组件挂载时立即检查缓存，提供即时加载体验
   useEffect(() => {
     const checkCacheAndLoadWallpaper = async () => {
       try {
         logger.debug('🔍 检查壁纸缓存');
-        
+
         // 如果有自定义壁纸，直接使用
         if (customWallpaperUrl && customWallpaperUrl.trim()) {
           setBgImage(customWallpaperUrl);
@@ -75,7 +70,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
           setBgImage(result.url);
           setBgImageLoaded(true);
           logger.debug('⚡ 即时加载缓存壁纸', { isToday: result.isToday });
-          
+
           // 如果缓存的不是今天的壁纸，记录警告
           if (!result.isToday) {
             logger.warn('⚠️ 使用的是过期壁纸缓存，将在后台更新');
@@ -89,37 +84,19 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
     checkCacheAndLoadWallpaper();
   }, []); // 只在组件挂载时执行一次
 
-
   // 根据设置决定是否自动排序卡片
-  const displayWebsites = autoSortEnabled ?
-    [...websites].sort((a, b) => {
-      // 首先按访问次数降序排序
-      const visitDiff = (b.visitCount || 0) - (a.visitCount || 0);
-      if (visitDiff !== 0) return visitDiff;
+  const displayWebsites = autoSortEnabled
+    ? [...websites].sort((a, b) => {
+        // 首先按访问次数降序排序
+        const visitDiff = (b.visitCount || 0) - (a.visitCount || 0);
+        if (visitDiff !== 0) return visitDiff;
 
-      // 如果访问次数相同，按最后访问时间降序排序
-      const dateA = new Date(a.lastVisit || '2000-01-01').getTime();
-      const dateB = new Date(b.lastVisit || '2000-01-01').getTime();
-      return dateB - dateA;
-    }) : websites;
-
-  // 处理用户名框点击事件
-  const handleUserNameClick = () => {
-    if (isAnimating) return; // 防止动画期间重复点击
-
-    setClickCount(prev => prev + 1);
-    setIsAnimating(true);
-    setShowGreeting(true);
-
-    // 1秒后开始淡出
-    setTimeout(() => {
-      setShowGreeting(false);
-      // 再等待动画完成后重置动画状态
-      setTimeout(() => {
-        setIsAnimating(false);
-      }, 300); // 等待淡出动画完成
-    }, 1000);
-  };
+        // 如果访问次数相同，按最后访问时间降序排序
+        const dateA = new Date(a.lastVisit || '2000-01-01').getTime();
+        const dateB = new Date(b.lastVisit || '2000-01-01').getTime();
+        return dateB - dateA;
+      })
+    : websites;
 
   const handleSaveCard = (updatedCard: {
     id: string;
@@ -132,9 +109,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
     lastVisit?: string;
   }) => {
     setWebsites(
-      websites.map(card =>
-        card.id === updatedCard.id ? { ...card, ...updatedCard } : card
-      )
+      websites.map((card) => (card.id === updatedCard.id ? { ...card, ...updatedCard } : card))
     );
   };
 
@@ -177,7 +152,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
     if (websites.length > 0) {
       // 延迟预加载，避免阻塞首屏渲染
       const timer = setTimeout(() => {
-        faviconCache.preloadFavicons(websites).catch(err => {
+        faviconCache.preloadFavicons(websites).catch((err) => {
           console.warn('批量预加载图标失败:', err);
         });
       }, 500); // 延迟500ms，确保首屏渲染完成
@@ -218,11 +193,12 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
       // 延迟执行，避免阻塞首屏渲染
       const timer = setTimeout(() => {
         logger.debug('🚀 开始简单批量预缓存 favicon...');
-        faviconCache.batchCacheFaviconsToIndexedDB(websites)
+        faviconCache
+          .batchCacheFaviconsToIndexedDB(websites)
           .then(() => {
             logger.debug('✅ Favicon 简单批量预缓存完成');
           })
-          .catch(error => {
+          .catch((error) => {
             logger.warn('❌ Favicon 简单批量预缓存失败:', error);
           });
       }, 2000); // 2秒后开始，确保不影响首屏渲染
@@ -241,15 +217,11 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
       searchContainer: searchBarLayout.containerClass,
       cardContainer: `${isMobile ? 'pt-8 pb-4' : 'pt-16 pb-8'} px-4 max-w-6xl mx-auto`,
       gridLayout: gridClasses,
-      userInfo: isMobile
-        ? 'fixed top-2 right-2 z-40 scale-90'
-        : 'fixed top-4 right-4 z-40',
-      workspaceButton: isMobile
-        ? 'fixed top-2 left-2 z-40 scale-90'
-        : 'fixed top-4 left-4 z-40',
+      userInfo: isMobile ? 'fixed top-2 right-2 z-40 scale-90' : 'fixed top-4 right-4 z-40',
+      workspaceButton: isMobile ? 'fixed top-2 left-2 z-40 scale-90' : 'fixed top-4 left-4 z-40',
       settingsButton: isMobile
         ? 'fixed bottom-2 right-2 z-[9999] p-2 bg-white/10 rounded-full backdrop-blur-sm'
-        : 'fixed bottom-4 right-4 z-[9999]'
+        : 'fixed bottom-4 right-4 z-[9999]',
     };
   };
 
@@ -269,9 +241,10 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
           backgroundPosition: isMobile ? 'center center' : 'center top',
           backgroundRepeat: 'no-repeat',
           filter: bgImageLoaded ? 'none' : 'blur(2px)',
-          transform: !isSettingsOpen && parallaxEnabled && !isMobile && mousePosition ?
-            `translate(${mousePosition.x * 0.02}px, ${mousePosition.y * 0.02}px) scale(1.05)` :
-            'translate(0px, 0px) scale(1)',
+          transform:
+            !isSettingsOpen && parallaxEnabled && !isMobile && mousePosition
+              ? `translate(${mousePosition.x * 0.02}px, ${mousePosition.y * 0.02}px) scale(1.05)`
+              : 'translate(0px, 0px) scale(1)',
           transition: 'filter 1.5s ease-out, transform 0.3s ease-out',
         }}
       />
@@ -286,14 +259,16 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
               : 'linear-gradient(to bottom, rgba(30, 41, 59, 0.7) 0%, rgba(30, 41, 59, 0.3) 50%, rgba(30, 41, 59, 0.1) 100%)',
             opacity: bgImageLoaded ? 0 : 1,
             transition: 'opacity 1.5s ease-out',
-            pointerEvents: 'none'
+            pointerEvents: 'none',
           }}
         />
       )}
 
       {/* 壁纸加载指示器 - 响应式位置 */}
       {!bgImageLoaded && bgImage && (
-        <div className={`fixed ${isMobile ? 'top-2 left-2' : 'top-4 left-4'} z-40 bg-black/30 backdrop-blur-sm rounded-lg px-4 py-2`}>
+        <div
+          className={`fixed ${isMobile ? 'top-2 left-2' : 'top-4 left-4'} z-40 bg-black/30 backdrop-blur-sm rounded-lg px-4 py-2`}
+        >
           <div className="text-white/90 text-sm font-medium flex items-center space-x-2">
             <div className="animate-pulse rounded-full h-2 w-2 bg-white/70"></div>
             <span className={isMobile ? 'text-xs' : 'text-sm'}>壁纸加载中</span>
@@ -305,15 +280,25 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
         {/* SEO 导航 - 视觉上隐藏但对搜索引擎可见 */}
         <nav className="sr-only">
           <ul>
-            <li><a href="#main-content">主要内容</a></li>
-            <li><a href="#search">搜索功能</a></li>
-            <li><a href="#bookmarks">书签收藏</a></li>
+            <li>
+              <a href="#main-content">主要内容</a>
+            </li>
+            <li>
+              <a href="#search">搜索功能</a>
+            </li>
+            <li>
+              <a href="#bookmarks">书签收藏</a>
+            </li>
           </ul>
         </nav>
-        
+
         <div className={`${classes.searchContainer} relative`} id="main-content">
           {/* SEO H1 标签 - 视觉上隐藏但对搜索引擎可见 */}
-          <h1 className="sr-only">你好呀，这里是一个AI友好的个性化便签页面，创作者：江江 和 claude coze kiro coplit 页面美观好用，有诸多彩蛋（**新标签页**，**new tab**,**AI tab**,**notion tab**,**个性化**，**标签页**）</h1>
+          <h1 className="sr-only">
+            你好呀，这里是一个AI友好的个性化便签页面，创作者：江江 和 claude coze kiro coplit
+            页面美观好用，有诸多彩蛋（**新标签页**，**new tab**,**AI tab**,**notion
+            tab**,**个性化**，**标签页**）
+          </h1>
           {/* SEO 描述段落 - 视觉上隐藏但对搜索引擎可见 */}
           <p className="sr-only">
             这是一个由江江创作的个性化便签页面，结合了 Claude、Coze、Kiro、Copilot 等AI工具的协助。
@@ -333,8 +318,9 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
           >
             {displayWebsites.map((website, idx) => {
               // 当启用自动排序时，需要找到原始数组中的索引
-              const originalIndex = autoSortEnabled ?
-                websites.findIndex(w => w.id === website.id) : idx;
+              const originalIndex = autoSortEnabled
+                ? websites.findIndex((w) => w.id === website.id)
+                : idx;
 
               return (
                 <WebsiteCard
@@ -344,7 +330,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
                   moveCard={moveCard}
                   onSave={handleSaveCard}
                   onDelete={(id) => {
-                    setWebsites(websites.filter(card => card.id !== id));
+                    setWebsites(websites.filter((card) => card.id !== id));
                   }}
                 />
               );
@@ -367,9 +353,11 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
               onClick={() => setIsWorkspaceOpen(true)}
               className="flex items-center justify-center transition-all duration-200 cursor-pointer p-2"
             >
-              <i className={`fa-solid fa-briefcase text-white/70 group-hover:text-white group-hover:drop-shadow-lg transition-all duration-200 ${isMobile ? 'text-sm' : 'text-lg'}`}></i>
+              <i
+                className={`fa-solid fa-briefcase text-white/70 group-hover:text-white group-hover:drop-shadow-lg transition-all duration-200 ${isMobile ? 'text-sm' : 'text-lg'}`}
+              ></i>
             </button>
-            
+
             {/* 自定义悬停提示 */}
             <div className="absolute left-1/2 transform -translate-x-1/2 top-full mt-2 px-3 py-1.5 bg-gray-900/90 text-white text-xs rounded-lg shadow-lg backdrop-blur-sm border border-white/10 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none z-50">
               工作空间
@@ -396,10 +384,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
         {!isMobile && <AnimatedCat />}
 
         {/* 工作空间模态框 */}
-        <LazyWorkspaceModal
-          isOpen={isWorkspaceOpen}
-          onClose={() => setIsWorkspaceOpen(false)}
-        />
+        <LazyWorkspaceModal isOpen={isWorkspaceOpen} onClose={() => setIsWorkspaceOpen(false)} />
       </div>
     </>
   );

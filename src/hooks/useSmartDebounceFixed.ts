@@ -24,36 +24,39 @@ export function useSmartDebounce<T extends (...args: any[]) => any>(
   }, []);
 
   // 执行防抖回调
-  const debouncedCallback = useCallback((...args: Parameters<T>) => {
-    cleanup();
-    
-    const now = Date.now();
-    
-    // 如果是第一次调用，记录时间
-    if (!firstCallTimeRef.current) {
-      firstCallTimeRef.current = now;
-    }
+  const debouncedCallback = useCallback(
+    (...args: Parameters<T>) => {
+      cleanup();
 
-    const timeSinceFirstCall = now - firstCallTimeRef.current;
-    const timeSinceLastCall = now - lastCallTimeRef.current;
-    
-    // 如果有最大延迟时间限制，且已经超过，立即执行
-    if (maxDelay && timeSinceFirstCall >= maxDelay) {
-      lastCallTimeRef.current = now;
-      firstCallTimeRef.current = 0;
-      callback(...args);
-      return;
-    }
-    
-    // 如果距离上次调用太近，延长等待时间
-    const actualDelay = timeSinceLastCall < delay ? delay * 1.5 : delay;
-    
-    timeoutRef.current = setTimeout(() => {
-      lastCallTimeRef.current = Date.now();
-      firstCallTimeRef.current = 0;
-      callback(...args);
-    }, actualDelay);
-  }, [callback, delay, maxDelay, cleanup]);
+      const now = Date.now();
+
+      // 如果是第一次调用，记录时间
+      if (!firstCallTimeRef.current) {
+        firstCallTimeRef.current = now;
+      }
+
+      const timeSinceFirstCall = now - firstCallTimeRef.current;
+      const timeSinceLastCall = now - lastCallTimeRef.current;
+
+      // 如果有最大延迟时间限制，且已经超过，立即执行
+      if (maxDelay && timeSinceFirstCall >= maxDelay) {
+        lastCallTimeRef.current = now;
+        firstCallTimeRef.current = 0;
+        callback(...args);
+        return;
+      }
+
+      // 如果距离上次调用太近，延长等待时间
+      const actualDelay = timeSinceLastCall < delay ? delay * 1.5 : delay;
+
+      timeoutRef.current = setTimeout(() => {
+        lastCallTimeRef.current = Date.now();
+        firstCallTimeRef.current = 0;
+        callback(...args);
+      }, actualDelay);
+    },
+    [callback, delay, maxDelay, cleanup]
+  );
 
   return debouncedCallback;
 }

@@ -1,7 +1,7 @@
 // Universal CORS Proxy - 支持多种外部API代理
 // 特别针对中国网络环境优化
 
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { serve } from "https://deno.land/std@0.224.0/http/server.ts"
 import { corsHeaders } from '../_shared/cors.ts'
 
 console.log("Universal Proxy function started")

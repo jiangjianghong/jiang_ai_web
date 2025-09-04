@@ -19,7 +19,7 @@ export function useLocalStorage<T>(
       if (item === null || item === undefined) {
         return defaultValue;
       }
-      
+
       // 尝试解析JSON
       try {
         return JSON.parse(item);
@@ -38,16 +38,15 @@ export function useLocalStorage<T>(
   const setValue = (value: T | ((val: T) => T)) => {
     try {
       setError(false);
-      
+
       // 允许传入函数来更新值
       const valueToStore = value instanceof Function ? value(storedValue) : value;
       setStoredValue(valueToStore);
-      
+
       // 保存到localStorage
-      const stringValue = typeof valueToStore === 'string' 
-        ? valueToStore 
-        : JSON.stringify(valueToStore);
-        
+      const stringValue =
+        typeof valueToStore === 'string' ? valueToStore : JSON.stringify(valueToStore);
+
       const success = storage.setItem(key, stringValue, isEssential);
       if (!success && !isEssential) {
         console.warn(`保存到localStorage失败: ${key} (用户未同意Cookie)`);
@@ -92,7 +91,9 @@ export function useTransparencyStorage() {
   const [cardOpacity, setCardOpacity] = useLocalStorage('cardOpacity', 0.1);
   const [searchBarOpacity, setSearchBarOpacity] = useLocalStorage('searchBarOpacity', 0.1);
   const [parallaxEnabled, setParallaxEnabled] = useLocalStorage('parallaxEnabled', true);
-  const [wallpaperResolution, setWallpaperResolution] = useLocalStorage<import('@/contexts/TransparencyContext').WallpaperResolution>('wallpaperResolution', '1080p');
+  const [wallpaperResolution, setWallpaperResolution] = useLocalStorage<
+    import('@/contexts/TransparencyContext').WallpaperResolution
+  >('wallpaperResolution', '1080p');
 
   return {
     cardOpacity: Number(cardOpacity),
@@ -102,6 +103,6 @@ export function useTransparencyStorage() {
     setCardOpacity: (value: number) => setCardOpacity(value),
     setSearchBarOpacity: (value: number) => setSearchBarOpacity(value),
     setParallaxEnabled: (value: boolean) => setParallaxEnabled(value),
-    setWallpaperResolution
+    setWallpaperResolution,
   };
 }

@@ -18,10 +18,10 @@ export function useDragAndDrop(items: any[], setItems: (items: any[]) => void, i
     accept: 'WEBSITE_CARD',
     hover(item: DragItem, monitor) {
       if (!monitor.isOver({ shallow: true })) return;
-      
+
       const dragIndex = item.index;
       const hoverIndex = items.findIndex((i) => i.id === item.id);
-      
+
       if (dragIndex === hoverIndex) return;
       moveItem(dragIndex, hoverIndex);
       item.index = hoverIndex;
@@ -35,7 +35,7 @@ export function useDragAndDrop(items: any[], setItems: (items: any[]) => void, i
       const item = items[itemIndex];
       return {
         id: item?.id || '',
-        index: itemIndex
+        index: itemIndex,
       };
     },
     collect: (monitor) => ({

@@ -11,7 +11,14 @@ import { customWallpaperManager } from '@/lib/customWallpaperManager';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { useSyncStatus } from '@/contexts/SyncContext';
 import { useUserProfile } from '@/contexts/UserProfileContext';
-import { WebsiteData, UserSettings, saveUserSettings, getUserSettings, saveUserWebsites, getUserWebsites } from '@/lib/supabaseSync';
+import {
+  WebsiteData,
+  UserSettings,
+  saveUserSettings,
+  getUserSettings,
+  saveUserWebsites,
+  getUserWebsites,
+} from '@/lib/supabaseSync';
 import { useDataManager } from '@/hooks/useDataManager';
 import { faviconCache } from '@/lib/faviconCache';
 
@@ -46,12 +53,10 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
   const [isGlobalDragOver, setIsGlobalDragOver] = useState(false);
 
   // 使用统一的数据管理Hook
-  const {
-    exportAllData,
-    importAllData,
-    isExporting,
-    isImporting
-  } = useDataManager(websites, setWebsites);
+  const { exportAllData, importAllData, isExporting, isImporting } = useDataManager(
+    websites,
+    setWebsites
+  );
   const {
     cardOpacity,
     searchBarOpacity,
@@ -63,7 +68,6 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
     autoSyncInterval,
     searchInNewTab,
     autoSortEnabled,
-    customWallpaperUrl,
     timeComponentEnabled,
     showFullDate,
     showSeconds,
@@ -71,7 +75,6 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
     showYear,
     showMonth,
     showDay,
-    dateDisplayMode,
     setCardOpacity,
     setSearchBarOpacity,
     setParallaxEnabled,
@@ -91,7 +94,6 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
     setShowYear,
     setShowMonth,
     setShowDay,
-    setDateDisplayMode,
   } = useTransparency();
   const { currentUser, logout } = useAuth();
   const { updateSyncStatus } = useSyncStatus();
@@ -122,7 +124,7 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
 
       // 检查是否拖拽的是图片文件
       const items = Array.from(e.dataTransfer?.items || []);
-      const hasImageFile = items.some(item => item.type.startsWith('image/'));
+      const hasImageFile = items.some((item) => item.type.startsWith('image/'));
 
       if (hasImageFile && !uploadingWallpaper) {
         setIsGlobalDragOver(true);
@@ -241,7 +243,7 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
     if (uploadingWallpaper) return;
 
     const files = Array.from(e.dataTransfer.files);
-    const imageFile = files.find(file => file.type.startsWith('image/'));
+    const imageFile = files.find((file) => file.type.startsWith('image/'));
 
     if (imageFile) {
       await processWallpaperFile(imageFile);
@@ -337,7 +339,7 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
     const newCard = {
       ...data,
       visitCount: 0,
-      lastVisit: new Date().toISOString().split('T')[0]
+      lastVisit: new Date().toISOString().split('T')[0],
     };
     setWebsites([...websites, newCard]);
     setShowAddCardModal(false);
@@ -430,7 +432,6 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
           window.location.reload();
         }, 1000);
       }, 500);
-
     } catch (error) {
       console.error('修复图标失败:', error);
       setFixIconsMessage('❌ 修复失败，请重试');
@@ -467,7 +468,7 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
         showYear,
         showMonth,
         showDay,
-        lastSync: new Date().toISOString()
+        lastSync: new Date().toISOString(),
       };
 
       await saveUserSettings(currentUser, settings);
@@ -478,7 +479,7 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
         syncInProgress: false,
         lastSyncTime: new Date(),
         syncError: null,
-        pendingChanges: 0
+        pendingChanges: 0,
       });
 
       setSyncMessage('✅ 数据已成功上传到云端');
@@ -512,7 +513,7 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
         setAutoSyncEnabled(cloudSettings.autoSyncEnabled);
         setAutoSyncInterval(cloudSettings.autoSyncInterval);
         setAutoSortEnabled(cloudSettings.autoSortEnabled ?? false); // 提供默认值
-        
+
         // 时间设置同步
         setTimeComponentEnabled(cloudSettings.timeComponentEnabled ?? true);
         setShowFullDate(cloudSettings.showFullDate ?? true);
@@ -521,7 +522,7 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
         setShowYear(cloudSettings.showYear ?? true);
         setShowMonth(cloudSettings.showMonth ?? true);
         setShowDay(cloudSettings.showDay ?? true);
-        
+
         localStorage.setItem('theme', cloudSettings.theme || 'light');
       }
 
@@ -534,7 +535,7 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
         syncInProgress: false,
         lastSyncTime: new Date(),
         syncError: null,
-        pendingChanges: 0
+        pendingChanges: 0,
       });
 
       setSyncMessage('✅ 数据已成功从云端下载');
@@ -566,17 +567,13 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
         <div className="p-6 pb-0 select-none">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-medium text-gray-800 select-none">设置</h2>
-            <button
-              onClick={handleClose}
-              className="text-gray-500 hover:text-gray-700 select-none"
-            >
+            <button onClick={handleClose} className="text-gray-500 hover:text-gray-700 select-none">
               <i className="fa-solid fa-xmark text-lg select-none"></i>
             </button>
           </div>
         </div>
         {/* 主要内容区域 - 优化滚动和间距 */}
         <div className="flex-1 px-6 py-4 pb-6 space-y-8 overflow-y-auto select-none custom-scrollbar">
-
           {/* 账号管理部分 - 现代化设计 */}
           <div className="space-y-5 select-none settings-section">
             <div className="flex items-center gap-3 select-none">
@@ -591,17 +588,24 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
               <div className="space-y-4">
                 {/* 用户信息卡片 - 现代化升级版 */}
                 <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-
                   <div>
                     <div className="flex items-center gap-4 mb-4">
                       <div className="relative">
                         <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 via-green-500 to-teal-500 rounded-2xl flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
                           <i className="fa-solid fa-cat text-white text-2xl"></i>
                         </div>
-                        <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-white shadow-sm ${currentUser.email_confirmed_at ? 'bg-white' : 'bg-white'
-                          }`}>
-                          <i className={`fa-solid ${currentUser.email_confirmed_at ? 'fa-envelope-circle-check text-emerald-500' : 'fa-envelope-open text-amber-500'
-                            } text-xs flex items-center justify-center w-full h-full`}></i>
+                        <div
+                          className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-white shadow-sm ${
+                            currentUser.email_confirmed_at ? 'bg-white' : 'bg-white'
+                          }`}
+                        >
+                          <i
+                            className={`fa-solid ${
+                              currentUser.email_confirmed_at
+                                ? 'fa-envelope-circle-check text-emerald-500'
+                                : 'fa-envelope-open text-amber-500'
+                            } text-xs flex items-center justify-center w-full h-full`}
+                          ></i>
                         </div>
                       </div>
                       <div className="flex-1">
@@ -666,14 +670,25 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                           </button>
                         )}
                         <div className="flex items-center gap-2 mt-2 select-none">
-                          <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium select-none ${currentUser.email_confirmed_at
-                            ? 'bg-gradient-to-r from-emerald-100 to-green-100 text-emerald-700 border border-emerald-300'
-                            : 'bg-gradient-to-r from-amber-100 to-orange-100 text-amber-700 border border-amber-300'
-                            }`}>
-                            <i className={`fa-solid ${currentUser.email_confirmed_at ? 'fa-shield-check' : 'fa-envelope'
-                              } text-xs ${currentUser.email_confirmed_at ? 'text-emerald-500' : 'text-amber-500'
-                              } select-none`}></i>
-                            <span className="select-none">{currentUser.email_confirmed_at ? '邮箱已验证' : '待验证邮箱'}</span>
+                          <div
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium select-none ${
+                              currentUser.email_confirmed_at
+                                ? 'bg-gradient-to-r from-emerald-100 to-green-100 text-emerald-700 border border-emerald-300'
+                                : 'bg-gradient-to-r from-amber-100 to-orange-100 text-amber-700 border border-amber-300'
+                            }`}
+                          >
+                            <i
+                              className={`fa-solid ${
+                                currentUser.email_confirmed_at ? 'fa-shield-check' : 'fa-envelope'
+                              } text-xs ${
+                                currentUser.email_confirmed_at
+                                  ? 'text-emerald-500'
+                                  : 'text-amber-500'
+                              } select-none`}
+                            ></i>
+                            <span className="select-none">
+                              {currentUser.email_confirmed_at ? '邮箱已验证' : '待验证邮箱'}
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -684,9 +699,14 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                       <div className="flex items-center justify-between select-none">
                         <div className="flex items-center space-x-2 select-none">
                           <i className="fa-solid fa-envelope text-indigo-500 text-sm select-none"></i>
-                          <span className="text-xs text-gray-600 select-none">{currentUser.email}</span>
+                          <span className="text-xs text-gray-600 select-none">
+                            {currentUser.email}
+                          </span>
                         </div>
-                        <i className="fa-solid fa-check-circle text-green-500 text-xs select-none" title="邮箱已验证"></i>
+                        <i
+                          className="fa-solid fa-check-circle text-green-500 text-xs select-none"
+                          title="邮箱已验证"
+                        ></i>
                       </div>
                     </div>
 
@@ -715,15 +735,18 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
               </div>
             ) : (
               <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-
                 <div>
                   <div className="flex items-center gap-4 mb-6">
                     <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
                       <i className="fa-solid fa-cat text-white text-xl"></i>
                     </div>
                     <div className="flex-1">
-                      <div className="text-lg font-semibold text-slate-800 mb-1 select-none">账号登录</div>
-                      <div className="text-sm text-slate-600 select-none">登录后可同步数据到云端</div>
+                      <div className="text-lg font-semibold text-slate-800 mb-1 select-none">
+                        账号登录
+                      </div>
+                      <div className="text-sm text-slate-600 select-none">
+                        登录后可同步数据到云端
+                      </div>
                     </div>
                   </div>
 
@@ -754,25 +777,37 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
               <div className="flex items-center justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2 select-none">
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${autoSyncEnabled ? 'bg-blue-500 text-white' : 'bg-orange-500 text-white'}`}>
-                      <i className={`fa-solid text-sm ${autoSyncEnabled ? 'fa-sync' : 'fa-hand-paper'} select-none`}></i>
+                    <div
+                      className={`w-8 h-8 rounded-lg flex items-center justify-center ${autoSyncEnabled ? 'bg-blue-500 text-white' : 'bg-orange-500 text-white'}`}
+                    >
+                      <i
+                        className={`fa-solid text-sm ${autoSyncEnabled ? 'fa-sync' : 'fa-hand-paper'} select-none`}
+                      ></i>
                     </div>
                     <span className="text-sm font-semibold text-gray-800 select-none">
                       {autoSyncEnabled ? '自动同步模式' : '手动同步模式'}
                     </span>
                   </div>
                   <p className="text-xs text-gray-600 ml-11 select-none">
-                    {autoSyncEnabled ? '数据变化后自动同步到云端，保持实时更新' : '需要手动操作同步数据，完全由您控制'}
+                    {autoSyncEnabled
+                      ? '数据变化后自动同步到云端，保持实时更新'
+                      : '需要手动操作同步数据，完全由您控制'}
                   </p>
                 </div>
                 <button
                   onClick={() => setAutoSyncEnabled(!autoSyncEnabled)}
-                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${autoSyncEnabled ? 'bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg shadow-blue-300/50' : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
-                    }`}
+                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${
+                    autoSyncEnabled
+                      ? 'bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg shadow-blue-300/50'
+                      : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
+                  }`}
                 >
                   <span
-                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${autoSyncEnabled ? 'translate-x-6 shadow-blue-200' : 'translate-x-1 shadow-gray-200'
-                      }`}
+                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${
+                      autoSyncEnabled
+                        ? 'translate-x-6 shadow-blue-200'
+                        : 'translate-x-1 shadow-gray-200'
+                    }`}
                   />
                 </button>
               </div>
@@ -797,7 +832,7 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                     onChange={(e) => setAutoSyncInterval(parseInt(e.target.value))}
                     className="w-full h-2 bg-gradient-to-r from-blue-200 to-blue-300 rounded-lg appearance-none cursor-pointer"
                     style={{
-                      background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${((autoSyncInterval - 3) / 57) * 100}%, #e2e8f0 ${((autoSyncInterval - 3) / 57) * 100}%, #e2e8f0 100%)`
+                      background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${((autoSyncInterval - 3) / 57) * 100}%, #e2e8f0 ${((autoSyncInterval - 3) / 57) * 100}%, #e2e8f0 100%)`,
                     }}
                   />
                   <div className="flex justify-between text-xs text-gray-400 select-none">
@@ -819,23 +854,36 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                       disabled={isManualSyncing}
                       className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-sm rounded-lg hover:from-blue-600 hover:to-blue-700 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed transition-all duration-200 shadow-lg select-none"
                     >
-                      <i className={`fa-solid ${isManualSyncing ? 'fa-spinner fa-spin' : 'fa-cloud-upload-alt'} select-none`}></i>
-                      <span className="select-none">{isManualSyncing ? '上传中...' : '上传到云端'}</span>
+                      <i
+                        className={`fa-solid ${isManualSyncing ? 'fa-spinner fa-spin' : 'fa-cloud-upload-alt'} select-none`}
+                      ></i>
+                      <span className="select-none">
+                        {isManualSyncing ? '上传中...' : '上传到云端'}
+                      </span>
                     </button>
                     <button
                       onClick={handleDownloadFromCloud}
                       disabled={isManualSyncing}
                       className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white text-sm rounded-lg hover:from-green-600 hover:to-green-700 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed transition-all duration-200 shadow-lg select-none"
                     >
-                      <i className={`fa-solid ${isManualSyncing ? 'fa-spinner fa-spin' : 'fa-cloud-download-alt'} select-none`}></i>
-                      <span className="select-none">{isManualSyncing ? '下载中...' : '从云端下载'}</span>
+                      <i
+                        className={`fa-solid ${isManualSyncing ? 'fa-spinner fa-spin' : 'fa-cloud-download-alt'} select-none`}
+                      ></i>
+                      <span className="select-none">
+                        {isManualSyncing ? '下载中...' : '从云端下载'}
+                      </span>
                     </button>
                   </div>
                   {syncMessage && (
-                    <div className={`text-xs text-center px-3 py-2 rounded-lg ${syncMessage.includes('✅') ? 'text-green-700 bg-green-50 border border-green-200' :
-                      syncMessage.includes('❌') ? 'text-red-700 bg-red-50 border border-red-200' :
-                        'text-blue-700 bg-blue-50 border border-blue-200'
-                      }`}>
+                    <div
+                      className={`text-xs text-center px-3 py-2 rounded-lg ${
+                        syncMessage.includes('✅')
+                          ? 'text-green-700 bg-green-50 border border-green-200'
+                          : syncMessage.includes('❌')
+                            ? 'text-red-700 bg-red-50 border border-red-200'
+                            : 'text-blue-700 bg-blue-50 border border-blue-200'
+                      }`}
+                    >
                       {syncMessage}
                     </div>
                   )}
@@ -877,7 +925,7 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                   onChange={(e) => setSearchBarOpacity(parseFloat(e.target.value))}
                   className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                   style={{
-                    background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${((searchBarOpacity - 0.05) / 0.45) * 100}%, #e2e8f0 ${((searchBarOpacity - 0.05) / 0.45) * 100}%, #e2e8f0 100%)`
+                    background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${((searchBarOpacity - 0.05) / 0.45) * 100}%, #e2e8f0 ${((searchBarOpacity - 0.05) / 0.45) * 100}%, #e2e8f0 100%)`,
                   }}
                 />
                 <div className="flex justify-between text-xs text-gray-400 select-none">
@@ -919,7 +967,7 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                   onChange={(e) => setCardOpacity(parseFloat(e.target.value))}
                   className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                   style={{
-                    background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${((cardOpacity - 0.05) / 0.45) * 100}%, #e2e8f0 ${((cardOpacity - 0.05) / 0.45) * 100}%, #e2e8f0 100%)`
+                    background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${((cardOpacity - 0.05) / 0.45) * 100}%, #e2e8f0 ${((cardOpacity - 0.05) / 0.45) * 100}%, #e2e8f0 100%)`,
                   }}
                 />
                 <div className="flex justify-between text-xs text-gray-400 select-none">
@@ -932,11 +980,7 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
 
               {/* 卡片颜色选择 */}
               <div className="pt-2 border-t border-gray-100/60">
-                <ColorPicker
-                  label="卡片颜色"
-                  selectedColor={cardColor}
-                  onChange={setCardColor}
-                />
+                <ColorPicker label="卡片颜色" selectedColor={cardColor} onChange={setCardColor} />
               </div>
             </div>
           </div>
@@ -967,12 +1011,18 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                 </div>
                 <button
                   onClick={() => setParallaxEnabled(!parallaxEnabled)}
-                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${parallaxEnabled ? 'bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg shadow-blue-300/50' : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
-                    }`}
+                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${
+                    parallaxEnabled
+                      ? 'bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg shadow-blue-300/50'
+                      : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
+                  }`}
                 >
                   <span
-                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${parallaxEnabled ? 'translate-x-6 shadow-blue-200' : 'translate-x-1 shadow-gray-200'
-                      }`}
+                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${
+                      parallaxEnabled
+                        ? 'translate-x-6 shadow-blue-200'
+                        : 'translate-x-1 shadow-gray-200'
+                    }`}
                   />
                 </button>
               </div>
@@ -996,12 +1046,18 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                 </div>
                 <button
                   onClick={() => setSearchInNewTab(!searchInNewTab)}
-                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${searchInNewTab ? 'bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg shadow-blue-300/50' : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
-                    }`}
+                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${
+                    searchInNewTab
+                      ? 'bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg shadow-blue-300/50'
+                      : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
+                  }`}
                 >
                   <span
-                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${searchInNewTab ? 'translate-x-6 shadow-blue-200' : 'translate-x-1 shadow-gray-200'
-                      }`}
+                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${
+                      searchInNewTab
+                        ? 'translate-x-6 shadow-blue-200'
+                        : 'translate-x-1 shadow-gray-200'
+                    }`}
                   />
                 </button>
               </div>
@@ -1023,12 +1079,18 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                 </div>
                 <button
                   onClick={() => setAutoSortEnabled(!autoSortEnabled)}
-                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${autoSortEnabled ? 'bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg shadow-blue-300/50' : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
-                    }`}
+                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${
+                    autoSortEnabled
+                      ? 'bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg shadow-blue-300/50'
+                      : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
+                  }`}
                 >
                   <span
-                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${autoSortEnabled ? 'translate-x-6 shadow-blue-200' : 'translate-x-1 shadow-gray-200'
-                      }`}
+                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${
+                      autoSortEnabled
+                        ? 'translate-x-6 shadow-blue-200'
+                        : 'translate-x-1 shadow-gray-200'
+                    }`}
                   />
                 </button>
               </div>
@@ -1061,12 +1123,18 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                 </div>
                 <button
                   onClick={() => setTimeComponentEnabled(!timeComponentEnabled)}
-                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${timeComponentEnabled ? 'bg-gradient-to-r from-orange-500 to-yellow-500 shadow-lg shadow-orange-300/50' : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
-                    }`}
+                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${
+                    timeComponentEnabled
+                      ? 'bg-gradient-to-r from-orange-500 to-yellow-500 shadow-lg shadow-orange-300/50'
+                      : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
+                  }`}
                 >
                   <span
-                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${timeComponentEnabled ? 'translate-x-6 shadow-orange-200' : 'translate-x-1 shadow-gray-200'
-                      }`}
+                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${
+                      timeComponentEnabled
+                        ? 'translate-x-6 shadow-orange-200'
+                        : 'translate-x-1 shadow-gray-200'
+                    }`}
                   />
                 </button>
               </div>
@@ -1079,22 +1147,28 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                   <div className="space-y-4">
                     <div className="flex items-center gap-2">
                       <i className="fa-solid fa-calendar text-orange-500 text-sm"></i>
-                      <span className="text-sm font-medium text-gray-700 select-none">日期显示控制</span>
+                      <span className="text-sm font-medium text-gray-700 select-none">
+                        日期显示控制
+                      </span>
                     </div>
-                    
+
                     <div className="grid grid-cols-3 gap-3">
                       {/* 年份开关 */}
                       <div className="flex flex-col items-center space-y-2">
                         <button
                           onClick={() => setShowYear(!showYear)}
-                          className={`w-full p-3 rounded-lg border-2 transition-all duration-200 text-center select-none cursor-pointer ${showYear
-                            ? 'border-orange-500 bg-orange-50 text-orange-700'
-                            : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
-                            }`}
+                          className={`w-full p-3 rounded-lg border-2 transition-all duration-200 text-center select-none cursor-pointer ${
+                            showYear
+                              ? 'border-orange-500 bg-orange-50 text-orange-700'
+                              : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
+                          }`}
                         >
                           <div className="flex items-center justify-center gap-2 mb-1">
-                            <i className={`fa-solid fa-calendar-alt text-sm transition-colors ${showYear ? 'text-orange-500' : 'text-gray-400'
-                              } select-none`}></i>
+                            <i
+                              className={`fa-solid fa-calendar-alt text-sm transition-colors ${
+                                showYear ? 'text-orange-500' : 'text-gray-400'
+                              } select-none`}
+                            ></i>
                             <div className="font-medium text-sm select-none">年份</div>
                           </div>
                           <div className="text-xs text-gray-500 select-none">2024年</div>
@@ -1105,14 +1179,18 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                       <div className="flex flex-col items-center space-y-2">
                         <button
                           onClick={() => setShowMonth(!showMonth)}
-                          className={`w-full p-3 rounded-lg border-2 transition-all duration-200 text-center select-none cursor-pointer ${showMonth
-                            ? 'border-orange-500 bg-orange-50 text-orange-700'
-                            : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
-                            }`}
+                          className={`w-full p-3 rounded-lg border-2 transition-all duration-200 text-center select-none cursor-pointer ${
+                            showMonth
+                              ? 'border-orange-500 bg-orange-50 text-orange-700'
+                              : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
+                          }`}
                         >
                           <div className="flex items-center justify-center gap-2 mb-1">
-                            <i className={`fa-solid fa-calendar-check text-sm transition-colors ${showMonth ? 'text-orange-500' : 'text-gray-400'
-                              } select-none`}></i>
+                            <i
+                              className={`fa-solid fa-calendar-check text-sm transition-colors ${
+                                showMonth ? 'text-orange-500' : 'text-gray-400'
+                              } select-none`}
+                            ></i>
                             <div className="font-medium text-sm select-none">月份</div>
                           </div>
                           <div className="text-xs text-gray-500 select-none">8月</div>
@@ -1123,14 +1201,18 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                       <div className="flex flex-col items-center space-y-2">
                         <button
                           onClick={() => setShowDay(!showDay)}
-                          className={`w-full p-3 rounded-lg border-2 transition-all duration-200 text-center select-none cursor-pointer ${showDay
-                            ? 'border-orange-500 bg-orange-50 text-orange-700'
-                            : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
-                            }`}
+                          className={`w-full p-3 rounded-lg border-2 transition-all duration-200 text-center select-none cursor-pointer ${
+                            showDay
+                              ? 'border-orange-500 bg-orange-50 text-orange-700'
+                              : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
+                          }`}
                         >
                           <div className="flex items-center justify-center gap-2 mb-1">
-                            <i className={`fa-solid fa-calendar-day text-sm transition-colors ${showDay ? 'text-orange-500' : 'text-gray-400'
-                              } select-none`}></i>
+                            <i
+                              className={`fa-solid fa-calendar-day text-sm transition-colors ${
+                                showDay ? 'text-orange-500' : 'text-gray-400'
+                              } select-none`}
+                            ></i>
                             <div className="font-medium text-sm select-none">日期</div>
                           </div>
                           <div className="text-xs text-gray-500 select-none">28日</div>
@@ -1156,12 +1238,18 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                     </div>
                     <button
                       onClick={() => setShowWeekday(!showWeekday)}
-                      className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${showWeekday ? 'bg-gradient-to-r from-orange-500 to-yellow-500 shadow-lg shadow-orange-300/50' : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
-                        }`}
+                      className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${
+                        showWeekday
+                          ? 'bg-gradient-to-r from-orange-500 to-yellow-500 shadow-lg shadow-orange-300/50'
+                          : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
+                      }`}
                     >
                       <span
-                        className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${showWeekday ? 'translate-x-6 shadow-orange-200' : 'translate-x-1 shadow-gray-200'
-                          }`}
+                        className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${
+                          showWeekday
+                            ? 'translate-x-6 shadow-orange-200'
+                            : 'translate-x-1 shadow-gray-200'
+                        }`}
                       />
                     </button>
                   </div>
@@ -1183,12 +1271,18 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                     </div>
                     <button
                       onClick={() => setShowSeconds(!showSeconds)}
-                      className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${showSeconds ? 'bg-gradient-to-r from-orange-500 to-yellow-500 shadow-lg shadow-orange-300/50' : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
-                        }`}
+                      className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${
+                        showSeconds
+                          ? 'bg-gradient-to-r from-orange-500 to-yellow-500 shadow-lg shadow-orange-300/50'
+                          : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
+                      }`}
                     >
                       <span
-                        className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${showSeconds ? 'translate-x-6 shadow-orange-200' : 'translate-x-1 shadow-gray-200'
-                          }`}
+                        className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${
+                          showSeconds
+                            ? 'translate-x-6 shadow-orange-200'
+                            : 'translate-x-1 shadow-gray-200'
+                        }`}
                       />
                     </button>
                   </div>
@@ -1208,7 +1302,6 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
 
             {/* 壁纸设置区域 */}
             <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 space-y-5">
-
               {/* 壁纸分辨率选择 */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -1232,19 +1325,25 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                     { value: '4k', label: '4K 超高清', desc: '大屏设备', icon: 'fa-desktop' },
                     { value: '1080p', label: '1080p 高清', desc: '推荐', icon: 'fa-laptop' },
                     { value: '720p', label: '720p 标清', desc: '网络较慢', icon: 'fa-wifi' },
-                    { value: 'mobile', label: '竖屏壁纸', desc: '移动设备', icon: 'fa-mobile-alt' }
+                    { value: 'mobile', label: '竖屏壁纸', desc: '移动设备', icon: 'fa-mobile-alt' },
                   ].map((option) => (
                     <button
                       key={option.value}
                       onClick={() => setWallpaperResolution(option.value as WallpaperResolution)}
-                      className={`group p-3 rounded-lg border-2 transition-all duration-200 text-left select-none cursor-pointer ${wallpaperResolution === option.value
-                        ? 'border-blue-500 bg-blue-50 text-blue-700'
-                        : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
-                        }`}
+                      className={`group p-3 rounded-lg border-2 transition-all duration-200 text-left select-none cursor-pointer ${
+                        wallpaperResolution === option.value
+                          ? 'border-blue-500 bg-blue-50 text-blue-700'
+                          : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
+                      }`}
                     >
                       <div className="flex items-center gap-2 mb-1">
-                        <i className={`fa-solid ${option.icon} text-sm transition-colors ${wallpaperResolution === option.value ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500'
-                          } select-none`}></i>
+                        <i
+                          className={`fa-solid ${option.icon} text-sm transition-colors ${
+                            wallpaperResolution === option.value
+                              ? 'text-blue-500'
+                              : 'text-gray-400 group-hover:text-gray-500'
+                          } select-none`}
+                        ></i>
                         <div className="font-medium text-sm select-none">{option.label}</div>
                       </div>
                       <div className="text-xs text-gray-500 select-none">{option.desc}</div>
@@ -1280,14 +1379,18 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                   {/* 自定义壁纸选项卡 */}
                   <button
                     onClick={() => setWallpaperResolution('custom')}
-                    className={`w-full p-3 rounded-lg border-2 transition-all duration-200 text-left select-none cursor-pointer ${wallpaperResolution === 'custom'
-                      ? 'border-blue-500 bg-blue-50 text-blue-700'
-                      : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
-                      }`}
+                    className={`w-full p-3 rounded-lg border-2 transition-all duration-200 text-left select-none cursor-pointer ${
+                      wallpaperResolution === 'custom'
+                        ? 'border-blue-500 bg-blue-50 text-blue-700'
+                        : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
+                    }`}
                   >
                     <div className="flex items-center gap-2 mb-1">
-                      <i className={`fa-solid fa-image text-sm transition-colors ${wallpaperResolution === 'custom' ? 'text-blue-500' : 'text-gray-400'
-                        } select-none`}></i>
+                      <i
+                        className={`fa-solid fa-image text-sm transition-colors ${
+                          wallpaperResolution === 'custom' ? 'text-blue-500' : 'text-gray-400'
+                        } select-none`}
+                      ></i>
                       <div className="font-medium text-sm select-none">自定义壁纸</div>
                       {customWallpaperInfo.exists && (
                         <span className="ml-auto text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
@@ -1296,7 +1399,9 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                       )}
                     </div>
                     <div className="text-xs text-gray-500 select-none">
-                      {customWallpaperInfo.exists ? customWallpaperInfo.sizeText : '点击下方上传图片'}
+                      {customWallpaperInfo.exists
+                        ? customWallpaperInfo.sizeText
+                        : '点击下方上传图片'}
                     </div>
                   </button>
 
@@ -1319,14 +1424,15 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                     >
                       <label
                         htmlFor="wallpaper-upload"
-                        className={`flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium rounded-lg border-2 border-dashed transition-all w-full ${uploadingWallpaper
-                          ? 'border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed'
-                          : isDragOver
-                            ? 'border-blue-500 bg-blue-100 text-blue-700'
-                            : isGlobalDragOver
-                              ? 'border-blue-400 bg-blue-50 text-blue-600 animate-pulse'
-                              : 'border-blue-300 bg-white text-blue-600 hover:border-blue-400 hover:bg-blue-50'
-                          }`}
+                        className={`flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium rounded-lg border-2 border-dashed transition-all w-full ${
+                          uploadingWallpaper
+                            ? 'border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed'
+                            : isDragOver
+                              ? 'border-blue-500 bg-blue-100 text-blue-700'
+                              : isGlobalDragOver
+                                ? 'border-blue-400 bg-blue-50 text-blue-600 animate-pulse'
+                                : 'border-blue-300 bg-white text-blue-600 hover:border-blue-400 hover:bg-blue-50'
+                        }`}
                       >
                         {uploadingWallpaper ? (
                           <>
@@ -1346,7 +1452,9 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                         ) : (
                           <>
                             <i className="fa-solid fa-cloud-upload-alt"></i>
-                            <span>{customWallpaperInfo.exists ? '更换壁纸' : '点击或拖拽上传壁纸'}</span>
+                            <span>
+                              {customWallpaperInfo.exists ? '更换壁纸' : '点击或拖拽上传壁纸'}
+                            </span>
                           </>
                         )}
                       </label>
@@ -1386,7 +1494,9 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                   </div>
                   <div>
                     <div className="text-sm font-medium text-gray-800 select-none">卡片收藏</div>
-                    <div className="text-xs text-gray-500 select-none">当前有 {websites.length} 个卡片</div>
+                    <div className="text-xs text-gray-500 select-none">
+                      当前有 {websites.length} 个卡片
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1425,10 +1535,11 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                 <button
                   onClick={exportData}
                   disabled={isExporting}
-                  className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 select-none ${isExporting
-                    ? 'bg-gray-400 cursor-not-allowed text-white shadow-lg shadow-gray-400/30'
-                    : 'bg-gradient-to-b from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg shadow-green-500/30 hover:shadow-xl hover:shadow-green-600/40 hover:scale-[1.02]'
-                    }`}
+                  className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 select-none ${
+                    isExporting
+                      ? 'bg-gray-400 cursor-not-allowed text-white shadow-lg shadow-gray-400/30'
+                      : 'bg-gradient-to-b from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg shadow-green-500/30 hover:shadow-xl hover:shadow-green-600/40 hover:scale-[1.02]'
+                  }`}
                 >
                   {isExporting ? (
                     <>
@@ -1446,10 +1557,11 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isImporting}
-                  className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 select-none ${isImporting
-                    ? 'bg-gray-400 cursor-not-allowed text-white shadow-lg shadow-gray-400/30'
-                    : 'bg-gradient-to-b from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg shadow-orange-500/30 hover:shadow-xl hover:shadow-orange-600/40 hover:scale-[1.02]'
-                    }`}
+                  className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 select-none ${
+                    isImporting
+                      ? 'bg-gray-400 cursor-not-allowed text-white shadow-lg shadow-gray-400/30'
+                      : 'bg-gradient-to-b from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg shadow-orange-500/30 hover:shadow-xl hover:shadow-orange-600/40 hover:scale-[1.02]'
+                  }`}
                 >
                   {isImporting ? (
                     <>
@@ -1477,7 +1589,9 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                 <div className="flex items-start gap-2 select-none">
                   <i className="fa-solid fa-exclamation-triangle text-amber-500 text-sm mt-0.5 select-none"></i>
                   <div className="select-none">
-                    <div className="text-xs font-medium text-amber-700 mb-1 select-none">重要提醒</div>
+                    <div className="text-xs font-medium text-amber-700 mb-1 select-none">
+                      重要提醒
+                    </div>
                     <div className="text-xs text-amber-600 select-none">
                       导入会覆盖所有当前数据，建议先导出备份
                     </div>
@@ -1504,7 +1618,9 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                 </div>
                 <div>
                   <div className="text-sm font-medium text-gray-800 select-none">隐私与帮助</div>
-                  <div className="text-xs text-gray-500 select-none">管理隐私设置和查看使用教程</div>
+                  <div className="text-xs text-gray-500 select-none">
+                    管理隐私设置和查看使用教程
+                  </div>
                 </div>
               </div>
 
@@ -1534,7 +1650,8 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
               <div className="pt-3 border-t border-gray-100">
                 <div className="text-center space-y-2">
                   <p className="text-xs text-gray-500 select-none">
-                    图标显示不正确？<button
+                    图标显示不正确？
+                    <button
                       onClick={handleFixIcons}
                       disabled={isFixingIcons}
                       className="text-blue-500 hover:text-blue-600 underline ml-1 disabled:text-gray-400 disabled:no-underline"
@@ -1544,13 +1661,20 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                   </p>
 
                   {fixIconsMessage && (
-                    <div className={`text-xs px-3 py-2 rounded-lg ${fixIconsMessage.includes('✅') ? 'text-green-700 bg-green-50 border border-green-200' :
-                      fixIconsMessage.includes('❌') ? 'text-red-700 bg-red-50 border border-red-200' :
-                        'text-blue-700 bg-blue-50 border border-blue-200'
-                      }`}>
-                      {isFixingIcons && !fixIconsMessage.includes('✅') && !fixIconsMessage.includes('❌') && (
-                        <i className="fa-solid fa-spinner fa-spin mr-1"></i>
-                      )}
+                    <div
+                      className={`text-xs px-3 py-2 rounded-lg ${
+                        fixIconsMessage.includes('✅')
+                          ? 'text-green-700 bg-green-50 border border-green-200'
+                          : fixIconsMessage.includes('❌')
+                            ? 'text-red-700 bg-red-50 border border-red-200'
+                            : 'text-blue-700 bg-blue-50 border border-blue-200'
+                      }`}
+                    >
+                      {isFixingIcons &&
+                        !fixIconsMessage.includes('✅') &&
+                        !fixIconsMessage.includes('❌') && (
+                          <i className="fa-solid fa-spinner fa-spin mr-1"></i>
+                        )}
                       {fixIconsMessage}
                     </div>
                   )}
@@ -1608,4 +1732,3 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
 
 const Settings = memo(SettingsComponent);
 export default Settings;
-

@@ -10,7 +10,7 @@ export class WorkspaceManager {
   private apiClient: ApiClient;
   private cacheKey = 'workspace-items';
   private configKey = 'workspace-config';
-  
+
   /**
    * Create a new workspace manager
    * @param proxyService The CORS proxy service to use
@@ -19,7 +19,7 @@ export class WorkspaceManager {
     this.apiClient = new ApiClient(proxyService);
     this.loadConfig();
   }
-  
+
   /**
    * Configure the Notion connection
    * @param apiKey The Notion API key
@@ -27,16 +27,16 @@ export class WorkspaceManager {
    */
   configureNotion(apiKey: string, databaseId: string) {
     this.notionClient = new NotionApiClient(this.apiClient, apiKey);
-    
+
     // Save configuration
     const config = {
       apiKey,
       databaseId,
-      lastConfigured: new Date().toISOString()
+      lastConfigured: new Date().toISOString(),
     };
     localStorage.setItem(this.configKey, JSON.stringify(config));
   }
-  
+
   /**
    * Load the configuration from local storage
    */
@@ -55,7 +55,7 @@ export class WorkspaceManager {
     }
     return null;
   }
-  
+
   /**
    * Get the configuration
    */
@@ -67,7 +67,7 @@ export class WorkspaceManager {
       return null;
     }
   }
-  
+
   /**
    * Synchronize workspace data from Notion
    */
@@ -75,54 +75,54 @@ export class WorkspaceManager {
     if (!this.notionClient) {
       throw new Error('Notion未配置，请先设置API密钥和数据库ID');
     }
-    
+
     const config = this.getConfig();
     if (!config?.databaseId) {
       throw new Error('未找到数据库ID配置');
     }
-    
+
     try {
       console.log('🔄 开始同步工作空间数据...');
-      
+
       // Get database structure
       const database = await this.notionClient.getDatabase(config.databaseId);
       console.log('📊 数据库信息获取成功:', database.title?.[0]?.plain_text || '未知数据库');
-      
+
       // Query all pages
       const pages = await this.notionClient.queryDatabase(config.databaseId);
       console.log(`📄 获取到 ${pages.length} 个页面`);
-      
+
       // Debug: Check page data structure
       if (pages.length > 0) {
         console.log('🔍 第一个页面数据示例:', {
           id: pages[0]?.id,
           hasProperties: !!pages[0]?.properties,
-          propertyKeys: pages[0]?.properties ? Object.keys(pages[0].properties) : '无属性'
+          propertyKeys: pages[0]?.properties ? Object.keys(pages[0].properties) : '无属性',
         });
       }
-      
+
       // Convert to workspace items
       const workspaceItems = this.notionClient.parseWorkspaceItems(pages);
-      
+
       // Cache data
       this.cacheWorkspaceItems(workspaceItems);
-      
+
       console.log(`✅ 同步完成，获取到 ${workspaceItems.length} 个工作空间项目`);
       return workspaceItems;
     } catch (error) {
       console.error('❌ 同步工作空间数据失败:', error);
-      
+
       // Return cached data as fallback
       const cachedItems = this.getCachedWorkspaceItems();
       if (cachedItems.length > 0) {
         console.warn('⚠️ 使用缓存数据，共 ' + cachedItems.length + ' 个项目');
         return cachedItems;
       }
-      
+
       throw error;
     }
   }
-  
+
   /**
    * Cache workspace items
    * @param items The workspace items to cache
@@ -132,14 +132,14 @@ export class WorkspaceManager {
       const cacheData = {
         items,
         lastSync: new Date().toISOString(),
-        version: '1.0'
+        version: '1.0',
       };
       localStorage.setItem(this.cacheKey, JSON.stringify(cacheData));
     } catch (error) {
       console.warn('缓存工作空间数据失败:', error);
     }
   }
-  
+
   /**
    * Get cached workspace items
    */
@@ -155,7 +155,7 @@ export class WorkspaceManager {
     }
     return [];
   }
-  
+
   /**
    * Get cache information
    */
@@ -171,7 +171,7 @@ export class WorkspaceManager {
     }
     return null;
   }
-  
+
   /**
    * Clear all configuration and cache
    */
@@ -180,7 +180,7 @@ export class WorkspaceManager {
     localStorage.removeItem(this.cacheKey);
     this.notionClient = null;
   }
-  
+
   /**
    * Test the connection to Notion
    */

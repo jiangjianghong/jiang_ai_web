@@ -25,7 +25,12 @@ interface IncrementalSyncOptions {
 
 class IncrementalSyncManager {
   private lastSyncTimestamp: number = 0;
-  private syncQueue: Array<{ id: string; action: 'create' | 'update' | 'delete'; data: any; timestamp: number }> = [];
+  private syncQueue: Array<{
+    id: string;
+    action: 'create' | 'update' | 'delete';
+    data: any;
+    timestamp: number;
+  }> = [];
   private conflictResolver: ConflictResolver;
 
   constructor() {
@@ -46,8 +51,8 @@ class IncrementalSyncManager {
   // 添加变更到同步队列
   addChange(id: string, action: 'create' | 'update' | 'delete', data: any) {
     const timestamp = Date.now();
-    const existingIndex = this.syncQueue.findIndex(item => item.id === id);
-    
+    const existingIndex = this.syncQueue.findIndex((item) => item.id === id);
+
     if (existingIndex >= 0) {
       // 合并同一项的多次变更
       this.syncQueue[existingIndex] = { id, action, data, timestamp };
@@ -57,36 +62,40 @@ class IncrementalSyncManager {
   }
 
   // 获取增量同步数据
-  getIncrementalChanges(): { 
-    localChanges: Array<{ id: string; action: 'create' | 'update' | 'delete'; data: any; timestamp: number }>;
+  getIncrementalChanges(): {
+    localChanges: Array<{
+      id: string;
+      action: 'create' | 'update' | 'delete';
+      data: any;
+      timestamp: number;
+    }>;
     lastSyncTime: number;
   } {
     return {
       localChanges: [...this.syncQueue],
-      lastSyncTime: this.lastSyncTimestamp
+      lastSyncTime: this.lastSyncTimestamp,
     };
   }
 
   // 应用远程变更
-  async applyRemoteChanges(remoteChanges: any[], onConflict: (conflict: any) => Promise<'local' | 'remote' | 'merge'>) {
+  async applyRemoteChanges(
+    remoteChanges: any[],
+    onConflict: (conflict: any) => Promise<'local' | 'remote' | 'merge'>
+  ) {
     const results = {
       applied: 0,
       conflicts: 0,
-      errors: 0
+      errors: 0,
     };
 
     for (const change of remoteChanges) {
       try {
-        const localChange = this.syncQueue.find(item => item.id === change.id);
-        
+        const localChange = this.syncQueue.find((item) => item.id === change.id);
+
         if (localChange && localChange.timestamp > change.timestamp) {
           // 本地版本更新，检查冲突
-          const resolution = await this.conflictResolver.resolve(
-            localChange,
-            change,
-            onConflict
-          );
-          
+          const resolution = await this.conflictResolver.resolve(localChange, change, onConflict);
+
           if (resolution === 'local') {
             // 保持本地版本
             continue;
@@ -100,7 +109,7 @@ class IncrementalSyncManager {
             this.applyChange(merged);
             this.removeFromQueue(change.id);
           }
-          
+
           results.conflicts++;
         } else {
           // 无冲突，直接应用
@@ -124,7 +133,7 @@ class IncrementalSyncManager {
   }
 
   private removeFromQueue(id: string) {
-    this.syncQueue = this.syncQueue.filter(item => item.id !== id);
+    this.syncQueue = this.syncQueue.filter((item) => item.id !== id);
   }
 
   // 完成同步
@@ -141,8 +150,8 @@ class IncrementalSyncManager {
 
 class ConflictResolver {
   async resolve(
-    localChange: any, 
-    remoteChange: any, 
+    localChange: any,
+    remoteChange: any,
     onConflict: (conflict: any) => Promise<'local' | 'remote' | 'merge'>
   ): Promise<'local' | 'remote' | 'merge'> {
     // 自动解决策略
@@ -154,7 +163,7 @@ class ConflictResolver {
     return await onConflict({
       local: localChange,
       remote: remoteChange,
-      type: this.getChangeType(localChange)
+      type: this.getChangeType(localChange),
     });
   }
 
@@ -169,10 +178,12 @@ class ConflictResolver {
     const criticalFields = ['id', 'url'];
     const localChanges = Object.keys(local.data || {});
     const remoteChanges = Object.keys(remote.data || {});
-    
-    const hasCriticalConflict = criticalFields.some(field => 
-      localChanges.includes(field) && remoteChanges.includes(field) &&
-      local.data[field] !== remote.data[field]
+
+    const hasCriticalConflict = criticalFields.some(
+      (field) =>
+        localChanges.includes(field) &&
+        remoteChanges.includes(field) &&
+        local.data[field] !== remote.data[field]
     );
 
     return !hasCriticalConflict;
@@ -181,7 +192,7 @@ class ConflictResolver {
   private autoResolve(local: any, remote: any): 'local' | 'remote' | 'merge' {
     if (local.action === 'delete') return 'local';
     if (remote.action === 'delete') return 'remote';
-    
+
     // 非关键冲突，选择合并
     return 'merge';
   }
@@ -189,7 +200,7 @@ class ConflictResolver {
   merge(local: any, remote: any): any {
     // 智能合并策略
     const merged = { ...remote };
-    
+
     // 保留本地的时间戳更新
     if (local.timestamp > remote.timestamp) {
       merged.timestamp = local.timestamp;
@@ -198,14 +209,15 @@ class ConflictResolver {
     // 合并非冲突字段
     const localData = local.data || {};
     const remoteData = remote.data || {};
-    
+
     merged.data = {
       ...remoteData,
       ...localData,
       // 特殊字段处理
       visitCount: Math.max(localData.visitCount || 0, remoteData.visitCount || 0),
       tags: Array.from(new Set([...(localData.tags || []), ...(remoteData.tags || [])])),
-      lastVisit: localData.lastVisit > remoteData.lastVisit ? localData.lastVisit : remoteData.lastVisit
+      lastVisit:
+        localData.lastVisit > remoteData.lastVisit ? localData.lastVisit : remoteData.lastVisit,
     };
 
     return merged;
@@ -227,7 +239,7 @@ export function useIncrementalSync(
     progress: 0,
     status: 'idle',
     message: '',
-    pendingChanges: 0
+    pendingChanges: 0,
   });
 
   const syncManagerRef = useRef<IncrementalSyncManager>();
@@ -238,13 +250,13 @@ export function useIncrementalSync(
     syncBatchSize: 10,
     syncInterval: 30000, // 30秒
     maxRetries: 3,
-    ...options
+    ...options,
   };
 
   // 初始化同步管理器
   useEffect(() => {
     syncManagerRef.current = new IncrementalSyncManager();
-    
+
     // 监听数据变更
     const handleDataChange = (event: CustomEvent) => {
       // 处理来自同步的数据变更
@@ -252,7 +264,7 @@ export function useIncrementalSync(
     };
 
     window.addEventListener('syncDataChange', handleDataChange as EventListener);
-    
+
     return () => {
       window.removeEventListener('syncDataChange', handleDataChange as EventListener);
     };
@@ -263,11 +275,11 @@ export function useIncrementalSync(
     if (!syncManagerRef.current || !currentUser?.email_confirmed_at) return;
 
     const currentData = { websites, settings };
-    
+
     if (lastDataRef.current) {
       // 检测网站数据变化
       const websiteChanges = detectWebsiteChanges(lastDataRef.current.websites, websites);
-      websiteChanges.forEach(change => {
+      websiteChanges.forEach((change) => {
         syncManagerRef.current!.addChange(change.id, change.action, change.data);
       });
 
@@ -278,9 +290,9 @@ export function useIncrementalSync(
       }
 
       // 更新待同步数量
-      setSyncState(prev => ({
+      setSyncState((prev) => ({
         ...prev,
-        pendingChanges: syncManagerRef.current!.getPendingChangesCount()
+        pendingChanges: syncManagerRef.current!.getPendingChangesCount(),
       }));
     }
 
@@ -293,89 +305,91 @@ export function useIncrementalSync(
       return;
     }
 
-    setSyncState(prev => ({
+    setSyncState((prev) => ({
       ...prev,
       isActive: true,
       status: 'syncing',
       progress: 0,
-      message: '正在同步数据...'
+      message: '正在同步数据...',
     }));
 
     try {
       const { localChanges, lastSyncTime } = syncManagerRef.current.getIncrementalChanges();
-      
+
       if (localChanges.length === 0) {
-        setSyncState(prev => ({
+        setSyncState((prev) => ({
           ...prev,
           isActive: false,
           status: 'success',
           message: '数据已是最新',
-          pendingChanges: 0
+          pendingChanges: 0,
         }));
         return;
       }
 
       // 上传本地变更
-      setSyncState(prev => ({ ...prev, progress: 25, message: '上传本地变更...' }));
+      setSyncState((prev) => ({ ...prev, progress: 25, message: '上传本地变更...' }));
       await uploadIncrementalChanges(currentUser.id, localChanges);
 
       // 获取远程变更
-      setSyncState(prev => ({ ...prev, progress: 50, message: '获取远程变更...' }));
+      setSyncState((prev) => ({ ...prev, progress: 50, message: '获取远程变更...' }));
       const remoteChanges = await fetchRemoteChanges(currentUser.id, lastSyncTime);
 
       // 应用远程变更并解决冲突
-      setSyncState(prev => ({ ...prev, progress: 75, message: '解决冲突并应用变更...' }));
+      setSyncState((prev) => ({ ...prev, progress: 75, message: '解决冲突并应用变更...' }));
       const results = await syncManagerRef.current.applyRemoteChanges(
         remoteChanges,
         handleConflict
       );
 
       // 完成同步
-      setSyncState(prev => ({ ...prev, progress: 100, message: '同步完成' }));
+      setSyncState((prev) => ({ ...prev, progress: 100, message: '同步完成' }));
       syncManagerRef.current.completSync(Date.now());
 
-      setSyncState(prev => ({
+      setSyncState((prev) => ({
         ...prev,
         isActive: false,
         status: 'success',
         lastSyncTime: new Date(),
         pendingChanges: 0,
-        message: `同步完成: ${results.applied} 项更新, ${results.conflicts} 项冲突已解决`
+        message: `同步完成: ${results.applied} 项更新, ${results.conflicts} 项冲突已解决`,
       }));
-
     } catch (error) {
       console.error('增量同步失败:', error);
-      setSyncState(prev => ({
+      setSyncState((prev) => ({
         ...prev,
         isActive: false,
         status: 'error',
-        message: `同步失败: ${error instanceof Error ? error.message : '未知错误'}`
+        message: `同步失败: ${error instanceof Error ? error.message : '未知错误'}`,
       }));
     }
   }, [currentUser, syncState.isActive]);
 
   // 处理冲突
-  const handleConflict = useCallback(async (conflict: any): Promise<'local' | 'remote' | 'merge'> => {
-    return new Promise((resolve) => {
-      setSyncState(prev => ({
-        ...prev,
-        status: 'conflict',
-        conflictData: conflict,
-        message: '检测到数据冲突，请选择解决方案'
-      }));
-
-      // 这里可以显示冲突解决UI
-      // 暂时使用自动合并策略
-      setTimeout(() => {
-        resolve('merge');
-        setSyncState(prev => ({
+  const handleConflict = useCallback(
+    async (conflict: any): Promise<'local' | 'remote' | 'merge'> => {
+      return new Promise((resolve) => {
+        setSyncState((prev) => ({
           ...prev,
-          status: 'syncing',
-          conflictData: undefined
+          status: 'conflict',
+          conflictData: conflict,
+          message: '检测到数据冲突，请选择解决方案',
         }));
-      }, 1000);
-    });
-  }, []);
+
+        // 这里可以显示冲突解决UI
+        // 暂时使用自动合并策略
+        setTimeout(() => {
+          resolve('merge');
+          setSyncState((prev) => ({
+            ...prev,
+            status: 'syncing',
+            conflictData: undefined,
+          }));
+        }, 1000);
+      });
+    },
+    []
+  );
 
   // 自动同步
   useEffect(() => {
@@ -394,17 +408,17 @@ export function useIncrementalSync(
     syncState,
     performSync,
     canSync: currentUser?.email_confirmed_at && !syncState.isActive,
-    resetSync: () => setSyncState(prev => ({ ...prev, status: 'idle', message: '' }))
+    resetSync: () => setSyncState((prev) => ({ ...prev, status: 'idle', message: '' })),
   };
 }
 
 // 辅助函数
 function detectWebsiteChanges(oldWebsites: WebsiteData[], newWebsites: WebsiteData[]) {
   const changes: Array<{ id: string; action: 'create' | 'update' | 'delete'; data: any }> = [];
-  
+
   // 检测新增和更新
-  newWebsites.forEach(newSite => {
-    const oldSite = oldWebsites.find(old => old.id === newSite.id);
+  newWebsites.forEach((newSite) => {
+    const oldSite = oldWebsites.find((old) => old.id === newSite.id);
     if (!oldSite) {
       changes.push({ id: newSite.id, action: 'create', data: newSite });
     } else if (JSON.stringify(oldSite) !== JSON.stringify(newSite)) {
@@ -413,8 +427,8 @@ function detectWebsiteChanges(oldWebsites: WebsiteData[], newWebsites: WebsiteDa
   });
 
   // 检测删除
-  oldWebsites.forEach(oldSite => {
-    const exists = newWebsites.find(newSite => newSite.id === oldSite.id);
+  oldWebsites.forEach((oldSite) => {
+    const exists = newWebsites.find((newSite) => newSite.id === oldSite.id);
     if (!exists) {
       changes.push({ id: oldSite.id, action: 'delete', data: oldSite });
     }

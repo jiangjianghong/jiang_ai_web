@@ -10,7 +10,7 @@ export function useNetworkStatus(): NetworkStatus {
   const [networkStatus, setNetworkStatus] = useState<NetworkStatus>({
     isOnline: navigator.onLine,
     isSlowConnection: false,
-    connectionType: 'unknown'
+    connectionType: 'unknown',
   });
 
   useEffect(() => {
@@ -32,7 +32,7 @@ export function useNetworkStatus(): NetworkStatus {
       setNetworkStatus({
         isOnline: online,
         isSlowConnection,
-        connectionType
+        connectionType,
       });
     };
 

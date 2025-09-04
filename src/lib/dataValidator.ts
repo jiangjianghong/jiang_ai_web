@@ -31,7 +31,10 @@ export const validateWebsiteData = (website: any): website is WebsiteData => {
   }
 
   // 可选字段类型验证
-  if (website.visitCount !== undefined && (typeof website.visitCount !== 'number' || website.visitCount < 0)) {
+  if (
+    website.visitCount !== undefined &&
+    (typeof website.visitCount !== 'number' || website.visitCount < 0)
+  ) {
     return false;
   }
 
@@ -51,11 +54,19 @@ export const validateUserSettings = (settings: any): settings is UserSettings =>
   }
 
   // 透明度验证 (0-1之间)
-  if (typeof settings.cardOpacity !== 'number' || settings.cardOpacity < 0 || settings.cardOpacity > 1) {
+  if (
+    typeof settings.cardOpacity !== 'number' ||
+    settings.cardOpacity < 0 ||
+    settings.cardOpacity > 1
+  ) {
     return false;
   }
 
-  if (typeof settings.searchBarOpacity !== 'number' || settings.searchBarOpacity < 0 || settings.searchBarOpacity > 1) {
+  if (
+    typeof settings.searchBarOpacity !== 'number' ||
+    settings.searchBarOpacity < 0 ||
+    settings.searchBarOpacity > 1
+  ) {
     return false;
   }
 
@@ -91,10 +102,10 @@ export const sanitizeWebsiteData = (website: any): WebsiteData | null => {
     name: website.name.trim(),
     url: website.url.trim(),
     favicon: website.favicon || '',
-    tags: Array.isArray(website.tags) ? website.tags.filter(tag => typeof tag === 'string') : [],
+    tags: Array.isArray(website.tags) ? website.tags.filter((tag) => typeof tag === 'string') : [],
     visitCount: typeof website.visitCount === 'number' ? Math.max(0, website.visitCount) : 0,
     lastVisit: website.lastVisit || new Date().toISOString(),
-    note: typeof website.note === 'string' ? website.note : undefined
+    note: typeof website.note === 'string' ? website.note : undefined,
   };
 };
 
@@ -103,28 +114,44 @@ export const sanitizeWebsiteData = (website: any): WebsiteData | null => {
  */
 export const sanitizeUserSettings = (settings: any): UserSettings => {
   return {
-    cardOpacity: typeof settings.cardOpacity === 'number' ? Math.max(0.05, Math.min(1, settings.cardOpacity)) : 0.1,
-    searchBarOpacity: typeof settings.searchBarOpacity === 'number' ? Math.max(0.05, Math.min(1, settings.searchBarOpacity)) : 0.1,
-    parallaxEnabled: typeof settings.parallaxEnabled === 'boolean' ? settings.parallaxEnabled : true,
-    wallpaperResolution: (['4k', '1080p', '720p', 'mobile'] as WallpaperResolution[]).includes(settings.wallpaperResolution) 
-      ? settings.wallpaperResolution 
+    cardOpacity:
+      typeof settings.cardOpacity === 'number'
+        ? Math.max(0.05, Math.min(1, settings.cardOpacity))
+        : 0.1,
+    searchBarOpacity:
+      typeof settings.searchBarOpacity === 'number'
+        ? Math.max(0.05, Math.min(1, settings.searchBarOpacity))
+        : 0.1,
+    parallaxEnabled:
+      typeof settings.parallaxEnabled === 'boolean' ? settings.parallaxEnabled : true,
+    wallpaperResolution: (['4k', '1080p', '720p', 'mobile'] as WallpaperResolution[]).includes(
+      settings.wallpaperResolution
+    )
+      ? settings.wallpaperResolution
       : '1080p',
     theme: typeof settings.theme === 'string' ? settings.theme : 'light',
     cardColor: typeof settings.cardColor === 'string' ? settings.cardColor : '255, 255, 255',
-    searchBarColor: typeof settings.searchBarColor === 'string' ? settings.searchBarColor : '255, 255, 255',
-    autoSyncEnabled: typeof settings.autoSyncEnabled === 'boolean' ? settings.autoSyncEnabled : true,
-    autoSyncInterval: typeof settings.autoSyncInterval === 'number' && settings.autoSyncInterval >= 3 && settings.autoSyncInterval <= 300 
-      ? settings.autoSyncInterval 
-      : 30,
-    autoSortEnabled: typeof settings.autoSortEnabled === 'boolean' ? settings.autoSortEnabled : false,
-    timeComponentEnabled: typeof settings.timeComponentEnabled === 'boolean' ? settings.timeComponentEnabled : true,
+    searchBarColor:
+      typeof settings.searchBarColor === 'string' ? settings.searchBarColor : '255, 255, 255',
+    autoSyncEnabled:
+      typeof settings.autoSyncEnabled === 'boolean' ? settings.autoSyncEnabled : true,
+    autoSyncInterval:
+      typeof settings.autoSyncInterval === 'number' &&
+      settings.autoSyncInterval >= 3 &&
+      settings.autoSyncInterval <= 300
+        ? settings.autoSyncInterval
+        : 30,
+    autoSortEnabled:
+      typeof settings.autoSortEnabled === 'boolean' ? settings.autoSortEnabled : false,
+    timeComponentEnabled:
+      typeof settings.timeComponentEnabled === 'boolean' ? settings.timeComponentEnabled : true,
     showFullDate: typeof settings.showFullDate === 'boolean' ? settings.showFullDate : true,
     showSeconds: typeof settings.showSeconds === 'boolean' ? settings.showSeconds : true,
     showWeekday: typeof settings.showWeekday === 'boolean' ? settings.showWeekday : true,
     showYear: typeof settings.showYear === 'boolean' ? settings.showYear : true,
     showMonth: typeof settings.showMonth === 'boolean' ? settings.showMonth : true,
     showDay: typeof settings.showDay === 'boolean' ? settings.showDay : true,
-    lastSync: typeof settings.lastSync === 'string' ? settings.lastSync : new Date().toISOString()
+    lastSync: typeof settings.lastSync === 'string' ? settings.lastSync : new Date().toISOString(),
   };
 };
 
@@ -152,7 +179,9 @@ export const isDataSafeToSync = (websites: WebsiteData[]): boolean => {
 /**
  * 数据完整性检查
  */
-export const checkDataIntegrity = (websites: WebsiteData[]): {
+export const checkDataIntegrity = (
+  websites: WebsiteData[]
+): {
   isValid: boolean;
   issues: string[];
   validCount: number;
@@ -180,6 +209,6 @@ export const checkDataIntegrity = (websites: WebsiteData[]): {
     isValid,
     issues,
     validCount,
-    totalCount: websites.length
+    totalCount: websites.length,
   };
 };

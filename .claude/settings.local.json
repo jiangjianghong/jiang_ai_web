@@ -15,7 +15,13 @@
       "Bash(npm run typecheck)",
       "Bash(npm run build)",
       "Bash(npx tsc:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(pnpm add -D @types/validator)",
+      "Bash(pnpm add -D prettier)",
+      "Bash(npx prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css}\")",
+      "Read(C:\\Users\\19404/**)",
+      "Read(C:\\Users\\19404/**)",
+      "Bash(dir C:Users19404jiang_* /AD)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"

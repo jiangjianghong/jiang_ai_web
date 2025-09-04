@@ -27,7 +27,7 @@ interface UseWebsiteDataReturn {
 export function useWebsiteData(options: UseWebsiteDataOptions = {}): UseWebsiteDataReturn {
   const { enableAutoSync = true, syncDelay = 100 } = options;
   const storage = StorageManager.getInstance();
-  
+
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isFirstLoad, setIsFirstLoad] = useState(true);
@@ -38,14 +38,14 @@ export function useWebsiteData(options: UseWebsiteDataOptions = {}): UseWebsiteD
     if (!website.id || typeof website.id !== 'string') return false;
     if (!website.name || typeof website.name !== 'string') return false;
     if (!website.url || typeof website.url !== 'string') return false;
-    
+
     // URL 格式验证
     try {
       new URL(website.url);
     } catch (e) {
       return false;
     }
-    
+
     return true;
   }, []);
 
@@ -82,17 +82,20 @@ export function useWebsiteData(options: UseWebsiteDataOptions = {}): UseWebsiteD
   });
 
   // 安全的缓存写入函数
-  const saveToCache = useCallback((data: WebsiteData[]) => {
-    try {
-      const success = storage.setItem('websites', JSON.stringify(data));
-      if (!success) {
-        console.warn('保存到缓存失败：用户未同意Cookie使用');
+  const saveToCache = useCallback(
+    (data: WebsiteData[]) => {
+      try {
+        const success = storage.setItem('websites', JSON.stringify(data));
+        if (!success) {
+          console.warn('保存到缓存失败：用户未同意Cookie使用');
+        }
+      } catch (error) {
+        console.error('保存到缓存失败:', error);
+        setError('保存数据失败');
       }
-    } catch (error) {
-      console.error('保存到缓存失败:', error);
-      setError('保存数据失败');
-    }
-  }, [storage]);
+    },
+    [storage]
+  );
 
   // 延迟二次检查缓存（解决存储权限问题）
   useEffect(() => {
@@ -101,8 +104,11 @@ export function useWebsiteData(options: UseWebsiteDataOptions = {}): UseWebsiteD
     const timer = setTimeout(() => {
       const cached = loadFromCache();
       // 只有在数据明显不同时才更新
-      if (cached.length !== websites.length || 
-          JSON.stringify(cached.map(w => w.id).sort()) !== JSON.stringify(websites.map(w => w.id).sort())) {
+      if (
+        cached.length !== websites.length ||
+        JSON.stringify(cached.map((w) => w.id).sort()) !==
+          JSON.stringify(websites.map((w) => w.id).sort())
+      ) {
         console.log('🔄 延迟检查发现不同的缓存数据，更新显示');
         setWebsitesState(cached);
       }
@@ -120,34 +126,44 @@ export function useWebsiteData(options: UseWebsiteDataOptions = {}): UseWebsiteD
   }, [websites, saveToCache, enableAutoSync, isFirstLoad]);
 
   // 设置网站数据的包装函数
-  const setWebsites = useCallback((updater: WebsiteData[] | ((prev: WebsiteData[]) => WebsiteData[])) => {
-    setError(null); // 清除之前的错误
-    setWebsitesState(updater);
-  }, []);
+  const setWebsites = useCallback(
+    (updater: WebsiteData[] | ((prev: WebsiteData[]) => WebsiteData[])) => {
+      setError(null); // 清除之前的错误
+      setWebsitesState(updater);
+    },
+    []
+  );
 
   // 添加网站
-  const addWebsite = useCallback((website: Omit<WebsiteData, 'visitCount' | 'lastVisit'>) => {
-    const newWebsite: WebsiteData = {
-      ...website,
-      visitCount: 0,
-      lastVisit: new Date().toISOString().split('T')[0]
-    };
-    setWebsites(prev => [...prev, newWebsite]);
-  }, [setWebsites]);
+  const addWebsite = useCallback(
+    (website: Omit<WebsiteData, 'visitCount' | 'lastVisit'>) => {
+      const newWebsite: WebsiteData = {
+        ...website,
+        visitCount: 0,
+        lastVisit: new Date().toISOString().split('T')[0],
+      };
+      setWebsites((prev) => [...prev, newWebsite]);
+    },
+    [setWebsites]
+  );
 
   // 更新网站
-  const updateWebsite = useCallback((id: string, updates: Partial<WebsiteData>) => {
-    setWebsites(prev => 
-      prev.map(website => 
-        website.id === id ? { ...website, ...updates } : website
-      )
-    );
-  }, [setWebsites]);
+  const updateWebsite = useCallback(
+    (id: string, updates: Partial<WebsiteData>) => {
+      setWebsites((prev) =>
+        prev.map((website) => (website.id === id ? { ...website, ...updates } : website))
+      );
+    },
+    [setWebsites]
+  );
 
   // 删除网站
-  const deleteWebsite = useCallback((id: string) => {
-    setWebsites(prev => prev.filter(website => website.id !== id));
-  }, [setWebsites]);
+  const deleteWebsite = useCallback(
+    (id: string) => {
+      setWebsites((prev) => prev.filter((website) => website.id !== id));
+    },
+    [setWebsites]
+  );
 
   // 导出数据
   const exportData = useCallback(async (): Promise<string> => {
@@ -159,10 +175,10 @@ export function useWebsiteData(options: UseWebsiteDataOptions = {}): UseWebsiteD
           searchBarOpacity: parseFloat(localStorage.getItem('searchBarOpacity') || '0.1'),
           parallaxEnabled: JSON.parse(localStorage.getItem('parallaxEnabled') || 'true'),
           wallpaperResolution: localStorage.getItem('wallpaperResolution') || '1080p',
-          theme: localStorage.getItem('theme') || 'light'
+          theme: localStorage.getItem('theme') || 'light',
         },
         exportTime: new Date().toISOString(),
-        version: '1.0'
+        version: '1.0',
       };
 
       return JSON.stringify(exportData, null, 2);
@@ -172,41 +188,44 @@ export function useWebsiteData(options: UseWebsiteDataOptions = {}): UseWebsiteD
   }, [websites]);
 
   // 导入数据
-  const importData = useCallback(async (data: any): Promise<{ success: boolean; message: string; validCount?: number }> => {
-    try {
-      // 验证数据格式
-      if (!data.websites || !Array.isArray(data.websites)) {
-        return { success: false, message: '无效的数据格式：缺少网站数据' };
+  const importData = useCallback(
+    async (data: any): Promise<{ success: boolean; message: string; validCount?: number }> => {
+      try {
+        // 验证数据格式
+        if (!data.websites || !Array.isArray(data.websites)) {
+          return { success: false, message: '无效的数据格式：缺少网站数据' };
+        }
+
+        // 使用严格的数据验证和清理数据
+        const validWebsites = data.websites.filter(validateWebsiteData).map((site: any) => ({
+          ...site,
+          visitCount: typeof site.visitCount === 'number' ? site.visitCount : 0,
+          lastVisit: site.lastVisit || new Date().toISOString().split('T')[0],
+          tags: Array.isArray(site.tags) ? site.tags : [],
+          note: site.note || '',
+        }));
+
+        if (validWebsites.length === 0) {
+          return { success: false, message: '导入文件中没有有效的网站数据' };
+        }
+
+        // 应用导入的数据
+        setWebsites(validWebsites);
+
+        return {
+          success: true,
+          message: `成功导入 ${validWebsites.length} 个网站`,
+          validCount: validWebsites.length,
+        };
+      } catch (error) {
+        return {
+          success: false,
+          message: `导入失败: ${error instanceof Error ? error.message : '未知错误'}`,
+        };
       }
-
-      // 使用严格的数据验证和清理数据
-      const validWebsites = data.websites.filter(validateWebsiteData).map((site: any) => ({
-        ...site,
-        visitCount: typeof site.visitCount === 'number' ? site.visitCount : 0,
-        lastVisit: site.lastVisit || new Date().toISOString().split('T')[0],
-        tags: Array.isArray(site.tags) ? site.tags : [],
-        note: site.note || ''
-      }));
-
-      if (validWebsites.length === 0) {
-        return { success: false, message: '导入文件中没有有效的网站数据' };
-      }
-
-      // 应用导入的数据
-      setWebsites(validWebsites);
-
-      return { 
-        success: true, 
-        message: `成功导入 ${validWebsites.length} 个网站`,
-        validCount: validWebsites.length 
-      };
-    } catch (error) {
-      return { 
-        success: false, 
-        message: `导入失败: ${error instanceof Error ? error.message : '未知错误'}` 
-      };
-    }
-  }, [setWebsites]);
+    },
+    [setWebsites]
+  );
 
   return {
     websites,
@@ -217,6 +236,6 @@ export function useWebsiteData(options: UseWebsiteDataOptions = {}): UseWebsiteD
     exportData,
     importData,
     isLoading,
-    error
+    error,
   };
 }

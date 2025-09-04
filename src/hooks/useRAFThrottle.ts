@@ -50,11 +50,14 @@ export function useRAFThrottledMouseMove(
 ) {
   const throttledCallback = useRAFThrottle(callback, [enabled]);
 
-  const eventHandler = useCallback((event: MouseEvent) => {
-    if (enabled) {
-      throttledCallback(event);
-    }
-  }, [throttledCallback, enabled]);
+  const eventHandler = useCallback(
+    (event: MouseEvent) => {
+      if (enabled) {
+        throttledCallback(event);
+      }
+    },
+    [throttledCallback, enabled]
+  );
 
   return eventHandler;
 }

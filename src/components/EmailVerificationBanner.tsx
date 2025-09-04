@@ -55,15 +55,13 @@ export default function EmailVerificationBanner() {
           <div className="flex items-center space-x-2">
             <i className="fa-solid fa-envelope-open-text text-xl"></i>
             <div>
-              <p className="font-medium">
-                请验证您的邮箱地址
-              </p>
+              <p className="font-medium">请验证您的邮箱地址</p>
               <p className="text-sm text-orange-100">
                 我们已向 <strong>{currentUser.email}</strong> 发送了验证链接
               </p>
             </div>
           </div>
-          
+
           <div className="flex items-center space-x-2">
             <button
               onClick={handleResendVerification}
@@ -82,7 +80,7 @@ export default function EmailVerificationBanner() {
                 </>
               )}
             </button>
-            
+
             <button
               onClick={handleCheckVerification}
               disabled={isCheckingVerification}
@@ -100,7 +98,7 @@ export default function EmailVerificationBanner() {
                 </>
               )}
             </button>
-            
+
             <button
               onClick={handleLogout}
               className="bg-red-500 hover:bg-red-600 px-3 py-1 rounded text-sm transition-colors"

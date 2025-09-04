@@ -13,8 +13,14 @@ export default function WorkspaceCard({ item, onClick }: WorkspaceCardProps) {
   // 生成简单图标
   const getSimpleIcon = () => {
     const colors = [
-      'bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-red-500', 
-      'bg-yellow-500', 'bg-indigo-500', 'bg-pink-500', 'bg-teal-500'
+      'bg-blue-500',
+      'bg-green-500',
+      'bg-purple-500',
+      'bg-red-500',
+      'bg-yellow-500',
+      'bg-indigo-500',
+      'bg-pink-500',
+      'bg-teal-500',
     ];
     const colorIndex = item.title.charCodeAt(0) % colors.length;
     return colors[colorIndex];
@@ -22,10 +28,12 @@ export default function WorkspaceCard({ item, onClick }: WorkspaceCardProps) {
 
   // 检查值是否为空或null
   const isValidValue = (value?: string) => {
-    return value && 
-           value.toLowerCase() !== 'null' && 
-           value.toLowerCase() !== 'undefined' && 
-           value.trim() !== '';
+    return (
+      value &&
+      value.toLowerCase() !== 'null' &&
+      value.toLowerCase() !== 'undefined' &&
+      value.trim() !== ''
+    );
   };
 
   // 复制到剪贴板
@@ -47,14 +55,14 @@ export default function WorkspaceCard({ item, onClick }: WorkspaceCardProps) {
 
   // 卡片悬停动画变体 - 无阴影版本
   const cardVariants = {
-    rest: { 
-      scale: 1, 
-      y: 0
+    rest: {
+      scale: 1,
+      y: 0,
     },
-    hover: { 
-      scale: 1.02, 
-      y: -2
-    }
+    hover: {
+      scale: 1.02,
+      y: -2,
+    },
   };
 
   return (
@@ -71,16 +79,22 @@ export default function WorkspaceCard({ item, onClick }: WorkspaceCardProps) {
     >
       {/* 主卡片 - 3D翻转容器 */}
       <div className="relative h-full [perspective:1000px]">
-        <div className={`absolute inset-0 w-full h-full transition-transform duration-700 [transform-style:preserve-3d] ${
-          isHovered && (isValidValue(item.username) || isValidValue(item.password)) ? '[transform:rotateY(180deg)]' : ''
-        }`}>
+        <div
+          className={`absolute inset-0 w-full h-full transition-transform duration-700 [transform-style:preserve-3d] ${
+            isHovered && (isValidValue(item.username) || isValidValue(item.password))
+              ? '[transform:rotateY(180deg)]'
+              : ''
+          }`}
+        >
           {/* 正面 */}
           <div className="absolute inset-0 w-full h-full [backface-visibility:hidden] bg-white rounded-2xl border border-gray-100 overflow-hidden select-none">
             {/* 图标区域 */}
             <div className="p-4 flex-1 flex flex-col items-center justify-center">
               <div className="w-14 h-14 mb-2">
                 {/* 统一使用简单字母图标 */}
-                <div className={`w-full h-full rounded-2xl ${getSimpleIcon()} flex items-center justify-center shadow-lg transform transition-transform duration-200 group-hover:scale-105`}>
+                <div
+                  className={`w-full h-full rounded-2xl ${getSimpleIcon()} flex items-center justify-center shadow-lg transform transition-transform duration-200 group-hover:scale-105`}
+                >
                   <span className="text-white font-bold text-2xl tracking-wide">
                     {item.title.charAt(0).toUpperCase()}
                   </span>
@@ -107,24 +121,30 @@ export default function WorkspaceCard({ item, onClick }: WorkspaceCardProps) {
                 {(isValidValue(item.username) || isValidValue(item.password)) && (
                   <>
                     {isValidValue(item.username) && (
-                      <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm" title="有账号信息"></div>
+                      <div
+                        className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm"
+                        title="有账号信息"
+                      ></div>
                     )}
                     {isValidValue(item.password) && (
-                      <div className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-sm" title="有密码信息"></div>
+                      <div
+                        className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-sm"
+                        title="有密码信息"
+                      ></div>
                     )}
                   </>
                 )}
                 {/* 分类标签 */}
-                {item.category && 
-                 item.category !== 'default' && 
-                 item.category !== 'Default' && 
-                 item.category !== 'null' && 
-                 item.category !== 'NULL' && 
-                 item.category.toLowerCase() !== 'null' && (
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700 border border-blue-200 ml-2">
-                    {item.category}
-                  </span>
-                )}
+                {item.category &&
+                  item.category !== 'default' &&
+                  item.category !== 'Default' &&
+                  item.category !== 'null' &&
+                  item.category !== 'NULL' &&
+                  item.category.toLowerCase() !== 'null' && (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700 border border-blue-200 ml-2">
+                      {item.category}
+                    </span>
+                  )}
               </div>
 
               {/* 右下角：跳转按钮 */}
@@ -141,7 +161,12 @@ export default function WorkspaceCard({ item, onClick }: WorkspaceCardProps) {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <i className="fa-solid fa-user text-blue-600 text-lg"></i>
-                    <span className="text-base font-mono text-gray-800 max-w-[120px] truncate" title={item.username}>{item.username}</span>
+                    <span
+                      className="text-base font-mono text-gray-800 max-w-[120px] truncate"
+                      title={item.username}
+                    >
+                      {item.username}
+                    </span>
                   </div>
                   <button
                     onClick={(e) => {
@@ -155,17 +180,19 @@ export default function WorkspaceCard({ item, onClick }: WorkspaceCardProps) {
                   </button>
                 </div>
               )}
-              
+
               {/* 分割线 */}
               {isValidValue(item.username) && isValidValue(item.password) && (
                 <div className="border-t border-gray-200"></div>
               )}
-              
+
               {isValidValue(item.password) && (
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <i className="fa-solid fa-key text-amber-600 text-lg"></i>
-                    <span className="text-base font-mono text-gray-800">{'●'.repeat(Math.min(item.password!.length, 8))}</span>
+                    <span className="text-base font-mono text-gray-800">
+                      {'●'.repeat(Math.min(item.password!.length, 8))}
+                    </span>
                   </div>
                   <button
                     onClick={(e) => {
@@ -179,7 +206,7 @@ export default function WorkspaceCard({ item, onClick }: WorkspaceCardProps) {
                   </button>
                 </div>
               )}
-              
+
               {!isValidValue(item.username) && !isValidValue(item.password) && (
                 <div className="text-center">
                   <i className="fa-solid fa-lock text-gray-400 text-3xl mb-4"></i>

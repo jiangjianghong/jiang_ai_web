@@ -18,9 +18,9 @@ function WorkspaceModalComponent({ isOpen, onClose }: WorkspaceModalProps) {
     isConfigured,
     lastSync,
     syncWorkspaceData,
-    refreshItems
+    refreshItems,
   } = useWorkspace();
-  
+
   const { isMobile } = useResponsiveLayout();
   const [showSettings, setShowSettings] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -33,24 +33,23 @@ function WorkspaceModalComponent({ isOpen, onClose }: WorkspaceModalProps) {
     }
   }, [isOpen, isConfigured]);
 
-
-
   // 过滤和搜索逻辑
-  const filteredItems = workspaceItems.filter(item => {
+  const filteredItems = workspaceItems.filter((item) => {
     // 搜索过滤
-    const matchesSearch = !searchQuery || 
+    const matchesSearch =
+      !searchQuery ||
       item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.description?.toLowerCase().includes(searchQuery.toLowerCase());
-    
+
     // 分类过滤
     const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
-    
+
     // 只显示激活的项目
     return item.isActive && matchesSearch && matchesCategory;
   });
 
   // 获取所有分类
-  const categories = ['all', ...new Set(workspaceItems.map(item => item.category))];
+  const categories = ['all', ...new Set(workspaceItems.map((item) => item.category))];
 
   // 处理卡片点击
   const handleCardClick = (url: string) => {
@@ -64,22 +63,20 @@ function WorkspaceModalComponent({ isOpen, onClose }: WorkspaceModalProps) {
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffMins = Math.floor(diffMs / (1000 * 60));
-    
+
     if (diffMins < 1) return '刚刚同步';
     if (diffMins < 60) return `${diffMins}分钟前`;
     if (diffMins < 1440) return `${Math.floor(diffMins / 60)}小时前`;
     return date.toLocaleDateString();
   };
 
-
-
   const containerClasses = isMobile
-    ? "fixed inset-4 max-h-[90vh]"
-    : "w-full max-w-6xl max-h-[85vh]";
+    ? 'fixed inset-4 max-h-[90vh]'
+    : 'w-full max-w-6xl max-h-[85vh]';
 
   const gridClasses = isMobile
-    ? "grid-cols-2 gap-3 auto-rows-fr"
-    : "grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 auto-rows-fr";
+    ? 'grid-cols-2 gap-3 auto-rows-fr'
+    : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 auto-rows-fr';
 
   return (
     <AnimatePresence mode="wait">
@@ -91,7 +88,7 @@ function WorkspaceModalComponent({ isOpen, onClose }: WorkspaceModalProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
+            transition={{ duration: 0.4, ease: 'easeOut' }}
             onClick={onClose}
           />
 
@@ -103,11 +100,11 @@ function WorkspaceModalComponent({ isOpen, onClose }: WorkspaceModalProps) {
               initial={{ scale: 0.7, opacity: 0, y: 50, rotateX: -15 }}
               animate={{ scale: 1, opacity: 1, y: 0, rotateX: 0 }}
               exit={{ scale: 0.7, opacity: 0, y: 50, rotateX: -15 }}
-              transition={{ 
-                type: 'spring', 
-                damping: 20, 
+              transition={{
+                type: 'spring',
+                damping: 20,
                 stiffness: 300,
-                duration: 0.6
+                duration: 0.6,
               }}
               onAnimationStart={() => console.log('🎬 工作空间动画开始')}
               onAnimationComplete={() => console.log('✅ 工作空间动画完成')}
@@ -122,7 +119,9 @@ function WorkspaceModalComponent({ isOpen, onClose }: WorkspaceModalProps) {
                     <h2 className="text-lg font-semibold text-gray-800">工作空间</h2>
                     <p className="text-xs text-gray-500">
                       {isConfigured ? (
-                        <>共 {workspaceItems.length} 个项目 • {formatSyncTime(lastSync)}</>
+                        <>
+                          共 {workspaceItems.length} 个项目 • {formatSyncTime(lastSync)}
+                        </>
                       ) : (
                         '请先配置 Notion 数据库连接'
                       )}
@@ -140,7 +139,9 @@ function WorkspaceModalComponent({ isOpen, onClose }: WorkspaceModalProps) {
                         className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
                         title="刷新数据"
                       >
-                        <i className={`fa-solid fa-refresh text-sm ${isLoading ? 'animate-spin' : ''}`}></i>
+                        <i
+                          className={`fa-solid fa-refresh text-sm ${isLoading ? 'animate-spin' : ''}`}
+                        ></i>
                       </button>
 
                       {/* 设置按钮 */}
@@ -168,7 +169,7 @@ function WorkspaceModalComponent({ isOpen, onClose }: WorkspaceModalProps) {
               <div className="flex-1 overflow-hidden flex flex-col">
                 {showSettings ? (
                   /* 设置页面 */
-                  <WorkspaceSettings 
+                  <WorkspaceSettings
                     onClose={() => setShowSettings(false)}
                     onConfigured={() => {
                       setShowSettings(false);
@@ -180,7 +181,9 @@ function WorkspaceModalComponent({ isOpen, onClose }: WorkspaceModalProps) {
                     {/* 搜索和筛选栏 */}
                     {workspaceItems.length > 0 && (
                       <div className="px-6 py-4 border-b border-gray-200/50">
-                        <div className={`flex ${isMobile ? 'flex-col space-y-3' : 'items-center space-x-4'}`}>
+                        <div
+                          className={`flex ${isMobile ? 'flex-col space-y-3' : 'items-center space-x-4'}`}
+                        >
                           {/* 搜索框 */}
                           <div className="relative flex-1">
                             <i className="fa-solid fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"></i>
@@ -201,11 +204,13 @@ function WorkspaceModalComponent({ isOpen, onClose }: WorkspaceModalProps) {
                               className={`${isMobile ? 'w-full' : 'w-48'} px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm`}
                             >
                               <option value="all">所有分类</option>
-                              {categories.filter(cat => cat !== 'all').map(category => (
-                                <option key={category} value={category}>
-                                  {category}
-                                </option>
-                              ))}
+                              {categories
+                                .filter((cat) => cat !== 'all')
+                                .map((category) => (
+                                  <option key={category} value={category}>
+                                    {category}
+                                  </option>
+                                ))}
                             </select>
                           )}
                         </div>
@@ -232,7 +237,7 @@ function WorkspaceModalComponent({ isOpen, onClose }: WorkspaceModalProps) {
                       ) : filteredItems.length > 0 ? (
                         /* 工作空间项目网格 */
                         <div className={`grid ${gridClasses}`}>
-                          {filteredItems.map(item => (
+                          {filteredItems.map((item) => (
                             <WorkspaceCard
                               key={item.id}
                               item={item}

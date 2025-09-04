@@ -9,8 +9,9 @@ interface WorkspaceSettingsProps {
 }
 
 export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSettingsProps) {
-  const { configureNotion, testConnection, clearConfiguration, isConfigured, getConfiguration } = useWorkspace();
-  
+  const { configureNotion, testConnection, clearConfiguration, isConfigured, getConfiguration } =
+    useWorkspace();
+
   const [apiKey, setApiKey] = useState('');
   const [databaseId, setDatabaseId] = useState('');
   const [databaseIdInput, setDatabaseIdInput] = useState(''); // 用户输入的原始内容
@@ -21,7 +22,7 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
   const [errorMessage, setErrorMessage] = useState('');
   const [showGuide, setShowGuide] = useState(false);
   // 简化设置，直接显示网络连接状态
-  
+
   // 加载现有配置
   useEffect(() => {
     const config = getConfiguration();
@@ -41,7 +42,7 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
   // 处理数据库 ID 输入变化
   const handleDatabaseIdChange = (input: string) => {
     setDatabaseIdInput(input);
-    
+
     if (!input.trim()) {
       setDatabaseId('');
       setParseResult(null);
@@ -51,7 +52,7 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
     const result = parseNotionUrl(input);
     setParseResult({
       isValid: result.isValid,
-      error: result.error
+      error: result.error,
     });
 
     if (result.isValid && result.databaseId) {
@@ -62,7 +63,8 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
   };
 
   // 验证表单
-  const isFormValid = apiKey.trim().length > 0 && databaseId.length > 0 && isValidDatabaseId(databaseId);
+  const isFormValid =
+    apiKey.trim().length > 0 && databaseId.length > 0 && isValidDatabaseId(databaseId);
 
   // 处理连接测试
   const handleTestConnection = async () => {
@@ -78,10 +80,10 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
     try {
       // 先配置连接
       configureNotion(apiKey.trim(), databaseId, undefined);
-      
+
       // 测试连接
       const isConnected = await testConnection();
-      
+
       if (isConnected) {
         setConnectionStatus('success');
       } else {
@@ -155,7 +157,7 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
               <i className="fa-solid fa-book text-xs"></i>
               <span>设置指南</span>
             </button>
-            
+
             {isConfigured && (
               <button
                 onClick={handleClearConfiguration}
@@ -199,7 +201,9 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
                 <i className="fa-solid fa-check-circle text-green-500"></i>
                 <div>
                   <h4 className="font-medium text-green-900">工作空间已配置</h4>
-                  <p className="text-sm text-green-800 mt-1">您可以修改下方的配置信息或重新测试连接。</p>
+                  <p className="text-sm text-green-800 mt-1">
+                    您可以修改下方的配置信息或重新测试连接。
+                  </p>
                 </div>
               </div>
             </div>
@@ -208,7 +212,7 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
           {/* 基础配置 */}
           <div className="space-y-4">
             <h4 className="font-medium text-gray-900">基础配置</h4>
-            
+
             {/* API 密钥输入 */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -222,36 +226,45 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono"
               />
               <p className="mt-1 text-xs text-gray-500">
-                从 <a href="https://www.notion.so/my-integrations" target="_blank" rel="noopener" className="text-blue-500 hover:underline">Notion Integrations</a> 获取
+                从{' '}
+                <a
+                  href="https://www.notion.so/my-integrations"
+                  target="_blank"
+                  rel="noopener"
+                  className="text-blue-500 hover:underline"
+                >
+                  Notion Integrations
+                </a>{' '}
+                获取
               </p>
             </div>
 
             {/* 数据库 ID 输入 */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                数据库 ID *
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">数据库 ID *</label>
               <input
                 type="text"
                 value={databaseIdInput}
                 onChange={(e) => handleDatabaseIdChange(e.target.value)}
                 placeholder="粘贴 Notion 分享链接或数据库 ID"
                 className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent text-sm ${
-                  parseResult === null 
-                    ? 'border-gray-300 focus:ring-blue-500' 
-                    : parseResult.isValid 
-                      ? 'border-green-300 focus:ring-green-500 bg-green-50' 
+                  parseResult === null
+                    ? 'border-gray-300 focus:ring-blue-500'
+                    : parseResult.isValid
+                      ? 'border-green-300 focus:ring-green-500 bg-green-50'
                       : 'border-red-300 focus:ring-red-500 bg-red-50'
                 }`}
               />
-              
+
               {/* 解析状态提示 */}
               {parseResult && (
-                <div className={`mt-2 p-2 rounded-lg text-xs ${
-                  parseResult.isValid 
-                    ? 'bg-green-50 border border-green-200 text-green-700' 
-                    : 'bg-red-50 border border-red-200 text-red-700'
-                }`}>
+                <div
+                  className={`mt-2 p-2 rounded-lg text-xs ${
+                    parseResult.isValid
+                      ? 'bg-green-50 border border-green-200 text-green-700'
+                      : 'bg-red-50 border border-red-200 text-red-700'
+                  }`}
+                >
                   {parseResult.isValid ? (
                     <div className="flex items-center space-x-1">
                       <i className="fa-solid fa-check-circle"></i>
@@ -265,7 +278,7 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
                   )}
                 </div>
               )}
-              
+
               <p className="mt-1 text-xs text-gray-500">
                 支持粘贴完整的 Notion 分享链接，系统会自动提取数据库 ID
               </p>
@@ -278,16 +291,12 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
             <div className="mt-4">
               <div className="flex items-center mb-3">
                 <i className="fa-solid fa-shield-alt text-blue-500 mr-2"></i>
-                <label className="block text-sm font-medium text-gray-700">
-                  网络连接
-                </label>
+                <label className="block text-sm font-medium text-gray-700">网络连接</label>
               </div>
               <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
                 <div className="flex items-center space-x-2">
                   <i className="fa-solid fa-check-circle text-green-500"></i>
-                  <span className="text-sm text-green-800 font-medium">
-                    已启用 Supabase 代理
-                  </span>
+                  <span className="text-sm text-green-800 font-medium">已启用 Supabase 代理</span>
                 </div>
                 <p className="text-sm text-green-700 mt-1">
                   使用 Supabase Edge Functions 自动解决 CORS 跨域问题
@@ -311,18 +320,26 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
 
           {/* 连接状态 */}
           {connectionStatus !== 'idle' && (
-            <div className={`p-4 rounded-lg border ${
-              connectionStatus === 'success' 
-                ? 'bg-green-50 border-green-200' 
-                : 'bg-red-50 border-red-200'
-            }`}>
+            <div
+              className={`p-4 rounded-lg border ${
+                connectionStatus === 'success'
+                  ? 'bg-green-50 border-green-200'
+                  : 'bg-red-50 border-red-200'
+              }`}
+            >
               <div className="flex items-center space-x-2">
-                <i className={`fa-solid ${
-                  connectionStatus === 'success' ? 'fa-check-circle text-green-500' : 'fa-times-circle text-red-500'
-                }`}></i>
-                <span className={`text-sm font-medium ${
-                  connectionStatus === 'success' ? 'text-green-700' : 'text-red-700'
-                }`}>
+                <i
+                  className={`fa-solid ${
+                    connectionStatus === 'success'
+                      ? 'fa-check-circle text-green-500'
+                      : 'fa-times-circle text-red-500'
+                  }`}
+                ></i>
+                <span
+                  className={`text-sm font-medium ${
+                    connectionStatus === 'success' ? 'text-green-700' : 'text-red-700'
+                  }`}
+                >
                   {connectionStatus === 'success' ? '连接成功！' : '连接失败'}
                 </span>
               </div>

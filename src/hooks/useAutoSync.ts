@@ -7,10 +7,10 @@ import { autoSync, UserSettings, WebsiteData } from '@/lib/supabaseSync';
 export function useAutoSync(websites: WebsiteData[], dataInitialized: boolean = true) {
   const { currentUser } = useAuth();
   const { updateSyncStatus } = useSyncStatus();
-  const { 
-    cardOpacity, 
-    searchBarOpacity, 
-    parallaxEnabled, 
+  const {
+    cardOpacity,
+    searchBarOpacity,
+    parallaxEnabled,
     wallpaperResolution,
     autoSyncEnabled,
     autoSyncInterval,
@@ -21,134 +21,168 @@ export function useAutoSync(websites: WebsiteData[], dataInitialized: boolean = 
     showWeekday,
     showYear,
     showMonth,
-    showDay
+    showDay,
   } = useTransparency();
-  
+
   // 用于存储上次同步的数据指纹，避免重复同步
   const lastSyncDataRef = useRef<string>('');
   const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const initialSyncDoneRef = useRef<boolean>(false);
 
   // 同步函数
-  const performSync = useCallback((force = false) => {
-    // 检查网络连接状态
-    if (!navigator.onLine) {
-      updateSyncStatus({ 
-        syncInProgress: false,
-        syncError: '网络连接断开，无法同步数据',
-        pendingChanges: 1
-      });
-      return;
-    }
-
-    // 只有登录且邮箱已验证的用户才能同步数据
-    if (!currentUser || !currentUser.email_confirmed_at) {
-      if (currentUser && !currentUser.email_confirmed_at) {
-        updateSyncStatus({ 
+  const performSync = useCallback(
+    (force = false) => {
+      // 检查网络连接状态
+      if (!navigator.onLine) {
+        updateSyncStatus({
           syncInProgress: false,
-          syncError: '请先验证邮箱才能同步数据到云端',
-          pendingChanges: 1
+          syncError: '网络连接断开，无法同步数据',
+          pendingChanges: 1,
         });
+        return;
       }
-      return;
-    }
 
-    // 数据有效性检查：确保有有效的网站数据才进行同步
-    const validWebsites = websites.filter(site => 
-      site && 
-      typeof site.id === 'string' && 
-      site.id.length > 0 &&
-      typeof site.name === 'string' && 
-      site.name.trim().length > 0 &&
-      typeof site.url === 'string' && 
-      site.url.trim().length > 0
-    );
+      // 只有登录且邮箱已验证的用户才能同步数据
+      if (!currentUser || !currentUser.email_confirmed_at) {
+        if (currentUser && !currentUser.email_confirmed_at) {
+          updateSyncStatus({
+            syncInProgress: false,
+            syncError: '请先验证邮箱才能同步数据到云端',
+            pendingChanges: 1,
+          });
+        }
+        return;
+      }
 
-    // 如果没有有效数据且不是强制同步，跳过以保护云端数据
-    if (validWebsites.length === 0 && !force) {
-      console.log('🛡️ 没有有效的本地数据，跳过自动同步以保护云端数据');
-      updateSyncStatus({ 
-        syncInProgress: false,
-        syncError: '本地数据无效，已跳过同步以保护云端数据',
-        pendingChanges: websites.length // 修正：显示实际的无效数据数量
+      // 数据有效性检查：确保有有效的网站数据才进行同步
+      const validWebsites = websites.filter(
+        (site) =>
+          site &&
+          typeof site.id === 'string' &&
+          site.id.length > 0 &&
+          typeof site.name === 'string' &&
+          site.name.trim().length > 0 &&
+          typeof site.url === 'string' &&
+          site.url.trim().length > 0
+      );
+
+      // 如果没有有效数据且不是强制同步，跳过以保护云端数据
+      if (validWebsites.length === 0 && !force) {
+        console.log('🛡️ 没有有效的本地数据，跳过自动同步以保护云端数据');
+        updateSyncStatus({
+          syncInProgress: false,
+          syncError: '本地数据无效，已跳过同步以保护云端数据',
+          pendingChanges: websites.length, // 修正：显示实际的无效数据数量
+        });
+        return;
+      }
+
+      // 检查是否有编辑模态框打开，避免在用户编辑时同步
+      const hasOpenModal =
+        document.querySelector('[role="dialog"]') ||
+        document.querySelector('.modal') ||
+        document.querySelector('[data-modal]');
+
+      if (hasOpenModal && !force) {
+        console.log('🛑 检测到编辑窗口打开，延迟同步');
+        // 延迟5秒后重试
+        setTimeout(() => performSync(false), 5000);
+        return;
+      }
+
+      const settings: UserSettings = {
+        cardOpacity,
+        searchBarOpacity,
+        parallaxEnabled,
+        wallpaperResolution,
+        theme: localStorage.getItem('theme') || 'light',
+        cardColor: localStorage.getItem('cardColor') || '255, 255, 255',
+        searchBarColor: localStorage.getItem('searchBarColor') || '255, 255, 255',
+        autoSyncEnabled,
+        autoSyncInterval,
+        autoSortEnabled,
+        timeComponentEnabled,
+        showFullDate,
+        showSeconds,
+        showWeekday,
+        showYear,
+        showMonth,
+        showDay,
+        lastSync: new Date().toISOString(),
+      };
+
+      console.log(force ? '⏰ 强制执行数据同步...' : '🚀 开始执行数据同步...', {
+        websiteCount: websites.length,
+        validWebsiteCount: validWebsites.length,
+        hasSettings: !!settings,
       });
-      return;
-    }
 
-    // 检查是否有编辑模态框打开，避免在用户编辑时同步
-    const hasOpenModal = document.querySelector('[role="dialog"]') || 
-                        document.querySelector('.modal') ||
-                        document.querySelector('[data-modal]');
-    
-    if (hasOpenModal && !force) {
-      console.log('🛑 检测到编辑窗口打开，延迟同步');
-      // 延迟5秒后重试
-      setTimeout(() => performSync(false), 5000);
-      return;
-    }
+      // 自动同步数据 - 使用验证过的数据
+      autoSync(currentUser, validWebsites, settings, {
+        onSyncStart: () => {
+          updateSyncStatus({
+            syncInProgress: true,
+            syncError: null,
+            pendingChanges: 0,
+          });
+        },
+        onSyncSuccess: (message) => {
+          // 更新数据指纹，标记为已同步
+          const currentDataFingerprint = JSON.stringify({
+            websites: validWebsites.map((w) => ({
+              id: w.id,
+              name: w.name,
+              url: w.url,
+              visitCount: w.visitCount,
+            })),
+            settings: {
+              cardOpacity,
+              searchBarOpacity,
+              parallaxEnabled,
+              wallpaperResolution,
+              theme: settings.theme,
+              autoSyncEnabled,
+              autoSyncInterval,
+              autoSortEnabled,
+              timeComponentEnabled,
+              showFullDate,
+              showSeconds,
+              showWeekday,
+              showYear,
+              showMonth,
+              showDay,
+            },
+          });
+          lastSyncDataRef.current = currentDataFingerprint;
 
-    const settings: UserSettings = {
+          updateSyncStatus({
+            syncInProgress: false,
+            lastSyncTime: new Date(),
+            syncError: null,
+            pendingChanges: 0,
+          });
+          console.log('✅ 同步成功:', message, '- 等待下次数据变化');
+        },
+        onSyncError: (error) => {
+          updateSyncStatus({
+            syncInProgress: false,
+            syncError: error,
+            pendingChanges: 1,
+          });
+          console.error('❌ 同步失败:', error);
+        },
+      });
+    },
+    [
+      currentUser,
+      websites,
       cardOpacity,
       searchBarOpacity,
       parallaxEnabled,
       wallpaperResolution,
-      theme: localStorage.getItem('theme') || 'light',
-      cardColor: localStorage.getItem('cardColor') || '255, 255, 255',
-      searchBarColor: localStorage.getItem('searchBarColor') || '255, 255, 255',
-      autoSyncEnabled,
-      autoSyncInterval,
-      autoSortEnabled,
-      timeComponentEnabled,
-      showFullDate,
-      showSeconds,
-      showWeekday,
-      showYear,
-      showMonth,
-      showDay,
-      lastSync: new Date().toISOString()
-    };
-
-    console.log(force ? '⏰ 强制执行数据同步...' : '🚀 开始执行数据同步...', {
-      websiteCount: websites.length,
-      validWebsiteCount: validWebsites.length,
-      hasSettings: !!settings
-    });
-
-    // 自动同步数据 - 使用验证过的数据
-    autoSync(currentUser, validWebsites, settings, {
-      onSyncStart: () => {
-        updateSyncStatus({ 
-          syncInProgress: true, 
-          syncError: null,
-          pendingChanges: 0
-        });
-      },
-      onSyncSuccess: (message) => {
-        // 更新数据指纹，标记为已同步
-        const currentDataFingerprint = JSON.stringify({
-          websites: validWebsites.map(w => ({ id: w.id, name: w.name, url: w.url, visitCount: w.visitCount })),
-          settings: { cardOpacity, searchBarOpacity, parallaxEnabled, wallpaperResolution, theme: settings.theme, autoSyncEnabled, autoSyncInterval, autoSortEnabled, timeComponentEnabled, showFullDate, showSeconds, showWeekday, showYear, showMonth, showDay }
-        });
-        lastSyncDataRef.current = currentDataFingerprint;
-        
-        updateSyncStatus({ 
-          syncInProgress: false, 
-          lastSyncTime: new Date(),
-          syncError: null,
-          pendingChanges: 0
-        });
-        console.log('✅ 同步成功:', message, '- 等待下次数据变化');
-      },
-      onSyncError: (error) => {
-        updateSyncStatus({ 
-          syncInProgress: false, 
-          syncError: error,
-          pendingChanges: 1
-        });
-        console.error('❌ 同步失败:', error);
-      }
-    });
-  }, [currentUser, websites, cardOpacity, searchBarOpacity, parallaxEnabled, wallpaperResolution, updateSyncStatus]);
+      updateSyncStatus,
+    ]
+  );
 
   // 优化的自动同步逻辑：变化后延迟执行一次，直到下次变化
   useEffect(() => {
@@ -169,13 +203,34 @@ export function useAutoSync(websites: WebsiteData[], dataInitialized: boolean = 
     }
 
     // 创建当前数据的指纹，用于比较是否有变化
-    const validWebsitesForFingerprint = websites.filter(site => 
-      site && site.id && site.name && site.url
+    const validWebsitesForFingerprint = websites.filter(
+      (site) => site && site.id && site.name && site.url
     );
-    
+
     const currentDataFingerprint = JSON.stringify({
-      websites: validWebsitesForFingerprint.map(w => ({ id: w.id, name: w.name, url: w.url, visitCount: w.visitCount })),
-      settings: { cardOpacity, searchBarOpacity, parallaxEnabled, wallpaperResolution, theme: localStorage.getItem('theme') || 'light', autoSyncEnabled, autoSyncInterval, autoSortEnabled, timeComponentEnabled, showFullDate, showSeconds, showWeekday, showYear, showMonth, showDay }
+      websites: validWebsitesForFingerprint.map((w) => ({
+        id: w.id,
+        name: w.name,
+        url: w.url,
+        visitCount: w.visitCount,
+      })),
+      settings: {
+        cardOpacity,
+        searchBarOpacity,
+        parallaxEnabled,
+        wallpaperResolution,
+        theme: localStorage.getItem('theme') || 'light',
+        autoSyncEnabled,
+        autoSyncInterval,
+        autoSortEnabled,
+        timeComponentEnabled,
+        showFullDate,
+        showSeconds,
+        showWeekday,
+        showYear,
+        showMonth,
+        showDay,
+      },
     });
 
     // 如果数据没有变化，不重置计时器，让现有的同步继续执行
@@ -202,14 +257,14 @@ export function useAutoSync(websites: WebsiteData[], dataInitialized: boolean = 
     const syncDelayMs = clampedInterval * 1000;
 
     console.log(`🔄 检测到数据变化，将在 ${clampedInterval}s 后执行一次同步`);
-    
+
     // 设置新的同步延迟 - 只执行一次，直到下次变化
     syncTimeoutRef.current = setTimeout(() => {
       console.log(`🚀 ${clampedInterval}s 延迟结束，执行同步`);
       // 在执行同步前先清除引用，避免竞态条件
       const currentTimeout = syncTimeoutRef.current;
       syncTimeoutRef.current = null;
-      
+
       // 确保这是当前有效的超时才执行同步
       if (currentTimeout) {
         performSync(false);
@@ -222,7 +277,26 @@ export function useAutoSync(websites: WebsiteData[], dataInitialized: boolean = 
         clearTimeout(syncTimeoutRef.current);
       }
     };
-  }, [currentUser, websites, cardOpacity, searchBarOpacity, parallaxEnabled, wallpaperResolution, autoSyncEnabled, autoSyncInterval, autoSortEnabled, timeComponentEnabled, showFullDate, showSeconds, showWeekday, showYear, showMonth, showDay, performSync, dataInitialized]);
+  }, [
+    currentUser,
+    websites,
+    cardOpacity,
+    searchBarOpacity,
+    parallaxEnabled,
+    wallpaperResolution,
+    autoSyncEnabled,
+    autoSyncInterval,
+    autoSortEnabled,
+    timeComponentEnabled,
+    showFullDate,
+    showSeconds,
+    showWeekday,
+    showYear,
+    showMonth,
+    showDay,
+    performSync,
+    dataInitialized,
+  ]);
 
   // 组件卸载时清理计时器
   useEffect(() => {

@@ -20,28 +20,28 @@ export const proxyConfigs: ProxyConfig[] = [
     },
     supportsBinary: true,
     priority: 0, // 最高优先级
-    isSupabaseProxy: true
+    isSupabaseProxy: true,
   },
   {
     name: 'corsproxy.io',
     url: 'https://corsproxy.io/',
     transformRequest: (url) => `https://corsproxy.io/?${encodeURIComponent(url)}`,
     supportsBinary: true,
-    priority: 1
+    priority: 1,
   },
   {
     name: 'allorigins',
     url: 'https://api.allorigins.win/',
     transformRequest: (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
     supportsBinary: true,
-    priority: 2
+    priority: 2,
   },
   {
     name: 'thingproxy',
     url: 'https://thingproxy.freeboard.io/fetch/',
     transformRequest: (url) => `https://thingproxy.freeboard.io/fetch/${url}`,
     supportsBinary: false,
-    priority: 3
+    priority: 3,
   },
   {
     name: 'cors-anywhere',
@@ -50,9 +50,9 @@ export const proxyConfigs: ProxyConfig[] = [
     supportsBinary: true,
     priority: 4, // Lower priority as it requires demo access
     headers: {
-      'X-Requested-With': 'XMLHttpRequest'
-    }
-  }
+      'X-Requested-With': 'XMLHttpRequest',
+    },
+  },
 ];
 
 /**
@@ -74,5 +74,5 @@ export function getSortedProxyConfigs(): ProxyConfig[] {
  * Get a proxy configuration by name
  */
 export function getProxyConfigByName(name: string): ProxyConfig | undefined {
-  return proxyConfigs.find(config => config.name === name);
+  return proxyConfigs.find((config) => config.name === name);
 }

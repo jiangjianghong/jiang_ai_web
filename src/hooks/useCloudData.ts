@@ -1,6 +1,12 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
-import { getUserWebsites, getUserSettings, mergeWebsiteData, WebsiteData, UserSettings } from '@/lib/supabaseSync';
+import {
+  getUserWebsites,
+  getUserSettings,
+  mergeWebsiteData,
+  WebsiteData,
+  UserSettings,
+} from '@/lib/supabaseSync';
 
 interface CloudDataState {
   cloudWebsites: WebsiteData[] | null;
@@ -21,7 +27,7 @@ export function useCloudData(enabled: boolean = true): UseCloudDataResult {
     cloudWebsites: null,
     cloudSettings: null,
     loading: false,
-    error: null
+    error: null,
   });
 
   // 使用ref跟踪加载状态，避免useEffect循环
@@ -42,15 +48,15 @@ export function useCloudData(enabled: boolean = true): UseCloudDataResult {
       emailConfirmed: !!currentUser?.email_confirmed_at,
       userEmail: currentUser?.email,
       emailConfirmedAt: currentUser?.email_confirmed_at,
-      userObject: currentUser
+      userObject: currentUser,
     });
 
     if (!currentUser) {
       console.log('❌ 无法加载云端数据 - 用户未登录');
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         error: '需要登录才能加载云端数据',
-        loading: false
+        loading: false,
       }));
       return;
     }
@@ -59,19 +65,19 @@ export function useCloudData(enabled: boolean = true): UseCloudDataResult {
       console.log('❌ 无法加载云端数据 - 邮箱未验证', {
         email: currentUser.email,
         emailConfirmedAt: currentUser.email_confirmed_at,
-        createdAt: currentUser.created_at
+        createdAt: currentUser.created_at,
       });
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         error: '需要验证邮箱才能加载云端数据',
-        loading: false
+        loading: false,
       }));
       return;
     }
 
     console.log('🚀 开始加载云端数据...');
     loadingRef.current = true;
-    setState(prev => ({ ...prev, loading: true, error: null }));
+    setState((prev) => ({ ...prev, loading: true, error: null }));
 
     try {
       // 使用 Promise.allSettled 避免一个失败影响另一个
@@ -79,11 +85,11 @@ export function useCloudData(enabled: boolean = true): UseCloudDataResult {
         userId: currentUser.id,
         userEmail: currentUser.email,
         emailConfirmed: currentUser.email_confirmed_at,
-        createdAt: currentUser.created_at
+        createdAt: currentUser.created_at,
       });
       const [websitesResult, settingsResult] = await Promise.allSettled([
         getUserWebsites(currentUser),
-        getUserSettings(currentUser)
+        getUserSettings(currentUser),
       ]);
 
       const websites = websitesResult.status === 'fulfilled' ? websitesResult.value : null;
@@ -95,7 +101,7 @@ export function useCloudData(enabled: boolean = true): UseCloudDataResult {
         websitesData: websites,
         settingsStatus: settingsResult.status,
         hasSettings: !!settings,
-        settingsData: settings
+        settingsData: settings,
       });
 
       // 如果网站数据获取失败，记录详细错误
@@ -103,14 +109,14 @@ export function useCloudData(enabled: boolean = true): UseCloudDataResult {
         console.error('❌ 网站数据获取失败:', {
           error: websitesResult.reason,
           userId: currentUser.id,
-          userEmail: currentUser.email
+          userEmail: currentUser.email,
         });
       }
       if (settingsResult.status === 'rejected') {
         console.error('❌ 设置数据获取失败:', {
           error: settingsResult.reason,
           userId: currentUser.id,
-          userEmail: currentUser.email
+          userEmail: currentUser.email,
         });
       }
 
@@ -118,14 +124,14 @@ export function useCloudData(enabled: boolean = true): UseCloudDataResult {
         cloudWebsites: websites,
         cloudSettings: settings,
         loading: false,
-        error: null
+        error: null,
       });
 
       hasInitialLoadRef.current = true;
 
       console.log('✅ 云端数据加载完成:', {
         websites: websites?.length || 0,
-        hasSettings: !!settings
+        hasSettings: !!settings,
       });
 
       // 如果有失败的操作，记录但不阻塞界面
@@ -135,25 +141,27 @@ export function useCloudData(enabled: boolean = true): UseCloudDataResult {
       if (settingsResult.status === 'rejected') {
         console.warn('云端设置加载失败，使用本地设置:', settingsResult.reason);
       }
-
     } catch (error) {
       console.error('❌ 加载云端数据异常:', error);
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         loading: false,
-        error: '加载云端数据失败: ' + (error as Error).message
+        error: '加载云端数据失败: ' + (error as Error).message,
       }));
     } finally {
       loadingRef.current = false;
     }
   }, [currentUser]);
 
-  const mergeWithLocalData = useCallback((localWebsites: WebsiteData[]): WebsiteData[] => {
-    if (!state.cloudWebsites) {
-      return localWebsites;
-    }
-    return mergeWebsiteData(localWebsites, state.cloudWebsites);
-  }, [state.cloudWebsites]);
+  const mergeWithLocalData = useCallback(
+    (localWebsites: WebsiteData[]): WebsiteData[] => {
+      if (!state.cloudWebsites) {
+        return localWebsites;
+      }
+      return mergeWebsiteData(localWebsites, state.cloudWebsites);
+    },
+    [state.cloudWebsites]
+  );
 
   // 当用户登录状态变化时，自动加载云端数据（仅在启用时）
   useEffect(() => {
@@ -167,7 +175,7 @@ export function useCloudData(enabled: boolean = true): UseCloudDataResult {
       userId: currentUserId,
       lastUserId: lastUserIdRef.current,
       hasInitialLoad: hasInitialLoadRef.current,
-      isLoading: loadingRef.current
+      isLoading: loadingRef.current,
     });
 
     // 检查用户是否发生变化
@@ -182,10 +190,10 @@ export function useCloudData(enabled: boolean = true): UseCloudDataResult {
           cloudWebsites: null,
           cloudSettings: null,
           loading: false,
-          error: null
+          error: null,
         });
         hasInitialLoadRef.current = false;
-        
+
         // 添加小延迟确保认证状态稳定
         setTimeout(() => {
           loadCloudData();
@@ -200,7 +208,7 @@ export function useCloudData(enabled: boolean = true): UseCloudDataResult {
         cloudWebsites: null,
         cloudSettings: null,
         loading: false,
-        error: null
+        error: null,
       });
       lastUserIdRef.current = null;
       hasInitialLoadRef.current = false;
@@ -209,12 +217,12 @@ export function useCloudData(enabled: boolean = true): UseCloudDataResult {
         enabled,
         hasUser: !!currentUser,
         emailConfirmed: isEmailConfirmed,
-        emailConfirmedAt: currentUser?.email_confirmed_at
+        emailConfirmedAt: currentUser?.email_confirmed_at,
       });
       // 确保在条件不满足时也设置 loading 为 false
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
-        loading: false
+        loading: false,
       }));
     }
   }, [currentUser?.id, currentUser?.email_confirmed_at, enabled]); // 移除 loadCloudData 依赖避免循环
@@ -226,12 +234,12 @@ export function useCloudData(enabled: boolean = true): UseCloudDataResult {
       console.log('📨 收到用户登录事件:', {
         hasUser: !!user,
         emailConfirmed: !!user?.email_confirmed_at,
-        userEmail: user?.email
+        userEmail: user?.email,
       });
 
       if (user && user.email_confirmed_at) {
         console.log('🚀 收到用户登录事件，立即加载云端数据');
-        
+
         // 使用事件中的用户信息创建专门的加载函数，避免闭包问题
         const loadWithEventUser = async () => {
           if (loadingRef.current) {
@@ -244,24 +252,24 @@ export function useCloudData(enabled: boolean = true): UseCloudDataResult {
             userId: user?.id,
             emailConfirmed: !!user?.email_confirmed_at,
             userEmail: user?.email,
-            emailConfirmedAt: user?.email_confirmed_at
+            emailConfirmedAt: user?.email_confirmed_at,
           });
 
           console.log('🚀 开始加载云端数据...');
           loadingRef.current = true;
-          setState(prev => ({ ...prev, loading: true, error: null }));
+          setState((prev) => ({ ...prev, loading: true, error: null }));
 
           try {
             console.log('📡 正在从Supabase获取数据...', {
               userId: user.id,
               userEmail: user.email,
               emailConfirmed: user.email_confirmed_at,
-              createdAt: user.created_at
+              createdAt: user.created_at,
             });
-            
+
             const [websitesResult, settingsResult] = await Promise.allSettled([
               getUserWebsites(user),
-              getUserSettings(user)
+              getUserSettings(user),
             ]);
 
             const websites = websitesResult.status === 'fulfilled' ? websitesResult.value : null;
@@ -273,35 +281,34 @@ export function useCloudData(enabled: boolean = true): UseCloudDataResult {
               websitesData: websites,
               settingsStatus: settingsResult.status,
               hasSettings: !!settings,
-              settingsData: settings
+              settingsData: settings,
             });
 
             setState({
               cloudWebsites: websites,
               cloudSettings: settings,
               loading: false,
-              error: null
+              error: null,
             });
 
             hasInitialLoadRef.current = true;
 
             console.log('✅ 云端数据加载完成:', {
               websites: websites?.length || 0,
-              hasSettings: !!settings
+              hasSettings: !!settings,
             });
-
           } catch (error) {
             console.error('❌ 加载云端数据异常:', error);
-            setState(prev => ({
+            setState((prev) => ({
               ...prev,
               loading: false,
-              error: '加载云端数据失败: ' + (error as Error).message
+              error: '加载云端数据失败: ' + (error as Error).message,
             }));
           } finally {
             loadingRef.current = false;
           }
         };
-        
+
         loadWithEventUser();
       } else {
         console.log('⏸️ 用户登录事件条件不满足，跳过数据加载');
@@ -320,6 +327,6 @@ export function useCloudData(enabled: boolean = true): UseCloudDataResult {
     ...state,
     loadCloudData,
     mergeWithLocalData,
-    hasCloudData: !!state.cloudWebsites || !!state.cloudSettings
+    hasCloudData: !!state.cloudWebsites || !!state.cloudSettings,
   };
 }

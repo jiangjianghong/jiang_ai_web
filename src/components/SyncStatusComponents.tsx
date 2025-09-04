@@ -19,21 +19,31 @@ export function SyncStatusDisplay({ websites, settings, className = '' }: SyncSt
 
   const getStatusIcon = () => {
     switch (syncState.status) {
-      case 'syncing': return <LoadingSpinner size="sm" color="text-blue-500" />;
-      case 'success': return <i className="fa-solid fa-check text-green-500"></i>;
-      case 'error': return <i className="fa-solid fa-exclamation-triangle text-red-500"></i>;
-      case 'conflict': return <i className="fa-solid fa-code-merge text-yellow-500"></i>;
-      default: return <i className="fa-solid fa-cloud text-gray-400"></i>;
+      case 'syncing':
+        return <LoadingSpinner size="sm" color="text-blue-500" />;
+      case 'success':
+        return <i className="fa-solid fa-check text-green-500"></i>;
+      case 'error':
+        return <i className="fa-solid fa-exclamation-triangle text-red-500"></i>;
+      case 'conflict':
+        return <i className="fa-solid fa-code-merge text-yellow-500"></i>;
+      default:
+        return <i className="fa-solid fa-cloud text-gray-400"></i>;
     }
   };
 
   const getStatusColor = () => {
     switch (syncState.status) {
-      case 'syncing': return 'border-blue-500/30 bg-blue-500/10';
-      case 'success': return 'border-green-500/30 bg-green-500/10';
-      case 'error': return 'border-red-500/30 bg-red-500/10';
-      case 'conflict': return 'border-yellow-500/30 bg-yellow-500/10';
-      default: return 'border-gray-500/30 bg-gray-500/10';
+      case 'syncing':
+        return 'border-blue-500/30 bg-blue-500/10';
+      case 'success':
+        return 'border-green-500/30 bg-green-500/10';
+      case 'error':
+        return 'border-red-500/30 bg-red-500/10';
+      case 'conflict':
+        return 'border-yellow-500/30 bg-yellow-500/10';
+      default:
+        return 'border-gray-500/30 bg-gray-500/10';
     }
   };
 
@@ -56,9 +66,7 @@ export function SyncStatusDisplay({ websites, settings, className = '' }: SyncSt
                 </span>
               )}
             </div>
-            <div className="text-xs text-white/60">
-              {syncState.message || '数据已同步'}
-            </div>
+            <div className="text-xs text-white/60">{syncState.message || '数据已同步'}</div>
           </div>
         </div>
 
@@ -68,7 +76,7 @@ export function SyncStatusDisplay({ websites, settings, className = '' }: SyncSt
               {new Date(syncState.lastSyncTime).toLocaleTimeString()}
             </span>
           )}
-          
+
           {canSync && syncState.pendingChanges > 0 && (
             <button
               onClick={performSync}
@@ -77,7 +85,7 @@ export function SyncStatusDisplay({ websites, settings, className = '' }: SyncSt
               同步
             </button>
           )}
-          
+
           {syncState.status === 'error' && (
             <button
               onClick={resetSync}
@@ -170,10 +178,7 @@ export function DetailedSyncStats({ isOpen, onClose }: DetailedSyncStatsProps) {
         <div className="p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900">同步统计</h3>
-            <button
-              onClick={onClose}
-              className="text-gray-500 hover:text-gray-700"
-            >
+            <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
               <i className="fa-solid fa-times"></i>
             </button>
           </div>
@@ -214,10 +219,15 @@ export function DetailedSyncStats({ isOpen, onClose }: DetailedSyncStatsProps) {
                 ].map((record, index) => (
                   <div key={index} className="flex items-center space-x-3 text-sm">
                     <span className="text-gray-500 w-12">{record.time}</span>
-                    <div className={`w-2 h-2 rounded-full ${
-                      record.status === 'success' ? 'bg-green-500' :
-                      record.status === 'conflict' ? 'bg-yellow-500' : 'bg-red-500'
-                    }`}></div>
+                    <div
+                      className={`w-2 h-2 rounded-full ${
+                        record.status === 'success'
+                          ? 'bg-green-500'
+                          : record.status === 'conflict'
+                            ? 'bg-yellow-500'
+                            : 'bg-red-500'
+                      }`}
+                    ></div>
                     <span className="flex-1">{record.message}</span>
                   </div>
                 ))}

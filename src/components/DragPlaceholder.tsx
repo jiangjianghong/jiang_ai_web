@@ -20,35 +20,35 @@ export function DragPlaceholder({ isActive }: DragPlaceholderProps) {
         backdropFilter: 'blur(5px)',
       }}
       initial={{ opacity: 0, scale: 0.8 }}
-      animate={{ 
-        opacity: 1, 
+      animate={{
+        opacity: 1,
         scale: 1,
         transition: {
-          type: "spring",
+          type: 'spring',
           stiffness: 300,
           damping: 20,
-          duration: 0.2
-        }
+          duration: 0.2,
+        },
       }}
-      exit={{ 
-        opacity: 0, 
+      exit={{
+        opacity: 0,
         scale: 0.8,
         transition: {
-          duration: 0.15
-        }
+          duration: 0.15,
+        },
       }}
     >
       {/* 占位内容 */}
       <div className="h-full flex items-center justify-center opacity-60">
         <motion.div
-          animate={{ 
+          animate={{
             scale: [1, 1.1, 1],
-            opacity: [0.3, 0.6, 0.3]
+            opacity: [0.3, 0.6, 0.3],
           }}
-          transition={{ 
-            duration: 1.5, 
+          transition={{
+            duration: 1.5,
             repeat: Infinity,
-            ease: "easeInOut"
+            ease: 'easeInOut',
           }}
           className="w-8 h-8 rounded-full border-2 border-white/50"
         />

@@ -2,7 +2,7 @@
 // 此文件已被弃用，保留仅作为参考
 // 我们现在使用公共CORS代理服务，请参考 src/lib/proxy 目录
 
-import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
+import { serve } from 'https://deno.land/std@0.224.0/http/server.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',

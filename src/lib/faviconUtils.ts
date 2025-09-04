@@ -19,7 +19,7 @@ export const extractDomain = (url: string): string => {
 /**
  * 处理 favicon URL，检测并通过代理访问有 CORS 问题的 URL
  * @param url favicon URL
- * @param originalUrl 网站原始 URL 
+ * @param originalUrl 网站原始 URL
  * @param faviconUrl 备用的 favicon URL
  * @returns 处理后的 URL
  */
@@ -29,7 +29,7 @@ export const processFaviconUrl = (url: string, originalUrl: string, faviconUrl: 
     console.warn('processFaviconUrl 收到无效参数:', url);
     return faviconUrl; // 返回原始的 faviconUrl 而不是默认图标
   }
-  
+
   const proxyPrefix = 'https://api.allorigins.win/raw?url=';
 
   // 检查是否是需要代理的URL

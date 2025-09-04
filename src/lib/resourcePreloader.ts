@@ -34,16 +34,14 @@ class ResourcePreloader {
    * 批量预加载图片
    */
   async preloadImages(urls: string[]): Promise<void> {
-    const unloadedUrls = urls.filter(url => !this.preloadedResources.has(url));
-    
+    const unloadedUrls = urls.filter((url) => !this.preloadedResources.has(url));
+
     if (unloadedUrls.length === 0) return;
 
     // 分批处理，避免同时发起太多请求
     for (let i = 0; i < unloadedUrls.length; i += this.maxConcurrent) {
       const batch = unloadedUrls.slice(i, i + this.maxConcurrent);
-      await Promise.allSettled(
-        batch.map(url => this.preloadImage(url))
-      );
+      await Promise.allSettled(batch.map((url) => this.preloadImage(url)));
     }
   }
 
@@ -67,29 +65,32 @@ class ResourcePreloader {
 
     try {
       // 使用 requestIdleCallback 在浏览器空闲时预加载
-        if ('requestIdleCallback' in window) {
-          await new Promise<void>((resolve) => {
-            requestIdleCallback(() => {
+      if ('requestIdleCallback' in window) {
+        await new Promise<void>((resolve) => {
+          requestIdleCallback(
+            () => {
               this.processBatch();
               resolve();
-            }, { timeout: 100 }); // 添加超时确保及时执行
-          });
-        } else {
-          // 降级方案：使用 setTimeout
-          await new Promise<void>((resolve) => {
-            setTimeout(() => {
-              this.processBatch();
-              resolve();
-            }, 8); // 减少延迟，约0.5帧
-          });
-        }
+            },
+            { timeout: 100 }
+          ); // 添加超时确保及时执行
+        });
+      } else {
+        // 降级方案：使用 setTimeout
+        await new Promise<void>((resolve) => {
+          setTimeout(() => {
+            this.processBatch();
+            resolve();
+          }, 8); // 减少延迟，约0.5帧
+        });
+      }
     } finally {
       this.isProcessing = false;
-      
+
       // 如果还有待处理的资源，继续处理
-        if (this.preloadQueue.length > 0) {
-          setTimeout(() => this.processQueue(), 50); // 减少处理间隔
-        }
+      if (this.preloadQueue.length > 0) {
+        setTimeout(() => this.processQueue(), 50); // 减少处理间隔
+      }
     }
   }
 
@@ -100,9 +101,7 @@ class ResourcePreloader {
     const batch = this.preloadQueue.splice(0, this.maxConcurrent);
     if (batch.length === 0) return;
 
-    await Promise.allSettled(
-      batch.map(url => this.preloadImage(url))
-    );
+    await Promise.allSettled(batch.map((url) => this.preloadImage(url)));
   }
 
   /**
@@ -120,11 +119,14 @@ class ResourcePreloader {
     // 创建字体加载器
     if ('FontFace' in window) {
       const fontFace = new FontFace(fontFamily, `url(${fontUrl})`);
-      fontFace.load().then(() => {
-        document.fonts.add(fontFace);
-      }).catch(() => {
-        // 字体预加载失败不是关键错误，保持静默
-      });
+      fontFace
+        .load()
+        .then(() => {
+          document.fonts.add(fontFace);
+        })
+        .catch(() => {
+          // 字体预加载失败不是关键错误，保持静默
+        });
     }
   }
 
@@ -148,7 +150,7 @@ class ResourcePreloader {
   getStats(): { preloaded: number; queued: number } {
     return {
       preloaded: this.preloadedResources.size,
-      queued: this.preloadQueue.length
+      queued: this.preloadQueue.length,
     };
   }
 

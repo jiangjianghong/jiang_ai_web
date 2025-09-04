@@ -13,21 +13,21 @@ export const usePerformanceOptimization = () => {
   useEffect(() => {
     // 记录首次渲染完成时间
     renderTimeRef.current = Date.now();
-    
+
     // 性能监控
     const measurePerformance = () => {
       const metrics: PerformanceMetrics = {
         loadTime: renderTimeRef.current - startTimeRef.current,
         renderTime: performance.now(),
-        interactionTime: 0
+        interactionTime: 0,
       };
 
       // 只在开发环境输出性能信息
       if (process.env.NODE_ENV === 'development') {
         console.log('🚀 性能指标:', {
-          '首屏加载时间': `${metrics.loadTime}ms`,
-          '渲染时间': `${metrics.renderTime.toFixed(2)}ms`,
-          '总页面大小': `${(performance.getEntriesByType('navigation')[0] as any)?.transferSize || 0} bytes`
+          首屏加载时间: `${metrics.loadTime}ms`,
+          渲染时间: `${metrics.renderTime.toFixed(2)}ms`,
+          总页面大小: `${(performance.getEntriesByType('navigation')[0] as any)?.transferSize || 0} bytes`,
         });
       }
 
@@ -49,7 +49,7 @@ export const usePerformanceOptimization = () => {
     lazyLoad: (importFn: () => Promise<any>) => {
       return import('react').then(({ lazy }) => lazy(importFn));
     },
-    
+
     // 预加载关键资源（改为DNS预连接，避免未使用警告）
     preloadImage: (src: string) => {
       // 使用Image对象预加载而不是link preload，避免未使用警告
@@ -62,11 +62,11 @@ export const usePerformanceOptimization = () => {
       // link.href = src;
       // document.head.appendChild(link);
     },
-    
+
     // 优化scroll性能
     optimizeScroll: () => {
       let ticking = false;
-      
+
       return (callback: () => void) => {
         if (!ticking) {
           requestAnimationFrame(() => {
@@ -76,6 +76,6 @@ export const usePerformanceOptimization = () => {
           ticking = true;
         }
       };
-    }
+    },
   };
 };

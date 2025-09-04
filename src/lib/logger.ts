@@ -14,18 +14,18 @@ class Logger {
   private isDevelopment: boolean;
   private logHistory: LogEntry[] = [];
   private maxHistorySize = 100;
-  
+
   // 日志级别优先级
   private levelPriority: Record<LogLevel, number> = {
     debug: 0,
     info: 1,
     warn: 2,
-    error: 3
+    error: 3,
   };
 
   // 生产环境最低日志级别
   private productionMinLevel: LogLevel = 'warn';
-  
+
   static getInstance(): Logger {
     if (!Logger.instance) {
       Logger.instance = new Logger();
@@ -41,7 +41,7 @@ class Logger {
     if (this.isDevelopment) {
       return true; // 开发环境记录所有日志
     }
-    
+
     // 生产环境只记录警告和错误
     return this.levelPriority[level] >= this.levelPriority[this.productionMinLevel];
   }
@@ -50,7 +50,7 @@ class Logger {
     const timestamp = new Date().toISOString().split('T')[1].split('.')[0];
     const categoryStr = category ? `[${category}]` : '';
     const emoji = this.getEmoji(level);
-    
+
     return `${emoji} ${timestamp} ${categoryStr} ${message}`;
   }
 
@@ -59,14 +59,14 @@ class Logger {
       debug: '🔧',
       info: 'ℹ️',
       warn: '⚠️',
-      error: '❌'
+      error: '❌',
     };
     return emojis[level];
   }
 
   private addToHistory(entry: LogEntry): void {
     this.logHistory.push(entry);
-    
+
     // 限制历史记录大小
     if (this.logHistory.length > this.maxHistorySize) {
       this.logHistory = this.logHistory.slice(-this.maxHistorySize);
@@ -79,7 +79,7 @@ class Logger {
       message,
       data,
       timestamp: Date.now(),
-      category
+      category,
     };
 
     // 添加到历史记录（始终记录，用于调试）
@@ -131,28 +131,28 @@ class Logger {
     debug: (message: string, data?: any) => this.debug(message, data, 'Wallpaper'),
     info: (message: string, data?: any) => this.info(message, data, 'Wallpaper'),
     warn: (message: string, data?: any) => this.warn(message, data, 'Wallpaper'),
-    error: (message: string, data?: any) => this.error(message, data, 'Wallpaper')
+    error: (message: string, data?: any) => this.error(message, data, 'Wallpaper'),
   };
 
   favicon = {
     debug: (message: string, data?: any) => this.debug(message, data, 'Favicon'),
     info: (message: string, data?: any) => this.info(message, data, 'Favicon'),
     warn: (message: string, data?: any) => this.warn(message, data, 'Favicon'),
-    error: (message: string, data?: any) => this.error(message, data, 'Favicon')
+    error: (message: string, data?: any) => this.error(message, data, 'Favicon'),
   };
 
   sync = {
     debug: (message: string, data?: any) => this.debug(message, data, 'Sync'),
     info: (message: string, data?: any) => this.info(message, data, 'Sync'),
     warn: (message: string, data?: any) => this.warn(message, data, 'Sync'),
-    error: (message: string, data?: any) => this.error(message, data, 'Sync')
+    error: (message: string, data?: any) => this.error(message, data, 'Sync'),
   };
 
   cache = {
     debug: (message: string, data?: any) => this.debug(message, data, 'Cache'),
     info: (message: string, data?: any) => this.info(message, data, 'Cache'),
     warn: (message: string, data?: any) => this.warn(message, data, 'Cache'),
-    error: (message: string, data?: any) => this.error(message, data, 'Cache')
+    error: (message: string, data?: any) => this.error(message, data, 'Cache'),
   };
 
   // 获取日志历史（用于调试）
@@ -160,11 +160,11 @@ class Logger {
     let filtered = this.logHistory;
 
     if (level) {
-      filtered = filtered.filter(entry => entry.level === level);
+      filtered = filtered.filter((entry) => entry.level === level);
     }
 
     if (category) {
-      filtered = filtered.filter(entry => entry.category === category);
+      filtered = filtered.filter((entry) => entry.category === category);
     }
 
     return filtered.slice().reverse(); // 最新的在前面
@@ -181,16 +181,20 @@ class Logger {
   }
 
   // 获取统计信息
-  getStats(): { total: number; byLevel: Record<LogLevel, number>; byCategory: Record<string, number> } {
+  getStats(): {
+    total: number;
+    byLevel: Record<LogLevel, number>;
+    byCategory: Record<string, number>;
+  } {
     const stats = {
       total: this.logHistory.length,
       byLevel: { debug: 0, info: 0, warn: 0, error: 0 } as Record<LogLevel, number>,
-      byCategory: {} as Record<string, number>
+      byCategory: {} as Record<string, number>,
     };
 
-    this.logHistory.forEach(entry => {
+    this.logHistory.forEach((entry) => {
       stats.byLevel[entry.level]++;
-      
+
       if (entry.category) {
         stats.byCategory[entry.category] = (stats.byCategory[entry.category] || 0) + 1;
       }

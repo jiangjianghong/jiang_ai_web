@@ -30,7 +30,17 @@ interface CardEditModalProps {
   onDelete?: (id: string) => void;
 }
 
-export default function CardEditModal({ id, name, url, favicon, tags, note, onClose, onSave, onDelete }: CardEditModalProps) {
+export default function CardEditModal({
+  id,
+  name,
+  url,
+  favicon,
+  tags,
+  note,
+  onClose,
+  onSave,
+  onDelete,
+}: CardEditModalProps) {
   const [formData, setFormData] = useState({
     name,
     url,
@@ -85,11 +95,9 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
       `https://${domain}/favicon.ico`,
       `https://${domain}/favicon.png`,
       // 兜底：默认图标
-      '/icon/favicon.png'
+      '/icon/favicon.png',
     ];
   };
-
-
 
   /**
    * 测试图标URL是否可用
@@ -161,19 +169,19 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
       }
 
       // 自动获取favicon
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        favicon: newFaviconUrl
+        favicon: newFaviconUrl,
       }));
 
       // 自动获取网站名
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        name: domain.replace('www.', '').split('.')[0]
+        name: domain.replace('www.', '').split('.')[0],
       }));
 
       // 清除错误
-      setErrors(prev => {
+      setErrors((prev) => {
         const newErrors = { ...prev };
         delete newErrors.url;
         return newErrors;
@@ -197,7 +205,7 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
       const result = websiteSchema.safeParse(formData);
       if (!result.success) {
         const newErrors: Record<string, string> = {};
-        result.error.errors.forEach(err => {
+        result.error.errors.forEach((err) => {
           newErrors[err.path[0]] = err.message;
         });
         setErrors(newErrors);
@@ -256,7 +264,7 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
         url: formData.url,
         favicon: finalFaviconUrl, // 使用上传后的URL
         tags: formTags, // 使用独立的标签
-        note: cleanedNote
+        note: cleanedNote,
       });
 
       onClose();
@@ -270,14 +278,14 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
 
     // 清除错误
     if (errors[name]) {
-      setErrors(prev => {
+      setErrors((prev) => {
         const newErrors = { ...prev };
         delete newErrors[name];
         return newErrors;
@@ -289,12 +297,12 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 select-none">
       <Tilt
         tiltEnable={true}
-        tiltReverse={false}  // 正常倾斜方向
-        tiltMaxAngleX={8}    // 较小的倾斜角度
-        tiltMaxAngleY={8}    // 较小的倾斜角度
-        perspective={1200}   // 更远的透视距离
+        tiltReverse={false} // 正常倾斜方向
+        tiltMaxAngleX={8} // 较小的倾斜角度
+        tiltMaxAngleY={8} // 较小的倾斜角度
+        perspective={1200} // 更远的透视距离
         transitionSpeed={800} // 稍慢的过渡速度
-        scale={1.02}         // 轻微缩放
+        scale={1.02} // 轻微缩放
         glareEnable={true}
         glareMaxOpacity={0.15} // 更轻微的光泽
         glareColor="rgba(255,255,255,0.8)" // 白色光泽
@@ -309,16 +317,19 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
             type: 'spring',
             damping: 25,
             stiffness: 200,
-            duration: 0.4
+            duration: 0.4,
           }}
           style={{
-            background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
+            background:
+              'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
             backdropFilter: 'blur(20px)',
             border: '1px solid rgba(255,255,255,0.3)',
           }}
         >
           <div className="flex justify-between items-center mb-4 select-none">
-            <h2 className="text-xl font-semibold select-none bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">编辑卡片</h2>
+            <h2 className="text-xl font-semibold select-none bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+              编辑卡片
+            </h2>
             <motion.button
               onClick={onClose}
               className="text-gray-500 hover:text-gray-700 select-none p-2 rounded-full hover:bg-gray-100 transition-colors"
@@ -331,7 +342,9 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1 select-none">网址</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1 select-none">
+                网址
+              </label>
               <div className="flex gap-2">
                 <input
                   type="url"
@@ -348,14 +361,14 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
                   className="px-3 py-2 text-white rounded-md select-none bg-gradient-to-b from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-blue-300 disabled:to-blue-400 disabled:cursor-not-allowed shadow-sm"
                   whileHover={!(autoFetching || !formData.url) ? { scale: 1.05, y: -1 } : {}}
                   whileTap={!(autoFetching || !formData.url) ? { scale: 0.95, y: 0 } : {}}
-                  transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 25 }}
                 >
                   {autoFetching ? (
                     <>
                       <motion.i
                         className="fa-solid fa-spinner mr-1"
                         animate={{ rotate: 360 }}
-                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
                       />
                       获取中...
                     </>
@@ -368,7 +381,9 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1 select-none">网站名</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1 select-none">
+                网站名
+              </label>
               <input
                 type="text"
                 name="name"
@@ -377,11 +392,15 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
                 className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="网站名称"
               />
-              {errors.name && <p className="mt-1 text-sm text-red-500 select-none">{errors.name}</p>}
+              {errors.name && (
+                <p className="mt-1 text-sm text-red-500 select-none">{errors.name}</p>
+              )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1 select-none">图标</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1 select-none">
+                图标
+              </label>
               <div className="flex items-center gap-3">
                 <div className="flex-1">
                   <input
@@ -405,9 +424,9 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
                         const reader = new FileReader();
                         reader.onload = (event) => {
                           if (event.target?.result) {
-                            setFormData(prev => ({
+                            setFormData((prev) => ({
                               ...prev,
-                              favicon: event.target?.result as string
+                              favicon: event.target?.result as string,
                             }));
                           }
                         };
@@ -432,7 +451,9 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
                   </span>
                 </div>
               )}
-              {errors.favicon && <p className="mt-1 text-sm text-red-500 select-none">{errors.favicon}</p>}
+              {errors.favicon && (
+                <p className="mt-1 text-sm text-red-500 select-none">{errors.favicon}</p>
+              )}
             </div>
 
             {/* 独立的标签编辑区域 */}
@@ -479,9 +500,17 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
                       onClick={handleAddTag}
                       disabled={!newTag.trim() || formTags.includes(newTag.trim())}
                       className="px-3 py-2 text-white text-sm rounded-md select-none bg-gradient-to-b from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed shadow-sm"
-                      whileHover={!((!newTag.trim() || formTags.includes(newTag.trim()))) ? { scale: 1.05, y: -1 } : {}}
-                      whileTap={!((!newTag.trim() || formTags.includes(newTag.trim()))) ? { scale: 0.95, y: 0 } : {}}
-                      transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                      whileHover={
+                        !(!newTag.trim() || formTags.includes(newTag.trim()))
+                          ? { scale: 1.05, y: -1 }
+                          : {}
+                      }
+                      whileTap={
+                        !(!newTag.trim() || formTags.includes(newTag.trim()))
+                          ? { scale: 0.95, y: 0 }
+                          : {}
+                      }
+                      transition={{ type: 'spring', stiffness: 400, damping: 25 }}
                     >
                       添加
                     </motion.button>
@@ -489,9 +518,9 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
                 )}
 
                 <div className="text-xs text-gray-500">
-                  {formTags.length === 0 && "为网站添加分类标签，便于管理"}
-                  {formTags.length === 1 && "还可以添加1个标签"}
-                  {formTags.length === 2 && "已达到标签数量上限"}
+                  {formTags.length === 0 && '为网站添加分类标签，便于管理'}
+                  {formTags.length === 1 && '还可以添加1个标签'}
+                  {formTags.length === 2 && '已达到标签数量上限'}
                 </div>
               </div>
             </div>
@@ -510,7 +539,6 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
               />
             </div>
 
-
             <div className="flex flex-col gap-4 pt-4 select-none">
               <div className="flex gap-2 select-none">
                 <motion.button
@@ -519,7 +547,7 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
                   className="flex-1 px-4 py-2 text-gray-700 border rounded-md select-none bg-gradient-to-b from-gray-50 to-gray-100 hover:from-gray-100 hover:to-gray-200 shadow-sm border-gray-200"
                   whileHover={{ scale: 1.02, y: -1 }}
                   whileTap={{ scale: 0.98, y: 0 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 25 }}
                 >
                   取消
                 </motion.button>
@@ -529,14 +557,14 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
                   className="flex-1 px-4 py-2 text-white rounded-md select-none bg-gradient-to-b from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-blue-300 disabled:to-blue-400 disabled:cursor-not-allowed shadow-md"
                   whileHover={!uploading ? { scale: 1.02, y: -1 } : {}}
                   whileTap={!uploading ? { scale: 0.98, y: 0 } : {}}
-                  transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 25 }}
                 >
                   {uploading ? (
                     <>
                       <motion.i
                         className="fa-solid fa-spinner mr-2"
                         animate={{ rotate: 360 }}
-                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
                       />
                       上传中...
                     </>
@@ -548,9 +576,7 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
 
               {/* 保存错误提示 */}
               {errors.submit && (
-                <p className="text-red-500 text-sm text-center select-none">
-                  {errors.submit}
-                </p>
+                <p className="text-red-500 text-sm text-center select-none">{errors.submit}</p>
               )}
 
               {onDelete && (
@@ -565,7 +591,7 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
                   className="w-full px-4 py-2 text-white rounded-md select-none bg-gradient-to-b from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 shadow-md border border-red-400"
                   whileHover={{ scale: 1.02, y: -1 }}
                   whileTap={{ scale: 0.98, y: 0 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 25 }}
                 >
                   <motion.i
                     className="fa-solid fa-trash mr-2 select-none"
@@ -576,9 +602,6 @@ export default function CardEditModal({ id, name, url, favicon, tags, note, onCl
                 </motion.button>
               )}
             </div>
-
-
-
           </form>
         </motion.div>
       </Tilt>

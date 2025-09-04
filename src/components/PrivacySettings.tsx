@@ -20,7 +20,7 @@ export default function PrivacySettings({ isOpen, onClose }: PrivacySettingsProp
 
   const handleToggleConsent = () => {
     const newStatus = consentStatus === 'accepted' ? 'declined' : 'accepted';
-    
+
     if (newStatus === 'accepted') {
       localStorage.setItem('cookie-consent', 'accepted');
       localStorage.setItem('cookie-consent-date', new Date().toISOString());
@@ -29,16 +29,14 @@ export default function PrivacySettings({ isOpen, onClose }: PrivacySettingsProp
       localStorage.setItem('cookie-consent-date', new Date().toISOString());
       storageManager.clearNonEssentialData();
     }
-    
+
     setConsentStatus(newStatus);
     setStats(storageManager.getStorageStats());
   };
 
   const handleClearAllData = () => {
     const confirmed = confirm(
-      '⚠️ 确认清除所有数据？\n\n' +
-      '这将删除您的所有网站收藏、设置和偏好。\n' +
-      '此操作不可撤销！'
+      '⚠️ 确认清除所有数据？\n\n' + '这将删除您的所有网站收藏、设置和偏好。\n' + '此操作不可撤销！'
     );
 
     if (confirmed) {
@@ -55,11 +53,11 @@ export default function PrivacySettings({ isOpen, onClose }: PrivacySettingsProp
       return;
     }
 
-    const blob = new Blob([JSON.stringify(data, null, 2)], { 
-      type: 'application/json' 
+    const blob = new Blob([JSON.stringify(data, null, 2)], {
+      type: 'application/json',
     });
     const url = URL.createObjectURL(blob);
-    
+
     const link = document.createElement('a');
     link.href = url;
     link.download = `我的数据导出_${new Date().toISOString().split('T')[0]}.json`;
@@ -76,10 +74,7 @@ export default function PrivacySettings({ isOpen, onClose }: PrivacySettingsProp
   return (
     <AnimatePresence>
       <div className="fixed inset-0 z-[9999] flex items-center justify-center">
-        <div 
-          className="absolute inset-0 bg-black/50"
-          onClick={onClose}
-        />
+        <div className="absolute inset-0 bg-black/50" onClick={onClose} />
         <motion.div
           className="w-full max-w-2xl bg-white rounded-xl shadow-2xl z-50 max-h-[90vh] flex flex-col mx-4"
           initial={{ scale: 0.9, opacity: 0 }}
@@ -94,10 +89,7 @@ export default function PrivacySettings({ isOpen, onClose }: PrivacySettingsProp
                 <i className="fa-solid fa-shield-halved text-blue-600 text-2xl"></i>
                 <h2 className="text-2xl font-bold text-gray-800">隐私与数据管理</h2>
               </div>
-              <button 
-                onClick={onClose} 
-                className="text-gray-500 hover:text-gray-700 text-xl"
-              >
+              <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-xl">
                 <i className="fa-solid fa-xmark"></i>
               </button>
             </div>
@@ -105,39 +97,42 @@ export default function PrivacySettings({ isOpen, onClose }: PrivacySettingsProp
 
           {/* 内容 */}
           <div className="flex-1 px-6 py-4 space-y-6 overflow-y-auto">
-            
             {/* Cookie同意状态 */}
             <div className="bg-gray-50 rounded-lg p-4">
               <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
                 <i className="fa-solid fa-cookie-bite text-amber-500"></i>
                 Cookie使用状态
               </h3>
-              
+
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600">
-                    当前状态: 
-                    <span className={`ml-2 px-2 py-1 rounded text-xs font-medium ${
-                      consentStatus === 'accepted' 
-                        ? 'bg-green-100 text-green-800' 
+                    当前状态:
+                    <span
+                      className={`ml-2 px-2 py-1 rounded text-xs font-medium ${
+                        consentStatus === 'accepted'
+                          ? 'bg-green-100 text-green-800'
+                          : consentStatus === 'declined'
+                            ? 'bg-red-100 text-red-800'
+                            : 'bg-yellow-100 text-yellow-800'
+                      }`}
+                    >
+                      {consentStatus === 'accepted'
+                        ? '✅ 已同意'
                         : consentStatus === 'declined'
-                        ? 'bg-red-100 text-red-800'
-                        : 'bg-yellow-100 text-yellow-800'
-                    }`}>
-                      {consentStatus === 'accepted' ? '✅ 已同意' : 
-                       consentStatus === 'declined' ? '❌ 已拒绝' : '⏳ 待决定'}
+                          ? '❌ 已拒绝'
+                          : '⏳ 待决定'}
                     </span>
                   </p>
                   <p className="text-xs text-gray-500 mt-1">
-                    {consentStatus === 'accepted' 
+                    {consentStatus === 'accepted'
                       ? '您已同意使用Cookie和本地存储来提供完整功能'
                       : consentStatus === 'declined'
-                      ? '您已拒绝非必要Cookie，部分功能可能受限'
-                      : '等待您的选择'
-                    }
+                        ? '您已拒绝非必要Cookie，部分功能可能受限'
+                        : '等待您的选择'}
                   </p>
                 </div>
-                
+
                 {consentStatus !== 'pending' && (
                   <button
                     onClick={handleToggleConsent}
@@ -159,7 +154,7 @@ export default function PrivacySettings({ isOpen, onClose }: PrivacySettingsProp
                 <i className="fa-solid fa-chart-pie text-blue-600"></i>
                 数据使用统计
               </h3>
-              
+
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="text-center">
                   <div className="text-2xl font-bold text-blue-600">{stats.totalKeys}</div>
@@ -186,16 +181,18 @@ export default function PrivacySettings({ isOpen, onClose }: PrivacySettingsProp
                 <i className="fa-solid fa-info-circle text-blue-600"></i>
                 我们存储的数据类型
               </h3>
-              
+
               <div className="space-y-2 text-sm">
                 <div className="flex items-start gap-3 p-3 bg-green-50 rounded-lg">
                   <i className="fa-solid fa-shield-check text-green-600 mt-0.5"></i>
                   <div>
                     <div className="font-medium text-green-800">必要功能数据</div>
-                    <div className="text-green-700">Cookie同意状态、基本设置 - 网站正常运行必需</div>
+                    <div className="text-green-700">
+                      Cookie同意状态、基本设置 - 网站正常运行必需
+                    </div>
                   </div>
                 </div>
-                
+
                 <div className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
                   <i className="fa-solid fa-bookmark text-blue-600 mt-0.5"></i>
                   <div>
@@ -203,7 +200,7 @@ export default function PrivacySettings({ isOpen, onClose }: PrivacySettingsProp
                     <div className="text-blue-700">您添加的网站收藏、访问记录、个人笔记</div>
                   </div>
                 </div>
-                
+
                 <div className="flex items-start gap-3 p-3 bg-purple-50 rounded-lg">
                   <i className="fa-solid fa-palette text-purple-600 mt-0.5"></i>
                   <div>
@@ -211,7 +208,7 @@ export default function PrivacySettings({ isOpen, onClose }: PrivacySettingsProp
                     <div className="text-purple-700">主题设置、透明度、布局偏好等个性化配置</div>
                   </div>
                 </div>
-                
+
                 <div className="flex items-start gap-3 p-3 bg-orange-50 rounded-lg">
                   <i className="fa-solid fa-chart-line text-orange-600 mt-0.5"></i>
                   <div>
@@ -222,57 +219,57 @@ export default function PrivacySettings({ isOpen, onClose }: PrivacySettingsProp
               </div>
             </div>
 
-          {/* 数据管理操作 */}
-          <div className="border-t pt-4">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-              <i className="fa-solid fa-wrench text-gray-600"></i>
-              数据管理操作
-            </h3>
-            <div className="space-y-3">
-              <button
-                onClick={handleExportData}
-                disabled={consentStatus !== 'accepted'}
-                className="w-full p-3 bg-blue-100 hover:bg-blue-200 disabled:bg-gray-100 disabled:text-gray-400 text-blue-800 rounded-lg transition-colors text-left"
-              >
-                <div className="flex items-center gap-3">
-                  <i className="fa-solid fa-download"></i>
-                  <div>
-                    <div className="font-medium">导出我的数据</div>
-                    <div className="text-sm opacity-75">下载包含所有个人数据的JSON文件</div>
-                  </div>
-                </div>
-              </button>
-              <button
-                onClick={handleClearAllData}
-                className="w-full p-3 bg-red-100 hover:bg-red-200 text-red-800 rounded-lg transition-colors text-left"
-              >
-                <div className="flex items-center gap-3">
-                  <i className="fa-solid fa-trash"></i>
-                  <div>
-                    <div className="font-medium">清除所有数据</div>
-                    <div className="text-sm opacity-75">删除所有非必要的本地存储数据</div>
-                  </div>
-                </div>
-              </button>
-            </div>
-            {/* 使用教程入口 */}
-            <div className="mt-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-2 flex items-center gap-2">
-                <i className="fa-solid fa-book-open text-blue-500"></i>
-                使用教程
+            {/* 数据管理操作 */}
+            <div className="border-t pt-4">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <i className="fa-solid fa-wrench text-gray-600"></i>
+                数据管理操作
               </h3>
-              <p className="text-sm text-gray-600 mb-3">详细了解本主页的全部功能与技巧。</p>
-              <a
-                href={`${import.meta.env.BASE_URL}tutorial.html`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium shadow transition-colors"
-              >
-                <i className="fa-solid fa-graduation-cap"></i>
-                打开使用教程
-              </a>
+              <div className="space-y-3">
+                <button
+                  onClick={handleExportData}
+                  disabled={consentStatus !== 'accepted'}
+                  className="w-full p-3 bg-blue-100 hover:bg-blue-200 disabled:bg-gray-100 disabled:text-gray-400 text-blue-800 rounded-lg transition-colors text-left"
+                >
+                  <div className="flex items-center gap-3">
+                    <i className="fa-solid fa-download"></i>
+                    <div>
+                      <div className="font-medium">导出我的数据</div>
+                      <div className="text-sm opacity-75">下载包含所有个人数据的JSON文件</div>
+                    </div>
+                  </div>
+                </button>
+                <button
+                  onClick={handleClearAllData}
+                  className="w-full p-3 bg-red-100 hover:bg-red-200 text-red-800 rounded-lg transition-colors text-left"
+                >
+                  <div className="flex items-center gap-3">
+                    <i className="fa-solid fa-trash"></i>
+                    <div>
+                      <div className="font-medium">清除所有数据</div>
+                      <div className="text-sm opacity-75">删除所有非必要的本地存储数据</div>
+                    </div>
+                  </div>
+                </button>
+              </div>
+              {/* 使用教程入口 */}
+              <div className="mt-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                  <i className="fa-solid fa-book-open text-blue-500"></i>
+                  使用教程
+                </h3>
+                <p className="text-sm text-gray-600 mb-3">详细了解本主页的全部功能与技巧。</p>
+                <a
+                  href={`${import.meta.env.BASE_URL}tutorial.html`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium shadow transition-colors"
+                >
+                  <i className="fa-solid fa-graduation-cap"></i>
+                  打开使用教程
+                </a>
+              </div>
             </div>
-          </div>
           </div>
 
           {/* 底部 */}

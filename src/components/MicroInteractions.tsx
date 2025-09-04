@@ -9,12 +9,12 @@ interface SuccessFeedbackProps {
   position?: 'top' | 'center' | 'bottom';
 }
 
-export function SuccessFeedback({ 
-  message, 
-  isVisible, 
-  onComplete, 
+export function SuccessFeedback({
+  message,
+  isVisible,
+  onComplete,
   type = 'success',
-  position = 'top'
+  position = 'top',
 }: SuccessFeedbackProps) {
   useEffect(() => {
     if (isVisible) {
@@ -27,30 +27,44 @@ export function SuccessFeedback({
 
   const getIcon = () => {
     switch (type) {
-      case 'success': return '✅';
-      case 'error': return '❌';
-      case 'info': return 'ℹ️';
-      case 'warning': return '⚠️';
-      default: return '✅';
+      case 'success':
+        return '✅';
+      case 'error':
+        return '❌';
+      case 'info':
+        return 'ℹ️';
+      case 'warning':
+        return '⚠️';
+      default:
+        return '✅';
     }
   };
 
   const getColors = () => {
     switch (type) {
-      case 'success': return 'bg-green-500/90 text-white';
-      case 'error': return 'bg-red-500/90 text-white';
-      case 'info': return 'bg-blue-500/90 text-white';
-      case 'warning': return 'bg-yellow-500/90 text-white';
-      default: return 'bg-green-500/90 text-white';
+      case 'success':
+        return 'bg-green-500/90 text-white';
+      case 'error':
+        return 'bg-red-500/90 text-white';
+      case 'info':
+        return 'bg-blue-500/90 text-white';
+      case 'warning':
+        return 'bg-yellow-500/90 text-white';
+      default:
+        return 'bg-green-500/90 text-white';
     }
   };
 
   const getPositionClasses = () => {
     switch (position) {
-      case 'top': return 'top-20 left-1/2 transform -translate-x-1/2';
-      case 'center': return 'top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2';
-      case 'bottom': return 'bottom-20 left-1/2 transform -translate-x-1/2';
-      default: return 'top-20 left-1/2 transform -translate-x-1/2';
+      case 'top':
+        return 'top-20 left-1/2 transform -translate-x-1/2';
+      case 'center':
+        return 'top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2';
+      case 'bottom':
+        return 'bottom-20 left-1/2 transform -translate-x-1/2';
+      default:
+        return 'top-20 left-1/2 transform -translate-x-1/2';
     }
   };
 
@@ -83,10 +97,14 @@ interface LoadingSpinnerProps {
 export function LoadingSpinner({ size = 'md', color = 'text-white', text }: LoadingSpinnerProps) {
   const getSizeClasses = () => {
     switch (size) {
-      case 'sm': return 'w-4 h-4';
-      case 'md': return 'w-6 h-6';
-      case 'lg': return 'w-8 h-8';
-      default: return 'w-6 h-6';
+      case 'sm':
+        return 'w-4 h-4';
+      case 'md':
+        return 'w-6 h-6';
+      case 'lg':
+        return 'w-8 h-8';
+      default:
+        return 'w-6 h-6';
     }
   };
 
@@ -97,9 +115,7 @@ export function LoadingSpinner({ size = 'md', color = 'text-white', text }: Load
         animate={{ rotate: 360 }}
         transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
       />
-      {text && (
-        <span className={`${color} text-sm font-medium`}>{text}</span>
-      )}
+      {text && <span className={`${color} text-sm font-medium`}>{text}</span>}
     </div>
   );
 }
@@ -111,7 +127,12 @@ interface PulseLoaderProps {
   delay?: number;
 }
 
-export function PulseLoader({ count = 3, size = 8, color = 'bg-white/70', delay = 0.2 }: PulseLoaderProps) {
+export function PulseLoader({
+  count = 3,
+  size = 8,
+  color = 'bg-white/70',
+  delay = 0.2,
+}: PulseLoaderProps) {
   return (
     <div className="flex items-center space-x-1">
       {Array.from({ length: count }).map((_, index) => (
@@ -144,20 +165,17 @@ interface ProgressBarProps {
   showPercentage?: boolean;
 }
 
-export function ProgressBar({ 
-  progress, 
-  height = 4, 
-  color = 'bg-blue-500', 
+export function ProgressBar({
+  progress,
+  height = 4,
+  color = 'bg-blue-500',
   backgroundColor = 'bg-gray-200',
   animated = true,
-  showPercentage = false
+  showPercentage = false,
 }: ProgressBarProps) {
   return (
     <div className="w-full">
-      <div 
-        className={`w-full ${backgroundColor} rounded-full overflow-hidden`}
-        style={{ height }}
-      >
+      <div className={`w-full ${backgroundColor} rounded-full overflow-hidden`} style={{ height }}>
         <motion.div
           className={`h-full ${color} ${animated ? 'transition-all duration-300 ease-out' : ''}`}
           initial={{ width: 0 }}
@@ -166,9 +184,7 @@ export function ProgressBar({
         />
       </div>
       {showPercentage && (
-        <div className="mt-1 text-xs text-gray-600 text-center">
-          {Math.round(progress)}%
-        </div>
+        <div className="mt-1 text-xs text-gray-600 text-center">{Math.round(progress)}%</div>
       )}
     </div>
   );
@@ -183,13 +199,13 @@ interface RippleEffectProps {
   onComplete?: () => void;
 }
 
-export function RippleEffect({ 
-  x, 
-  y, 
-  color = 'rgba(255, 255, 255, 0.6)', 
+export function RippleEffect({
+  x,
+  y,
+  color = 'rgba(255, 255, 255, 0.6)',
   size = 100,
   duration = 0.6,
-  onComplete 
+  onComplete,
 }: RippleEffectProps) {
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -230,26 +246,35 @@ export function FloatingActionButton({
   tooltip,
   position = 'bottom-right',
   color = 'bg-blue-500 hover:bg-blue-600',
-  size = 'md'
+  size = 'md',
 }: FloatingActionButtonProps) {
   const [showTooltip, setShowTooltip] = useState(false);
 
   const getPositionClasses = () => {
     switch (position) {
-      case 'bottom-right': return 'bottom-4 right-4';
-      case 'bottom-left': return 'bottom-4 left-4';
-      case 'top-right': return 'top-4 right-4';
-      case 'top-left': return 'top-4 left-4';
-      default: return 'bottom-4 right-4';
+      case 'bottom-right':
+        return 'bottom-4 right-4';
+      case 'bottom-left':
+        return 'bottom-4 left-4';
+      case 'top-right':
+        return 'top-4 right-4';
+      case 'top-left':
+        return 'top-4 left-4';
+      default:
+        return 'bottom-4 right-4';
     }
   };
 
   const getSizeClasses = () => {
     switch (size) {
-      case 'sm': return 'w-10 h-10 text-sm';
-      case 'md': return 'w-12 h-12 text-base';
-      case 'lg': return 'w-14 h-14 text-lg';
-      default: return 'w-12 h-12 text-base';
+      case 'sm':
+        return 'w-10 h-10 text-sm';
+      case 'md':
+        return 'w-12 h-12 text-base';
+      case 'lg':
+        return 'w-14 h-14 text-lg';
+      default:
+        return 'w-12 h-12 text-base';
     }
   };
 
@@ -268,7 +293,7 @@ export function FloatingActionButton({
       >
         <i className={icon}></i>
       </motion.button>
-      
+
       {tooltip && showTooltip && (
         <motion.div
           className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-black/80 text-white text-xs py-1 px-2 rounded whitespace-nowrap"

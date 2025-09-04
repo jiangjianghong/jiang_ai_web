@@ -23,7 +23,7 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email || !password) {
       setLocalError('请填写完整信息');
       return;
@@ -63,11 +63,11 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
       } else {
         // 注册流程
         await register(email, password);
-        
+
         // 注册成功后显示验证邮件提示
         setShowVerificationMessage(true);
         setVerificationEmail(email);
-        
+
         // 保存用户名到本地，验证邮箱后会同步到云端
         localStorage.setItem('pendingDisplayName', displayName);
       }
@@ -98,9 +98,7 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
         <div className="flex items-start space-x-2">
           <i className="fa-solid fa-envelope-circle-check text-green-600 mt-0.5"></i>
           <div>
-            <h4 className="text-sm font-medium text-green-800">
-              注册成功！请验证您的邮箱
-            </h4>
+            <h4 className="text-sm font-medium text-green-800">注册成功！请验证您的邮箱</h4>
             <p className="text-sm text-green-700 mt-1">
               我们已向 <strong>{verificationEmail}</strong> 发送了验证邮件。
               请点击邮件中的链接完成验证后即可使用完整功能。
@@ -134,9 +132,7 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
   return (
     <div className="space-y-4">
       <div className="text-center mb-4">
-        <h3 className="text-lg font-semibold text-gray-800">
-          {isLogin ? '登录账号' : '注册账号'}
-        </h3>
+        <h3 className="text-lg font-semibold text-gray-800">{isLogin ? '登录账号' : '注册账号'}</h3>
         <p className="text-sm text-gray-600">
           {isLogin ? '使用邮箱登录您的账号' : '创建新账号并设置用户名'}
         </p>
@@ -151,9 +147,7 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
       <form onSubmit={handleSubmit} className="space-y-4">
         {!isLogin && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              用户名 *
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">用户名 *</label>
             <input
               type="text"
               value={displayName}
@@ -163,16 +157,12 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
               disabled={loading}
               maxLength={20}
             />
-            <p className="text-xs text-gray-500 mt-1">
-              支持中文、英文、数字、下划线和短横线
-            </p>
+            <p className="text-xs text-gray-500 mt-1">支持中文、英文、数字、下划线和短横线</p>
           </div>
         )}
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            邮箱 *
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">邮箱 *</label>
           <input
             type="email"
             value={email}
@@ -184,9 +174,7 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            密码 *
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">密码 *</label>
           <input
             type="password"
             value={password}
@@ -203,7 +191,7 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
           disabled={loading}
           className="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white py-2 px-4 rounded-md transition-colors"
         >
-          {loading ? '处理中...' : (isLogin ? '登录' : '注册')}
+          {loading ? '处理中...' : isLogin ? '登录' : '注册'}
         </button>
       </form>
 

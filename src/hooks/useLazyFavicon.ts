@@ -20,13 +20,13 @@ interface UseLazyFaviconOptions {
  * @returns { faviconUrl: string, isLoading: boolean, error: boolean }
  */
 export function useLazyFavicon(
-  originalUrl: string, 
+  originalUrl: string,
   faviconUrl: string,
   elementRef: RefObject<HTMLElement>,
   options: UseLazyFaviconOptions = {}
 ) {
   const { rootMargin = '50px', threshold = 0.1 } = options;
-  
+
   const [currentFaviconUrl, setCurrentFaviconUrl] = useState<string>(() => {
     // 初始化时先检查缓存，优先使用 Blob URL
     const cached = faviconCache.getCachedFavicon(originalUrl);
@@ -35,7 +35,7 @@ export function useLazyFavicon(
     }
     return faviconUrl;
   });
-  
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
@@ -49,7 +49,6 @@ export function useLazyFavicon(
       currentBlobUrlRef.current = null;
     }
   };
-
 
   // IntersectionObserver effect
   useEffect(() => {
@@ -109,7 +108,9 @@ export function useLazyFavicon(
         if (currentFaviconUrl !== cachedProcessedUrl) {
           cleanupCurrentBlobUrl();
           setCurrentFaviconUrl(cachedProcessedUrl);
-          currentBlobUrlRef.current = cachedProcessedUrl.startsWith('blob:') ? cachedProcessedUrl : null;
+          currentBlobUrlRef.current = cachedProcessedUrl.startsWith('blob:')
+            ? cachedProcessedUrl
+            : null;
         }
         setError(false);
         setIsLoading(false);
@@ -123,14 +124,17 @@ export function useLazyFavicon(
       if (currentFaviconUrl !== processedFaviconUrl) {
         cleanupCurrentBlobUrl();
         setCurrentFaviconUrl(processedFaviconUrl);
-        currentBlobUrlRef.current = processedFaviconUrl.startsWith('blob:') ? processedFaviconUrl : null;
+        currentBlobUrlRef.current = processedFaviconUrl.startsWith('blob:')
+          ? processedFaviconUrl
+          : null;
       }
       setError(false);
       setIsLoading(false);
 
       if (isDefaultIconUrl && !cached) {
         setIsLoading(true);
-        faviconCache.getFavicon(originalUrl, faviconUrl)
+        faviconCache
+          .getFavicon(originalUrl, faviconUrl)
           .then((url: string) => {
             if (url !== faviconUrl && !isDefaultIcon(url)) {
               const processedUrl = processFaviconUrl(url, originalUrl, faviconUrl);
@@ -164,6 +168,6 @@ export function useLazyFavicon(
     faviconUrl: currentFaviconUrl,
     isLoading,
     error,
-    isVisible
+    isVisible,
   };
 }

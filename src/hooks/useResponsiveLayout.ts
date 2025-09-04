@@ -31,7 +31,7 @@ const DEFAULT_BREAKPOINTS: ResponsiveBreakpoints = {
   mobile: 640,
   tablet: 768,
   desktop: 1024,
-  wide: 1440
+  wide: 1440,
 };
 
 const DEFAULT_LAYOUT: ResponsiveLayoutConfig = {
@@ -40,24 +40,24 @@ const DEFAULT_LAYOUT: ResponsiveLayoutConfig = {
     tablet: 3,
     tabletLandscape: 4,
     desktop: 6,
-    wide: 8
+    wide: 8,
   },
   gaps: {
     mobile: 'gap-x-2 gap-y-6',
     tablet: 'gap-x-3 gap-y-8',
-    desktop: 'gap-x-4 gap-y-10'
+    desktop: 'gap-x-4 gap-y-10',
   },
   cardSizes: {
     mobile: 'w-full max-w-[160px]',
     tablet: 'w-full max-w-[180px]',
-    desktop: 'w-full max-w-[200px]'
-  }
+    desktop: 'w-full max-w-[200px]',
+  },
 };
 
 export function useResponsiveLayout(customConfig?: Partial<ResponsiveLayoutConfig>) {
   const [screenSize, setScreenSize] = useState({
     width: typeof window !== 'undefined' ? window.innerWidth : 1024,
-    height: typeof window !== 'undefined' ? window.innerHeight : 768
+    height: typeof window !== 'undefined' ? window.innerHeight : 768,
   });
 
   const [orientation, setOrientation] = useState<'portrait' | 'landscape'>('landscape');
@@ -69,7 +69,7 @@ export function useResponsiveLayout(customConfig?: Partial<ResponsiveLayoutConfi
     const updateLayout = () => {
       const width = window.innerWidth;
       const height = window.innerHeight;
-      
+
       setScreenSize({ width, height });
       setOrientation(width > height ? 'landscape' : 'portrait');
 
@@ -100,11 +100,9 @@ export function useResponsiveLayout(customConfig?: Partial<ResponsiveLayoutConfi
   // 获取当前布局配置
   const getCurrentLayout = () => {
     const isTabletLandscape = deviceType === 'tablet' && orientation === 'landscape';
-    
+
     return {
-      columns: isTabletLandscape 
-        ? config.columns.tabletLandscape 
-        : config.columns[deviceType],
+      columns: isTabletLandscape ? config.columns.tabletLandscape : config.columns[deviceType],
       gap: config.gaps[deviceType === 'wide' ? 'desktop' : deviceType],
       cardSize: config.cardSizes[deviceType === 'wide' ? 'desktop' : deviceType],
       deviceType,
@@ -113,7 +111,7 @@ export function useResponsiveLayout(customConfig?: Partial<ResponsiveLayoutConfi
       isMobile: deviceType === 'mobile',
       isTablet: deviceType === 'tablet',
       isDesktop: deviceType === 'desktop' || deviceType === 'wide',
-      isTabletLandscape
+      isTabletLandscape,
     };
   };
 
@@ -121,11 +119,11 @@ export function useResponsiveLayout(customConfig?: Partial<ResponsiveLayoutConfi
   const getGridClasses = () => {
     const layout = getCurrentLayout();
     const baseClasses = 'grid';
-    
+
     if (layout.isMobile) {
       return `${baseClasses} grid-cols-2 ${layout.gap} px-2`;
     } else if (layout.isTablet) {
-      return layout.isTabletLandscape 
+      return layout.isTabletLandscape
         ? `${baseClasses} grid-cols-4 ${layout.gap} px-4`
         : `${baseClasses} grid-cols-3 ${layout.gap} px-4`;
     } else {
@@ -137,7 +135,7 @@ export function useResponsiveLayout(customConfig?: Partial<ResponsiveLayoutConfi
   const getCardClasses = () => {
     const layout = getCurrentLayout();
     const baseClasses = 'relative group';
-    
+
     if (layout.isMobile) {
       return `${baseClasses} ${layout.cardSize} mx-auto`;
     } else if (layout.isTablet) {
@@ -150,24 +148,24 @@ export function useResponsiveLayout(customConfig?: Partial<ResponsiveLayoutConfi
   // 获取搜索栏布局
   const getSearchBarLayout = () => {
     const layout = getCurrentLayout();
-    
+
     if (layout.isMobile) {
       return {
         containerClass: 'px-4 py-4',
         searchClass: 'w-full max-w-lg mx-auto',
-        buttonSize: 'text-sm px-3 py-2'
+        buttonSize: 'text-sm px-3 py-2',
       };
     } else if (layout.isTablet) {
       return {
         containerClass: 'px-6 py-6',
         searchClass: 'w-full max-w-2xl mx-auto',
-        buttonSize: 'text-base px-4 py-2'
+        buttonSize: 'text-base px-4 py-2',
       };
     } else {
       return {
         containerClass: 'px-8 py-8',
         searchClass: 'w-full max-w-3xl mx-auto',
-        buttonSize: 'text-lg px-6 py-3'
+        buttonSize: 'text-lg px-6 py-3',
       };
     }
   };
@@ -176,6 +174,6 @@ export function useResponsiveLayout(customConfig?: Partial<ResponsiveLayoutConfi
     ...getCurrentLayout(),
     getGridClasses,
     getCardClasses,
-    getSearchBarLayout
+    getSearchBarLayout,
   };
 }

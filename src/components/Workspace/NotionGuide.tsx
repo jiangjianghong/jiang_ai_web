@@ -1,4 +1,3 @@
-
 interface NotionGuideProps {
   onClose: () => void;
 }
@@ -30,9 +29,11 @@ export default function NotionGuide({ onClose }: NotionGuideProps) {
       </div>
 
       {/* 指南内容 */}
-      <div className="flex-1 overflow-y-auto px-6 py-6" style={{ maxHeight: 'calc(100vh - 160px)' }}>
+      <div
+        className="flex-1 overflow-y-auto px-6 py-6"
+        style={{ maxHeight: 'calc(100vh - 160px)' }}
+      >
         <div className="max-w-3xl space-y-8">
-          
           {/* 步骤 1: 创建 Notion Integration */}
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
             <div className="flex items-start space-x-4">
@@ -40,7 +41,9 @@ export default function NotionGuide({ onClose }: NotionGuideProps) {
                 1
               </div>
               <div className="flex-1">
-                <h4 className="text-lg font-semibold text-blue-900 mb-3">创建 Notion Integration</h4>
+                <h4 className="text-lg font-semibold text-blue-900 mb-3">
+                  创建 Notion Integration
+                </h4>
                 <div className="space-y-4 text-sm text-blue-800">
                   <div className="flex items-start space-x-2">
                     <span className="font-medium">1.1</span>
@@ -60,33 +63,45 @@ export default function NotionGuide({ onClose }: NotionGuideProps) {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-start space-x-2">
                     <span className="font-medium">1.2</span>
-                    <p>点击 <strong>"+ New integration"</strong> 按钮</p>
+                    <p>
+                      点击 <strong>"+ New integration"</strong> 按钮
+                    </p>
                   </div>
-                  
+
                   <div className="flex items-start space-x-2">
                     <span className="font-medium">1.3</span>
                     <div>
                       <p>填写 Integration 信息：</p>
                       <ul className="mt-1 ml-4 list-disc space-y-1">
-                        <li><strong>Name:</strong> 自定义名称，如"我的工作空间"</li>
-                        <li><strong>Associated workspace:</strong> 选择您要同步的工作空间</li>
-                        <li><strong>Logo:</strong> 可选，上传一个图标</li>
+                        <li>
+                          <strong>Name:</strong> 自定义名称，如"我的工作空间"
+                        </li>
+                        <li>
+                          <strong>Associated workspace:</strong> 选择您要同步的工作空间
+                        </li>
+                        <li>
+                          <strong>Logo:</strong> 可选，上传一个图标
+                        </li>
                       </ul>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-start space-x-2">
                     <span className="font-medium">1.4</span>
-                    <p>点击 <strong>"Submit"</strong> 提交</p>
+                    <p>
+                      点击 <strong>"Submit"</strong> 提交
+                    </p>
                   </div>
-                  
+
                   <div className="flex items-start space-x-2">
                     <span className="font-medium">1.5</span>
                     <div>
-                      <p>在创建完成页面，复制 <strong>"Internal Integration Secret"</strong></p>
+                      <p>
+                        在创建完成页面，复制 <strong>"Internal Integration Secret"</strong>
+                      </p>
                       <p className="text-xs text-blue-600 mt-1">
                         ⚠️ 这个密钥就是您的 API Key，请妥善保存
                       </p>
@@ -106,13 +121,14 @@ export default function NotionGuide({ onClose }: NotionGuideProps) {
               <div className="flex-1">
                 <h4 className="text-lg font-semibold text-green-900 mb-3">创建或配置数据库</h4>
                 <div className="space-y-4 text-sm text-green-800">
-                  
                   <div className="bg-white border border-green-200 rounded-lg p-4">
                     <h5 className="font-medium text-green-900 mb-2">选项 A: 创建新数据库</h5>
                     <div className="space-y-2">
                       <div className="flex items-start space-x-2">
                         <span className="font-medium">2A.1</span>
-                        <p>在 Notion 页面中输入 <code>/database</code> 创建新数据库</p>
+                        <p>
+                          在 Notion 页面中输入 <code>/database</code> 创建新数据库
+                        </p>
                       </div>
                       <div className="flex items-start space-x-2">
                         <span className="font-medium">2A.2</span>
@@ -120,13 +136,27 @@ export default function NotionGuide({ onClose }: NotionGuideProps) {
                       </div>
                       <div className="ml-8 bg-gray-50 rounded p-3">
                         <ul className="text-xs space-y-1">
-                          <li><strong>Name</strong> (标题) - 工具/网站名称</li>
-                          <li><strong>URL</strong> (网址) - 访问链接</li>
-                          <li><strong>Description</strong> (富文本) - 工具描述</li>
-                          <li><strong>Category</strong> (选择) - 工具分类</li>
-                          <li><strong>Active</strong> (复选框) - 是否启用</li>
-                          <li><strong>Username</strong> (富文本) - 账号信息（可选）</li>
-                          <li><strong>Password</strong> (富文本) - 密码信息（可选）</li>
+                          <li>
+                            <strong>Name</strong> (标题) - 工具/网站名称
+                          </li>
+                          <li>
+                            <strong>URL</strong> (网址) - 访问链接
+                          </li>
+                          <li>
+                            <strong>Description</strong> (富文本) - 工具描述
+                          </li>
+                          <li>
+                            <strong>Category</strong> (选择) - 工具分类
+                          </li>
+                          <li>
+                            <strong>Active</strong> (复选框) - 是否启用
+                          </li>
+                          <li>
+                            <strong>Username</strong> (富文本) - 账号信息（可选）
+                          </li>
+                          <li>
+                            <strong>Password</strong> (富文本) - 密码信息（可选）
+                          </li>
                         </ul>
                       </div>
                     </div>
@@ -134,7 +164,9 @@ export default function NotionGuide({ onClose }: NotionGuideProps) {
 
                   <div className="bg-white border border-green-200 rounded-lg p-4">
                     <h5 className="font-medium text-green-900 mb-2">选项 B: 使用现有数据库</h5>
-                    <p>如果您已经有一个包含工具/网站信息的数据库，可以直接使用。只需确保有标题属性和URL属性即可。</p>
+                    <p>
+                      如果您已经有一个包含工具/网站信息的数据库，可以直接使用。只需确保有标题属性和URL属性即可。
+                    </p>
                   </div>
                 </div>
               </div>
@@ -148,37 +180,52 @@ export default function NotionGuide({ onClose }: NotionGuideProps) {
                 3
               </div>
               <div className="flex-1">
-                <h4 className="text-lg font-semibold text-purple-900 mb-3">连接数据库到 Integration</h4>
+                <h4 className="text-lg font-semibold text-purple-900 mb-3">
+                  连接数据库到 Integration
+                </h4>
                 <div className="space-y-4 text-sm text-purple-800">
                   <div className="flex items-start space-x-2">
                     <span className="font-medium">3.1</span>
-                    <p>在您的数据库页面，点击右上角的 <strong>"···"</strong> (更多选项)</p>
+                    <p>
+                      在您的数据库页面，点击右上角的 <strong>"···"</strong> (更多选项)
+                    </p>
                   </div>
-                  
+
                   <div className="flex items-start space-x-2">
                     <span className="font-medium">3.2</span>
-                    <p>选择 <strong>"+ Add connections"</strong></p>
+                    <p>
+                      选择 <strong>"+ Add connections"</strong>
+                    </p>
                   </div>
-                  
+
                   <div className="flex items-start space-x-2">
                     <span className="font-medium">3.3</span>
                     <p>找到并选择您在步骤1创建的 Integration</p>
                   </div>
-                  
+
                   <div className="flex items-start space-x-2">
                     <span className="font-medium">3.4</span>
-                    <p>点击 <strong>"Confirm"</strong> 确认连接</p>
+                    <p>
+                      点击 <strong>"Confirm"</strong> 确认连接
+                    </p>
                   </div>
-                  
+
                   <div className="bg-white border border-purple-200 rounded-lg p-3 mt-4">
                     <div className="flex items-start space-x-2">
                       <i className="fa-solid fa-lightbulb text-purple-600 mt-0.5"></i>
                       <div>
                         <p className="font-medium text-purple-900">获取数据库 ID</p>
                         <p className="text-xs mt-1">
-                          数据库连接成功后，您可以从浏览器地址栏复制完整的分享链接。<br/>
-                          格式：<code>https://www.notion.so/22b197407c238188ace9fe148487a853?v=22b197407c23816c809f000c1b8ef117</code><br/>
-                          <span className="text-green-600">✨ 新功能：现在可以直接粘贴完整链接，系统会自动提取数据库 ID！</span>
+                          数据库连接成功后，您可以从浏览器地址栏复制完整的分享链接。
+                          <br />
+                          格式：
+                          <code>
+                            https://www.notion.so/22b197407c238188ace9fe148487a853?v=22b197407c23816c809f000c1b8ef117
+                          </code>
+                          <br />
+                          <span className="text-green-600">
+                            ✨ 新功能：现在可以直接粘贴完整链接，系统会自动提取数据库 ID！
+                          </span>
                         </p>
                       </div>
                     </div>
@@ -201,25 +248,33 @@ export default function NotionGuide({ onClose }: NotionGuideProps) {
                     <span className="font-medium">4.1</span>
                     <p>返回工作空间设置页面</p>
                   </div>
-                  
+
                   <div className="flex items-start space-x-2">
                     <span className="font-medium">4.2</span>
-                    <p>在 <strong>"Notion API Key"</strong> 输入框中粘贴步骤1.5获取的密钥</p>
+                    <p>
+                      在 <strong>"Notion API Key"</strong> 输入框中粘贴步骤1.5获取的密钥
+                    </p>
                   </div>
-                  
+
                   <div className="flex items-start space-x-2">
                     <span className="font-medium">4.3</span>
-                    <p>在 <strong>"Database ID"</strong> 输入框中粘贴步骤3.4获取的数据库ID</p>
+                    <p>
+                      在 <strong>"Database ID"</strong> 输入框中粘贴步骤3.4获取的数据库ID
+                    </p>
                   </div>
-                  
+
                   <div className="flex items-start space-x-2">
                     <span className="font-medium">4.4</span>
-                    <p>点击 <strong>"测试连接"</strong> 验证配置</p>
+                    <p>
+                      点击 <strong>"测试连接"</strong> 验证配置
+                    </p>
                   </div>
-                  
+
                   <div className="flex items-start space-x-2">
                     <span className="font-medium">4.5</span>
-                    <p>连接成功后，点击 <strong>"保存配置"</strong> 完成设置</p>
+                    <p>
+                      连接成功后，点击 <strong>"保存配置"</strong> 完成设置
+                    </p>
                   </div>
                 </div>
               </div>
@@ -236,13 +291,15 @@ export default function NotionGuide({ onClose }: NotionGuideProps) {
               <div>
                 <h5 className="font-medium text-gray-800 mb-1">Q: 连接测试失败怎么办？</h5>
                 <p className="text-sm text-gray-600">
-                  A: 请检查：1) API Key是否正确复制；2) 数据库ID格式是否正确（32位字符）；3) Integration是否已连接到数据库；4) 网络连接是否正常。
+                  A: 请检查：1) API Key是否正确复制；2) 数据库ID格式是否正确（32位字符）；3)
+                  Integration是否已连接到数据库；4) 网络连接是否正常。
                 </p>
               </div>
               <div>
                 <h5 className="font-medium text-gray-800 mb-1">Q: 找不到数据库ID？</h5>
                 <p className="text-sm text-gray-600">
-                  A: 在数据库页面的URL中，database ID位于工作空间名称后面，格式为32位字符串（包含数字和字母）。
+                  A: 在数据库页面的URL中，database
+                  ID位于工作空间名称后面，格式为32位字符串（包含数字和字母）。
                 </p>
               </div>
               <div>
@@ -260,8 +317,8 @@ export default function NotionGuide({ onClose }: NotionGuideProps) {
       <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
         <div className="flex items-center justify-between">
           <div className="text-sm text-gray-500">
-            需要帮助？查看 
-            <a 
+            需要帮助？查看
+            <a
               href="https://developers.notion.com/docs/create-a-notion-integration"
               target="_blank"
               rel="noopener noreferrer"

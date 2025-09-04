@@ -63,82 +63,80 @@ export default function UserNameEditor() {
 
   return (
     <div className="space-y-3">
-        {isEditing ? (
-          <div className="space-y-2">
-            <input
-              type="text"
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-              className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="请输入用户名"
-              maxLength={20}
-              disabled={loading}
-              autoFocus
-            />
-            
-            {error && (
-              <p className="text-xs text-red-600">{error}</p>
-            )}
-            
-            <div className="flex space-x-2">
-              <button
-                onClick={handleSave}
-                disabled={loading || !newName.trim()}
-                className="text-xs bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white px-2 py-1 rounded"
-              >
-                {loading ? (
-                  <>
-                    <i className="fa-solid fa-spinner fa-spin mr-1"></i>
-                    保存中...
-                  </>
-                ) : (
-                  <>
-                    <i className="fa-solid fa-check mr-1"></i>
-                    保存
-                  </>
-                )}
-              </button>
-              <button
-                onClick={handleCancel}
-                disabled={loading}
-                className="text-xs bg-gray-500 hover:bg-gray-600 text-white px-2 py-1 rounded"
-              >
-                <i className="fa-solid fa-times mr-1"></i>
-                取消
-              </button>
-            </div>
-            
-            <p className="text-xs text-gray-500">
-              支持中文、英文、数字、下划线和短横线，2-20个字符
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-2">
+      {isEditing ? (
+        <div className="space-y-2">
+          <input
+            type="text"
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="请输入用户名"
+            maxLength={20}
+            disabled={loading}
+            autoFocus
+          />
+
+          {error && <p className="text-xs text-red-600">{error}</p>}
+
+          <div className="flex space-x-2">
             <button
-              onClick={() => setIsEditing(true)}
-              className="text-left hover:bg-gray-50 rounded-lg p-2 transition-colors duration-200 w-full group"
+              onClick={handleSave}
+              disabled={loading || !newName.trim()}
+              className="text-xs bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white px-2 py-1 rounded"
             >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <i className="fa-solid fa-user text-blue-500 text-sm"></i>
-                  <span className="text-sm font-medium text-gray-700">{displayName || '设置用户名'}</span>
-                </div>
-                <i className="fa-solid fa-edit text-xs text-gray-400 group-hover:text-blue-500 transition-colors duration-200"></i>
-              </div>
-              <div className="text-xs text-gray-500 mt-1 pl-6">点击编辑用户名</div>
+              {loading ? (
+                <>
+                  <i className="fa-solid fa-spinner fa-spin mr-1"></i>
+                  保存中...
+                </>
+              ) : (
+                <>
+                  <i className="fa-solid fa-check mr-1"></i>
+                  保存
+                </>
+              )}
+            </button>
+            <button
+              onClick={handleCancel}
+              disabled={loading}
+              className="text-xs bg-gray-500 hover:bg-gray-600 text-white px-2 py-1 rounded"
+            >
+              <i className="fa-solid fa-times mr-1"></i>
+              取消
             </button>
           </div>
-        )}
 
-        <div className="border-t border-gray-200 pt-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <i className="fa-solid fa-envelope text-indigo-500"></i>
-              <span className="text-xs text-gray-600">{currentUser.email}</span>
+          <p className="text-xs text-gray-500">支持中文、英文、数字、下划线和短横线，2-20个字符</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          <button
+            onClick={() => setIsEditing(true)}
+            className="text-left hover:bg-gray-50 rounded-lg p-2 transition-colors duration-200 w-full group"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <i className="fa-solid fa-user text-blue-500 text-sm"></i>
+                <span className="text-sm font-medium text-gray-700">
+                  {displayName || '设置用户名'}
+                </span>
+              </div>
+              <i className="fa-solid fa-edit text-xs text-gray-400 group-hover:text-blue-500 transition-colors duration-200"></i>
             </div>
-            <i className="fa-solid fa-check-circle text-green-500 text-xs" title="邮箱已验证"></i>
+            <div className="text-xs text-gray-500 mt-1 pl-6">点击编辑用户名</div>
+          </button>
+        </div>
+      )}
+
+      <div className="border-t border-gray-200 pt-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <i className="fa-solid fa-envelope text-indigo-500"></i>
+            <span className="text-xs text-gray-600">{currentUser.email}</span>
           </div>
+          <i className="fa-solid fa-check-circle text-green-500 text-xs" title="邮箱已验证"></i>
         </div>
       </div>
+    </div>
   );
 }

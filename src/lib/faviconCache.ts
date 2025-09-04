@@ -65,29 +65,31 @@ class FaviconCacheManager {
     for (let i = 0; i < validDomains.length; i += batchSize) {
       const batch = validDomains.slice(i, i + batchSize);
 
-      await Promise.all(batch.map(async (domain) => {
-        try {
-          // 如果已有 Blob URL 缓存，跳过
-          if (this.blobUrlCache.has(domain)) {
-            return;
-          }
+      await Promise.all(
+        batch.map(async (domain) => {
+          try {
+            // 如果已有 Blob URL 缓存，跳过
+            if (this.blobUrlCache.has(domain)) {
+              return;
+            }
 
-          const cacheKey = this.getFaviconCacheKey(domain);
-          const blob = await indexedDBCache.get(cacheKey);
+            const cacheKey = this.getFaviconCacheKey(domain);
+            const blob = await indexedDBCache.get(cacheKey);
 
-          if (blob) {
-            const blobUrl = await createManagedBlobUrl(blob, 'favicon');
-            this.blobUrlCache.set(domain, blobUrl);
-            console.log(`✅ 预加载 Blob URL: ${domain}`);
+            if (blob) {
+              const blobUrl = await createManagedBlobUrl(blob, 'favicon');
+              this.blobUrlCache.set(domain, blobUrl);
+              console.log(`✅ 预加载 Blob URL: ${domain}`);
+            }
+          } catch (error) {
+            console.warn(`预加载 Blob URL 失败: ${domain}`, error);
           }
-        } catch (error) {
-          console.warn(`预加载 Blob URL 失败: ${domain}`, error);
-        }
-      }));
+        })
+      );
 
       // 小延迟避免阻塞主线程
       if (i + batchSize < validDomains.length) {
-        await new Promise(resolve => setTimeout(resolve, 10));
+        await new Promise((resolve) => setTimeout(resolve, 10));
       }
     }
 
@@ -120,7 +122,7 @@ class FaviconCacheManager {
       }
     }
 
-    toDelete.forEach(domain => {
+    toDelete.forEach((domain) => {
       delete this.metadata[domain];
     });
 
@@ -155,13 +157,13 @@ class FaviconCacheManager {
       // 优先使用 allorigins 代理访问 favicon.im（稳定可靠）
       `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://favicon.im/${domain}?larger=true&size=64`)}`,
       `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://favicon.im/${domain}?larger=true&size=32`)}`,
-      
+
       // 备用：使用 corsproxy.io
       `https://corsproxy.io/?${encodeURIComponent(`https://favicon.im/${domain}?larger=true&size=64`)}`,
       `https://corsproxy.io/?${encodeURIComponent(`https://favicon.im/${domain}?larger=true&size=32`)}`,
-      
+
       // 最后使用原始 URL（如果提供）
-      ...(originalUrl && !originalUrl.includes('favicon.im') ? [originalUrl] : [])
+      ...(originalUrl && !originalUrl.includes('favicon.im') ? [originalUrl] : []),
     ];
   }
 
@@ -172,19 +174,19 @@ class FaviconCacheManager {
     for (const url of urls) {
       try {
         console.log(`🔄 尝试下载 favicon: ${domain} -> ${url}`);
-        
+
         // 添加超时控制
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 5000); // 5秒超时
-        
+
         const response = await fetch(url, {
           mode: 'cors',
           credentials: 'omit',
           headers: {
-            'Accept': 'image/*,*/*;q=0.8',
-            'User-Agent': 'Mozilla/5.0 (compatible; FaviconBot/1.0)'
+            Accept: 'image/*,*/*;q=0.8',
+            'User-Agent': 'Mozilla/5.0 (compatible; FaviconBot/1.0)',
           },
-          signal: controller.signal
+          signal: controller.signal,
         });
 
         clearTimeout(timeoutId);
@@ -192,7 +194,7 @@ class FaviconCacheManager {
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
         const blob = await response.blob();
-        
+
         // 验证是否为有效图片
         if (!blob.type.startsWith('image/') || blob.size < 100) {
           throw new Error('无效的图片文件');
@@ -209,7 +211,7 @@ class FaviconCacheManager {
           timestamp: Date.now(),
           expiry: Date.now() + this.defaultExpiry,
           size: blob.size,
-          type: blob.type
+          type: blob.type,
         };
         this.saveMetadata();
 
@@ -235,7 +237,7 @@ class FaviconCacheManager {
         return blobUrl;
       } catch (error) {
         console.log(`❌ Favicon 下载失败: ${domain} -> ${url} (${error})`);
-        
+
         // 如果是代理URL失败，记录并继续尝试直接URL
         if (url.includes('api.allorigins.win')) {
           console.log(`🔄 代理服务失败，将尝试直接访问`);
@@ -243,7 +245,7 @@ class FaviconCacheManager {
         continue;
       }
     }
-    
+
     // 所有尝试失败，返回默认图标
     console.log(`🔄 所有 favicon 尝试失败，使用默认图标: ${domain}`);
     return '/icon/favicon.png';
@@ -263,7 +265,7 @@ class FaviconCacheManager {
       // 从 IndexedDB 获取文件
       const cacheKey = this.getFaviconCacheKey(domain);
       const blob = await indexedDBCache.get(cacheKey);
-      
+
       if (blob) {
         console.log(`📁 使用缓存 favicon 文件: ${domain} (${(blob.size / 1024).toFixed(1)}KB)`);
 
@@ -285,9 +287,14 @@ class FaviconCacheManager {
       }
     } catch (error) {
       console.warn(`读取 favicon 缓存失败: ${domain}`, error);
-      
+
       // 如果是 IndexedDB 错误，尝试清理损坏的元数据
-      if (error && typeof error === 'object' && 'name' in error && (error as Error).name === 'InvalidStateError') {
+      if (
+        error &&
+        typeof error === 'object' &&
+        'name' in error &&
+        (error as Error).name === 'InvalidStateError'
+      ) {
         try {
           delete this.metadata[domain];
           this.saveMetadata();
@@ -297,7 +304,7 @@ class FaviconCacheManager {
         }
       }
     }
-    
+
     return null;
   }
 
@@ -363,7 +370,7 @@ class FaviconCacheManager {
    */
   async getFavicon(originalUrl: string, faviconUrl: string): Promise<string> {
     const domain = this.extractDomain(originalUrl);
-    
+
     // 优先检查文件缓存
     const cached = await this.getCachedFaviconFile(domain);
     if (cached) {
@@ -398,7 +405,7 @@ class FaviconCacheManager {
    */
   private async loadAndCacheFavicon(faviconUrl: string, domain: string): Promise<string> {
     const urls = this.getFaviconUrls(faviconUrl, domain);
-    
+
     try {
       const result = await this.downloadAndCacheFavicon(urls, domain);
       return result;
@@ -426,7 +433,7 @@ class FaviconCacheManager {
    * 轻量级预加载方法 - 只预加载没有缓存的图标
    */
   async preloadFavicons(websites: Array<{ url: string; favicon: string }>): Promise<void> {
-    const uncachedWebsites = websites.filter(website => {
+    const uncachedWebsites = websites.filter((website) => {
       const cached = this.getCachedFavicon(website.url);
       return !cached;
     });
@@ -444,17 +451,19 @@ class FaviconCacheManager {
       const batch = uncachedWebsites.slice(i, i + batchSize);
 
       // 并行处理当前批次
-      await Promise.allSettled(batch.map(async (website) => {
-        try {
-          await this.getFavicon(website.url, website.favicon);
-        } catch (error) {
-          console.warn(`预加载图标失败: ${website.url}`, error);
-        }
-      }));
+      await Promise.allSettled(
+        batch.map(async (website) => {
+          try {
+            await this.getFavicon(website.url, website.favicon);
+          } catch (error) {
+            console.warn(`预加载图标失败: ${website.url}`, error);
+          }
+        })
+      );
 
       // 批次间延迟，避免过度占用网络资源
       if (i + batchSize < uncachedWebsites.length) {
-        await new Promise(resolve => setTimeout(resolve, 200));
+        await new Promise((resolve) => setTimeout(resolve, 200));
       }
     }
 
@@ -464,21 +473,23 @@ class FaviconCacheManager {
   /**
    * 批量缓存 favicon（文件缓存版）
    */
-  async batchCacheFaviconsToIndexedDB(websites: Array<{ url: string; favicon: string }>): Promise<void> {
+  async batchCacheFaviconsToIndexedDB(
+    websites: Array<{ url: string; favicon: string }>
+  ): Promise<void> {
     console.log(`🚀 开始批量文件缓存 ${websites.length} 个 favicon`);
-    
+
     let successCount = 0;
     let skipCount = 0;
     let errorCount = 0;
-    
+
     const BATCH_SIZE = 3; // 减少并发数，避免过多网络请求
-    
+
     for (let i = 0; i < websites.length; i += BATCH_SIZE) {
       const batch = websites.slice(i, i + BATCH_SIZE);
-      
+
       const promises = batch.map(async (site, index) => {
         const domain = this.extractDomain(site.url);
-        
+
         try {
           // 检查是否已有文件缓存
           const cached = await this.getCachedFaviconFile(domain);
@@ -486,13 +497,13 @@ class FaviconCacheManager {
             skipCount++;
             return;
           }
-          
+
           // 添加延迟避免请求过于频繁，减少429错误
           const delay = (index + 1) * 1200; // 增加延迟到1.2秒
-          await new Promise(resolve => setTimeout(resolve, delay));
-          
+          await new Promise((resolve) => setTimeout(resolve, delay));
+
           console.log(`🔄 [${i + index + 1}/${websites.length}] 处理: ${domain}`);
-          
+
           const result = await this.getFavicon(site.url, site.favicon);
           if (result && result !== '/icon/favicon.png') {
             successCount++;
@@ -500,21 +511,20 @@ class FaviconCacheManager {
           } else {
             errorCount++;
           }
-          
         } catch (error) {
           errorCount++;
           console.warn(`❌ 批量文件缓存失败: ${domain}`, error);
         }
       });
-      
+
       await Promise.allSettled(promises);
-      
+
       // 批次间停顿
       if (i + BATCH_SIZE < websites.length) {
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        await new Promise((resolve) => setTimeout(resolve, 1500));
       }
     }
-    
+
     console.log(`✅ 批量 favicon 文件缓存完成:`);
     console.log(`   成功: ${successCount}, 跳过: ${skipCount}, 失败: ${errorCount}`);
   }
@@ -552,7 +562,7 @@ class FaviconCacheManager {
    */
   async clearCache(): Promise<void> {
     console.log('🧹 开始清理所有 favicon 缓存...');
-    
+
     // 清理所有文件缓存
     const domains = Object.keys(this.metadata);
     let cleanedFiles = 0;
@@ -598,14 +608,14 @@ class FaviconCacheManager {
   getCacheStats(): { total: number; expired: number; totalSize: string } {
     const now = Date.now();
     const total = Object.keys(this.metadata).length;
-    const expired = Object.values(this.metadata).filter(item => now > item.expiry).length;
-    
-    const totalSize = Object.values(this.metadata)
-      .reduce((sum, item) => sum + (item.size || 0), 0);
-    
-    const sizeStr = totalSize > 1024 * 1024 
-      ? `${(totalSize / 1024 / 1024).toFixed(1)} MB`
-      : `${(totalSize / 1024).toFixed(1)} KB`;
+    const expired = Object.values(this.metadata).filter((item) => now > item.expiry).length;
+
+    const totalSize = Object.values(this.metadata).reduce((sum, item) => sum + (item.size || 0), 0);
+
+    const sizeStr =
+      totalSize > 1024 * 1024
+        ? `${(totalSize / 1024 / 1024).toFixed(1)} MB`
+        : `${(totalSize / 1024).toFixed(1)} KB`;
 
     return { total, expired, totalSize: sizeStr };
   }

@@ -27,11 +27,11 @@ export class ErrorBoundary extends Component<Props, State> {
     // 监听未处理的Promise rejections
     this.unhandledRejectionHandler = (event: PromiseRejectionEvent) => {
       console.error('未处理的Promise rejection:', event.reason);
-      
+
       // 将异步错误转换为同步错误，触发错误边界
       const error = event.reason instanceof Error ? event.reason : new Error(String(event.reason));
       this.setState({ hasError: true, error });
-      
+
       // 阻止默认的控制台错误输出
       event.preventDefault();
     };
@@ -39,7 +39,7 @@ export class ErrorBoundary extends Component<Props, State> {
     // 监听全局JavaScript错误
     this.errorHandler = (event: ErrorEvent) => {
       console.error('全局JavaScript错误:', event.error);
-      
+
       const error = event.error instanceof Error ? event.error : new Error(event.message);
       this.setState({ hasError: true, error });
     };
@@ -60,7 +60,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('错误边界捕获到错误:', error, errorInfo);
-    
+
     // 这里可以发送错误日志到监控服务
     // 例如: logErrorToService(error, errorInfo);
   }
@@ -81,9 +81,7 @@ export class ErrorBoundary extends Component<Props, State> {
             <div className="mb-4">
               <i className="fa-solid fa-exclamation-triangle text-red-500 text-4xl"></i>
             </div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">
-              应用出现错误
-            </h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">应用出现错误</h2>
             <p className="text-gray-600 mb-4">
               很抱歉，应用遇到了一个问题。您可以尝试刷新页面或联系技术支持。
             </p>
@@ -124,7 +122,7 @@ export class ErrorBoundary extends Component<Props, State> {
 export function useErrorHandler() {
   const handleError = (error: Error, errorInfo?: ErrorInfo) => {
     console.error('组件错误:', error, errorInfo);
-    
+
     // 这里可以添加错误上报逻辑
     // reportError(error, errorInfo);
   };

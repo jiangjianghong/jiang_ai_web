@@ -35,7 +35,7 @@ interface AuthProviderProps {
 // 错误消息本地化
 const getLocalizedErrorMessage = (error: any): string => {
   const message = error?.message || error?.toString() || '未知错误';
-  
+
   const errorMappings: { [key: string]: string } = {
     'Invalid login credentials': '邮箱或密码错误',
     'Email not confirmed': '请先验证邮箱',
@@ -46,7 +46,7 @@ const getLocalizedErrorMessage = (error: any): string => {
     'Too many requests': '请求过于频繁，请稍后再试',
     'Email already in use': '该邮箱已被使用',
     'Weak password': '密码强度不够',
-    'Invalid password': '密码不正确'
+    'Invalid password': '密码不正确',
   };
 
   // 检查是否有匹配的错误消息
@@ -93,11 +93,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
       clearError();
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
-        password
+        password,
       });
 
       if (error) throw error;
-      
+
       console.log('登录成功:', data.user?.email);
     } catch (err) {
       const message = getLocalizedErrorMessage(err);
@@ -119,13 +119,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
             // 用户元数据，会传递到邮件模板
             app_name: '江江的网站',
             welcome_message: '你好呀！欢迎使用江江的网站，点击下面的链接确认注册哦。祝您使用愉快！',
-            site_url: window.location.origin
-          }
-        }
+            site_url: window.location.origin,
+          },
+        },
       });
 
       if (error) throw error;
-      
+
       console.log('注册成功，请检查邮箱验证:', data.user?.email);
     } catch (err) {
       const message = getLocalizedErrorMessage(err);
@@ -143,8 +143,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
           type: 'signup',
           email: currentUser.email!,
           options: {
-            emailRedirectTo: window.location.origin
-          }
+            emailRedirectTo: window.location.origin,
+          },
         });
 
         if (error) throw error;
@@ -161,10 +161,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const reloadUser = async () => {
     try {
       clearError();
-      const { data: { user }, error } = await supabase.auth.getUser();
-      
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser();
+
       if (error) throw error;
-      
+
       setCurrentUser(user);
     } catch (err) {
       const message = getLocalizedErrorMessage(err);
@@ -180,8 +183,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`
-        }
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
       });
 
       if (error) throw error;
@@ -214,10 +217,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth state changed:', event, session?.user?.email);
-      
+
       // 更新用户状态
       const newUser = session?.user ?? null;
-      
+
       // 添加详细的用户状态日志
       console.log('🔍 认证状态详情:', {
         event,
@@ -227,13 +230,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
         emailConfirmed: !!newUser?.email_confirmed_at,
         emailConfirmedAt: newUser?.email_confirmed_at,
         currentUserId: currentUser?.id,
-        currentEmailConfirmed: !!currentUser?.email_confirmed_at
+        currentEmailConfirmed: !!currentUser?.email_confirmed_at,
       });
-      
+
       // 总是更新状态，确保数据一致性
       setSession(session);
       setCurrentUser(newUser);
-      
+
       setLoading(false);
 
       // 处理认证事件
@@ -242,9 +245,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
           setError(null);
           // 发送自定义事件，通知其他组件用户已登录
           if (newUser && newUser.email_confirmed_at) {
-            window.dispatchEvent(new CustomEvent('userSignedIn', { 
-              detail: { user: newUser } 
-            }));
+            window.dispatchEvent(
+              new CustomEvent('userSignedIn', {
+                detail: { user: newUser },
+              })
+            );
           }
           break;
         case 'SIGNED_OUT':
@@ -268,7 +273,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const checkEmailConfirmation = () => {
       const hash = window.location.hash;
       const params = new URLSearchParams(hash.substring(1));
-      
+
       if (params.get('type') === 'signup' && params.get('access_token')) {
         // 邮箱确认成功
         console.log('✅ 邮箱确认成功！');
@@ -292,7 +297,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       try {
         const { error } = await supabase.from('user_profiles').select('id').limit(1);
         setIsSupabaseConnected(!error);
-        
+
         if (error && error.message?.includes('网络')) {
           setError('Supabase服务暂时不可用，部分功能可能受限');
         } else if (error?.message?.includes('Supabase') && isSupabaseConnected) {
@@ -318,7 +323,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setError('网络连接已断开');
       } else {
         // 网络恢复时清除网络相关错误
-        setError(prev => {
+        setError((prev) => {
           if (prev?.includes('网络')) {
             return null;
           }
@@ -343,12 +348,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     isNetworkOnline,
     isSupabaseConnected,
     error,
-    successMessage
+    successMessage,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

@@ -10,17 +10,17 @@ export class CorsProxyService {
   private workingProxies: Set<string>;
   private failedProxies: Map<string, number>; // proxy name -> timestamp of failure
   private readonly RETRY_TIMEOUT = 5 * 60 * 1000; // 5 minutes
-  
+
   /**
    * Create a new CorsProxyService
    * @param configs Optional proxy configurations (uses default if not provided)
    */
   constructor(configs?: ProxyConfig[]) {
     this.proxyConfigs = configs || getSortedProxyConfigs();
-    this.workingProxies = new Set(this.proxyConfigs.map(config => config.name));
+    this.workingProxies = new Set(this.proxyConfigs.map((config) => config.name));
     this.failedProxies = new Map();
   }
-  
+
   /**
    * Fetch data through a CORS proxy
    * @param url The target URL to fetch
@@ -30,60 +30,60 @@ export class CorsProxyService {
   async fetch<T>(url: string, options?: RequestInit): Promise<ProxyResponse<T>> {
     // Reset failed proxies that have exceeded the retry timeout
     this.resetFailedProxies();
-    
+
     // Get available proxies sorted by priority
     const availableProxies = this.getAvailableProxies(url);
-    
+
     if (availableProxies.length === 0) {
       throw new Error('No suitable proxy services available');
     }
-    
+
     // Try each proxy in order
     return this.tryNextProxy<T>(url, availableProxies, options);
   }
-  
+
   /**
    * Try to fetch using the next available proxy
    */
   private async tryNextProxy<T>(
-    url: string, 
-    proxies: ProxyConfig[], 
-    options?: RequestInit, 
+    url: string,
+    proxies: ProxyConfig[],
+    options?: RequestInit,
     attempts = 0
   ): Promise<ProxyResponse<T>> {
     if (attempts >= proxies.length) {
       // All proxies failed
       throw new Error('All proxy services failed');
     }
-    
+
     const proxy = proxies[attempts];
-    
+
     try {
       // 保持console.log，这是代理服务的调试信息
-      
+
       // Transform URL for this proxy
       const proxyUrl = transformUrl(proxy, url);
-      
+
       // Merge headers
       const headers = mergeHeaders(proxy, options?.headers);
-      
+
       // Create fetch options
       const fetchOptions: RequestInit = {
         ...options,
-        headers
+        headers,
       };
-      
+
       // Make the request
       const response = await fetch(proxyUrl, fetchOptions);
-      
+
       if (!response.ok) {
         throw new Error(`Proxy ${proxy.name} returned status ${response.status}`);
       }
-      
+
       // Parse response based on content type
       const contentType = response.headers.get('content-type') || '';
       let data: T;
-      
+
       if (contentType.includes('application/json')) {
         data = await response.json();
       } else if (contentType.startsWith('image/')) {
@@ -95,44 +95,44 @@ export class CorsProxyService {
         const text = await response.text();
         data = text as unknown as T;
       }
-      
+
       // Mark this proxy as working
       this.workingProxies.add(proxy.name);
       this.failedProxies.delete(proxy.name);
-      
+
       return {
         data,
         error: null,
-        source: proxy.name
+        source: proxy.name,
       };
     } catch (error) {
       // 保持console.error，这是代理服务的错误信息
-      
+
       // Mark this proxy as failed
       this.workingProxies.delete(proxy.name);
       this.failedProxies.set(proxy.name, Date.now());
-      
+
       // Try the next proxy
       return this.tryNextProxy<T>(url, proxies, options, attempts + 1);
     }
   }
-  
+
   /**
    * Get available proxies that can handle the given URL
    */
   private getAvailableProxies(url: string): ProxyConfig[] {
     return this.proxyConfigs
-      .filter(proxy => this.workingProxies.has(proxy.name))
-      .filter(proxy => canProxyHandleBinary(proxy, url))
+      .filter((proxy) => this.workingProxies.has(proxy.name))
+      .filter((proxy) => canProxyHandleBinary(proxy, url))
       .sort((a, b) => a.priority - b.priority);
   }
-  
+
   /**
    * Reset failed proxies that have exceeded the retry timeout
    */
   private resetFailedProxies(): void {
     const now = Date.now();
-    
+
     for (const [proxyName, failureTime] of this.failedProxies.entries()) {
       if (now - failureTime > this.RETRY_TIMEOUT) {
         // Reset this proxy
@@ -142,44 +142,44 @@ export class CorsProxyService {
       }
     }
   }
-  
+
   /**
    * Check if a proxy is currently working
    */
   async isProxyWorking(proxyName: string): Promise<boolean> {
-    const proxy = this.proxyConfigs.find(p => p.name === proxyName);
-    
+    const proxy = this.proxyConfigs.find((p) => p.name === proxyName);
+
     if (!proxy) {
       return false;
     }
-    
+
     try {
       // Use a simple test URL
       const testUrl = 'https://httpbin.org/status/200';
       const proxyUrl = transformUrl(proxy, testUrl);
-      
+
       const response = await fetch(proxyUrl, {
         method: 'HEAD',
-        headers: mergeHeaders(proxy)
+        headers: mergeHeaders(proxy),
       });
-      
+
       return response.ok;
     } catch (error) {
       // 保持console.error，这是代理服务的健康检查错误
       return false;
     }
   }
-  
+
   /**
    * Get the current status of all proxy services
    */
   getProxyStatus(): Record<string, 'working' | 'failed'> {
     const status: Record<string, 'working' | 'failed'> = {};
-    
+
     for (const proxy of this.proxyConfigs) {
       status[proxy.name] = this.workingProxies.has(proxy.name) ? 'working' : 'failed';
     }
-    
+
     return status;
   }
 }

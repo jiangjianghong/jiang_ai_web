@@ -1,5 +1,5 @@
-import { Routes, Route } from "react-router-dom";
-import Home from "@/pages/Home";
+import { Routes, Route } from 'react-router-dom';
+import Home from '@/pages/Home';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { TransparencyProvider } from '@/contexts/TransparencyContext';
@@ -41,11 +41,16 @@ function AppContent() {
     setSearchBarColor,
     setAutoSyncEnabled,
     setAutoSyncInterval,
-    setAutoSortEnabled
+    setAutoSortEnabled,
   } = useTransparency();
 
   // 云端数据管理
-  const { cloudWebsites, cloudSettings, loading: cloudLoading, mergeWithLocalData } = useCloudData(true);
+  const {
+    cloudWebsites,
+    cloudSettings,
+    loading: cloudLoading,
+    mergeWithLocalData,
+  } = useCloudData(true);
 
   // 本地数据状态
   const [websites, setWebsites] = useState<WebsiteData[]>(() => {
@@ -87,8 +92,15 @@ function AppContent() {
       cloudCount: cloudWebsites?.length || 0,
       localCount: localWebsites.length,
       userId: currentUser?.id,
-      cloudData: cloudWebsites?.map(w => w.id).sort().join(',') || '',
-      localData: localWebsites.map(w => w.id).sort().join(',')
+      cloudData:
+        cloudWebsites
+          ?.map((w) => w.id)
+          .sort()
+          .join(',') || '',
+      localData: localWebsites
+        .map((w) => w.id)
+        .sort()
+        .join(','),
     });
 
     // 如果数据标识相同，跳过合并
@@ -103,7 +115,7 @@ function AppContent() {
       // 有云端数据，进行智能合并
       logger.debug('🔄 合并本地和云端网站数据', {
         local: localWebsites.length,
-        cloud: cloudWebsites.length
+        cloud: cloudWebsites.length,
       });
 
       const mergedWebsites = mergeWithLocalData(localWebsites);
@@ -153,7 +165,25 @@ function AppContent() {
     }
 
     setDataInitialized(true);
-  }, [currentUser, cloudWebsites, cloudSettings, cloudLoading, storage, settingsApplied, lastMergedDataId, mergeWithLocalData, setCardOpacity, setSearchBarOpacity, setParallaxEnabled, setWallpaperResolution, setCardColor, setSearchBarColor, setAutoSyncEnabled, setAutoSyncInterval, setAutoSortEnabled]);
+  }, [
+    currentUser,
+    cloudWebsites,
+    cloudSettings,
+    cloudLoading,
+    storage,
+    settingsApplied,
+    lastMergedDataId,
+    mergeWithLocalData,
+    setCardOpacity,
+    setSearchBarOpacity,
+    setParallaxEnabled,
+    setWallpaperResolution,
+    setCardColor,
+    setSearchBarColor,
+    setAutoSyncEnabled,
+    setAutoSyncInterval,
+    setAutoSortEnabled,
+  ]);
 
   // 持久化到存储管理器（仅在数据初始化完成后）
   useEffect(() => {
@@ -181,7 +211,12 @@ function AppContent() {
   return (
     <>
       <Routes>
-        <Route path="/" element={<Home websites={websites} setWebsites={setWebsites} dataInitialized={dataInitialized} />} />
+        <Route
+          path="/"
+          element={
+            <Home websites={websites} setWebsites={setWebsites} dataInitialized={dataInitialized} />
+          }
+        />
       </Routes>
 
       <CookieConsent />

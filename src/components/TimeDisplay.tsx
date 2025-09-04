@@ -5,11 +5,19 @@ import { useTransparency } from '@/contexts/TransparencyContext';
 export function TimeDisplay() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isColonVisible, setIsColonVisible] = useState(true);
-  const { showFullDate, showSeconds, showWeekday, showYear, showMonth, showDay, timeComponentEnabled } = useTransparency();
+  const {
+    showFullDate,
+    showSeconds,
+    showWeekday,
+    showYear,
+    showMonth,
+    showDay,
+    timeComponentEnabled,
+  } = useTransparency();
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
-    
+
     if (showSeconds) {
       // 精确到秒模式，每秒1更新
       timer = setInterval(() => {
@@ -19,7 +27,7 @@ export function TimeDisplay() {
       // 不精确到秒模式，每500ms更新闪烁状态
       timer = setInterval(() => {
         setCurrentTime(new Date());
-        setIsColonVisible(prev => !prev);
+        setIsColonVisible((prev) => !prev);
       }, 500);
     }
 
@@ -29,7 +37,7 @@ export function TimeDisplay() {
   const formatTime = (date: Date) => {
     const hours = date.getHours().toString().padStart(2, '0');
     const minutes = date.getMinutes().toString().padStart(2, '0');
-    
+
     if (showSeconds) {
       const seconds = date.getSeconds().toString().padStart(2, '0');
       return { text: `${hours}:${minutes}:${seconds}`, colonOpacity: 1 };
@@ -43,7 +51,7 @@ export function TimeDisplay() {
   const formatDate = (date: Date) => {
     // 检查是否有任何日期元素被启用
     const hasAnyDateElement = showYear || showMonth || showDay || showWeekday;
-    
+
     if (!hasAnyDateElement) {
       return ''; // 如果没有任何日期元素，返回空字符串
     }
@@ -78,25 +86,26 @@ export function TimeDisplay() {
   const hasAnyDateElement = showYear || showMonth || showDay || showWeekday;
 
   return (
-    <div className="absolute left-0 right-0 z-50 flex justify-center px-4 select-none pointer-events-none"
-         style={{ top: '-45px' }} // 向下移动到-45px
+    <div
+      className="absolute left-0 right-0 z-50 flex justify-center px-4 select-none pointer-events-none"
+      style={{ top: '-45px' }} // 向下移动到-45px
     >
       <motion.div
         className="w-full flex justify-center"
         initial={{ opacity: 0, y: -10 }}
-        animate={{ 
-          opacity: timeComponentEnabled ? 1 : 0, 
+        animate={{
+          opacity: timeComponentEnabled ? 1 : 0,
           y: 0,
-          pointerEvents: timeComponentEnabled ? 'auto' : 'none'
+          pointerEvents: timeComponentEnabled ? 'auto' : 'none',
         }}
         transition={{ duration: 0.3 }}
       >
         <div
           className="relative flex flex-col items-center select-none pointer-events-none"
-          style={{ 
+          style={{
             minHeight: '60px', // 固定最小高度，确保布局稳定
             // 当没有日期元素时，时间向下移动以居中显示
-            transform: hasAnyDateElement ? 'translateY(0)' : 'translateY(15px)'
+            transform: hasAnyDateElement ? 'translateY(0)' : 'translateY(15px)',
           }}
         >
           <div className="text-white/80 font-mono text-4xl font-semibold tracking-wide mb-1 drop-shadow-sm">
@@ -108,8 +117,8 @@ export function TimeDisplay() {
                 return (
                   <>
                     {parts[0]}
-                    <span 
-                      className="transition-opacity duration-200" 
+                    <span
+                      className="transition-opacity duration-200"
                       style={{ opacity: timeData.colonOpacity }}
                     >
                       :
@@ -117,8 +126,8 @@ export function TimeDisplay() {
                     {parts[1]}
                     {parts[2] && (
                       <>
-                        <span 
-                          className="transition-opacity duration-200" 
+                        <span
+                          className="transition-opacity duration-200"
                           style={{ opacity: timeData.colonOpacity }}
                         >
                           :
@@ -136,7 +145,9 @@ export function TimeDisplay() {
           </div>
           {/* 始终占据固定空间，通过透明度控制显示 */}
           <div className="text-white/60 text-sm font-medium drop-shadow-sm h-5 flex items-center justify-center min-w-[200px]">
-            <span className={`transition-opacity duration-200 ${showFullDate ? 'opacity-100' : 'opacity-0'} text-center`}>
+            <span
+              className={`transition-opacity duration-200 ${showFullDate ? 'opacity-100' : 'opacity-0'} text-center`}
+            >
               {showFullDate ? formatDate(currentTime) : '占位文本'}
             </span>
           </div>

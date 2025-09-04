@@ -19,7 +19,7 @@ export default function NetworkStatus() {
           <span className="text-sm">网络连接不可用</span>
         </div>
       )}
-      
+
       {error && (
         <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg shadow-lg">
           <div className="flex items-start space-x-2">

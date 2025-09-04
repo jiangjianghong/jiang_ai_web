@@ -32,9 +32,6 @@ export function useFavicon(originalUrl: string, faviconUrl: string) {
     }
   };
 
-
-
-
   // 立即检查缓存的 effect（无防抖）
   useEffect(() => {
     const checkImmediateCache = async () => {
@@ -74,7 +71,9 @@ export function useFavicon(originalUrl: string, faviconUrl: string) {
         if (currentFaviconUrl !== cachedProcessedUrl) {
           cleanupCurrentBlobUrl();
           setCurrentFaviconUrl(cachedProcessedUrl);
-          currentBlobUrlRef.current = cachedProcessedUrl.startsWith('blob:') ? cachedProcessedUrl : null;
+          currentBlobUrlRef.current = cachedProcessedUrl.startsWith('blob:')
+            ? cachedProcessedUrl
+            : null;
         }
         setError(false);
         setIsLoading(false);
@@ -90,7 +89,9 @@ export function useFavicon(originalUrl: string, faviconUrl: string) {
       if (currentFaviconUrl !== processedFaviconUrl) {
         cleanupCurrentBlobUrl();
         setCurrentFaviconUrl(processedFaviconUrl);
-        currentBlobUrlRef.current = processedFaviconUrl.startsWith('blob:') ? processedFaviconUrl : null;
+        currentBlobUrlRef.current = processedFaviconUrl.startsWith('blob:')
+          ? processedFaviconUrl
+          : null;
       }
       setError(false);
       setIsLoading(false);
@@ -98,7 +99,8 @@ export function useFavicon(originalUrl: string, faviconUrl: string) {
       // 只有默认图标才尝试异步获取更好的图标（避免过度请求）
       if (isDefaultIconUrl && !cached) {
         setIsLoading(true);
-        faviconCache.getFavicon(originalUrl, faviconUrl)
+        faviconCache
+          .getFavicon(originalUrl, faviconUrl)
           .then((url: string) => {
             if (url !== faviconUrl && !isDefaultIcon(url)) {
               console.log('✅ 获取到更好的图标:', url);
@@ -132,6 +134,6 @@ export function useFavicon(originalUrl: string, faviconUrl: string) {
   return {
     faviconUrl: currentFaviconUrl,
     isLoading,
-    error
+    error,
   };
 }

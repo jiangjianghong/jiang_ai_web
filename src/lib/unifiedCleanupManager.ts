@@ -29,10 +29,10 @@ class UnifiedCleanupManager {
     try {
       // 执行 favicon 相关的清理任务
       faviconCache.cleanupExpiredBlobUrls();
-      
+
       // 执行内存管理器的清理任务
       memoryManager.cleanup();
-      
+
       // 开发环境下记录内存使用情况
       if (process.env.NODE_ENV === 'development') {
         this.logMemoryUsage();
@@ -48,9 +48,9 @@ class UnifiedCleanupManager {
       const used = Math.round(memory.usedJSHeapSize / 1048576);
       const total = Math.round(memory.totalJSHeapSize / 1048576);
       const limit = Math.round(memory.jsHeapSizeLimit / 1048576);
-      
+
       console.log(`📊 内存使用: ${used}MB / ${total}MB (限制: ${limit}MB)`);
-      
+
       // 内存使用率超过80%时警告
       if (used / limit > 0.8) {
         console.warn('⚠️ 内存使用率较高，建议检查内存泄漏');
@@ -81,7 +81,7 @@ class UnifiedCleanupManager {
   getStatus() {
     return {
       active: this.cleanupInterval !== null,
-      interval: this.CLEANUP_INTERVAL
+      interval: this.CLEANUP_INTERVAL,
     };
   }
 }

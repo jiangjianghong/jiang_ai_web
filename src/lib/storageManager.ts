@@ -35,7 +35,7 @@ export class StorageManager {
   // 检查用户是否同意Cookie使用（带缓存）
   hasConsent(): boolean {
     const now = Date.now();
-    if (!this.consentCache || (now - this.cacheTimestamp) > this.CACHE_DURATION) {
+    if (!this.consentCache || now - this.cacheTimestamp > this.CACHE_DURATION) {
       this.refreshConsentCache();
     }
     return this.consentCache === 'accepted';
@@ -55,7 +55,7 @@ export class StorageManager {
   // 检查Cookie同意状态（带缓存）
   getConsentStatus(): 'accepted' | 'declined' | 'pending' {
     const now = Date.now();
-    if (!this.consentCache || (now - this.cacheTimestamp) > this.CACHE_DURATION) {
+    if (!this.consentCache || now - this.cacheTimestamp > this.CACHE_DURATION) {
       return this.refreshConsentCache();
     }
     return this.consentCache;
@@ -138,8 +138,8 @@ export class StorageManager {
   clearNonEssentialData(): void {
     const essentialKeys = ['cookie-consent', 'cookie-consent-date'];
     const allKeys = this.getAllKeys(true);
-    
-    allKeys.forEach(key => {
+
+    allKeys.forEach((key) => {
       if (!essentialKeys.includes(key)) {
         try {
           localStorage.removeItem(key);
@@ -162,11 +162,11 @@ export class StorageManager {
   } {
     const allKeys = this.getAllKeys(true);
     const essentialKeys = ['cookie-consent', 'cookie-consent-date'];
-    const nonEssentialCount = allKeys.filter(key => !essentialKeys.includes(key)).length;
-    
+    const nonEssentialCount = allKeys.filter((key) => !essentialKeys.includes(key)).length;
+
     // 估算存储使用量
     let totalSize = 0;
-    allKeys.forEach(key => {
+    allKeys.forEach((key) => {
       try {
         const value = localStorage.getItem(key) || '';
         totalSize += key.length + value.length;
@@ -177,10 +177,10 @@ export class StorageManager {
 
     return {
       totalKeys: allKeys.length,
-      essentialKeys: essentialKeys.filter(key => allKeys.includes(key)).length,
+      essentialKeys: essentialKeys.filter((key) => allKeys.includes(key)).length,
       nonEssentialKeys: nonEssentialCount,
       consentRequired: !this.hasConsent() && nonEssentialCount > 0,
-      storageUsed: `${Math.round(totalSize / 1024 * 100) / 100} KB`
+      storageUsed: `${Math.round((totalSize / 1024) * 100) / 100} KB`,
     };
   }
 
@@ -194,7 +194,7 @@ export class StorageManager {
     const data: { [key: string]: any } = {};
     const keys = this.getAllKeys(false); // 排除必要键
 
-    keys.forEach(key => {
+    keys.forEach((key) => {
       try {
         const value = localStorage.getItem(key);
         if (value) {
@@ -208,7 +208,7 @@ export class StorageManager {
     return {
       exportTime: new Date().toISOString(),
       consentStatus: this.getConsentStatus(),
-      data
+      data,
     };
   }
 }
@@ -246,6 +246,6 @@ export function useStorage() {
     getConsentStatus: () => storageManager.getConsentStatus(),
     getStats: () => storageManager.getStorageStats(),
     clearNonEssential: () => storageManager.clearNonEssentialData(),
-    exportData: () => storageManager.exportData()
+    exportData: () => storageManager.exportData(),
   };
 }

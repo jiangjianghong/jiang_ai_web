@@ -32,7 +32,7 @@ class RequestManager {
     pending: 0,
     completed: 0,
     failed: 0,
-    byCategory: {}
+    byCategory: {},
   };
 
   static getInstance(): RequestManager {
@@ -69,13 +69,13 @@ class RequestManager {
         resolve,
         reject,
         retryOptions,
-        createdAt: Date.now()
+        createdAt: Date.now(),
       };
 
       this.queue.push(task);
       this.stats.total++;
       this.stats.pending++;
-      
+
       // 更新分类统计
       if (!this.stats.byCategory[category]) {
         this.stats.byCategory[category] = { total: 0, completed: 0, failed: 0 };
@@ -90,7 +90,7 @@ class RequestManager {
         url: url.substring(0, 50),
         priority,
         category,
-        queueLength: this.queue.length
+        queueLength: this.queue.length,
       });
 
       // 立即尝试处理队列
@@ -117,13 +117,13 @@ class RequestManager {
         id: task.id,
         url: task.url.substring(0, 50),
         category: task.category,
-        activeCount: this.activeRequests.size
+        activeCount: this.activeRequests.size,
       });
 
       // 合并 AbortSignal
       const combinedOptions: RequestInit = {
         ...task.options,
-        signal: this.combineSignals(controller.signal, task.options.signal ?? undefined)
+        signal: this.combineSignals(controller.signal, task.options.signal ?? undefined),
       };
 
       let response: Response;
@@ -154,11 +154,10 @@ class RequestManager {
         id: task.id,
         status: response.status,
         category: task.category,
-        duration: Date.now() - task.createdAt
+        duration: Date.now() - task.createdAt,
       });
 
       task.resolve(response);
-
     } catch (error) {
       // 请求失败
       this.stats.failed++;
@@ -171,15 +170,14 @@ class RequestManager {
         url: task.url.substring(0, 50),
         category: task.category,
         error: err.message,
-        duration: Date.now() - task.createdAt
+        duration: Date.now() - task.createdAt,
       });
 
       task.reject(err);
-
     } finally {
       // 清理活动请求
       this.activeRequests.delete(task.id);
-      
+
       // 继续处理队列
       this.processQueue();
     }
@@ -188,23 +186,23 @@ class RequestManager {
   // 合并多个 AbortSignal
   private combineSignals(...signals: (AbortSignal | undefined)[]): AbortSignal {
     const validSignals = signals.filter(Boolean) as AbortSignal[];
-    
+
     if (validSignals.length === 0) {
       return new AbortController().signal;
     }
-    
+
     if (validSignals.length === 1) {
       return validSignals[0];
     }
 
     const controller = new AbortController();
-    
+
     for (const signal of validSignals) {
       if (signal.aborted) {
         controller.abort();
         break;
       }
-      
+
       signal.addEventListener('abort', () => {
         controller.abort();
       });
@@ -229,7 +227,7 @@ class RequestManager {
     }
 
     // 从队列中移除
-    const queueIndex = this.queue.findIndex(task => task.id === id);
+    const queueIndex = this.queue.findIndex((task) => task.id === id);
     if (queueIndex !== -1) {
       const task = this.queue.splice(queueIndex, 1)[0];
       task.reject(new Error('Request cancelled'));
@@ -247,7 +245,7 @@ class RequestManager {
 
     // 取消活动请求
     for (const [id, controller] of this.activeRequests.entries()) {
-      const task = this.queue.find(t => t.id === id);
+      const task = this.queue.find((t) => t.id === id);
       if (task && task.category === category) {
         controller.abort();
         this.activeRequests.delete(id);
@@ -314,16 +312,15 @@ class RequestManager {
     oldestWaitTime: number;
   } {
     const now = Date.now();
-    const categories = [...new Set(this.queue.map(task => task.category))];
-    const oldestWaitTime = this.queue.length > 0 
-      ? Math.max(...this.queue.map(task => now - task.createdAt))
-      : 0;
+    const categories = [...new Set(this.queue.map((task) => task.category))];
+    const oldestWaitTime =
+      this.queue.length > 0 ? Math.max(...this.queue.map((task) => now - task.createdAt)) : 0;
 
     return {
       queueLength: this.queue.length,
       activeCount: this.activeRequests.size,
       categories,
-      oldestWaitTime
+      oldestWaitTime,
     };
   }
 
@@ -340,7 +337,7 @@ class RequestManager {
       pending: this.queue.length,
       completed: 0,
       failed: 0,
-      byCategory: {}
+      byCategory: {},
     };
     logger.info('统计信息已重置');
   }
@@ -352,8 +349,8 @@ export const requestManager = RequestManager.getInstance();
 // 便利函数 - 创建不同优先级和类别的请求
 export const createWallpaperRequest = (url: string, options?: RequestInit) => {
   return requestManager.request(
-    url, 
-    options, 
+    url,
+    options,
     10, // 高优先级
     'wallpaper',
     errorHandler.getWallpaperRetryOptions()
@@ -362,8 +359,8 @@ export const createWallpaperRequest = (url: string, options?: RequestInit) => {
 
 export const createFaviconRequest = (url: string, options?: RequestInit) => {
   return requestManager.request(
-    url, 
-    options, 
+    url,
+    options,
     5, // 中优先级
     'favicon',
     errorHandler.getFaviconRetryOptions()
@@ -372,8 +369,8 @@ export const createFaviconRequest = (url: string, options?: RequestInit) => {
 
 export const createApiRequest = (url: string, options?: RequestInit) => {
   return requestManager.request(
-    url, 
-    options, 
+    url,
+    options,
     8, // 高优先级
     'api',
     { maxAttempts: 3, baseDelay: 1000 }

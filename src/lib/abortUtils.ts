@@ -16,7 +16,7 @@ export function createTimeoutSignal(timeoutMs: number): AbortSignal {
 
   // 兼容性实现
   const controller = new AbortController();
-  
+
   const timeoutId = setTimeout(() => {
     controller.abort();
   }, timeoutMs);
@@ -34,23 +34,23 @@ export function createTimeoutSignal(timeoutMs: number): AbortSignal {
  */
 export function combineAbortSignals(...signals: (AbortSignal | undefined)[]): AbortSignal {
   const validSignals = signals.filter(Boolean) as AbortSignal[];
-  
+
   if (validSignals.length === 0) {
     return new AbortController().signal;
   }
-  
+
   if (validSignals.length === 1) {
     return validSignals[0];
   }
 
   const controller = new AbortController();
-  
+
   for (const signal of validSignals) {
     if (signal.aborted) {
       controller.abort();
       break;
     }
-    
+
     signal.addEventListener('abort', () => {
       controller.abort();
     });
@@ -62,15 +62,12 @@ export function combineAbortSignals(...signals: (AbortSignal | undefined)[]): Ab
 /**
  * 创建带超时和取消的 AbortSignal
  */
-export function createCombinedSignal(
-  timeoutMs: number, 
-  cancelSignal?: AbortSignal
-): AbortSignal {
+export function createCombinedSignal(timeoutMs: number, cancelSignal?: AbortSignal): AbortSignal {
   const timeoutSignal = createTimeoutSignal(timeoutMs);
-  
+
   if (cancelSignal) {
     return combineAbortSignals(timeoutSignal, cancelSignal);
   }
-  
+
   return timeoutSignal;
 }

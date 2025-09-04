@@ -19,7 +19,7 @@ const defaultSyncStatus: SyncStatus = {
   lastSyncTime: null,
   syncInProgress: false,
   syncError: null,
-  pendingChanges: 0
+  pendingChanges: 0,
 };
 
 const SyncContext = createContext<SyncContextType | undefined>(undefined);
@@ -40,7 +40,7 @@ export function SyncProvider({ children }: SyncProviderProps) {
   const [syncStatus, setSyncStatus] = useState<SyncStatus>(defaultSyncStatus);
 
   const updateSyncStatus = useCallback((status: Partial<SyncStatus>) => {
-    setSyncStatus(prev => ({ ...prev, ...status }));
+    setSyncStatus((prev) => ({ ...prev, ...status }));
   }, []);
 
   const resetSyncStatus = useCallback(() => {
@@ -55,10 +55,10 @@ export function SyncProvider({ children }: SyncProviderProps) {
     };
 
     const handleOffline = () => {
-      updateSyncStatus({ 
-        isOnline: false, 
+      updateSyncStatus({
+        isOnline: false,
         syncError: '网络连接断开，同步功能暂停',
-        syncInProgress: false 
+        syncInProgress: false,
       });
       console.log('📴 网络连接断开，同步功能暂停');
     };
@@ -79,12 +79,8 @@ export function SyncProvider({ children }: SyncProviderProps) {
   const value: SyncContextType = {
     syncStatus,
     updateSyncStatus,
-    resetSyncStatus
+    resetSyncStatus,
   };
 
-  return (
-    <SyncContext.Provider value={value}>
-      {children}
-    </SyncContext.Provider>
-  );
+  return <SyncContext.Provider value={value}>{children}</SyncContext.Provider>;
 }

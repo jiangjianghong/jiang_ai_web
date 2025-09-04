@@ -3,7 +3,12 @@ import { supabase, TABLES } from '@/lib/supabase';
 import { User } from '@supabase/supabase-js';
 import { WallpaperResolution } from '@/contexts/TransparencyContext';
 import { logger } from './logger';
-import { sanitizeWebsiteArray, sanitizeUserSettings, isDataSafeToSync, checkDataIntegrity } from './dataValidator';
+import {
+  sanitizeWebsiteArray,
+  sanitizeUserSettings,
+  isDataSafeToSync,
+  checkDataIntegrity,
+} from './dataValidator';
 
 // 用户设置接口
 export interface UserSettings {
@@ -12,8 +17,8 @@ export interface UserSettings {
   parallaxEnabled: boolean;
   wallpaperResolution: WallpaperResolution;
   theme: string;
-  cardColor: string;        // 卡片颜色 (RGB字符串)
-  searchBarColor: string;   // 搜索框颜色 (RGB字符串)
+  cardColor: string; // 卡片颜色 (RGB字符串)
+  searchBarColor: string; // 搜索框颜色 (RGB字符串)
   autoSyncEnabled: boolean; // 自动同步开关
   autoSyncInterval: number; // 自动同步间隔（秒）
   autoSortEnabled?: boolean; // 自动排序开关（可选，向后兼容）
@@ -76,7 +81,7 @@ const retryAsync = async <T>(
       // 指数退避延迟
       const waitTime = delay * Math.pow(2, i);
       logger.sync.info(`同步失败，${waitTime}ms后重试 (${i + 1}/${maxRetries + 1})`);
-      await new Promise(resolve => setTimeout(resolve, waitTime));
+      await new Promise((resolve) => setTimeout(resolve, waitTime));
     }
   }
 
@@ -108,16 +113,18 @@ export const saveUserSettings = async (
         search_bar_color: validatedSettings.searchBarColor,
         auto_sync_enabled: validatedSettings.autoSyncEnabled,
         auto_sync_interval: validatedSettings.autoSyncInterval,
-        last_sync: new Date().toISOString()
+        last_sync: new Date().toISOString(),
       };
 
-      const { error } = await supabase
-        .from(TABLES.USER_SETTINGS)
-        .upsert(fullData);
+      const { error } = await supabase.from(TABLES.USER_SETTINGS).upsert(fullData);
 
       if (error) {
         // 如果新字段导致错误，回退到基本字段
-        if (error.code === '42703' || error.message?.includes('column') || error.message?.includes('does not exist')) {
+        if (
+          error.code === '42703' ||
+          error.message?.includes('column') ||
+          error.message?.includes('does not exist')
+        ) {
           logger.sync.warn('新字段暂不可用，使用基本字段同步', { error: error.message });
 
           const basicData = {
@@ -127,12 +134,10 @@ export const saveUserSettings = async (
             parallax_enabled: settings.parallaxEnabled,
             wallpaper_resolution: settings.wallpaperResolution,
             theme: settings.theme,
-            last_sync: new Date().toISOString()
+            last_sync: new Date().toISOString(),
           };
 
-          const { error: basicError } = await supabase
-            .from(TABLES.USER_SETTINGS)
-            .upsert(basicData);
+          const { error: basicError } = await supabase.from(TABLES.USER_SETTINGS).upsert(basicData);
 
           if (basicError) throw basicError;
 
@@ -163,15 +168,12 @@ export const getUserSettings = async (user: User): Promise<UserSettings | null> 
       setTimeout(() => reject(new Error('连接超时')), 5000)
     );
 
-    const dataPromise = supabase
-      .from(TABLES.USER_SETTINGS)
-      .select('*')
-      .eq('id', user.id)
-      .single();
+    const dataPromise = supabase.from(TABLES.USER_SETTINGS).select('*').eq('id', user.id).single();
 
     const { data, error } = await Promise.race([dataPromise, timeoutPromise]);
 
-    if (error && error.code !== 'PGRST116') { // PGRST116 表示没有找到记录
+    if (error && error.code !== 'PGRST116') {
+      // PGRST116 表示没有找到记录
       throw error;
     }
 
@@ -187,8 +189,11 @@ export const getUserSettings = async (user: User): Promise<UserSettings | null> 
         cardColor: data.card_color || '255, 255, 255',
         searchBarColor: data.search_bar_color || '255, 255, 255',
         autoSyncEnabled: data.auto_sync_enabled !== undefined ? data.auto_sync_enabled : true,
-        autoSyncInterval: (data.auto_sync_interval && data.auto_sync_interval >= 3 && data.auto_sync_interval <= 300) ? data.auto_sync_interval : 30,
-        lastSync: data.last_sync
+        autoSyncInterval:
+          data.auto_sync_interval && data.auto_sync_interval >= 3 && data.auto_sync_interval <= 300
+            ? data.auto_sync_interval
+            : 30,
+        lastSync: data.last_sync,
       };
     } else {
       logger.sync.debug('用户设置不存在，将使用默认设置');
@@ -197,14 +202,14 @@ export const getUserSettings = async (user: User): Promise<UserSettings | null> 
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : '未知错误';
     logger.sync.error('获取用户设置失败', error);
-    
+
     // 提供更详细的错误信息，但仍然返回 null 保持兼容性
     if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
       logger.sync.warn('网络连接问题，将使用本地设置');
     } else if (errorMessage.includes('auth') || errorMessage.includes('JWT')) {
       logger.sync.warn('认证问题，可能需要重新登录');
     }
-    
+
     // 离线模式下直接返回 null，不阻塞界面
     return null;
   }
@@ -229,7 +234,7 @@ export const saveUserWebsites = async (
       logger.sync.warn('数据完整性检查失败，跳过同步以保护云端数据', {
         issues: integrityCheck.issues,
         validCount: integrityCheck.validCount,
-        totalCount: integrityCheck.totalCount
+        totalCount: integrityCheck.totalCount,
       });
       callbacks?.onSyncError?.(`数据验证失败：${integrityCheck.issues.join(', ')}`);
       return false;
@@ -239,25 +244,23 @@ export const saveUserWebsites = async (
     if (websites.length > 0 && sanitizedWebsites.length < websites.length * 0.5) {
       logger.sync.warn('检测到大量无效数据，已过滤后同步', {
         original: websites.length,
-        sanitized: sanitizedWebsites.length
+        sanitized: sanitizedWebsites.length,
       });
     }
 
     await retryAsync(async () => {
-      const { error } = await supabase
-        .from(TABLES.USER_WEBSITES)
-        .upsert({
-          id: user.id,
-          websites: sanitizedWebsites,
-          last_sync: new Date().toISOString()
-        });
+      const { error } = await supabase.from(TABLES.USER_WEBSITES).upsert({
+        id: user.id,
+        websites: sanitizedWebsites,
+        last_sync: new Date().toISOString(),
+      });
 
       if (error) throw error;
     });
 
     logger.sync.info('网站数据已同步到云端', {
       original: websites.length,
-      sanitized: sanitizedWebsites.length
+      sanitized: sanitizedWebsites.length,
     });
     callbacks?.onSyncSuccess?.(`网站数据已同步到云端 (${sanitizedWebsites.length}个有效网站)`);
     return true;
@@ -276,11 +279,7 @@ export const getUserWebsites = async (user: User): Promise<WebsiteData[] | null>
       setTimeout(() => reject(new Error('连接超时')), 5000)
     );
 
-    const dataPromise = supabase
-      .from(TABLES.USER_WEBSITES)
-      .select('*')
-      .eq('id', user.id)
-      .single();
+    const dataPromise = supabase.from(TABLES.USER_WEBSITES).select('*').eq('id', user.id).single();
 
     const { data, error } = await Promise.race([dataPromise, timeoutPromise]);
 
@@ -311,30 +310,33 @@ export const getUserWebsites = async (user: User): Promise<WebsiteData[] | null>
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : '未知错误';
     logger.sync.error('获取网站数据失败', error);
-    
+
     // 提供更详细的错误信息，但仍然返回 null 保持兼容性
     if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
       logger.sync.warn('网络连接问题，将使用本地数据');
     } else if (errorMessage.includes('auth') || errorMessage.includes('JWT')) {
       logger.sync.warn('认证问题，可能需要重新登录');
     }
-    
+
     // 离线模式下直接返回 null，不阻塞界面
     return null;
   }
 };
 
 // 合并本地和云端数据 - 改进版本，避免数据丢失
-export const mergeWebsiteData = (localData: WebsiteData[], cloudData: WebsiteData[]): WebsiteData[] => {
+export const mergeWebsiteData = (
+  localData: WebsiteData[],
+  cloudData: WebsiteData[]
+): WebsiteData[] => {
   const merged: { [key: string]: WebsiteData } = {};
 
   // 先添加本地数据
-  localData.forEach(item => {
+  localData.forEach((item) => {
     merged[item.id] = { ...item };
   });
 
   // 智能合并云端数据
-  cloudData.forEach(item => {
+  cloudData.forEach((item) => {
     const existing = merged[item.id];
     if (!existing) {
       // 如果本地没有，直接使用云端数据
@@ -418,10 +420,10 @@ class SyncManager {
     try {
       const results = await Promise.allSettled([
         saveUserWebsites(user, websites),
-        saveUserSettings(user, settings)
+        saveUserSettings(user, settings),
       ]);
 
-      const failed = results.filter(result => result.status === 'rejected');
+      const failed = results.filter((result) => result.status === 'rejected');
 
       if (failed.length === 0) {
         this.retryCount = 0; // 重置重试计数器
@@ -447,7 +449,7 @@ class SyncManager {
 
       // 指数退避重试
       const retryDelay = 1000 * Math.pow(2, this.retryCount - 1);
-      await new Promise(resolve => setTimeout(resolve, retryDelay));
+      await new Promise((resolve) => setTimeout(resolve, retryDelay));
 
       return this.executSync(user, websites, settings, callbacks);
     } else {
@@ -469,7 +471,7 @@ class SyncManager {
 
       // 指数退避重试
       const retryDelay = 1000 * Math.pow(2, this.retryCount - 1);
-      await new Promise(resolve => setTimeout(resolve, retryDelay));
+      await new Promise((resolve) => setTimeout(resolve, retryDelay));
 
       return this.executSync(user, websites, settings, callbacks);
     } else {
@@ -511,13 +513,11 @@ export const saveUserProfile = async (
   try {
     callbacks?.onSyncStart?.();
 
-    const { error } = await supabase
-      .from(TABLES.USER_PROFILES)
-      .upsert({
-        id: user.id,
-        email: user.email || '',
-        display_name: displayName
-      });
+    const { error } = await supabase.from(TABLES.USER_PROFILES).upsert({
+      id: user.id,
+      email: user.email || '',
+      display_name: displayName,
+    });
 
     if (error) throw error;
 
@@ -540,7 +540,8 @@ export const getUserProfile = async (user: User): Promise<UserProfile | null> =>
       .eq('id', user.id)
       .single();
 
-    if (error && error.code !== 'PGRST116') { // PGRST116 表示没有找到记录
+    if (error && error.code !== 'PGRST116') {
+      // PGRST116 表示没有找到记录
       throw error;
     }
 
@@ -551,7 +552,7 @@ export const getUserProfile = async (user: User): Promise<UserProfile | null> =>
         email: data.email,
         displayName: data.display_name,
         createdAt: data.created_at,
-        updatedAt: data.updated_at
+        updatedAt: data.updated_at,
       };
     } else {
       logger.sync.debug('用户资料不存在');

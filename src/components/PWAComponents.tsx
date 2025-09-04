@@ -13,7 +13,7 @@ export function PWAPrompt() {
   }>({
     show: false,
     success: false,
-    message: ''
+    message: '',
   });
 
   useEffect(() => {
@@ -29,11 +29,11 @@ export function PWAPrompt() {
   const handleInstall = async () => {
     const success = await promptInstall();
     setShowPrompt(false);
-    
+
     setInstallResult({
       show: true,
       success,
-      message: success ? '应用安装成功！' : '安装已取消'
+      message: success ? '应用安装成功！' : '安装已取消',
     });
   };
 
@@ -57,15 +57,11 @@ export function PWAPrompt() {
               <div className="flex items-start space-x-3">
                 <div className="flex-shrink-0 text-2xl">📱</div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-sm font-semibold text-gray-900">
-                    安装到主屏幕
-                  </h3>
-                  <p className="text-xs text-gray-600 mt-1">
-                    获得更好的体验，支持离线使用
-                  </p>
+                  <h3 className="text-sm font-semibold text-gray-900">安装到主屏幕</h3>
+                  <p className="text-xs text-gray-600 mt-1">获得更好的体验，支持离线使用</p>
                 </div>
               </div>
-              
+
               <div className="flex space-x-2 mt-3">
                 <button
                   onClick={handleInstall}
@@ -89,7 +85,7 @@ export function PWAPrompt() {
         message={installResult.message}
         isVisible={installResult.show}
         type={installResult.success ? 'success' : 'info'}
-        onComplete={() => setInstallResult(prev => ({ ...prev, show: false }))}
+        onComplete={() => setInstallResult((prev) => ({ ...prev, show: false }))}
       />
     </>
   );
@@ -115,13 +111,10 @@ export function NetworkStatusIndicator() {
           <div className="flex items-center space-x-2">
             <i className="fa-solid fa-wifi-slash text-sm"></i>
             <span className="text-sm font-medium">
-              {offlineCapabilities.isOfflineReady 
-                ? '离线模式 - 基本功能可用' 
-                : '网络连接已断开'
-              }
+              {offlineCapabilities.isOfflineReady ? '离线模式 - 基本功能可用' : '网络连接已断开'}
             </span>
           </div>
-          
+
           <button
             onClick={() => setShowDetails(!showDetails)}
             className="text-xs underline hover:no-underline"
@@ -129,7 +122,7 @@ export function NetworkStatusIndicator() {
             {showDetails ? '收起' : '详情'}
           </button>
         </div>
-        
+
         <AnimatePresence>
           {showDetails && (
             <motion.div
@@ -152,12 +145,12 @@ export function NetworkStatusIndicator() {
   );
 }
 
-export function AdaptiveImageLoader({ 
-  src, 
-  alt, 
+export function AdaptiveImageLoader({
+  src,
+  alt,
   className = '',
   placeholder = '',
-  priority = false 
+  priority = false,
 }: {
   src: string;
   alt: string;
@@ -173,13 +166,14 @@ export function AdaptiveImageLoader({
   useEffect(() => {
     if (!src) return;
 
-    const shouldOptimize = !networkStatus.isOnline || 
-                          networkStatus.effectiveType === 'slow-2g' || 
-                          networkStatus.effectiveType === '2g' ||
-                          networkStatus.downlink < 0.5;
+    const shouldOptimize =
+      !networkStatus.isOnline ||
+      networkStatus.effectiveType === 'slow-2g' ||
+      networkStatus.effectiveType === '2g' ||
+      networkStatus.downlink < 0.5;
 
     let finalSrc = src;
-    
+
     // 如果是弱网环境，尝试加载优化版本
     if (shouldOptimize && !priority) {
       // 这里可以实现图片压缩或使用不同分辨率
@@ -192,7 +186,7 @@ export function AdaptiveImageLoader({
       setIsLoading(false);
       setError(false);
     };
-    
+
     img.onerror = () => {
       if (placeholder) {
         setImageSrc(placeholder);
@@ -220,23 +214,25 @@ export function AdaptiveImageLoader({
         }`}
         loading={priority ? 'eager' : 'lazy'}
       />
-      
+
       {isLoading && (
         <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
           <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
         </div>
       )}
-      
+
       {error && !placeholder && (
         <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
           <i className="fa-solid fa-image text-gray-400 text-2xl"></i>
         </div>
       )}
-      
+
       {/* 网络状态指示器 */}
       {!networkStatus.isOnline && (
-        <div className="absolute top-1 right-1 w-2 h-2 bg-yellow-400 rounded-full" 
-             title="离线模式"></div>
+        <div
+          className="absolute top-1 right-1 w-2 h-2 bg-yellow-400 rounded-full"
+          title="离线模式"
+        ></div>
       )}
     </div>
   );

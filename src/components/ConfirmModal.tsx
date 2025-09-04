@@ -19,7 +19,7 @@ export default function ConfirmModal({
   message,
   confirmText = '确定',
   cancelText = '取消',
-  type = 'warning'
+  type = 'warning',
 }: ConfirmModalProps) {
   const getTypeStyles = () => {
     switch (type) {
@@ -27,19 +27,19 @@ export default function ConfirmModal({
         return {
           icon: 'fa-solid fa-triangle-exclamation text-red-500',
           confirmButton: 'bg-red-500 hover:bg-red-600 text-white',
-          borderColor: 'border-red-200'
+          borderColor: 'border-red-200',
         };
       case 'warning':
         return {
           icon: 'fa-solid fa-exclamation-triangle text-orange-500',
           confirmButton: 'bg-orange-500 hover:bg-orange-600 text-white',
-          borderColor: 'border-orange-200'
+          borderColor: 'border-orange-200',
         };
       case 'info':
         return {
           icon: 'fa-solid fa-info-circle text-blue-500',
           confirmButton: 'bg-blue-500 hover:bg-blue-600 text-white',
-          borderColor: 'border-blue-200'
+          borderColor: 'border-blue-200',
         };
     }
   };
@@ -75,15 +75,11 @@ export default function ConfirmModal({
                   <i className={`${styles.icon} text-2xl`}></i>
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    {title}
-                  </h3>
-                  <div className="text-sm text-gray-600 whitespace-pre-line">
-                    {message}
-                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
+                  <div className="text-sm text-gray-600 whitespace-pre-line">{message}</div>
                 </div>
               </div>
-              
+
               <div className="flex justify-end space-x-3 mt-6">
                 <button
                   onClick={onClose}

@@ -1,7 +1,7 @@
 // Supabase Edge Function - Notion API 代理
 // 解决 CORS 跨域问题，安全转发请求到 Notion API
 
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { serve } from "https://deno.land/std@0.224.0/http/server.ts"
 import { corsHeaders } from '../_shared/cors.ts'
 
 console.log("Notion Proxy function started")

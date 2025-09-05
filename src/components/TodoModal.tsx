@@ -60,9 +60,10 @@ interface DraggableTodoItemProps {
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
   onMove: (dragIndex: number, hoverIndex: number) => void;
+  onStartEdit: (id: string, text: string, event?: React.MouseEvent) => void;
 }
 
-function DraggableTodoItem({ todo, index, onToggle, onDelete, onMove }: DraggableTodoItemProps) {
+function DraggableTodoItem({ todo, index, onToggle, onDelete, onMove, onStartEdit }: DraggableTodoItemProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   const [{ isDragging }, drag] = useDrag({
@@ -100,37 +101,31 @@ function DraggableTodoItem({ todo, index, onToggle, onDelete, onMove }: Draggabl
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
-      className={`flex items-center gap-3 p-3 rounded-xl bg-white/50 hover:bg-white/70 border border-gray-200/30 transition-all group cursor-move ${
-        isDragging ? 'opacity-50' : ''
+      className={`flex items-center gap-3 p-4 h-16 rounded-2xl bg-gradient-to-r from-white/80 to-white/60 backdrop-blur-sm border border-gray-200/40 shadow-md hover:shadow-xl transition-all duration-200 group cursor-move hover:scale-105 hover:-translate-y-1 ${
+        isDragging ? 'opacity-50 shadow-2xl scale-110' : ''
       }`}
       style={{ opacity: isDragging ? 0.5 : 1 }}
     >
-      {/* 拖拽手柄 */}
-      <div className="flex-shrink-0 text-gray-400 hover:text-gray-600 cursor-grab">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-          <circle cx="9" cy="12" r="1" />
-          <circle cx="9" cy="5" r="1" />
-          <circle cx="9" cy="19" r="1" />
-          <circle cx="15" cy="12" r="1" />
-          <circle cx="15" cy="5" r="1" />
-          <circle cx="15" cy="19" r="1" />
-        </svg>
-      </div>
-
       <button
         onClick={() => onToggle(todo.id)}
-        className="flex-shrink-0 w-5 h-5 rounded-full border-2 border-gray-300 hover:border-green-500 transition-colors flex items-center justify-center"
+        className="flex-shrink-0 w-5 h-5 rounded-full border-2 border-gray-300 hover:border-green-500 hover:bg-green-50 transition-all flex items-center justify-center"
       >
         {todo.completed && <CheckIcon size={12} />}
       </button>
 
-      <span className={`flex-1 text-sm ${todo.completed ? 'line-through text-gray-500' : 'text-gray-800'}`}>
+      <span
+        onClick={(e) => onStartEdit(todo.id, todo.text, e)}
+        className={`flex-1 text-sm font-medium cursor-pointer hover:text-blue-600 transition-colors truncate ${
+          todo.completed ? 'line-through text-gray-500' : 'text-gray-700'
+        }`}
+        title={todo.text}
+      >
         {todo.text}
       </span>
 
       <button
         onClick={() => onDelete(todo.id)}
-        className="opacity-0 group-hover:opacity-100 p-1 rounded-lg hover:bg-red-100 text-red-500 transition-all"
+        className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg hover:bg-red-50 text-red-400 hover:text-red-500 transition-all"
       >
         <TrashIcon />
       </button>
@@ -142,7 +137,9 @@ export function TodoModal({ isOpen, onClose, position }: TodoModalProps) {
   const [todos, setTodos] = useState<TodoItem[]>([]);
   const [newTodoText, setNewTodoText] = useState('');
   const [isAddingTodo, setIsAddingTodo] = useState(false);
+  const [editingTodo, setEditingTodo] = useState<{ id: string; text: string; originRect?: DOMRect } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const editInputRef = useRef<HTMLInputElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
 
   // 加载本地存储的todos
@@ -248,6 +245,52 @@ export function TodoModal({ isOpen, onClose, position }: TodoModalProps) {
     saveTodos(updatedTodos);
   };
 
+  // 编辑Todo
+  const editTodo = (id: string, newText: string) => {
+    const updatedTodos = todos.map(todo =>
+      todo.id === id ? { ...todo, text: newText } : todo
+    );
+    saveTodos(updatedTodos);
+    setEditingTodo(null);
+  };
+
+  // 开始编辑Todo
+  const startEditTodo = (id: string, text: string, event?: React.MouseEvent) => {
+    let originRect: DOMRect | undefined;
+    
+    if (event) {
+      // 获取点击元素的位置信息
+      const target = event.currentTarget as HTMLElement;
+      originRect = target.getBoundingClientRect();
+    }
+    
+    setEditingTodo({ id, text, originRect });
+  };
+
+  // 取消编辑
+  const cancelEdit = () => {
+    setEditingTodo(null);
+  };
+
+  // 保存编辑
+  const saveEdit = () => {
+    if (editingTodo && editingTodo.text.trim()) {
+      editTodo(editingTodo.id, editingTodo.text.trim());
+    } else {
+      setEditingTodo(null);
+    }
+  };
+
+  // 自动聚焦编辑输入框
+  useEffect(() => {
+    if (editingTodo && editInputRef.current) {
+      editInputRef.current.focus();
+      // 将光标移到文本末尾，而不是全选
+      const length = editInputRef.current.value.length;
+      editInputRef.current.setSelectionRange(length, length);
+    }
+  }, [editingTodo]);
+
   // 点击外部关闭 - 简化逻辑
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -330,15 +373,26 @@ export function TodoModal({ isOpen, onClose, position }: TodoModalProps) {
               }}
             >
             {/* 标题栏 */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-200/50">
-              <h2 className="text-lg font-semibold text-gray-800">TODO List</h2>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200/30">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-white">
+                    <path d="M9 12l2 2 4-4" />
+                    <path d="M21 12c0-1.657-1.343-3-3-3H6c-1.657 0-3 1.343-3 3s1.343 3 3 3h12c1.657 0 3-1.343 3-3z" />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-800">TODO</h2>
+                  <p className="text-xs text-gray-500">{activeTodos.length} 条代办</p>
+                </div>
+              </div>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   e.preventDefault();
                   onClose();
                 }}
-                className="p-1.5 rounded-lg hover:bg-gray-100/50 transition-colors"
+                className="p-2 rounded-lg hover:bg-gray-100/50 transition-colors"
               >
                 <CloseIcon />
               </button>
@@ -347,7 +401,7 @@ export function TodoModal({ isOpen, onClose, position }: TodoModalProps) {
             {/* 内容区域 */}
             <div className="max-h-[600px] overflow-y-auto">
               {/* 添加新Todo区域 */}
-              <div className="p-4 border-b border-gray-200/30">
+              <div className="px-6 py-5">
                 {!isAddingTodo ? (
                   <button
                     onClick={(e) => {
@@ -356,22 +410,22 @@ export function TodoModal({ isOpen, onClose, position }: TodoModalProps) {
                       setIsAddingTodo(true);
                     }}
                     disabled={activeTodos.length >= MAX_TODOS}
-                    className={`w-full flex items-center gap-2 p-3 rounded-xl transition-all ${
+                    className={`w-full flex items-center gap-2 p-4 rounded-2xl transition-all duration-200 ${
                       activeTodos.length >= MAX_TODOS
-                        ? 'bg-gray-100/50 text-gray-400 cursor-not-allowed'
-                        : 'bg-blue-50/50 hover:bg-blue-100/50 text-blue-700 hover:shadow-md'
+                        ? 'bg-gray-100/50 text-gray-400 cursor-not-allowed shadow-sm'
+                        : 'bg-blue-50/50 hover:bg-blue-100/50 text-blue-700 shadow-md hover:shadow-xl hover:scale-105 hover:-translate-y-1'
                     }`}
                   >
                     <PlusIcon />
                     <span className="font-medium">
                       {activeTodos.length >= MAX_TODOS 
-                        ? `已达最大限制 (${MAX_TODOS}条)` 
-                        : 'New TODO'
+                        ? `Maximum limit reached (${MAX_TODOS})` 
+                        : 'NEW'
                       }
                     </span>
                   </button>
                 ) : (
-                  <div className="flex gap-2">
+                  <div className="space-y-3">
                     <input
                       ref={inputRef}
                       type="text"
@@ -386,43 +440,50 @@ export function TodoModal({ isOpen, onClose, position }: TodoModalProps) {
                         }
                       }}
                       placeholder="Enter your TODO..."
-                      className="flex-1 px-3 py-2 rounded-lg border border-gray-200/50 bg-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent"
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200/50 bg-white/70 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all"
                       maxLength={100}
                     />
-                    <button
-                      onClick={(e) => addTodo(e)}
-                      className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
-                    >
-                      <CheckIcon />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        e.preventDefault();
-                        setIsAddingTodo(false);
-                        setNewTodoText('');
-                      }}
-                      className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded-lg transition-colors"
-                    >
-                      <CloseIcon />
-                    </button>
+                    <div className="flex gap-3">
+                      <button
+                        onClick={(e) => addTodo(e)}
+                        className="flex-1 px-4 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg transition-all font-medium flex items-center justify-center gap-2"
+                      >
+                        <CheckIcon />
+                        <span>Add</span>
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          setIsAddingTodo(false);
+                          setNewTodoText('');
+                        }}
+                        className="px-4 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-all font-medium flex items-center justify-center gap-2"
+                      >
+                        <CloseIcon />
+                        <span>Cancel</span>
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
 
               {/* Todo列表 */}
-              <div className="p-4 space-y-3">
+              <div className="px-6 py-4">
                 {/* 未完成的Todo - 可拖拽 */}
-                {activeTodos.map((todo, index) => (
-                  <DraggableTodoItem
-                    key={todo.id}
-                    todo={todo}
-                    index={index}
-                    onToggle={toggleTodo}
-                    onDelete={deleteTodo}
-                    onMove={moveTodo}
-                  />
-                ))}
+                <div className="space-y-3">
+                  {activeTodos.map((todo, index) => (
+                    <DraggableTodoItem
+                      key={todo.id}
+                      todo={todo}
+                      index={index}
+                      onToggle={toggleTodo}
+                      onDelete={deleteTodo}
+                      onMove={moveTodo}
+                      onStartEdit={startEditTodo}
+                    />
+                  ))}
+                </div>
 
                 {/* 已完成的Todo */}
                 {completedTodos.length > 0 && (
@@ -472,6 +533,123 @@ export function TodoModal({ isOpen, onClose, position }: TodoModalProps) {
                 {activeTodos.length}/{MAX_TODOS} Active TODOs
               </p>
             </div>
+
+            {/* 全屏编辑覆盖层 */}
+            <AnimatePresence>
+              {editingTodo && (() => {
+                // 计算动画的起始位置
+                let initialTransform = 'scale(0.1)';
+                let initialOrigin = 'center center';
+                
+                if (editingTodo.originRect && modalRef.current) {
+                  const modalRect = modalRef.current.getBoundingClientRect();
+                  const originX = ((editingTodo.originRect.left + editingTodo.originRect.width / 2 - modalRect.left) / modalRect.width) * 100;
+                  const originY = ((editingTodo.originRect.top + editingTodo.originRect.height / 2 - modalRect.top) / modalRect.height) * 100;
+                  initialOrigin = `${Math.max(0, Math.min(100, originX))}% ${Math.max(0, Math.min(100, originY))}%`;
+                  initialTransform = 'scale(0.1)';
+                }
+                
+                return (
+                  <motion.div
+                    className="absolute inset-0 bg-white rounded-2xl flex flex-col overflow-hidden"
+                    initial={{ scale: 0.1, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.1, opacity: 0 }}
+                    transition={{ duration: 0.3, ease: 'easeOut' }}
+                    style={{ 
+                      transformOrigin: initialOrigin,
+                      zIndex: 100
+                    }}
+                    onClick={(e) => {
+                      // 点击编辑区域外的地方自动保存
+                      if (e.target === e.currentTarget) {
+                        saveEdit();
+                      }
+                    }}
+                  >
+                    {/* 编辑标题栏 */}
+                    <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200/30 flex-shrink-0">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-white">
+                            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+                            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+                          </svg>
+                        </div>
+                        <div>
+                          <h2 className="text-lg font-semibold text-gray-800">编辑TODO</h2>
+                          <p className="text-xs text-gray-500">按 Enter 保存，Escape 取消</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={saveEdit}
+                        className="p-2 rounded-lg hover:bg-gray-100/50 transition-colors"
+                      >
+                        <CloseIcon />
+                      </button>
+                    </div>
+
+                    {/* 编辑内容区域 - 记事本风格 */}
+                    <div className="flex-1 flex flex-col p-6">
+                      {/* 记事本写作区域 */}
+                      <div 
+                        className="flex-1 relative"
+                        style={{
+                          // 横线背景 - 每32px一条线，文字写在线条之间
+                          backgroundImage: `linear-gradient(
+                            to bottom,
+                            transparent 0px,
+                            transparent 30px,
+                            rgba(156, 163, 175, 0.25) 30px,
+                            rgba(156, 163, 175, 0.25) 32px,
+                            transparent 32px
+                          )`,
+                          backgroundSize: '100% 32px',
+                          backgroundRepeat: 'repeat-y'
+                        }}
+                      >
+                        <textarea
+                          ref={editInputRef}
+                          value={editingTodo.text}
+                          onChange={(e) => setEditingTodo({ ...editingTodo, text: e.target.value })}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                              e.preventDefault();
+                              saveEdit();
+                            } else if (e.key === 'Escape') {
+                              cancelEdit();
+                            }
+                          }}
+                          placeholder="写下你的TODO..."
+                          className="w-full h-full bg-transparent border-none focus:outline-none resize-none relative z-10"
+                          style={{ 
+                            // 行高32px与背景线条间距完全匹配
+                            lineHeight: '32px',
+                            fontSize: '18px',
+                            fontFamily: '"STXingkai", "KaiTi", "楷体", "FangSong", "仿宋", cursive, serif',
+                            color: '#6b7280',
+                            // 让文字稍微离线条有一点距离，不要紧贴
+                            paddingTop: '3px',
+                            paddingLeft: '8px',
+                            paddingRight: '8px',
+                            paddingBottom: '9px',
+                            minHeight: '300px'
+                          }}
+                          maxLength={400}
+                        />
+                      </div>
+                      
+                      {/* 字符计数 */}
+                      <div className="flex justify-center mt-2">
+                        <span className="text-xs text-gray-500">
+                          {editingTodo.text.length}/400 字符
+                        </span>
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })()}
+            </AnimatePresence>
           </motion.div>
           </div>
         </>

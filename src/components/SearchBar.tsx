@@ -18,10 +18,11 @@ interface WebsiteData {
 
 interface SearchBarProps {
   websites?: WebsiteData[];
+  onOpenSettings?: () => void;
 }
 
 function SearchBarComponent(props: SearchBarProps = {}) {
-  const { websites = [] } = props;
+  const { websites = [], onOpenSettings } = props;
   const inputRef = useRef<HTMLInputElement>(null);
   const [isFocused, setIsFocused] = useState(false);
   const { searchBarOpacity, searchBarColor, setIsSearchFocused, searchInNewTab } =
@@ -785,6 +786,27 @@ function SearchBarComponent(props: SearchBarProps = {}) {
           return;
         }
         
+        // 检测Settings相关输入（支持中英文）
+        if (queryLower === 'settings' || queryLower === 'setting' || 
+            queryLower === '设置' || queryLower === 'config' || queryLower === '配置') {
+          // 生成设置相关建议
+          const settingsSuggestions = [];
+          
+          settingsSuggestions.push({
+            id: 'open-settings',
+            text: '打开设置页面',
+            query: queryLower,
+            isSettingsAction: true,
+            action: 'open'
+          });
+          
+          setSuggestions(settingsSuggestions);
+          setWebsiteSuggestions([]);
+          setShowSuggestions(settingsSuggestions.length > 0);
+          setSelectedSuggestionIndex(-1);
+          return;
+        }
+        
         // 同时搜索网站和生成搜索建议
         const matchedWebsites = searchWebsites(searchQuery);
         setWebsiteSuggestions(matchedWebsites);
@@ -895,6 +917,17 @@ function SearchBarComponent(props: SearchBarProps = {}) {
           }
         }
 
+        // 检查是否是Settings操作
+        if (selectedSuggestion?.isSettingsAction) {
+          if (selectedSuggestion.action === 'open' && onOpenSettings) {
+            onOpenSettings();
+            setSearchQuery('');
+            setShowSuggestions(false);
+            setWebsiteSuggestions([]);
+            return;
+          }
+        }
+
         // 检查是否是直接访问建议
         if (selectedSuggestion?.isDirectVisit) {
           openUrl(selectedSuggestion.query);
@@ -959,17 +992,33 @@ function SearchBarComponent(props: SearchBarProps = {}) {
         }
       }
       
+      // 检测Settings相关输入（支持中英文）
+      if (queryLower === 'settings' || queryLower === 'setting' || 
+          queryLower === '设置' || queryLower === 'config' || queryLower === '配置') {
+        // 打开设置页面
+        if (onOpenSettings) {
+          onOpenSettings();
+          setSearchQuery('');
+          setShowSuggestions(false);
+          setWebsiteSuggestions([]);
+          return;
+        }
+      }
+      
       // 检测是否为URL
       if (isValidURL(queryToSearch)) {
         // 直接访问URL
         openUrl(formatURL(queryToSearch));
+        setSearchQuery('');
+        setShowSuggestions(false);
+        setWebsiteSuggestions([]);
       } else {
         // 搜索引擎搜索
         openUrl(getSearchUrl(engine, queryToSearch));
+        setSearchQuery('');
+        setShowSuggestions(false);
+        setWebsiteSuggestions([]);
       }
-      setSearchQuery('');
-      setShowSuggestions(false);
-      setWebsiteSuggestions([]);
     }
   };
 
@@ -1357,6 +1406,7 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                             const isSelected = adjustedIndex === selectedSuggestionIndex;
                             const isDirectVisit = (suggestion as any).isDirectVisit;
                             const isTodoAction = (suggestion as any).isTodoAction;
+                            const isSettingsAction = (suggestion as any).isSettingsAction;
                             const isHint = (suggestion as any).action === 'hint';
                             const isAdd = (suggestion as any).action === 'add';
 
@@ -1369,6 +1419,8 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                                       ? isAdd
                                         ? 'bg-green-500/10 text-gray-800 border-l-4 border-green-500'
                                         : 'bg-blue-500/10 text-gray-800 border-l-4 border-blue-500'
+                                      : isSettingsAction
+                                      ? 'bg-purple-500/10 text-gray-800 border-l-4 border-purple-500'
                                       : isHint
                                       ? 'bg-gray-100/50 text-gray-600'
                                       : isDirectVisit
@@ -1378,6 +1430,8 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                                       ? isAdd
                                         ? 'hover:bg-green-50 text-gray-700 border-l-4 border-transparent hover:border-green-200'
                                         : 'hover:bg-blue-50 text-gray-700 border-l-4 border-transparent hover:border-blue-200'
+                                      : isSettingsAction
+                                      ? 'hover:bg-purple-50 text-gray-700 border-l-4 border-transparent hover:border-purple-200'
                                       : isHint
                                       ? 'bg-gray-50/50 text-gray-600'
                                       : isDirectVisit
@@ -1402,6 +1456,13 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                                       setShowSuggestions(false);
                                       setWebsiteSuggestions([]);
                                     }
+                                  } else if ((suggestion as any).isSettingsAction) {
+                                    if ((suggestion as any).action === 'open' && onOpenSettings) {
+                                      onOpenSettings();
+                                      setSearchQuery('');
+                                      setShowSuggestions(false);
+                                      setWebsiteSuggestions([]);
+                                    }
                                   } else if (isDirectVisit) {
                                     handleSearch(e as any, suggestion.query, undefined, true);
                                   } else {
@@ -1420,6 +1481,13 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                                         {isHint ? '提示' : isAdd ? '添加' : 'TODO'}
                                       </div>
                                     </div>
+                                  ) : (suggestion as any).isSettingsAction ? (
+                                    <div className="flex items-center gap-2">
+                                      <i className="fa-solid fa-cogs text-purple-600 text-sm w-4 select-none"></i>
+                                      <div className="bg-purple-100 text-purple-700 px-2 py-1 rounded-full text-xs font-medium">
+                                        设置
+                                      </div>
+                                    </div>
                                   ) : isDirectVisit ? (
                                     <div className="flex items-center gap-2">
                                       <i className="fa-solid fa-external-link-alt text-green-600 text-sm w-4 select-none"></i>
@@ -1433,6 +1501,10 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                                   <div className="flex-1 min-w-0 select-none">
                                     {(suggestion as any).isTodoAction ? (
                                       <div className={`font-medium text-sm ${isHint ? 'text-gray-600 italic' : isAdd ? 'text-green-700' : 'text-blue-700'} select-none`}>
+                                        {suggestion.text}
+                                      </div>
+                                    ) : (suggestion as any).isSettingsAction ? (
+                                      <div className="font-medium text-sm text-purple-700 select-none">
                                         {suggestion.text}
                                       </div>
                                     ) : isDirectVisit ? (
@@ -1456,6 +1528,8 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                                         ? isAdd
                                           ? 'text-green-600 bg-green-100'
                                           : 'text-blue-600 bg-blue-100'
+                                        : (suggestion as any).isSettingsAction
+                                        ? 'text-purple-600 bg-purple-100'
                                         : isHint
                                         ? 'text-gray-500 bg-gray-200'
                                         : isDirectVisit

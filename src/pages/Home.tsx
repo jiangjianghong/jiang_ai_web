@@ -307,7 +307,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
           </p>
           {/* 时间组件始终渲染，通过透明度控制显示，避免影响布局 */}
           <TimeDisplay />
-          <SearchBar websites={websites} />
+          <SearchBar websites={websites} onOpenSettings={() => setShowSettings(true)} />
         </div>
 
         <div className={classes.cardContainer}>

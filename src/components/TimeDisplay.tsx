@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useTransparency } from '@/contexts/TransparencyContext';
+import { TodoModal } from './TodoModal';
 
 export function TimeDisplay() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isColonVisible, setIsColonVisible] = useState(true);
+  const [showTodoModal, setShowTodoModal] = useState(false);
+  const [clickPosition, setClickPosition] = useState<{ x: number; y: number } | undefined>();
   const {
     showFullDate,
     showSeconds,
@@ -82,12 +85,23 @@ export function TimeDisplay() {
     return date.toLocaleDateString('zh-CN', options);
   };
 
+  // 处理时间点击事件
+  const handleTimeClick = (event: React.MouseEvent) => {
+    event.stopPropagation();
+    const rect = (event.target as HTMLElement).getBoundingClientRect();
+    setClickPosition({
+      x: rect.left + rect.width / 2,
+      y: rect.bottom,
+    });
+    setShowTodoModal(true);
+  };
+
   // 检查是否有任何日期元素被启用，用于调整时间位置
   const hasAnyDateElement = showYear || showMonth || showDay || showWeekday;
 
   return (
     <div
-      className="absolute left-0 right-0 z-50 flex justify-center px-4 select-none pointer-events-none"
+      className="absolute left-0 right-0 z-[60] flex justify-center px-4 select-none pointer-events-none"
       style={{ top: '-45px' }} // 向下移动到-45px
     >
       <motion.div
@@ -101,14 +115,17 @@ export function TimeDisplay() {
         transition={{ duration: 0.3 }}
       >
         <div
-          className="relative flex flex-col items-center select-none pointer-events-none"
+          className="relative flex flex-col items-center select-none"
           style={{
             minHeight: '60px', // 固定最小高度，确保布局稳定
             // 当没有日期元素时，时间向下移动以居中显示
             transform: hasAnyDateElement ? 'translateY(0)' : 'translateY(15px)',
           }}
         >
-          <div className="text-white/80 font-mono text-4xl font-semibold tracking-wide mb-1 drop-shadow-sm">
+          <div 
+            className="text-white/80 font-mono text-4xl font-semibold tracking-wide mb-1 drop-shadow-sm cursor-pointer hover:text-white/90 transition-all duration-200 hover:scale-105 pointer-events-auto time-display-clickable"
+            onClick={handleTimeClick}
+          >
             {(() => {
               const timeData = formatTime(currentTime);
               if (showSeconds || timeData.text.includes(':')) {
@@ -153,6 +170,13 @@ export function TimeDisplay() {
           </div>
         </div>
       </motion.div>
+      
+      {/* Todo弹窗 */}
+      <TodoModal
+        isOpen={showTodoModal}
+        onClose={() => setShowTodoModal(false)}
+        position={clickPosition}
+      />
     </div>
   );
 }

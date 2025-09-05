@@ -40,7 +40,6 @@ interface TodoItem {
 interface TodoModalProps {
   isOpen: boolean;
   onClose: () => void;
-  position?: { x: number; y: number };
 }
 
 const STORAGE_KEY = 'time-display-todos';
@@ -125,6 +124,30 @@ export function TodoModal({ isOpen, onClose }: TodoModalProps) {
       }
     }
   }, []);
+
+  // 键盘事件处理和页面滚动控制
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        e.preventDefault();
+        e.stopPropagation();
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleKeyDown, true);
+      // 阻止页面滚动
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown, true);
+      document.body.style.overflow = '';
+    };
+  }, [isOpen, onClose]);
 
   // 保存到本地存储
   const saveTodos = (newTodos: TodoItem[]) => {
@@ -317,15 +340,39 @@ export function TodoModal({ isOpen, onClose }: TodoModalProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3, ease: 'easeOut' }}
-            onClick={onClose}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onClose();
+            }}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
           />
 
           {/* Todo弹窗容器 */}
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+          <div 
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
+            onClick={(e) => {
+              // 如果点击的是容器本身（不是弹窗内容），关闭弹窗
+              if (e.target === e.currentTarget) {
+                e.preventDefault();
+                e.stopPropagation();
+                onClose();
+              }
+            }}
+            style={{ pointerEvents: 'auto' }}
+          >
             <motion.div
               ref={modalRef}
               className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-white/20 overflow-hidden pointer-events-auto"
               onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              onMouseDown={(e) => {
+                e.preventDefault();
                 e.stopPropagation();
               }}
               style={{

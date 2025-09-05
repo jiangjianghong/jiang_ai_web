@@ -7,7 +7,6 @@ export function TimeDisplay() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isColonVisible, setIsColonVisible] = useState(true);
   const [showTodoModal, setShowTodoModal] = useState(false);
-  const [clickPosition, setClickPosition] = useState<{ x: number; y: number } | undefined>();
   const {
     showFullDate,
     showSeconds,
@@ -88,11 +87,6 @@ export function TimeDisplay() {
   // 处理时间点击事件
   const handleTimeClick = (event: React.MouseEvent) => {
     event.stopPropagation();
-    const rect = (event.target as HTMLElement).getBoundingClientRect();
-    setClickPosition({
-      x: rect.left + rect.width / 2,
-      y: rect.bottom,
-    });
     setShowTodoModal(true);
   };
 
@@ -175,7 +169,6 @@ export function TimeDisplay() {
       <TodoModal
         isOpen={showTodoModal}
         onClose={() => setShowTodoModal(false)}
-        position={clickPosition}
       />
     </div>
   );

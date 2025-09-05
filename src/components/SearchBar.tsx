@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTransparency } from '@/contexts/TransparencyContext';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import * as validator from 'validator';
+import { TodoModal } from './TodoModal';
 
 interface WebsiteData {
   id: string;
@@ -39,6 +40,40 @@ function SearchBarComponent(props: SearchBarProps = {}) {
   const [hoveredEmojiIdx, setHoveredEmojiIdx] = useState<number | null>(null);
   const [showEngineTooltip, setShowEngineTooltip] = useState(false);
   const searchBarRef = useRef<HTMLFormElement>(null);
+  
+  // TODO功能相关状态
+  const [showTodoModal, setShowTodoModal] = useState(false);
+  const [todoFeedback, setTodoFeedback] = useState<string | null>(null);
+
+  // 添加TODO到存储
+  const addTodoToStorage = (todoText: string) => {
+    const STORAGE_KEY = 'time-display-todos';
+    const stored = localStorage.getItem(STORAGE_KEY);
+    let todos = [];
+    
+    if (stored) {
+      try {
+        todos = JSON.parse(stored);
+      } catch {
+        todos = [];
+      }
+    }
+
+    const newTodo = {
+      id: Date.now().toString(),
+      text: todoText.trim(),
+      completed: false,
+      createdAt: Date.now(),
+      order: Math.max(0, ...todos.map((todo: any) => todo.order || 0)) + 1,
+    };
+
+    todos = [newTodo, ...todos].slice(0, 1000); // 限制为1000条
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
+    
+    // 显示反馈
+    setTodoFeedback(`已添加到TODO：${todoText}`);
+    setTimeout(() => setTodoFeedback(null), 3000);
+  };
 
   // 创建彩带动画效果 - 使用真正多样的SVG形状
   const createFireworkEffect = useCallback((centerX: number, centerY: number) => {
@@ -674,6 +709,82 @@ function SearchBarComponent(props: SearchBarProps = {}) {
   useEffect(() => {
     const debounceTimer = setTimeout(() => {
       if (searchQuery.trim()) {
+        const queryLower = searchQuery.toLowerCase();
+        
+        // 检测TODO相关输入（支持中英文）
+        if (queryLower === 'todo' || queryLower.startsWith('todo ') || 
+            queryLower === '待办' || queryLower === '待办事项' || 
+            queryLower.startsWith('待办 ') || queryLower.startsWith('待办事项 ') ||
+            queryLower.startsWith('todo:') || queryLower.startsWith('todo：') ||
+            queryLower.startsWith('待办:') || queryLower.startsWith('待办：') ||
+            queryLower.startsWith('待办事项:') || queryLower.startsWith('待办事项：')) {
+          // 生成TODO相关建议
+          const todoSuggestions = [];
+          
+          if (queryLower === 'todo' || queryLower === '待办' || queryLower === '待办事项') {
+            todoSuggestions.push({
+              id: 'open-todo',
+              text: '打开 TODO 列表',
+              query: 'todo',
+              isTodoAction: true,
+              action: 'open'
+            });
+          } else if (queryLower === 'todo:' || queryLower === 'todo：' ||
+                     queryLower === '待办:' || queryLower === '待办：' ||
+                     queryLower === '待办事项:' || queryLower === '待办事项：') {
+            todoSuggestions.push({
+              id: 'todo-input-hint',
+              text: '继续输入来添加待办事项...',
+              query: searchQuery,
+              isTodoAction: true,
+              action: 'hint'
+            });
+          } else if (queryLower.startsWith('todo:') || queryLower.startsWith('todo：') ||
+                     queryLower.startsWith('待办:') || queryLower.startsWith('待办：') ||
+                     queryLower.startsWith('待办事项:') || queryLower.startsWith('待办事项：')) {
+            // 用户正在输入待办内容
+            let separator = ':';
+            let todoText = '';
+            
+            if (searchQuery.includes('：')) {
+              separator = '：';
+            }
+            
+            if (queryLower.startsWith('todo')) {
+              todoText = searchQuery.split(separator)[1]?.trim();
+            } else if (queryLower.startsWith('待办事项')) {
+              todoText = searchQuery.split(separator)[1]?.trim();
+            } else if (queryLower.startsWith('待办')) {
+              todoText = searchQuery.split(separator)[1]?.trim();
+            }
+            
+            if (todoText) {
+              todoSuggestions.push({
+                id: 'todo-ready-to-add',
+                text: `添加待办：${todoText}`,
+                query: searchQuery,
+                isTodoAction: true,
+                action: 'add',
+                todoText: todoText
+              });
+            } else {
+              todoSuggestions.push({
+                id: 'todo-input-hint',
+                text: '继续输入来添加待办事项...',
+                query: searchQuery,
+                isTodoAction: true,
+                action: 'hint'
+              });
+            }
+          }
+          
+          setSuggestions(todoSuggestions);
+          setWebsiteSuggestions([]);
+          setShowSuggestions(todoSuggestions.length > 0);
+          setSelectedSuggestionIndex(-1);
+          return;
+        }
+        
         // 同时搜索网站和生成搜索建议
         const matchedWebsites = searchWebsites(searchQuery);
         setWebsiteSuggestions(matchedWebsites);
@@ -763,6 +874,27 @@ function SearchBarComponent(props: SearchBarProps = {}) {
         const suggestionIndex = selectedSuggestionIndex - websiteSuggestions.length;
         const selectedSuggestion = suggestions[suggestionIndex];
 
+        // 检查是否是TODO操作
+        if (selectedSuggestion?.isTodoAction) {
+          if (selectedSuggestion.action === 'open') {
+            setShowTodoModal(true);
+            setSearchQuery('');
+            setShowSuggestions(false);
+            setWebsiteSuggestions([]);
+            return;
+          } else if (selectedSuggestion.action === 'hint') {
+            // 提示状态，不执行任何操作，让用户继续输入
+            return;
+          } else if (selectedSuggestion.action === 'add' && (selectedSuggestion as any).todoText) {
+            // 添加待办事项
+            addTodoToStorage((selectedSuggestion as any).todoText);
+            setSearchQuery('');
+            setShowSuggestions(false);
+            setWebsiteSuggestions([]);
+            return;
+          }
+        }
+
         // 检查是否是直接访问建议
         if (selectedSuggestion?.isDirectVisit) {
           openUrl(selectedSuggestion.query);
@@ -787,6 +919,46 @@ function SearchBarComponent(props: SearchBarProps = {}) {
     // 默认搜索或直接访问
     const queryToSearch = suggestionQuery || searchQuery;
     if (queryToSearch.trim()) {
+      const queryLower = queryToSearch.toLowerCase();
+      
+      // 检测TODO相关输入（支持中英文）
+      if (queryLower === 'todo' || queryLower === '待办' || queryLower === '待办事项') {
+        // 打开TODO弹窗
+        setShowTodoModal(true);
+        setSearchQuery('');
+        setShowSuggestions(false);
+        setWebsiteSuggestions([]);
+        return;
+      }
+      
+      // 检测TODO:xxx格式，直接添加TODO（支持中英文）
+      if (queryLower.startsWith('todo:') || queryLower.startsWith('todo：') ||
+          queryLower.startsWith('待办:') || queryLower.startsWith('待办：') ||
+          queryLower.startsWith('待办事项:') || queryLower.startsWith('待办事项：')) {
+        let separator = ':';
+        let todoText = '';
+        
+        if (queryToSearch.includes('：')) {
+          separator = '：';
+        }
+        
+        if (queryLower.startsWith('todo')) {
+          todoText = queryToSearch.split(separator)[1]?.trim();
+        } else if (queryLower.startsWith('待办事项')) {
+          todoText = queryToSearch.split(separator)[1]?.trim();
+        } else if (queryLower.startsWith('待办')) {
+          todoText = queryToSearch.split(separator)[1]?.trim();
+        }
+        
+        if (todoText) {
+          addTodoToStorage(todoText);
+          setSearchQuery('');
+          setShowSuggestions(false);
+          setWebsiteSuggestions([]);
+          return;
+        }
+      }
+      
       // 检测是否为URL
       if (isValidURL(queryToSearch)) {
         // 直接访问URL
@@ -1184,22 +1356,53 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                             const adjustedIndex = index + websiteSuggestions.length;
                             const isSelected = adjustedIndex === selectedSuggestionIndex;
                             const isDirectVisit = (suggestion as any).isDirectVisit;
+                            const isTodoAction = (suggestion as any).isTodoAction;
+                            const isHint = (suggestion as any).action === 'hint';
+                            const isAdd = (suggestion as any).action === 'add';
 
                             return (
                               <div
                                 key={suggestion.id}
-                                className={`px-4 py-3 cursor-pointer transition-colors border-b border-gray-100/50 last:border-b-0 select-none ${
+                                className={`px-4 py-3 ${isHint ? 'cursor-default' : 'cursor-pointer'} transition-colors border-b border-gray-100/50 last:border-b-0 select-none ${
                                   isSelected
-                                    ? isDirectVisit
+                                    ? isTodoAction && !isHint
+                                      ? isAdd
+                                        ? 'bg-green-500/10 text-gray-800 border-l-4 border-green-500'
+                                        : 'bg-blue-500/10 text-gray-800 border-l-4 border-blue-500'
+                                      : isHint
+                                      ? 'bg-gray-100/50 text-gray-600'
+                                      : isDirectVisit
                                       ? 'bg-green-500/10 text-gray-800 border-l-4 border-green-500'
                                       : 'bg-blue-500/10 text-gray-800'
-                                    : isDirectVisit
+                                    : isTodoAction && !isHint
+                                      ? isAdd
+                                        ? 'hover:bg-green-50 text-gray-700 border-l-4 border-transparent hover:border-green-200'
+                                        : 'hover:bg-blue-50 text-gray-700 border-l-4 border-transparent hover:border-blue-200'
+                                      : isHint
+                                      ? 'bg-gray-50/50 text-gray-600'
+                                      : isDirectVisit
                                       ? 'hover:bg-green-50 text-gray-700 border-l-4 border-transparent hover:border-green-200'
                                       : 'hover:bg-gray-50 text-gray-700'
                                 }`}
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  if (isDirectVisit) {
+                                  if ((suggestion as any).isTodoAction) {
+                                    if ((suggestion as any).action === 'open') {
+                                      setShowTodoModal(true);
+                                      setSearchQuery('');
+                                      setShowSuggestions(false);
+                                      setWebsiteSuggestions([]);
+                                    } else if ((suggestion as any).action === 'hint') {
+                                      // 提示状态，不执行操作，让用户继续输入
+                                      return;
+                                    } else if ((suggestion as any).action === 'add' && (suggestion as any).todoText) {
+                                      // 添加待办事项
+                                      addTodoToStorage((suggestion as any).todoText);
+                                      setSearchQuery('');
+                                      setShowSuggestions(false);
+                                      setWebsiteSuggestions([]);
+                                    }
+                                  } else if (isDirectVisit) {
                                     handleSearch(e as any, suggestion.query, undefined, true);
                                   } else {
                                     setSearchQuery(suggestion.text);
@@ -1210,7 +1413,14 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                                 onMouseDown={(e) => e.preventDefault()}
                               >
                                 <div className="flex items-center gap-3 select-none">
-                                  {isDirectVisit ? (
+                                  {(suggestion as any).isTodoAction ? (
+                                    <div className="flex items-center gap-2">
+                                      <i className={`${isHint ? 'fa-solid fa-pencil-alt text-gray-500' : isAdd ? 'fa-solid fa-plus text-green-600' : 'fa-solid fa-check-square text-blue-600'} text-sm w-4 select-none`}></i>
+                                      <div className={`${isHint ? 'bg-gray-100 text-gray-600' : isAdd ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'} px-2 py-1 rounded-full text-xs font-medium`}>
+                                        {isHint ? '提示' : isAdd ? '添加' : 'TODO'}
+                                      </div>
+                                    </div>
+                                  ) : isDirectVisit ? (
                                     <div className="flex items-center gap-2">
                                       <i className="fa-solid fa-external-link-alt text-green-600 text-sm w-4 select-none"></i>
                                       <div className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium">
@@ -1221,7 +1431,11 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                                     <i className="fa-solid fa-magnifying-glass text-gray-400 text-sm w-4 select-none"></i>
                                   )}
                                   <div className="flex-1 min-w-0 select-none">
-                                    {isDirectVisit ? (
+                                    {(suggestion as any).isTodoAction ? (
+                                      <div className={`font-medium text-sm ${isHint ? 'text-gray-600 italic' : isAdd ? 'text-green-700' : 'text-blue-700'} select-none`}>
+                                        {suggestion.text}
+                                      </div>
+                                    ) : isDirectVisit ? (
                                       <div>
                                         <div className="font-medium text-sm text-green-700 select-none">
                                           直接访问网站
@@ -1238,12 +1452,18 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                                   </div>
                                   <div
                                     className={`text-xs px-2 py-1 rounded ${
-                                      isDirectVisit
+                                      (suggestion as any).isTodoAction && !isHint
+                                        ? isAdd
+                                          ? 'text-green-600 bg-green-100'
+                                          : 'text-blue-600 bg-blue-100'
+                                        : isHint
+                                        ? 'text-gray-500 bg-gray-200'
+                                        : isDirectVisit
                                         ? 'text-green-600 bg-green-100'
                                         : 'text-gray-400 bg-gray-100'
                                     }`}
                                   >
-                                    Enter
+                                    {isHint ? '输入...' : 'Enter'}
                                   </div>
                                 </div>
                               </div>
@@ -1363,6 +1583,32 @@ function SearchBarComponent(props: SearchBarProps = {}) {
           </form>
         </motion.div>
       </div>
+
+      {/* TODO模态框 */}
+      {showTodoModal && (
+        <TodoModal
+          isOpen={showTodoModal}
+          onClose={() => setShowTodoModal(false)}
+        />
+      )}
+
+      {/* TODO反馈提示 */}
+      <AnimatePresence>
+        {todoFeedback && (
+          <motion.div
+            className="fixed top-4 right-4 z-[60] bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg"
+            initial={{ opacity: 0, y: -20, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.9 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div className="flex items-center gap-2">
+              <i className="fa-solid fa-check-circle"></i>
+              <span>{todoFeedback}</span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }

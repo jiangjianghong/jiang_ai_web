@@ -1,6 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useDrag, useDrop } from 'react-dnd';
 
 // 简单的图标组件
 const CloseIcon = () => (
@@ -48,75 +47,36 @@ const STORAGE_KEY = 'time-display-todos';
 const MAX_TODOS = 30;
 const MAX_HISTORY = 1000;
 
-// 拖拽项目类型
-const ItemTypes = {
-  TODO: 'todo',
-};
-
-// 可拖拽的Todo项组件
-interface DraggableTodoItemProps {
+// Todo项组件 - 移除拖拽功能
+interface TodoItemProps {
   todo: TodoItem;
-  index: number;
-  onToggle: (id: string) => void;
+  onToggle: (id: string, event?: React.MouseEvent) => void;
   onDelete: (id: string) => void;
-  onMove: (dragIndex: number, hoverIndex: number) => void;
   onStartEdit: (id: string, text: string, event?: React.MouseEvent) => void;
 }
 
-function DraggableTodoItem({ todo, index, onToggle, onDelete, onMove, onStartEdit }: DraggableTodoItemProps) {
-  const ref = useRef<HTMLDivElement>(null);
-
-  const [{ isDragging }, drag] = useDrag({
-    type: ItemTypes.TODO,
-    item: { id: todo.id, index },
-    collect: (monitor) => ({
-      isDragging: monitor.isDragging(),
-    }),
-  });
-
-  const [, drop] = useDrop({
-    accept: ItemTypes.TODO,
-    hover: (item: { id: string; index: number }) => {
-      if (!ref.current) {
-        return;
-      }
-      const dragIndex = item.index;
-      const hoverIndex = index;
-
-      if (dragIndex === hoverIndex) {
-        return;
-      }
-
-      onMove(dragIndex, hoverIndex);
-      item.index = hoverIndex;
-    },
-  });
-
-  drag(drop(ref));
-
+function TodoItemComponent({ todo, onToggle, onDelete, onStartEdit }: TodoItemProps) {
   return (
     <motion.div
-      ref={ref}
       layout
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
-      className={`flex items-center gap-3 p-4 h-16 rounded-2xl bg-gradient-to-r from-white/80 to-white/60 backdrop-blur-sm border border-gray-200/40 shadow-md hover:shadow-xl transition-all duration-200 group cursor-move hover:scale-105 hover:-translate-y-1 ${
-        isDragging ? 'opacity-50 shadow-2xl scale-110' : ''
-      }`}
-      style={{ opacity: isDragging ? 0.5 : 1 }}
+      className={`flex items-center gap-3 p-3 h-12 rounded-2xl bg-gradient-to-r from-white/80 to-white/60 backdrop-blur-sm border border-gray-200/40 shadow-md hover:shadow-xl transition-all duration-200 group hover:scale-105 hover:-translate-y-1`}
     >
-      <button
-        onClick={() => onToggle(todo.id)}
+      <motion.button
+        onClick={(e) => onToggle(todo.id, e)}
         className="flex-shrink-0 w-5 h-5 rounded-full border-2 border-gray-300 hover:border-green-500 hover:bg-green-50 transition-all flex items-center justify-center"
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
       >
         {todo.completed && <CheckIcon size={12} />}
-      </button>
+      </motion.button>
 
       <span
         onClick={(e) => onStartEdit(todo.id, todo.text, e)}
-        className={`flex-1 text-sm font-medium cursor-pointer hover:text-blue-600 transition-colors truncate ${
-          todo.completed ? 'line-through text-gray-500' : 'text-gray-700'
+        className={`flex-1 text-sm font-medium cursor-pointer transition-colors truncate ${
+          todo.completed ? 'line-through text-gray-500' : 'text-blue-600'
         }`}
         title={todo.text}
       >
@@ -135,11 +95,8 @@ function DraggableTodoItem({ todo, index, onToggle, onDelete, onMove, onStartEdi
 
 export function TodoModal({ isOpen, onClose, position }: TodoModalProps) {
   const [todos, setTodos] = useState<TodoItem[]>([]);
-  const [newTodoText, setNewTodoText] = useState('');
-  const [isAddingTodo, setIsAddingTodo] = useState(false);
   const [editingTodo, setEditingTodo] = useState<{ id: string; text: string; originRect?: DOMRect } | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const editInputRef = useRef<HTMLInputElement>(null);
+  const editInputRef = useRef<HTMLTextAreaElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
 
   // 加载本地存储的todos
@@ -175,64 +132,89 @@ export function TodoModal({ isOpen, onClose, position }: TodoModalProps) {
     setTodos(newTodos);
   };
 
-  // 添加新Todo
-  const addTodo = (e?: React.MouseEvent) => {
-    if (e) {
-      e.stopPropagation();
-      e.preventDefault();
-    }
-    
-    const text = newTodoText.trim();
-    if (!text) return;
-
+  // 开始添加新Todo - 直接进入编辑模式
+  const startAddNewTodo = () => {
     const activeTodos = todos.filter(todo => !todo.completed);
-    if (activeTodos.length >= MAX_TODOS) {
-      return; // 达到最大数量限制
-    }
-
-    // 获取当前最大order值
-    const maxOrder = Math.max(0, ...todos.map(todo => todo.order || 0));
+    if (activeTodos.length >= MAX_TODOS) return;
 
     const newTodo: TodoItem = {
       id: Date.now().toString(),
-      text,
+      text: '',
       completed: false,
       createdAt: Date.now(),
-      order: maxOrder + 1,
+      order: Math.max(0, ...todos.map(todo => todo.order || 0)) + 1,
     };
-
-    const updatedTodos = [newTodo, ...todos].slice(0, MAX_HISTORY);
-    saveTodos(updatedTodos);
-    setNewTodoText('');
-    setIsAddingTodo(false);
+    
+    // 添加到状态但不保存到localStorage（编辑时再保存）
+    setTodos([newTodo, ...todos]);
+    // 进入编辑模式
+    setEditingTodo({ id: newTodo.id, text: '' });
   };
 
-  // 移动Todo项
-  const moveTodo = (dragIndex: number, hoverIndex: number) => {
-    const activeTodos = todos.filter(todo => !todo.completed);
-    const dragTodo = activeTodos[dragIndex];
-    const newActiveTodos = [...activeTodos];
+  // 创建完成庆祝动画效果
+  const createCelebrationEffect = useCallback((centerX: number, centerY: number) => {
+    // 彩色小星星和粒子
+    const colors = ['#10B981', '#06D6A0', '#FFD166', '#F72585', '#4CC9F0'];
     
-    // 移动项目
-    newActiveTodos.splice(dragIndex, 1);
-    newActiveTodos.splice(hoverIndex, 0, dragTodo);
-    
-    // 重新分配order
-    const reorderedActiveTodos = newActiveTodos.map((todo, index) => ({
-      ...todo,
-      order: index
-    }));
-    
-    // 合并已完成的todos
-    const completedTodos = todos.filter(todo => todo.completed);
-    const allTodos = [...reorderedActiveTodos, ...completedTodos];
-    
-    setTodos(allTodos);
-    saveTodos(allTodos);
-  };
+    for (let i = 0; i < 20; i++) {
+      const particle = document.createElement('div');
+      particle.style.position = 'fixed';
+      particle.style.left = centerX + 'px';
+      particle.style.top = centerY + 'px';
+      particle.style.width = Math.random() * 6 + 3 + 'px';
+      particle.style.height = particle.style.width;
+      particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+      particle.style.borderRadius = '50%';
+      particle.style.pointerEvents = 'none';
+      particle.style.zIndex = '9999';
+      
+      document.body.appendChild(particle);
+      
+      const angle = (Math.PI * 2 * i) / 20;
+      const velocity = Math.random() * 100 + 50;
+      let vx = Math.cos(angle) * velocity;
+      let vy = Math.sin(angle) * velocity;
+      let x = centerX;
+      let y = centerY;
+      const gravity = 300;
+      const startTime = Date.now();
+      
+      const animate = () => {
+        const elapsed = (Date.now() - startTime) / 1000;
+        vy += gravity * (1/60);
+        vx *= 0.99;
+        x += vx * (1/60);
+        y += vy * (1/60);
+        
+        particle.style.left = x + 'px';
+        particle.style.top = y + 'px';
+        particle.style.opacity = Math.max(0, 1 - elapsed / 2).toString();
+        
+        if (elapsed < 2 && y < window.innerHeight + 100) {
+          requestAnimationFrame(animate);
+        } else {
+          if (document.body.contains(particle)) {
+            document.body.removeChild(particle);
+          }
+        }
+      };
+      
+      requestAnimationFrame(animate);
+    }
+  }, []);
 
   // 切换Todo完成状态
-  const toggleTodo = (id: string) => {
+  const toggleTodo = (id: string, event?: React.MouseEvent) => {
+    const todo = todos.find(t => t.id === id);
+    
+    // 如果是标记为完成，触发庆祝动画
+    if (todo && !todo.completed && event) {
+      const rect = (event.target as HTMLElement).getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      createCelebrationEffect(centerX, centerY);
+    }
+    
     const updatedTodos = todos.map(todo =>
       todo.id === id ? { ...todo, completed: !todo.completed } : todo
     );
@@ -274,10 +256,18 @@ export function TodoModal({ isOpen, onClose, position }: TodoModalProps) {
 
   // 保存编辑
   const saveEdit = () => {
-    if (editingTodo && editingTodo.text.trim()) {
-      editTodo(editingTodo.id, editingTodo.text.trim());
-    } else {
-      setEditingTodo(null);
+    if (editingTodo) {
+      const trimmedText = editingTodo.text.trim();
+      
+      if (trimmedText) {
+        // 如果有内容，保存编辑
+        editTodo(editingTodo.id, trimmedText);
+      } else {
+        // 如果没有内容，删除这个TODO（特别是新建的空TODO）
+        const updatedTodos = todos.filter(todo => todo.id !== editingTodo.id);
+        saveTodos(updatedTodos);
+        setEditingTodo(null);
+      }
     }
   };
 
@@ -310,13 +300,6 @@ export function TodoModal({ isOpen, onClose, position }: TodoModalProps) {
       };
     }
   }, [isOpen, onClose]);
-
-  // 自动聚焦输入框
-  useEffect(() => {
-    if (isAddingTodo && inputRef.current) {
-      inputRef.current.focus();
-    }
-  }, [isAddingTodo]);
 
   const activeTodos = todos
     .filter(todo => !todo.completed)
@@ -401,85 +384,45 @@ export function TodoModal({ isOpen, onClose, position }: TodoModalProps) {
             {/* 内容区域 */}
             <div className="max-h-[600px] overflow-y-auto">
               {/* 添加新Todo区域 */}
-              <div className="px-6 py-5">
-                {!isAddingTodo ? (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      e.preventDefault();
-                      setIsAddingTodo(true);
-                    }}
-                    disabled={activeTodos.length >= MAX_TODOS}
-                    className={`w-full flex items-center gap-2 p-4 rounded-2xl transition-all duration-200 ${
-                      activeTodos.length >= MAX_TODOS
-                        ? 'bg-gray-100/50 text-gray-400 cursor-not-allowed shadow-sm'
-                        : 'bg-blue-50/50 hover:bg-blue-100/50 text-blue-700 shadow-md hover:shadow-xl hover:scale-105 hover:-translate-y-1'
-                    }`}
-                  >
-                    <PlusIcon />
-                    <span className="font-medium">
-                      {activeTodos.length >= MAX_TODOS 
-                        ? `Maximum limit reached (${MAX_TODOS})` 
-                        : 'NEW'
-                      }
-                    </span>
-                  </button>
-                ) : (
-                  <div className="space-y-3">
-                    <input
-                      ref={inputRef}
-                      type="text"
-                      value={newTodoText}
-                      onChange={(e) => setNewTodoText(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          addTodo();
-                        } else if (e.key === 'Escape') {
-                          setIsAddingTodo(false);
-                          setNewTodoText('');
-                        }
-                      }}
-                      placeholder="Enter your TODO..."
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200/50 bg-white/70 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all"
-                      maxLength={100}
-                    />
-                    <div className="flex gap-3">
-                      <button
-                        onClick={(e) => addTodo(e)}
-                        className="flex-1 px-4 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg transition-all font-medium flex items-center justify-center gap-2"
-                      >
-                        <CheckIcon />
-                        <span>Add</span>
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          e.preventDefault();
-                          setIsAddingTodo(false);
-                          setNewTodoText('');
-                        }}
-                        className="px-4 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-all font-medium flex items-center justify-center gap-2"
-                      >
-                        <CloseIcon />
-                        <span>Cancel</span>
-                      </button>
-                    </div>
-                  </div>
-                )}
+              <div className="px-6 pt-5 pb-2">
+                <motion.button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    const activeTodos = todos.filter(todo => !todo.completed);
+                    if (activeTodos.length < MAX_TODOS) {
+                      startAddNewTodo();
+                    }
+                  }}
+                  disabled={activeTodos.length >= MAX_TODOS}
+                  className={`w-full flex items-center gap-3 p-3 h-12 rounded-2xl transition-all duration-200 group cursor-pointer ${
+                    activeTodos.length >= MAX_TODOS
+                      ? 'bg-gray-100/50 text-gray-400 cursor-not-allowed shadow-sm'
+                      : 'bg-gradient-to-r from-blue-50/50 to-indigo-50/50 hover:from-blue-100/50 hover:to-indigo-100/50 text-blue-700 shadow-md hover:shadow-xl border border-blue-200/40'
+                  }`}
+                  whileHover={activeTodos.length < MAX_TODOS ? { scale: 1.02, y: -2 } : {}}
+                  whileTap={activeTodos.length < MAX_TODOS ? { scale: 0.98 } : {}}
+                >
+                  <PlusIcon />
+                  <span className="font-medium">
+                    {activeTodos.length >= MAX_TODOS 
+                      ? `已达上限 (${MAX_TODOS})` 
+                      : 'NEW TODO'
+                    }
+                  </span>
+                </motion.button>
               </div>
 
               {/* Todo列表 */}
-              <div className="px-6 py-4">
-                {/* 未完成的Todo - 可拖拽 */}
-                <div className="space-y-3">
-                  {activeTodos.map((todo, index) => (
-                    <DraggableTodoItem
+              <div className="px-6 pb-4 pt-0">
+                {/* 未完成的Todo */}
+                <div className="space-y-2">
+                  {activeTodos.map((todo) => (
+                    <TodoItemComponent
                       key={todo.id}
                       todo={todo}
-                      index={index}
                       onToggle={toggleTodo}
                       onDelete={deleteTodo}
-                      onMove={moveTodo}
                       onStartEdit={startEditTodo}
                     />
                   ))}
@@ -488,30 +431,36 @@ export function TodoModal({ isOpen, onClose, position }: TodoModalProps) {
                 {/* 已完成的Todo */}
                 {completedTodos.length > 0 && (
                   <>
-                    <div className="pt-2 border-t border-gray-200/30">
-                      <p className="text-xs text-gray-500 font-medium mb-2">Completed</p>
-                      {completedTodos.map((todo) => (
-                        <motion.div
-                          key={todo.id}
-                          layout
-                          className="flex items-center gap-3 p-2 rounded-lg bg-gray-50/50 transition-all group opacity-60"
-                        >
-                          <button
-                            onClick={() => toggleTodo(todo.id)}
-                            className="flex-shrink-0 w-4 h-4 rounded-full bg-green-500 flex items-center justify-center"
+                    <div className="pt-6 border-t border-gray-200/30 mt-6">
+                      <p className="text-xs text-gray-500 font-medium mb-3">已完成</p>
+                      {completedTodos.map((todo, index) => (
+                        <div key={todo.id}>
+                          <motion.div
+                            layout
+                            className="flex items-center gap-3 p-2 rounded-lg bg-gray-50/50 transition-all group opacity-60 mb-2"
                           >
-                            <CheckIcon size={10} />
-                          </button>
-                          <span className="flex-1 text-sm line-through text-gray-500">
-                            {todo.text}
-                          </span>
-                          <button
-                            onClick={() => deleteTodo(todo.id)}
-                            className="opacity-0 group-hover:opacity-100 p-1 rounded-lg hover:bg-red-100 text-red-400 transition-all"
-                          >
-                            <TrashIcon size={12} />
-                          </button>
-                        </motion.div>
+                            <motion.button
+                              onClick={(e) => toggleTodo(todo.id, e)}
+                              className="flex-shrink-0 w-4 h-4 rounded-full bg-green-500 flex items-center justify-center"
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.9 }}
+                            >
+                              <CheckIcon size={10} />
+                            </motion.button>
+                            <span className="flex-1 text-sm line-through text-green-600">
+                              {todo.text}
+                            </span>
+                            <button
+                              onClick={() => deleteTodo(todo.id)}
+                              className="opacity-0 group-hover:opacity-100 p-1 rounded-lg hover:bg-red-100 text-red-400 transition-all"
+                            >
+                              <TrashIcon size={12} />
+                            </button>
+                          </motion.div>
+                          {index < completedTodos.length - 1 && (
+                            <div className="mx-2 h-px bg-gray-300/50 my-2"></div>
+                          )}
+                        </div>
                       ))}
                     </div>
                   </>
@@ -520,18 +469,11 @@ export function TodoModal({ isOpen, onClose, position }: TodoModalProps) {
                 {/* 空状态 */}
                 {todos.length === 0 && (
                   <div className="text-center py-8 text-gray-500">
-                    <p className="text-sm">No TODOs yet</p>
-                    <p className="text-xs mt-1">Click the button above to add a new TODO</p>
+                    <p className="text-sm">还没有TODO呢</p>
+                    <p className="text-xs mt-1">点击上方按钮添加新的TODO</p>
                   </div>
                 )}
               </div>
-            </div>
-
-            {/* 底部信息 - 只显示未完成的待办 */}
-            <div className="px-4 py-2 bg-gray-50/50 border-t border-gray-200/30">
-              <p className="text-xs text-gray-500 text-center">
-                {activeTodos.length}/{MAX_TODOS} Active TODOs
-              </p>
             </div>
 
             {/* 全屏编辑覆盖层 */}

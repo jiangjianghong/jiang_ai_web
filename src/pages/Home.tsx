@@ -30,6 +30,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
     isSettingsOpen,
     autoSortEnabled,
     customWallpaperUrl,
+    isSearchFocused,
   } = useTransparency();
   const { isWorkspaceOpen, setIsWorkspaceOpen } = useWorkspace();
   const { isMobile, getGridClasses, getSearchBarLayout } = useResponsiveLayout();
@@ -347,7 +348,14 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
         )}
 
         {/* 工作空间触发按钮 - 响应式调整 */}
-        <div className={classes.workspaceButton}>
+        <motion.div
+          className={classes.workspaceButton}
+          animate={{ 
+            opacity: isSearchFocused ? 0 : 1,
+            scale: isSearchFocused ? 0.8 : 1
+          }}
+          transition={{ duration: 0.3, ease: "easeInOut" }}
+        >
           <div className="relative group">
             <button
               onClick={() => setIsWorkspaceOpen(true)}
@@ -364,10 +372,17 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
               <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-gray-900/90"></div>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* 设置触发按钮 - 右下角 */}
-        <div className={classes.settingsButton}>
+        <motion.div
+          className={classes.settingsButton}
+          animate={{ 
+            opacity: isSearchFocused ? 0 : 1,
+            scale: isSearchFocused ? 0.8 : 1
+          }}
+          transition={{ duration: 0.3, ease: "easeInOut" }}
+        >
           <button
             onClick={() => setShowSettings(true)}
             className={`${isMobile ? 'p-2' : 'p-2'} text-white/70 hover:text-white transition-colors`}
@@ -375,7 +390,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
           >
             <i className={`fa-solid fa-sliders ${isMobile ? 'text-base' : 'text-lg'}`}></i>
           </button>
-        </div>
+        </motion.div>
 
         {/* 诗句显示 - 页面下方 */}
         <PoemDisplay />

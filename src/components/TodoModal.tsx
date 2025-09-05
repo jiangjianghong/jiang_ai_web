@@ -93,7 +93,7 @@ function TodoItemComponent({ todo, onToggle, onDelete, onStartEdit }: TodoItemPr
   );
 }
 
-export function TodoModal({ isOpen, onClose, position }: TodoModalProps) {
+export function TodoModal({ isOpen, onClose }: TodoModalProps) {
   const [todos, setTodos] = useState<TodoItem[]>([]);
   const [editingTodo, setEditingTodo] = useState<{ id: string; text: string; originRect?: DOMRect } | null>(null);
   const editInputRef = useRef<HTMLTextAreaElement>(null);
@@ -480,7 +480,6 @@ export function TodoModal({ isOpen, onClose, position }: TodoModalProps) {
             <AnimatePresence>
               {editingTodo && (() => {
                 // 计算动画的起始位置
-                let initialTransform = 'scale(0.1)';
                 let initialOrigin = 'center center';
                 
                 if (editingTodo.originRect && modalRef.current) {
@@ -488,7 +487,6 @@ export function TodoModal({ isOpen, onClose, position }: TodoModalProps) {
                   const originX = ((editingTodo.originRect.left + editingTodo.originRect.width / 2 - modalRect.left) / modalRect.width) * 100;
                   const originY = ((editingTodo.originRect.top + editingTodo.originRect.height / 2 - modalRect.top) / modalRect.height) * 100;
                   initialOrigin = `${Math.max(0, Math.min(100, originX))}% ${Math.max(0, Math.min(100, originY))}%`;
-                  initialTransform = 'scale(0.1)';
                 }
                 
                 return (

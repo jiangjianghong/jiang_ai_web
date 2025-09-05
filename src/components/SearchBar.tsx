@@ -1055,7 +1055,7 @@ function SearchBarComponent(props: SearchBarProps = {}) {
       <AnimatePresence>
         {isFocused && (
           <motion.div
-            className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
+            className="fixed inset-0 bg-black/30 backdrop-blur-sm z-10"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -1073,7 +1073,7 @@ function SearchBarComponent(props: SearchBarProps = {}) {
       </AnimatePresence>
 
       <div
-        className="relative left-0 right-0 z-50 flex justify-center px-4 select-none"
+        className="relative left-0 right-0 z-20 flex justify-center px-4 select-none"
         style={{ transform: 'translateX(-47px)' }}
       >
         <motion.div
@@ -1226,7 +1226,7 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                 <AnimatePresence>
                   {showSuggestions && (websiteSuggestions.length > 0 || suggestions.length > 0) && (
                     <motion.div
-                      className={`absolute top-full left-3 right-0 mt-2 backdrop-blur-md rounded-lg shadow-lg border border-white/20 z-50 overflow-hidden overflow-y-auto ${
+                      className={`absolute top-full left-3 right-0 mt-2 backdrop-blur-md rounded-lg shadow-lg border border-white/20 z-30 overflow-hidden overflow-y-auto ${
                         isMobile ? 'max-h-60' : 'max-h-80'
                       }`}
                       initial={{ opacity: 0, y: -10, scaleY: 0.8 }}

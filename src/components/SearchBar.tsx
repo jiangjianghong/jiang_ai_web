@@ -812,6 +812,25 @@ function SearchBarComponent(props: SearchBarProps = {}) {
           return;
         }
         
+        // 检测工作空间相关输入（支持中英文）
+        if (queryLower === 'workspace' || queryLower === 'work' || queryLower === 'job' ||
+            queryLower === '工作空间' || queryLower === '工作' || queryLower === '办公') {
+          // 生成工作空间相关建议
+          const workspaceSuggestions = [{
+            id: 'open-workspace',
+            text: '打开工作空间',
+            query: searchQuery,
+            isWorkspaceAction: true,
+            action: 'open'
+          }];
+          
+          setSuggestions(workspaceSuggestions);
+          setWebsiteSuggestions([]);
+          setShowSuggestions(workspaceSuggestions.length > 0);
+          setSelectedSuggestionIndex(-1);
+          return;
+        }
+        
         // 检测Settings相关输入（支持中英文）
         if (queryLower === 'settings' || queryLower === 'setting' || 
             queryLower === '设置' || queryLower === 'config' || queryLower === '配置') {
@@ -943,6 +962,17 @@ function SearchBarComponent(props: SearchBarProps = {}) {
           }
         }
 
+        // 检查是否是工作空间操作
+        if (selectedSuggestion?.isWorkspaceAction) {
+          if (selectedSuggestion.action === 'open') {
+            setIsWorkspaceOpen(true);
+            setSearchQuery('');
+            setShowSuggestions(false);
+            setWebsiteSuggestions([]);
+            return;
+          }
+        }
+
         // 检查是否是Settings操作
         if (selectedSuggestion?.isSettingsAction) {
           if (selectedSuggestion.action === 'open' && onOpenSettings) {
@@ -1016,6 +1046,17 @@ function SearchBarComponent(props: SearchBarProps = {}) {
           setWebsiteSuggestions([]);
           return;
         }
+      }
+      
+      // 检测工作空间相关输入（支持中英文）
+      if (queryLower === 'workspace' || queryLower === 'work' || queryLower === 'job' ||
+          queryLower === '工作空间' || queryLower === '工作' || queryLower === '办公') {
+        // 打开工作空间
+        setIsWorkspaceOpen(true);
+        setSearchQuery('');
+        setShowSuggestions(false);
+        setWebsiteSuggestions([]);
+        return;
       }
       
       // 检测Settings相关输入（支持中英文）
@@ -1482,6 +1523,13 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                                       setShowSuggestions(false);
                                       setWebsiteSuggestions([]);
                                     }
+                                  } else if ((suggestion as any).isWorkspaceAction) {
+                                    if ((suggestion as any).action === 'open') {
+                                      setIsWorkspaceOpen(true);
+                                      setSearchQuery('');
+                                      setShowSuggestions(false);
+                                      setWebsiteSuggestions([]);
+                                    }
                                   } else if ((suggestion as any).isSettingsAction) {
                                     if ((suggestion as any).action === 'open' && onOpenSettings) {
                                       onOpenSettings();
@@ -1505,6 +1553,13 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                                       <i className={`${isHint ? 'fa-solid fa-pencil-alt text-gray-500' : isAdd ? 'fa-solid fa-plus text-green-600' : 'fa-solid fa-check-square text-blue-600'} text-sm w-4 select-none`}></i>
                                       <div className={`${isHint ? 'bg-gray-100 text-gray-600' : isAdd ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'} px-2 py-1 rounded-full text-xs font-medium`}>
                                         {isHint ? '提示' : isAdd ? '添加' : 'TODO'}
+                                      </div>
+                                    </div>
+                                  ) : (suggestion as any).isWorkspaceAction ? (
+                                    <div className="flex items-center gap-2">
+                                      <i className="fa-solid fa-briefcase text-orange-600 text-sm w-4 select-none"></i>
+                                      <div className="bg-orange-100 text-orange-700 px-2 py-1 rounded-full text-xs font-medium">
+                                        工作空间
                                       </div>
                                     </div>
                                   ) : (suggestion as any).isSettingsAction ? (

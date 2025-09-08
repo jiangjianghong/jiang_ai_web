@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { z } from 'zod';
 import Tilt from 'react-parallax-tilt';
@@ -52,6 +52,20 @@ export default function CardEditModal({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [autoFetching, setAutoFetching] = useState(false);
   const [uploading, setUploading] = useState(false);
+
+  // ESC键关闭模态框
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [onClose]);
 
   // 添加标签
   const handleAddTag = () => {

@@ -18,6 +18,22 @@ export default function PrivacySettings({ isOpen, onClose }: PrivacySettingsProp
     }
   }, [isOpen]);
 
+  // ESC键关闭模态框
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, onClose]);
+
   const handleToggleConsent = () => {
     const newStatus = consentStatus === 'accepted' ? 'declined' : 'accepted';
 

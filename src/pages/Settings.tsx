@@ -323,6 +323,20 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
     return () => setIsSettingsOpen(false);
   }, [setIsSettingsOpen]);
 
+  // ESC键关闭设置页面
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [onClose]);
+
   const handleClose = () => {
     setIsSettingsOpen(false);
     onClose();

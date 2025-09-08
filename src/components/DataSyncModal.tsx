@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { WebsiteData } from '@/lib/supabaseSync';
 
@@ -18,6 +18,22 @@ export default function DataSyncModal({
   onChoice,
 }: DataSyncModalProps) {
   const [loading, setLoading] = useState(false);
+
+  // ESC键关闭模态框
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 

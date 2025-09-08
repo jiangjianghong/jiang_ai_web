@@ -188,23 +188,27 @@ function SearchBarComponent(props: SearchBarProps = {}) {
   // 全局监听空格键，未聚焦输入框时聚焦搜索框
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      // 检查是否有任何模态框打开
-      const hasKnownModalOpen = isSettingsOpen || isWorkspaceOpen || showTodoModal;
+      // 检查是否有阻止全局快捷键的模态框打开
+      // 工作空间模态框不应该阻止空格键，因为它有自己的搜索框
+      const shouldBlockGlobalShortcuts = isSettingsOpen || showTodoModal;
       
-      // 更精确地检查DOM中是否有其他模态框
+      // 更精确地检查DOM中是否有其他需要阻止快捷键的模态框
       // 检查是否存在模态框背景遮罩（通常使用fixed定位和高z-index）
       const modalBackdrops = document.querySelectorAll('.fixed.inset-0');
-      const hasModalBackdrop = Array.from(modalBackdrops).some(el => {
+      const hasBlockingModalBackdrop = Array.from(modalBackdrops).some(el => {
         const styles = window.getComputedStyle(el);
         const zIndex = parseInt(styles.zIndex) || 0;
-        // 检查是否是模态框背景（高z-index且不是壁纸背景）
-        return zIndex >= 40 && !el.classList.contains('wallpaper') && 
+        // 检查是否是需要阻止快捷键的模态框背景
+        // 排除工作空间和壁纸背景
+        return zIndex >= 40 && 
+               !el.classList.contains('wallpaper') && 
                !el.querySelector('img') && // 不包含图片（排除壁纸）
-               styles.display !== 'none';
+               styles.display !== 'none' &&
+               !el.closest('[data-workspace-modal]'); // 排除工作空间模态框
       });
       
-      if (hasKnownModalOpen || hasModalBackdrop) {
-        return; // 有模态框打开时，不处理快捷键
+      if (shouldBlockGlobalShortcuts || hasBlockingModalBackdrop) {
+        return; // 有阻止性模态框打开时，不处理快捷键
       }
 
       // 处理Tab键切换搜索引擎
@@ -255,6 +259,11 @@ function SearchBarComponent(props: SearchBarProps = {}) {
           setIsHovered(false);
           setIsSearchFocused(false);
           inputRef.current?.blur(); // 失去焦点
+          return;
+        }
+
+        // 如果工作空间打开，让工作空间处理空格键逻辑，不在这里处理
+        if (isWorkspaceOpen) {
           return;
         }
 

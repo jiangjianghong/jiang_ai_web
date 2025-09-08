@@ -1,4 +1,4 @@
-import { useState, useEffect, memo } from 'react';
+import { useState, useEffect, useRef, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useWorkspace } from '@/contexts/WorkspaceContext';
 import WorkspaceCard from './WorkspaceCard';
@@ -25,6 +25,7 @@ function WorkspaceModalComponent({ isOpen, onClose }: WorkspaceModalProps) {
   const [showSettings, setShowSettings] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // 如果未配置，默认显示设置
   useEffect(() => {
@@ -32,6 +33,42 @@ function WorkspaceModalComponent({ isOpen, onClose }: WorkspaceModalProps) {
       setShowSettings(true);
     }
   }, [isOpen, isConfigured]);
+
+  // 键盘事件处理 - 空格键聚焦搜索框
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // 只在工作空间模态框打开且未显示设置页面时处理空格键
+      if (showSettings) return;
+
+      if (e.code === 'Space' || e.key === ' ' || e.keyCode === 32) {
+        // 判断当前聚焦元素是否是输入框/textarea/可编辑内容
+        const active = document.activeElement;
+        const isInput =
+          active &&
+          (active.tagName === 'INPUT' ||
+            active.tagName === 'TEXTAREA' ||
+            (active as HTMLElement).isContentEditable);
+
+        // 如果当前不在任何输入框中，则聚焦工作空间搜索框
+        if (!isInput && searchInputRef.current) {
+          e.preventDefault(); // 阻止页面滚动
+          searchInputRef.current.focus();
+        }
+      }
+
+      // ESC键关闭模态框
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, showSettings, onClose]);
 
   // 过滤和搜索逻辑
   const filteredItems = workspaceItems.filter((item) => {
@@ -96,6 +133,7 @@ function WorkspaceModalComponent({ isOpen, onClose }: WorkspaceModalProps) {
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
             {/* 工作空间内容 */}
             <motion.div
+              data-workspace-modal
               className={`${containerClasses} bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl overflow-hidden flex flex-col pointer-events-auto`}
               initial={{ scale: 0.7, opacity: 0, y: 50, rotateX: -15 }}
               animate={{ scale: 1, opacity: 1, y: 0, rotateX: 0 }}
@@ -188,6 +226,7 @@ function WorkspaceModalComponent({ isOpen, onClose }: WorkspaceModalProps) {
                           <div className="relative flex-1">
                             <i className="fa-solid fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"></i>
                             <input
+                              ref={searchInputRef}
                               type="text"
                               placeholder="搜索工作空间..."
                               value={searchQuery}

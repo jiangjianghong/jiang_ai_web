@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTransparency } from '@/contexts/TransparencyContext';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
+import { useWorkspace } from '@/contexts/WorkspaceContext';
 import * as validator from 'validator';
 import { TodoModal } from './TodoModal';
 
@@ -25,9 +26,10 @@ function SearchBarComponent(props: SearchBarProps = {}) {
   const { websites = [], onOpenSettings } = props;
   const inputRef = useRef<HTMLInputElement>(null);
   const [isFocused, setIsFocused] = useState(false);
-  const { searchBarOpacity, searchBarColor, setIsSearchFocused, searchInNewTab } =
+  const { searchBarOpacity, searchBarColor, setIsSearchFocused, searchInNewTab, isSettingsOpen } =
     useTransparency();
   const { isMobile } = useResponsiveLayout();
+  const { isWorkspaceOpen } = useWorkspace();
 
   // 状态变量声明移到useEffect之前
   const [searchQuery, setSearchQuery] = useState('');
@@ -186,6 +188,25 @@ function SearchBarComponent(props: SearchBarProps = {}) {
   // 全局监听空格键，未聚焦输入框时聚焦搜索框
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      // 检查是否有任何模态框打开
+      const hasKnownModalOpen = isSettingsOpen || isWorkspaceOpen || showTodoModal;
+      
+      // 更精确地检查DOM中是否有其他模态框
+      // 检查是否存在模态框背景遮罩（通常使用fixed定位和高z-index）
+      const modalBackdrops = document.querySelectorAll('.fixed.inset-0');
+      const hasModalBackdrop = Array.from(modalBackdrops).some(el => {
+        const styles = window.getComputedStyle(el);
+        const zIndex = parseInt(styles.zIndex) || 0;
+        // 检查是否是模态框背景（高z-index且不是壁纸背景）
+        return zIndex >= 40 && !el.classList.contains('wallpaper') && 
+               !el.querySelector('img') && // 不包含图片（排除壁纸）
+               styles.display !== 'none';
+      });
+      
+      if (hasKnownModalOpen || hasModalBackdrop) {
+        return; // 有模态框打开时，不处理快捷键
+      }
+
       // 处理Tab键切换搜索引擎
       if (e.key === 'Tab' && !e.shiftKey) {
         // 判断当前聚焦元素是否是输入框/textarea/可编辑内容
@@ -229,32 +250,28 @@ function SearchBarComponent(props: SearchBarProps = {}) {
 
         // 如果当前聚焦在搜索框上且输入框是空的，则退出聚焦状态
         if (isInput && active === inputRef.current && searchQuery.trim() === '' && isFocused) {
-          console.log('空格键触发退出聚焦状态'); // 调试信息
           e.preventDefault(); // 阻止输入空格
           setIsFocused(false);
           setIsHovered(false);
           setIsSearchFocused(false);
           inputRef.current?.blur(); // 失去焦点
-          console.log('设置状态: focused=false, hovered=false, searchFocused=false'); // 调试信息
           return;
         }
 
         // 如果当前不在输入框中，则聚焦搜索框
         if (!isInput && inputRef.current) {
-          console.log('空格键触发，聚焦搜索框'); // 调试信息
           e.preventDefault(); // 阻止页面滚动
           inputRef.current.focus();
           setIsFocused(true);
           setIsHovered(true); // 添加这行让搜索框变宽
           setIsSearchFocused(true);
-          console.log('设置状态: focused=true, hovered=true, searchFocused=true'); // 调试信息
         }
       }
     };
     window.addEventListener('keydown', handleGlobalKeyDown, { capture: true });
     return () =>
       window.removeEventListener('keydown', handleGlobalKeyDown, { capture: true } as any);
-  }, [setIsSearchFocused, searchQuery, isFocused, createFireworkEffect]); // 添加createFireworkEffect依赖
+  }, [setIsSearchFocused, searchQuery, isFocused, createFireworkEffect, isSettingsOpen, isWorkspaceOpen, showTodoModal]);
 
   const engineList = [
     { key: 'bing', label: 'Bing', icon: <i className="fa-brands fa-microsoft text-blue-400"></i> },

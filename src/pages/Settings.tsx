@@ -644,7 +644,7 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                               <button
                                 onClick={handleSaveName}
                                 disabled={nameLoading || !newName.trim()}
-                                className="text-xs bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white px-2 py-1 rounded select-none"
+                                className="text-xs bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 disabled:bg-gray-400 text-white px-2 py-1 rounded select-none"
                               >
                                 {nameLoading ? (
                                   <>
@@ -812,14 +812,14 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                   onClick={() => setAutoSyncEnabled(!autoSyncEnabled)}
                   className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${
                     autoSyncEnabled
-                      ? 'bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg shadow-blue-300/50'
+                      ? 'bg-gradient-to-r from-blue-400 to-cyan-500 shadow-lg shadow-cyan-300/50'
                       : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
                   }`}
                 >
                   <span
                     className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${
                       autoSyncEnabled
-                        ? 'translate-x-6 shadow-blue-200'
+                        ? 'translate-x-6 shadow-cyan-200'
                         : 'translate-x-1 shadow-gray-200'
                     }`}
                   />
@@ -866,7 +866,7 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                     <button
                       onClick={handleUploadToCloud}
                       disabled={isManualSyncing}
-                      className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-sm rounded-lg hover:from-blue-600 hover:to-blue-700 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed transition-all duration-200 shadow-lg select-none"
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-400 to-cyan-500 text-white text-sm rounded-lg hover:from-blue-500 hover:to-cyan-600 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed transition-all duration-200 shadow-lg select-none"
                     >
                       <i
                         className={`fa-solid ${isManualSyncing ? 'fa-spinner fa-spin' : 'fa-cloud-upload-alt'} select-none`}
@@ -878,7 +878,7 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                     <button
                       onClick={handleDownloadFromCloud}
                       disabled={isManualSyncing}
-                      className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white text-sm rounded-lg hover:from-green-600 hover:to-green-700 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed transition-all duration-200 shadow-lg select-none"
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-400 to-cyan-500 text-white text-sm rounded-lg hover:from-blue-500 hover:to-cyan-600 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed transition-all duration-200 shadow-lg select-none"
                     >
                       <i
                         className={`fa-solid ${isManualSyncing ? 'fa-spinner fa-spin' : 'fa-cloud-download-alt'} select-none`}
@@ -1027,14 +1027,14 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                   onClick={() => setParallaxEnabled(!parallaxEnabled)}
                   className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${
                     parallaxEnabled
-                      ? 'bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg shadow-blue-300/50'
+                      ? 'bg-gradient-to-r from-indigo-500 to-purple-600 shadow-lg shadow-purple-300/50'
                       : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
                   }`}
                 >
                   <span
                     className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${
                       parallaxEnabled
-                        ? 'translate-x-6 shadow-blue-200'
+                        ? 'translate-x-6 shadow-purple-200'
                         : 'translate-x-1 shadow-gray-200'
                     }`}
                   />
@@ -1062,14 +1062,14 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                   onClick={() => setSearchInNewTab(!searchInNewTab)}
                   className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${
                     searchInNewTab
-                      ? 'bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg shadow-blue-300/50'
+                      ? 'bg-gradient-to-r from-indigo-500 to-purple-600 shadow-lg shadow-purple-300/50'
                       : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
                   }`}
                 >
                   <span
                     className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${
                       searchInNewTab
-                        ? 'translate-x-6 shadow-blue-200'
+                        ? 'translate-x-6 shadow-purple-200'
                         : 'translate-x-1 shadow-gray-200'
                     }`}
                   />
@@ -1095,14 +1095,14 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                   onClick={() => setAutoSortEnabled(!autoSortEnabled)}
                   className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${
                     autoSortEnabled
-                      ? 'bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg shadow-blue-300/50'
+                      ? 'bg-gradient-to-r from-indigo-500 to-purple-600 shadow-lg shadow-purple-300/50'
                       : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
                   }`}
                 >
                   <span
                     className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${
                       autoSortEnabled
-                        ? 'translate-x-6 shadow-blue-200'
+                        ? 'translate-x-6 shadow-purple-200'
                         : 'translate-x-1 shadow-gray-200'
                     }`}
                   />
@@ -1139,7 +1139,7 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                   onClick={() => setTimeComponentEnabled(!timeComponentEnabled)}
                   className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${
                     timeComponentEnabled
-                      ? 'bg-gradient-to-r from-orange-500 to-yellow-500 shadow-lg shadow-orange-300/50'
+                      ? 'bg-gradient-to-r from-orange-400 to-yellow-500 shadow-lg shadow-orange-300/50'
                       : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
                   }`}
                 >
@@ -1173,14 +1173,14 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                           onClick={() => setShowYear(!showYear)}
                           className={`w-full p-3 rounded-lg border-2 transition-all duration-200 text-center select-none cursor-pointer ${
                             showYear
-                              ? 'border-orange-500 bg-orange-50 text-orange-700'
+                              ? 'border-orange-400 bg-orange-50 text-orange-700'
                               : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
                           }`}
                         >
                           <div className="flex items-center justify-center gap-2 mb-1">
                             <i
                               className={`fa-solid fa-calendar-alt text-sm transition-colors ${
-                                showYear ? 'text-orange-500' : 'text-gray-400'
+                                showYear ? 'text-orange-400' : 'text-gray-400'
                               } select-none`}
                             ></i>
                             <div className="font-medium text-sm select-none">年份</div>
@@ -1195,14 +1195,14 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                           onClick={() => setShowMonth(!showMonth)}
                           className={`w-full p-3 rounded-lg border-2 transition-all duration-200 text-center select-none cursor-pointer ${
                             showMonth
-                              ? 'border-orange-500 bg-orange-50 text-orange-700'
+                              ? 'border-orange-400 bg-orange-50 text-orange-700'
                               : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
                           }`}
                         >
                           <div className="flex items-center justify-center gap-2 mb-1">
                             <i
                               className={`fa-solid fa-calendar-check text-sm transition-colors ${
-                                showMonth ? 'text-orange-500' : 'text-gray-400'
+                                showMonth ? 'text-orange-400' : 'text-gray-400'
                               } select-none`}
                             ></i>
                             <div className="font-medium text-sm select-none">月份</div>
@@ -1217,14 +1217,14 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                           onClick={() => setShowDay(!showDay)}
                           className={`w-full p-3 rounded-lg border-2 transition-all duration-200 text-center select-none cursor-pointer ${
                             showDay
-                              ? 'border-orange-500 bg-orange-50 text-orange-700'
+                              ? 'border-orange-400 bg-orange-50 text-orange-700'
                               : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
                           }`}
                         >
                           <div className="flex items-center justify-center gap-2 mb-1">
                             <i
                               className={`fa-solid fa-calendar-day text-sm transition-colors ${
-                                showDay ? 'text-orange-500' : 'text-gray-400'
+                                showDay ? 'text-orange-400' : 'text-gray-400'
                               } select-none`}
                             ></i>
                             <div className="font-medium text-sm select-none">日期</div>
@@ -1254,7 +1254,7 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                       onClick={() => setShowWeekday(!showWeekday)}
                       className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${
                         showWeekday
-                          ? 'bg-gradient-to-r from-orange-500 to-yellow-500 shadow-lg shadow-orange-300/50'
+                          ? 'bg-gradient-to-r from-orange-400 to-yellow-500 shadow-lg shadow-orange-300/50'
                           : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
                       }`}
                     >
@@ -1287,7 +1287,7 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                       onClick={() => setShowSeconds(!showSeconds)}
                       className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${
                         showSeconds
-                          ? 'bg-gradient-to-r from-orange-500 to-yellow-500 shadow-lg shadow-orange-300/50'
+                          ? 'bg-gradient-to-r from-orange-400 to-yellow-500 shadow-lg shadow-orange-300/50'
                           : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
                       }`}
                     >
@@ -1346,7 +1346,7 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                       onClick={() => setWallpaperResolution(option.value as WallpaperResolution)}
                       className={`group p-3 rounded-lg border-2 transition-all duration-200 text-left select-none cursor-pointer ${
                         wallpaperResolution === option.value
-                          ? 'border-blue-500 bg-blue-50 text-blue-700'
+                          ? 'border-pink-500 bg-pink-50 text-pink-700'
                           : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
                       }`}
                     >
@@ -1354,7 +1354,7 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                         <i
                           className={`fa-solid ${option.icon} text-sm transition-colors ${
                             wallpaperResolution === option.value
-                              ? 'text-blue-500'
+                              ? 'text-pink-500'
                               : 'text-gray-400 group-hover:text-gray-500'
                           } select-none`}
                         ></i>
@@ -1395,14 +1395,14 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                     onClick={() => setWallpaperResolution('custom')}
                     className={`w-full p-3 rounded-lg border-2 transition-all duration-200 text-left select-none cursor-pointer ${
                       wallpaperResolution === 'custom'
-                        ? 'border-blue-500 bg-blue-50 text-blue-700'
+                        ? 'border-pink-500 bg-pink-50 text-pink-700'
                         : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
                     }`}
                   >
                     <div className="flex items-center gap-2 mb-1">
                       <i
                         className={`fa-solid fa-image text-sm transition-colors ${
-                          wallpaperResolution === 'custom' ? 'text-blue-500' : 'text-gray-400'
+                          wallpaperResolution === 'custom' ? 'text-pink-500' : 'text-gray-400'
                         } select-none`}
                       ></i>
                       <div className="font-medium text-sm select-none">自定义壁纸</div>
@@ -1442,10 +1442,10 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                           uploadingWallpaper
                             ? 'border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed'
                             : isDragOver
-                              ? 'border-blue-500 bg-blue-100 text-blue-700'
+                              ? 'border-pink-500 bg-pink-100 text-pink-700'
                               : isGlobalDragOver
-                                ? 'border-blue-400 bg-blue-50 text-blue-600 animate-pulse'
-                                : 'border-blue-300 bg-white text-blue-600 hover:border-blue-400 hover:bg-blue-50'
+                                ? 'border-pink-400 bg-pink-50 text-pink-600 animate-pulse'
+                                : 'border-pink-300 bg-white text-pink-600 hover:border-pink-400 hover:bg-pink-50'
                         }`}
                       >
                         {uploadingWallpaper ? (
@@ -1517,7 +1517,7 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
 
               <button
                 onClick={() => setShowAddCardModal(true)}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-b from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-[1.02] select-none"
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-b from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-[1.02] select-none"
               >
                 <i className="fa-solid fa-plus select-none"></i>
                 <span className="select-none">添加新卡片</span>
@@ -1552,7 +1552,7 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                   className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 select-none ${
                     isExporting
                       ? 'bg-gray-400 cursor-not-allowed text-white shadow-lg shadow-gray-400/30'
-                      : 'bg-gradient-to-b from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg shadow-green-500/30 hover:shadow-xl hover:shadow-green-600/40 hover:scale-[1.02]'
+                      : 'bg-gradient-to-b from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg shadow-green-500/30 hover:shadow-xl hover:shadow-green-600/40 hover:scale-[1.02]'
                   }`}
                 >
                   {isExporting ? (
@@ -1574,7 +1574,7 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                   className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 select-none ${
                     isImporting
                       ? 'bg-gray-400 cursor-not-allowed text-white shadow-lg shadow-gray-400/30'
-                      : 'bg-gradient-to-b from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg shadow-orange-500/30 hover:shadow-xl hover:shadow-orange-600/40 hover:scale-[1.02]'
+                      : 'bg-gradient-to-b from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg shadow-green-500/30 hover:shadow-xl hover:shadow-green-600/40 hover:scale-[1.02]'
                   }`}
                 >
                   {isImporting ? (
@@ -1641,7 +1641,7 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
               <div className="grid grid-cols-1 gap-3">
                 <button
                   onClick={() => setShowPrivacySettings(true)}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-b from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-[1.02] select-none"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-b from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-[1.02] select-none"
                 >
                   <i className="fa-solid fa-shield-halved select-none"></i>
                   <span className="select-none">隐私设置</span>
@@ -1668,7 +1668,7 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                     <button
                       onClick={handleFixIcons}
                       disabled={isFixingIcons}
-                      className="text-blue-500 hover:text-blue-600 underline ml-1 disabled:text-gray-400 disabled:no-underline"
+                      className="text-purple-500 hover:text-purple-600 underline ml-1 disabled:text-gray-400 disabled:no-underline"
                     >
                       点击修复
                     </button>

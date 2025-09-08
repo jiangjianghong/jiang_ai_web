@@ -169,13 +169,13 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
 
   const throttledMouseMove = useRAFThrottledMouseMove(
     handleMouseMove,
-    parallaxEnabled && !isSettingsOpen
+    parallaxEnabled && !isSettingsOpen && !isSearchFocused
   );
 
   // 监听鼠标移动 - 使用 RAF 节流优化性能
   useEffect(() => {
-    // 如果视差被禁用或设置页面打开，不添加鼠标监听器
-    if (!parallaxEnabled || isSettingsOpen) {
+    // 如果视差被禁用或设置页面打开或搜索框聚焦，不添加鼠标监听器
+    if (!parallaxEnabled || isSettingsOpen || isSearchFocused) {
       setMousePosition({ x: 0, y: 0 });
       return;
     }
@@ -184,7 +184,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
     return () => {
       window.removeEventListener('mousemove', throttledMouseMove);
     };
-  }, [parallaxEnabled, isSettingsOpen, throttledMouseMove]);
+  }, [parallaxEnabled, isSettingsOpen, isSearchFocused, throttledMouseMove]);
 
   // 预加载 favicon（已移除，使用下面的 IndexedDB 批量缓存代替）
 
@@ -243,7 +243,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
           backgroundRepeat: 'no-repeat',
           filter: bgImageLoaded ? 'none' : 'blur(2px)',
           transform:
-            !isSettingsOpen && parallaxEnabled && !isMobile && mousePosition
+            !isSettingsOpen && !isSearchFocused && parallaxEnabled && !isMobile && mousePosition
               ? `translate(${mousePosition.x * 0.02}px, ${mousePosition.y * 0.02}px) scale(1.05)`
               : 'translate(0px, 0px) scale(1)',
           transition: 'filter 1.5s ease-out, transform 0.3s ease-out',

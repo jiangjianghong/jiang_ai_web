@@ -29,7 +29,7 @@ function SearchBarComponent(props: SearchBarProps = {}) {
   const { searchBarOpacity, searchBarColor, setIsSearchFocused, searchInNewTab, isSettingsOpen } =
     useTransparency();
   const { isMobile } = useResponsiveLayout();
-  const { isWorkspaceOpen } = useWorkspace();
+  const { isWorkspaceOpen, setIsWorkspaceOpen } = useWorkspace();
 
   // 状态变量声明移到useEffect之前
   const [searchQuery, setSearchQuery] = useState('');

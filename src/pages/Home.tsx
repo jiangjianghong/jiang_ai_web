@@ -65,6 +65,18 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
           return;
         }
 
+        // 检查是否需要新的壁纸（跨天检查）
+        const today = new Date().toISOString().split('T')[0];
+        const lastWallpaperDateKey = `last-wallpaper-date-${wallpaperResolution}`;
+        const lastWallpaperDate = localStorage.getItem(lastWallpaperDateKey);
+        
+        // 如果是新的一天，在最后尝试触发重新加载
+        const shouldRefreshForNewDay = lastWallpaperDate !== today;
+        if (shouldRefreshForNewDay) {
+          localStorage.setItem(lastWallpaperDateKey, today);
+          logger.debug('🌅 检测到新的一天，将在后续触发壁纸更新');
+        }
+
         const result = await optimizedWallpaperService.getWallpaper(wallpaperResolution);
 
         if (result.url && result.isFromCache) {
@@ -72,10 +84,15 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
           setBgImageLoaded(true);
           logger.debug('⚡ 即时加载缓存壁纸', { isToday: result.isToday });
 
-          // 如果缓存的不是今天的壁纸，记录警告
-          if (!result.isToday) {
-            logger.warn('⚠️ 使用的是过期壁纸缓存，将在后台更新');
+          // 如果缓存的不是今天的壁纸或检测到新的一天，记录警告并后续将触发更新
+          if (!result.isToday || shouldRefreshForNewDay) {
+            logger.warn('⚠️ 使用的是过期壁纸缓存或新的一天，将在后续更新');
           }
+        } else if (result.url) {
+          // 新下载的壁纸
+          setBgImage(result.url);
+          setBgImageLoaded(true);
+          logger.debug('🌐 加载新下载壁纸');
         }
       } catch (error) {
         logger.warn('检查缓存失败:', error);

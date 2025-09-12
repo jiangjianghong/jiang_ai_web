@@ -25,7 +25,7 @@ const CACHE_STRATEGIES = {
     /\.ttf$/,
     /\.eot$/,
   ],
-  // 图片资源：缓存优先，永久缓存
+  // 图片资源：缓存优先，但壁纸需要特殊处理
   images: [
     /\.png$/,
     /\.jpg$/,
@@ -34,6 +34,12 @@ const CACHE_STRATEGIES = {
     /\.svg$/,
     /\.webp$/,
     /\.ico$/,
+  ],
+  // 壁纸资源：特殊处理，需要每日更新检查
+  wallpaper: [
+    /wallpaper-service/,
+    /bing\.com.*\.(jpg|jpeg|png)$/,
+    /unsplash\.com.*\.(jpg|jpeg|png)$/,
   ],
   // API请求：网络优先，失败回退缓存
   api: [
@@ -60,7 +66,12 @@ function getRequestType(url) {
     return 'skip';
   }
   
-  // 检查各种缓存类型
+  // 检查壁纸资源（优先级高于一般图片）
+  if (CACHE_STRATEGIES.wallpaper.some(pattern => pattern.test(urlStr))) {
+    return 'wallpaper';
+  }
+  
+  // 检查其他类型
   if (CACHE_STRATEGIES.images.some(pattern => pattern.test(urlStr))) {
     return 'image';
   }
@@ -153,6 +164,11 @@ self.addEventListener('fetch', event => {
     case 'static':
       // JS/CSS：缓存优先，后台更新
       event.respondWith(staleWhileRevalidate(request, STATIC_CACHE));
+      break;
+      
+    case 'wallpaper':
+      // 壁纸：特殊处理，支持每日更新
+      event.respondWith(wallpaperStrategy(request, IMAGE_CACHE));
       break;
       
     case 'image':
@@ -302,6 +318,67 @@ self.addEventListener('message', event => {
     );
   }
 });
+
+// 策略：壁纸特殊处理 - 支持每日更新
+async function wallpaperStrategy(request, cacheName) {
+  const cache = await caches.open(cacheName);
+  const cachedResponse = await cache.match(request);
+  
+  // 检查缓存时间是否为今天
+  if (cachedResponse) {
+    const cacheDate = cachedResponse.headers.get('date');
+    const today = new Date().toDateString();
+    const cacheDay = cacheDate ? new Date(cacheDate).toDateString() : null;
+    
+    // 如果缓存是今天的，直接返回
+    if (cacheDay === today) {
+      console.log('[SW] Using fresh wallpaper cache');
+      return cachedResponse;
+    }
+    
+    // 如果缓存过期，先返回缓存，后台更新
+    console.log('[SW] Wallpaper cache expired, updating in background');
+    
+    // 后台更新
+    fetchWithTimeout(request, 10000)
+      .then(networkResponse => {
+        if (networkResponse && networkResponse.ok) {
+          cache.put(request, networkResponse.clone());
+          console.log('[SW] Wallpaper updated in background');
+        }
+      })
+      .catch(error => {
+        console.warn('[SW] Background wallpaper update failed:', error);
+      });
+    
+    return cachedResponse;
+  }
+  
+  // 没有缓存，尝试网络请求
+  try {
+    console.log('[SW] Fetching new wallpaper');
+    const networkResponse = await fetchWithTimeout(request, 15000); // 壁纸需要更长超时
+    
+    if (networkResponse && networkResponse.ok) {
+      cache.put(request, networkResponse.clone());
+      return networkResponse;
+    }
+  } catch (error) {
+    console.warn('[SW] Wallpaper network request failed:', error);
+  }
+  
+  // 网络失败，返回过期缓存（如果有）
+  if (cachedResponse) {
+    console.log('[SW] Returning expired wallpaper cache due to network failure');
+    return cachedResponse;
+  }
+  
+  // 没有缓存也没有网络，返回错误
+  return new Response('Wallpaper not available', {
+    status: 503,
+    statusText: 'Service Unavailable'
+  });
+}
 
 // 后台同步（如果浏览器支持）
 self.addEventListener('sync', event => {

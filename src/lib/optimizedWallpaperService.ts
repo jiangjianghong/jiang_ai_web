@@ -33,17 +33,27 @@ class OptimizedWallpaperService {
     return OptimizedWallpaperService.instance;
   }
 
-  // 启动定时清理
+  // 启动定时清理和每日检查
   private startCleanupTimer(): void {
     if (this.cleanupTimer !== null) {
       return; // 已经启动了
     }
 
-    logger.wallpaper.info('启动定时清理任务（每6小时）');
+    logger.wallpaper.info('启动定时清理任务（每6小时）和每日检查');
+    
+    // 立即执行一次清理检查
+    this.performDailyCheck().catch((error) => {
+      logger.wallpaper.warn('初始每日检查失败', error);
+    });
+    
     this.cleanupTimer = setInterval(
       () => {
-        this.cleanupExpiredCache().catch((error) => {
-          logger.wallpaper.error('定期清理缓存失败', error);
+        // 执行清理和每日检查
+        Promise.all([
+          this.cleanupExpiredCache(),
+          this.performDailyCheck()
+        ]).catch((error) => {
+          logger.wallpaper.error('定期清理和检查失败', error);
         });
       },
       6 * 60 * 60 * 1000
@@ -66,10 +76,62 @@ class OptimizedWallpaperService {
     }
   }
 
-  // 获取今天的缓存键
+  // 获取今天的缓存键 - 基于UTC时间确保全球一致性
   private getTodayCacheKey(resolution: string): string {
     const today = new Date().toISOString().split('T')[0];
     return `wallpaper-optimized:${resolution}-${today}`;
+  }
+
+  // 检查是否需要强制刷新（跨天检查）
+  private shouldForceRefresh(lastUpdateKey: string): boolean {
+    const storedDate = localStorage.getItem(lastUpdateKey);
+    const today = new Date().toISOString().split('T')[0];
+    
+    if (!storedDate || storedDate !== today) {
+      localStorage.setItem(lastUpdateKey, today);
+      return true;
+    }
+    return false;
+  }
+
+  // 执行每日检查 - 确保壁纸是最新的
+  private async performDailyCheck(): Promise<void> {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const lastCheckKey = 'wallpaper-daily-check';
+      const lastCheck = localStorage.getItem(lastCheckKey);
+      
+      if (lastCheck === today) {
+        return; // 今天已经检查过了
+      }
+      
+      logger.wallpaper.info('执行每日壁纸检查');
+      
+      // 标记今天已检查
+      localStorage.setItem(lastCheckKey, today);
+      
+      // 检查所有分辨率是否需要更新
+      const resolutions = ['1080p', '720p', '4k', 'mobile'];
+      
+      for (const resolution of resolutions) {
+        const todayKey = this.getTodayCacheKey(resolution);
+        const todayCache = await indexedDBCache.get(todayKey);
+        
+        if (!todayCache) {
+          // 没有今天的缓存，触发后台下载
+          logger.wallpaper.info(`后台预加载 ${resolution} 壁纸`);
+          this.updateWallpaperInBackground(resolution).catch((error) => {
+            logger.wallpaper.warn(`后台预加载 ${resolution} 失败`, error);
+          });
+        }
+      }
+      
+      // 清理过期缓存
+      await this.cleanupExpiredCache();
+      
+    } catch (error) {
+      logger.wallpaper.warn('每日检查失败', error);
+    }
   }
 
   // 获取昨天的缓存键（用于降级）
@@ -260,6 +322,16 @@ class OptimizedWallpaperService {
             needsUpdate: false,
           };
         }
+      }
+
+      // 0.1 检查是否需要强制刷新（跨天检查）
+      const forceRefreshKey = `wallpaper-last-update-${resolution}`;
+      const shouldRefresh = this.shouldForceRefresh(forceRefreshKey);
+      
+      if (shouldRefresh) {
+        logger.wallpaper.info('检测到跨天，强制刷新壁纸缓存');
+        // 清理今天的缓存，强制重新下载
+        await this.clearTodayCache(resolution);
       }
 
       // 1. 首先尝试智能缓存

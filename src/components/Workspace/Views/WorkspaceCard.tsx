@@ -204,7 +204,7 @@ export default function WorkspaceCard({ item, index, isFocused, searchQuery = ''
                         e.stopPropagation();
                         setShowCredentials(!showCredentials);
                       }}
-                      className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                      className="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg transition-colors"
                       title="显示登录信息"
                     >
                       <i className={`fa-solid ${showCredentials ? 'fa-eye-slash' : 'fa-eye'} text-xs`}></i>
@@ -217,7 +217,7 @@ export default function WorkspaceCard({ item, index, isFocused, searchQuery = ''
                       openItem(item);
                     }}
                     className={`
-                      p-1.5 text-blue-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all
+                      p-1.5 text-blue-500 hover:text-blue-600 rounded-lg transition-all
                       ${isFocused ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}
                     `}
                     title="打开链接"
@@ -258,7 +258,7 @@ export default function WorkspaceCard({ item, index, isFocused, searchQuery = ''
                         e.stopPropagation();
                         handleCopyCredentials('username');
                       }}
-                      className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors flex-shrink-0"
+                      className="p-2 text-gray-400 hover:text-blue-600 rounded-lg transition-colors flex-shrink-0"
                       title="复制账号"
                     >
                       <i className="fa-solid fa-copy text-sm"></i>
@@ -282,7 +282,7 @@ export default function WorkspaceCard({ item, index, isFocused, searchQuery = ''
                         e.stopPropagation();
                         handleCopyCredentials('password');
                       }}
-                      className="p-2 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors flex-shrink-0"
+                      className="p-2 text-gray-400 hover:text-amber-600 rounded-lg transition-colors flex-shrink-0"
                       title="复制密码"
                     >
                       <i className="fa-solid fa-copy text-sm"></i>

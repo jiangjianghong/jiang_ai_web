@@ -120,9 +120,9 @@ export default function ListItem({ item, index, isFocused, searchQuery = '' }: L
       ref={itemRef}
       className={`
         relative group cursor-pointer select-none
-        bg-white hover:bg-gray-50/50 rounded-xl p-4
-        transition-colors duration-200
-        border border-gray-200
+        bg-white rounded-xl p-4
+        transition-all duration-200
+        border border-gray-200 hover:border-gray-300
       `}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
@@ -184,7 +184,7 @@ export default function ListItem({ item, index, isFocused, searchQuery = '' }: L
                   e.stopPropagation();
                   handleCopyUrl();
                 }}
-                className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg transition-colors"
                 title="复制链接 (C)"
               >
                 <i className="fa-solid fa-copy text-xs"></i>
@@ -196,7 +196,7 @@ export default function ListItem({ item, index, isFocused, searchQuery = '' }: L
                     e.stopPropagation();
                     setShowCredentials(!showCredentials);
                   }}
-                  className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg transition-colors"
                   title="显示登录信息 (D)"
                 >
                   <i className={`fa-solid ${showCredentials ? 'fa-eye-slash' : 'fa-eye'} text-xs`}></i>
@@ -208,7 +208,7 @@ export default function ListItem({ item, index, isFocused, searchQuery = '' }: L
                   e.stopPropagation();
                   openItem(item);
                 }}
-                className="p-1.5 text-blue-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                className="p-1.5 text-blue-500 hover:text-blue-600 rounded-lg transition-colors"
                 title="打开链接 (Enter)"
               >
                 <i className="fa-solid fa-external-link-alt text-xs"></i>
@@ -260,7 +260,7 @@ export default function ListItem({ item, index, isFocused, searchQuery = '' }: L
                         e.stopPropagation();
                         handleCopyCredentials('username');
                       }}
-                      className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
+                      className="p-1 text-gray-400 hover:text-gray-600 rounded transition-colors"
                       title="复制账号"
                     >
                       <i className="fa-solid fa-copy text-xs"></i>
@@ -282,7 +282,7 @@ export default function ListItem({ item, index, isFocused, searchQuery = '' }: L
                         e.stopPropagation();
                         handleCopyCredentials('password');
                       }}
-                      className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
+                      className="p-1 text-gray-400 hover:text-gray-600 rounded transition-colors"
                       title="复制密码"
                     >
                       <i className="fa-solid fa-copy text-xs"></i>

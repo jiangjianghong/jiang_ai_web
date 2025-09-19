@@ -56,8 +56,8 @@ export default function ViewSwitcher({ className = '' }: ViewSwitcherProps) {
               relative flex items-center space-x-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all
               focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1
               ${viewType === option.type
-                ? 'text-blue-700 bg-white shadow-sm'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                ? 'text-blue-700 bg-white shadow-sm border border-blue-100'
+                : 'text-gray-600 hover:text-gray-900'
               }
             `}
             whileHover={{ scale: 1.02 }}
@@ -66,16 +66,6 @@ export default function ViewSwitcher({ className = '' }: ViewSwitcherProps) {
           >
             <i className={`fa-solid ${option.icon} text-xs`}></i>
             <span className="hidden sm:inline">{option.label}</span>
-            
-            {/* 活跃指示器 */}
-            {viewType === option.type && (
-              <motion.div
-                className="absolute inset-0 bg-white rounded-md shadow-sm border border-blue-100"
-                layoutId="viewActiveIndicator"
-                initial={false}
-                style={{ zIndex: -1 }}
-              />
-            )}
           </motion.button>
         ))}
       </div>

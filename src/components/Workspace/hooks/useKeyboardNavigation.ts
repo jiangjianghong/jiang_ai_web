@@ -77,6 +77,28 @@ export function useKeyboardNavigation({
     return { cols, rows };
   };
 
+  // 获取当前视图类型
+  const getCurrentView = () => {
+    // 检查是否是列表视图
+    const listView = document.querySelector('.list-view');
+    if (listView) return 'list';
+    
+    // 否则是卡片视图
+    return 'card';
+  };
+
+  // 列表导航：简单的上下移动
+  const getListNavigationIndex = (currentIndex: number, direction: 'up' | 'down') => {
+    switch (direction) {
+      case 'up':
+        return Math.max(0, currentIndex - 1);
+      case 'down':
+        return Math.min(filteredItems.length - 1, currentIndex + 1);
+      default:
+        return currentIndex;
+    }
+  };
+
   // 网格导航：根据当前索引和方向计算新索引
   const getGridNavigationIndex = (currentIndex: number, direction: 'up' | 'down' | 'left' | 'right') => {
     const { cols } = getGridDimensions();
@@ -161,9 +183,14 @@ export function useKeyboardNavigation({
             focusToCategory(currentIndex + 1);
           }
         } else if (currentFocusState === FOCUS_STATES.ITEMS) {
-          // 网格导航：右移
-          const newIndex = getGridNavigationIndex(focusedItemIndex, 'right');
-          setFocusedItemIndex(newIndex);
+          const viewType = getCurrentView();
+          
+          if (viewType === 'card') {
+            // 仅在卡片视图中支持左右移动
+            const newIndex = getGridNavigationIndex(focusedItemIndex, 'right');
+            setFocusedItemIndex(newIndex);
+          }
+          // 列表视图中忽略右键
         }
         break;
 
@@ -177,9 +204,14 @@ export function useKeyboardNavigation({
             focusToCategory(currentIndex - 1);
           }
         } else if (currentFocusState === FOCUS_STATES.ITEMS) {
-          // 网格导航：左移
-          const newIndex = getGridNavigationIndex(focusedItemIndex, 'left');
-          setFocusedItemIndex(newIndex);
+          const viewType = getCurrentView();
+          
+          if (viewType === 'card') {
+            // 仅在卡片视图中支持左右移动
+            const newIndex = getGridNavigationIndex(focusedItemIndex, 'left');
+            setFocusedItemIndex(newIndex);
+          }
+          // 列表视图中忽略左键
         }
         break;
 
@@ -192,9 +224,17 @@ export function useKeyboardNavigation({
             setFocusedItemIndex(0);
           }
         } else if (currentFocusState === FOCUS_STATES.ITEMS) {
-          // 网格导航：下移
-          const newIndex = getGridNavigationIndex(focusedItemIndex, 'down');
-          setFocusedItemIndex(newIndex);
+          const viewType = getCurrentView();
+          
+          if (viewType === 'list') {
+            // 列表视图：上下移动
+            const newIndex = getListNavigationIndex(focusedItemIndex, 'down');
+            setFocusedItemIndex(newIndex);
+          } else {
+            // 卡片视图：网格导航下移
+            const newIndex = getGridNavigationIndex(focusedItemIndex, 'down');
+            setFocusedItemIndex(newIndex);
+          }
         }
         break;
 
@@ -203,14 +243,28 @@ export function useKeyboardNavigation({
         if (currentFocusState === FOCUS_STATES.SEARCH) {
           focusToCategory(categories.findIndex(cat => cat.name === selectedCategory));
         } else if (currentFocusState === FOCUS_STATES.ITEMS) {
-          // 网格导航：上移
-          const newIndex = getGridNavigationIndex(focusedItemIndex, 'up');
-          if (newIndex === -1) {
-            // 到达顶部，返回搜索框
-            focusToSearch();
-            setFocusedItemIndex(-1);
+          const viewType = getCurrentView();
+          
+          if (viewType === 'list') {
+            // 列表视图：上移
+            const newIndex = getListNavigationIndex(focusedItemIndex, 'up');
+            if (focusedItemIndex === 0) {
+              // 如果在第一个项目，返回搜索框
+              focusToSearch();
+              setFocusedItemIndex(-1);
+            } else {
+              setFocusedItemIndex(newIndex);
+            }
           } else {
-            setFocusedItemIndex(newIndex);
+            // 卡片视图：网格导航上移
+            const newIndex = getGridNavigationIndex(focusedItemIndex, 'up');
+            if (newIndex === -1) {
+              // 到达顶部，返回搜索框
+              focusToSearch();
+              setFocusedItemIndex(-1);
+            } else {
+              setFocusedItemIndex(newIndex);
+            }
           }
         }
         break;

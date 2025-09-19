@@ -119,7 +119,7 @@ export default function ListItem({ item, index, isFocused, searchQuery = '' }: L
     <motion.div
       ref={itemRef}
       className={`
-        list-item relative group cursor-pointer select-none
+        relative group cursor-pointer select-none
         ${isFocused 
           ? 'ring-2 ring-blue-500 ring-offset-2 bg-blue-50 border-blue-200 rounded-xl' 
           : 'bg-white hover:bg-gray-50 border-gray-200 rounded-xl'

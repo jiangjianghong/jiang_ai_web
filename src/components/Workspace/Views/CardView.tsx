@@ -143,9 +143,9 @@ export default function CardView({ className = '' }: CardViewProps) {
                 initial={false}
                 transition={{
                   type: "spring",
-                  stiffness: 300,
-                  damping: 30,
-                  mass: 0.8
+                  stiffness: 150,
+                  damping: 25,
+                  mass: 1
                 }}
                 style={{ 
                   zIndex: 10

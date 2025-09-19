@@ -31,10 +31,40 @@ export default function ViewSwitcher({ className = '' }: ViewSwitcherProps) {
     setViewType(newViewType);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent, action: () => void) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      action();
+  const handleKeyDown = (e: React.KeyboardEvent, action: () => void, currentIndex: number) => {
+    switch (e.key) {
+      case 'Enter':
+      case ' ':
+        e.preventDefault();
+        action();
+        break;
+      case 'ArrowLeft':
+        e.preventDefault();
+        if (currentIndex === 0) {
+          // 如果在第一个按钮，返回搜索框
+          const searchInput = document.querySelector('.search-bar input');
+          if (searchInput) {
+            (searchInput as HTMLElement).focus();
+          }
+        } else {
+          // 切换到上一个视图选项
+          const buttons = document.querySelectorAll('.view-switcher-button');
+          if (buttons[currentIndex - 1]) {
+            (buttons[currentIndex - 1] as HTMLElement).focus();
+          }
+        }
+        break;
+      case 'ArrowRight':
+        e.preventDefault();
+        if (currentIndex < viewOptions.length - 1) {
+          // 切换到下一个视图选项
+          const buttons = document.querySelectorAll('.view-switcher-button');
+          if (buttons[currentIndex + 1]) {
+            (buttons[currentIndex + 1] as HTMLElement).focus();
+          }
+        }
+        // 最右边时不跳转到其他地方
+        break;
     }
   };
 
@@ -47,13 +77,13 @@ export default function ViewSwitcher({ className = '' }: ViewSwitcherProps) {
 
       {/* 视图切换按钮 */}
       <div className="flex items-center bg-gray-100 rounded-lg p-1">
-        {viewOptions.map((option) => (
+        {viewOptions.map((option, index) => (
           <motion.button
             key={option.type}
             onClick={() => handleViewChange(option.type)}
-            onKeyDown={(e) => handleKeyDown(e, () => handleViewChange(option.type))}
+            onKeyDown={(e) => handleKeyDown(e, () => handleViewChange(option.type), index)}
             className={`
-              relative flex items-center space-x-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all
+              view-switcher-button relative flex items-center space-x-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all
               focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1
               ${viewType === option.type
                 ? 'text-blue-700 bg-white shadow-sm border border-blue-100'

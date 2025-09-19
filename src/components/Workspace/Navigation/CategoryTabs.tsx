@@ -68,6 +68,15 @@ export default function CategoryTabs({ className = '' }: CategoryTabsProps) {
           }, 0);
         }
         break;
+      case 'ArrowDown':
+        e.preventDefault();
+        e.stopPropagation();
+        // 下移到搜索框
+        const searchInput = document.querySelector('.search-bar input');
+        if (searchInput) {
+          (searchInput as HTMLElement).focus();
+        }
+        break;
     }
   };
 

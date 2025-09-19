@@ -57,6 +57,24 @@ export default function SearchBar({
           inputRef.current?.blur();
         }
         break;
+      case 'ArrowRight':
+        // 如果光标在输入框最右侧，切换到视图选择器
+        const input = inputRef.current;
+        if (input && input.selectionStart === input.value.length) {
+          e.preventDefault();
+          // 找到第一个视图切换按钮并聚焦
+          const viewSwitcherButton = document.querySelector('.view-switcher-button');
+          if (viewSwitcherButton) {
+            (viewSwitcherButton as HTMLElement).focus();
+          }
+        }
+        break;
+      case 'ArrowUp':
+        // 上移到分类标签 - 由全局hook处理
+        break;
+      case 'ArrowDown':
+        // 下移到内容区域 - 由全局hook处理
+        break;
     }
   };
 

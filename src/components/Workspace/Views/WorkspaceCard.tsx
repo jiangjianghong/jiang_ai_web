@@ -124,13 +124,7 @@ export default function WorkspaceCard({ item, index, isFocused, searchQuery = ''
   return (
     <motion.div
       ref={cardRef}
-      className={`
-        workspace-card group cursor-pointer select-none relative
-        ${isFocused 
-          ? 'ring-2 ring-blue-500 ring-offset-2 rounded-2xl' 
-          : ''
-        }
-      `}
+      className="workspace-card group cursor-pointer select-none relative"
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       tabIndex={0}
@@ -138,7 +132,7 @@ export default function WorkspaceCard({ item, index, isFocused, searchQuery = ''
       whileTap={{ scale: 0.98 }}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: Math.min(index * 0.1, 0.5) }}
+      transition={{ duration: 0.3, delay: Math.min(index * 0.05, 0.3) }}
     >
       {/* 卡片容器 */}
       <div className="relative h-48 [perspective:1000px]">

@@ -1,5 +1,6 @@
-import { motion } from 'framer-motion';
+import { motion, LayoutGroup } from 'framer-motion';
 import { useWorkspace } from '@/contexts/WorkspaceContext';
+import { useRef, useEffect, useState } from 'react';
 import WorkspaceCard from './WorkspaceCard';
 import LoadingSpinner from '../LoadingSpinner';
 
@@ -16,6 +17,30 @@ export default function CardView({ className = '' }: CardViewProps) {
     searchQuery,
     setSearchQuery 
   } = useWorkspace();
+
+  const [focusPosition, setFocusPosition] = useState({ x: 0, y: 0, width: 0, height: 0 });
+  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  // 计算焦点框的位置
+  useEffect(() => {
+    if (focusedItemIndex >= 0 && cardRefs.current[focusedItemIndex]) {
+      const element = cardRefs.current[focusedItemIndex];
+      if (element) {
+        const gridContainer = element.closest('.grid-container');
+        if (gridContainer) {
+          const rect = element.getBoundingClientRect();
+          const containerRect = gridContainer.getBoundingClientRect();
+          
+          setFocusPosition({
+            x: rect.left - containerRect.left,
+            y: rect.top - containerRect.top,
+            width: rect.width,
+            height: rect.height
+          });
+        }
+      }
+    }
+  }, [focusedItemIndex, filteredItems]);
 
   if (isLoading) {
     return (
@@ -103,34 +128,54 @@ export default function CardView({ className = '' }: CardViewProps) {
             </div>
           )}
 
-          {/* 卡片网格 - 确保足够的内容高度触发滚动 */}
-          <motion.div
-            className={getGridClasses()}
-            style={{ paddingBottom: '80px' }} // 底部留白
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3 }}
-          >
-            {filteredItems.map((item, index) => (
+          {/* 卡片网格容器 */}
+          <div className="relative grid-container">
+            {/* 滑动的焦点框 */}
+            {focusedItemIndex >= 0 && (
               <motion.div
-                key={item.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ 
-                  duration: 0.3, 
-                  delay: Math.min(index * 0.05, 0.5) // 限制最大延迟
+                className="absolute border-2 border-blue-500 rounded-2xl pointer-events-none shadow-lg shadow-blue-500/20 bg-blue-50/10"
+                animate={{
+                  x: focusPosition.x,
+                  y: focusPosition.y,
+                  width: focusPosition.width,
+                  height: focusPosition.height
                 }}
-                style={{ height: 'fit-content' }} // 确保卡片高度自适应
+                initial={false}
+                transition={{
+                  type: "spring",
+                  stiffness: 100,
+                  damping: 30,
+                  mass: 0.8
+                }}
+                style={{ 
+                  zIndex: 10
+                }}
+              />
+            )}
+            
+            {/* 卡片网格 */}
+            <LayoutGroup>
+              <div
+                className={getGridClasses()}
+                style={{ paddingBottom: '80px' }}
               >
-                <WorkspaceCard
-                  item={item}
-                  index={index}
-                  isFocused={focusedItemIndex === index}
-                  searchQuery={searchQuery}
-                />
-              </motion.div>
-            ))}
-          </motion.div>
+                {filteredItems.map((item, index) => (
+                  <div
+                    key={item.id}
+                    ref={el => cardRefs.current[index] = el}
+                    className="relative"
+                  >
+                    <WorkspaceCard
+                      item={item}
+                      index={index}
+                      isFocused={focusedItemIndex === index}
+                      searchQuery={searchQuery}
+                    />
+                  </div>
+                ))}
+              </div>
+            </LayoutGroup>
+          </div>
 
           {/* 底部统计信息 */}
           {filteredItems.length > 0 && (

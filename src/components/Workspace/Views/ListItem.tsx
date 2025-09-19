@@ -120,19 +120,23 @@ export default function ListItem({ item, index, isFocused, searchQuery = '' }: L
       ref={itemRef}
       className={`
         relative group cursor-pointer select-none
-        ${isFocused 
-          ? 'ring-2 ring-blue-500 ring-offset-2 bg-blue-50 border-blue-200 rounded-xl' 
-          : 'bg-white hover:bg-gray-50 border-gray-200 rounded-xl'
-        }
-        border p-4 transition-all duration-200
+        bg-white hover:bg-gray-50/50 rounded-xl p-4
+        transition-colors duration-200
+        border border-gray-200
       `}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       tabIndex={0}
-      whileHover={{ y: -1 }}
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2 }}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ 
+        opacity: 1, 
+        y: 0,
+        transition: {
+          duration: 0.3,
+          delay: index * 0.05,
+          ease: [0.4, 0, 0.2, 1]
+        }
+      }}
     >
       {/* 主要内容区域 */}
       <div className="flex items-start space-x-4">
@@ -290,15 +294,6 @@ export default function ListItem({ item, index, isFocused, searchQuery = '' }: L
           )}
         </div>
       </div>
-
-      {/* 焦点指示器 */}
-      {isFocused && (
-        <motion.div
-          className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500 rounded-r"
-          layoutId="focusIndicator"
-          initial={false}
-        />
-      )}
 
       {/* 复制反馈 */}
       {copyFeedback && (

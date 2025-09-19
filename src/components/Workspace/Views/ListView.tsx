@@ -1,5 +1,6 @@
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import { useWorkspace } from '@/contexts/WorkspaceContext';
+import { useRef, useEffect, useState } from 'react';
 import ListItem from './ListItem';
 import LoadingSpinner from '../LoadingSpinner';
 
@@ -16,6 +17,30 @@ export default function ListView({ className = '' }: ListViewProps) {
     searchQuery,
     setSearchQuery 
   } = useWorkspace();
+
+  const [focusPosition, setFocusPosition] = useState({ y: 0, height: 0 });
+  const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  // 计算焦点框的位置
+  useEffect(() => {
+    if (focusedItemIndex >= 0 && itemRefs.current[focusedItemIndex]) {
+      const element = itemRefs.current[focusedItemIndex];
+      if (element) {
+        // 获取列表容器
+        const listContainer = element.closest('.list-items-container');
+        if (listContainer) {
+          // 使用元素相对于父容器的实际位置
+          const rect = element.getBoundingClientRect();
+          const containerRect = listContainer.getBoundingClientRect();
+          
+          setFocusPosition({
+            y: rect.top - containerRect.top,
+            height: element.offsetHeight
+          });
+        }
+      }
+    }
+  }, [focusedItemIndex, filteredItems, searchQuery]);
 
   if (isLoading) {
     return (
@@ -78,13 +103,13 @@ export default function ListView({ className = '' }: ListViewProps) {
     <div className={`list-view h-full ${className}`}>
       {/* 滚动容器 - 明确设置滚动行为 */}
       <div 
-        className="h-full overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400"
+        className="h-full overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400 list-container"
         style={{ 
           scrollBehavior: 'smooth',
           WebkitOverflowScrolling: 'touch' // iOS 滚动优化
         }}
       >
-        <div className="space-y-1 p-4 min-h-full">
+        <div className="relative space-y-1 p-4 min-h-full">
           {/* 列表头部（可选） */}
           {filteredItems.length > 0 && searchQuery && (
             <div className="mb-4">
@@ -95,31 +120,47 @@ export default function ListView({ className = '' }: ListViewProps) {
           )}
 
           {/* 列表项 */}
-          <motion.div
-            className="space-y-2 pb-8"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3 }}
-          >
-            {filteredItems.map((item, index) => (
+          <div className="relative list-items-container">
+            {/* 滑动的焦点框 */}
+            {focusedItemIndex >= 0 && (
               <motion.div
-                key={item.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ 
-                  duration: 0.3, 
-                  delay: Math.min(index * 0.05, 0.5) // 限制最大延迟
+                className="absolute left-0 right-0 border-2 border-blue-500 rounded-xl pointer-events-none shadow-lg shadow-blue-500/20 bg-blue-50/10"
+                animate={{
+                  y: focusPosition.y,
+                  height: focusPosition.height
                 }}
-              >
-                <ListItem
-                  item={item}
-                  index={index}
-                  isFocused={focusedItemIndex === index}
-                  searchQuery={searchQuery}
-                />
-              </motion.div>
-            ))}
-          </motion.div>
+                initial={false}
+                transition={{
+                  type: "spring",
+                  stiffness: 100,
+                  damping: 30,
+                  mass: 0.8
+                }}
+                style={{ 
+                  zIndex: 1
+                }}
+              />
+            )}
+            
+            <LayoutGroup>
+              <div className="space-y-2">
+                {filteredItems.map((item, index) => (
+                  <div
+                    key={item.id}
+                    ref={el => itemRefs.current[index] = el}
+                    className="relative"
+                  >
+                    <ListItem
+                      item={item}
+                      index={index}
+                      isFocused={focusedItemIndex === index}
+                      searchQuery={searchQuery}
+                    />
+                  </div>
+                ))}
+              </div>
+            </LayoutGroup>
+          </div>
 
           {/* 加载更多指示器（如果需要分页） */}
           {filteredItems.length > 0 && (

@@ -68,7 +68,32 @@ export default function SearchBar({
 
   return (
     <div className={`search-bar relative ${className}`}>
-      <div className="relative">
+      <motion.div 
+        className="relative"
+        animate={{
+          scale: isFocused ? 1.02 : 1
+        }}
+        transition={{
+          type: "spring",
+          stiffness: 200,
+          damping: 20
+        }}
+      >
+        {/* 滑动焦点框 */}
+        <motion.div
+          className="absolute inset-0 border-2 border-blue-500 rounded-xl pointer-events-none"
+          initial={{ opacity: 0 }}
+          animate={{
+            opacity: isFocused ? 1 : 0,
+            boxShadow: isFocused ? '0 0 20px rgba(59, 130, 246, 0.3)' : '0 0 0 rgba(59, 130, 246, 0)'
+          }}
+          transition={{
+            type: "spring",
+            stiffness: 300,
+            damping: 30
+          }}
+          style={{ zIndex: 1 }}
+        />
         {/* 搜索图标 */}
         <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
           <i className="fa-solid fa-search text-sm"></i>
@@ -85,10 +110,10 @@ export default function SearchBar({
           onBlur={() => setIsFocused(false)}
           placeholder={placeholder}
           className={`
-            w-full pl-10 pr-12 py-3 border-2 rounded-xl text-sm transition-all duration-200
-            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+            w-full pl-10 pr-12 py-3 border rounded-xl text-sm transition-colors duration-200
+            focus:outline-none
             ${isFocused 
-              ? 'border-blue-300 bg-white shadow-lg' 
+              ? 'border-transparent bg-white' 
               : 'border-gray-200 bg-gray-50 hover:bg-white hover:border-gray-300'
             }
           `}
@@ -107,7 +132,7 @@ export default function SearchBar({
             <i className="fa-solid fa-times text-xs"></i>
           </motion.button>
         )}
-      </div>
+      </motion.div>
     </div>
   );
 }

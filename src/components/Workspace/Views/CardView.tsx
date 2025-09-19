@@ -143,7 +143,7 @@ export default function CardView({ className = '' }: CardViewProps) {
                 initial={false}
                 transition={{
                   type: "spring",
-                  stiffness: 100,
+                  stiffness: 300,
                   damping: 30,
                   mass: 0.8
                 }}

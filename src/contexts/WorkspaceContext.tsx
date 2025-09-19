@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
 import { workspaceManager } from '@/lib/notionClient';
 
 interface WorkspaceItem {
@@ -22,8 +22,21 @@ interface WorkspaceConfig {
   lastConfigured: string;
 }
 
+// 视图类型
+export type ViewType = 'list' | 'card';
+
+// 排序类型
+export type SortType = 'title' | 'category' | 'created_time' | 'last_edited';
+
+// 分类信息
+interface CategoryInfo {
+  name: string;
+  count: number;
+  icon: string;
+}
+
 interface WorkspaceContextType {
-  // 状态
+  // 基础状态
   isWorkspaceOpen: boolean;
   workspaceItems: WorkspaceItem[];
   isLoading: boolean;
@@ -31,7 +44,22 @@ interface WorkspaceContextType {
   isConfigured: boolean;
   lastSync: string | null;
 
-  // 操作
+  // 视图状态
+  viewType: ViewType;
+  
+  // 筛选状态
+  selectedCategory: string; // 'all' 或具体分类名
+  searchQuery: string;
+  searchSuggestions: string[];
+  
+  // 派生状态
+  filteredItems: WorkspaceItem[];
+  categories: CategoryInfo[];
+  
+  // 键盘导航状态
+  focusedItemIndex: number;
+
+  // 基础操作
   setIsWorkspaceOpen: (open: boolean) => void;
   syncWorkspaceData: () => Promise<void>;
   configureNotion: (apiKey: string, databaseId: string, corsProxy?: string) => void;
@@ -39,17 +67,120 @@ interface WorkspaceContextType {
   clearConfiguration: () => void;
   refreshItems: () => Promise<void>;
   getConfiguration: () => WorkspaceConfig | null;
+  
+  // 视图操作
+  setViewType: (type: ViewType) => void;
+  
+  // 筛选操作
+  setSelectedCategory: (category: string) => void;
+  setSearchQuery: (query: string) => void;
+  clearFilters: () => void;
+  
+  // 键盘导航操作
+  setFocusedItemIndex: (index: number) => void;
+  moveFocusUp: () => void;
+  moveFocusDown: () => void;
+  
+  // 工具方法
+  openItem: (item: WorkspaceItem) => void;
+  copyItemUrl: (item: WorkspaceItem) => Promise<void>;
+  copyItemCredentials: (item: WorkspaceItem, type: 'username' | 'password') => Promise<void>;
 }
 
 const WorkspaceContext = createContext<WorkspaceContextType | undefined>(undefined);
 
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
+  // 基础状态
   const [isWorkspaceOpen, setIsWorkspaceOpen] = useState(false);
   const [workspaceItems, setWorkspaceItems] = useState<WorkspaceItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isConfigured, setIsConfigured] = useState(false);
   const [lastSync, setLastSync] = useState<string | null>(null);
+
+  // 视图状态
+  const [viewType, setViewType] = useState<ViewType>('list');
+  
+  // 筛选状态
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [searchSuggestions, setSearchSuggestions] = useState<string[]>([]);
+  
+  // 键盘导航状态
+  const [focusedItemIndex, setFocusedItemIndex] = useState<number>(-1);
+
+  // 生成分类信息
+  const categories: CategoryInfo[] = useMemo(() => {
+    const categoryMap = new Map<string, number>();
+    
+    workspaceItems.forEach(item => {
+      const category = item.category || 'Default';
+      categoryMap.set(category, (categoryMap.get(category) || 0) + 1);
+    });
+
+    const result: CategoryInfo[] = [
+      {
+        name: 'all',
+        count: workspaceItems.length,
+        icon: '📁'
+      }
+    ];
+
+    categoryMap.forEach((count, name) => {
+      result.push({
+        name,
+        count,
+        icon: name === '工作链接' ? '🏢' : name === '工具链接' ? '🛠️' : '📄'
+      });
+    });
+
+    return result;
+  }, [workspaceItems]);
+
+  // 过滤后的数据（移除排序）
+  const filteredItems = useMemo(() => {
+    let filtered = workspaceItems;
+
+    // 分类过滤
+    if (selectedCategory !== 'all') {
+      filtered = filtered.filter(item => item.category === selectedCategory);
+    }
+
+    // 搜索过滤
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      filtered = filtered.filter(item =>
+        item.title.toLowerCase().includes(query) ||
+        item.description?.toLowerCase().includes(query) ||
+        item.url.toLowerCase().includes(query)
+      );
+    }
+
+    return filtered;
+  }, [workspaceItems, selectedCategory, searchQuery]);
+
+  // 更新搜索建议
+  useEffect(() => {
+    if (searchQuery.trim()) {
+      const suggestions = Array.from(new Set(
+        workspaceItems
+          .filter(item => 
+            item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            item.description?.toLowerCase().includes(searchQuery.toLowerCase())
+          )
+          .map(item => item.title)
+          .slice(0, 5)
+      ));
+      setSearchSuggestions(suggestions);
+    } else {
+      setSearchSuggestions([]);
+    }
+  }, [searchQuery, workspaceItems]);
+
+  // 重置焦点当筛选结果变化时
+  useEffect(() => {
+    setFocusedItemIndex(-1);
+  }, [filteredItems]);
 
   // 初始化时检查配置状态
   useEffect(() => {
@@ -140,17 +271,50 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     await syncWorkspaceData();
   };
 
-  // 移除自动同步，改为手动触发
-  // useEffect(() => {
-  //   if (isWorkspaceOpen && isConfigured && workspaceItems.length === 0 && !isLoading && !error && !hasAutoSynced) {
-  //     console.log('🎯 触发自动同步');
-  //     setHasAutoSynced(true);
-  //     syncWorkspaceData();
-  //   }
-  // }, [isWorkspaceOpen, isConfigured, hasAutoSynced]);
+  // 筛选操作
+  const clearFilters = () => {
+    setSelectedCategory('all');
+    setSearchQuery('');
+    setFocusedItemIndex(-1);
+  };
+
+  // 键盘导航操作
+  const moveFocusUp = () => {
+    setFocusedItemIndex(prev => Math.max(0, prev - 1));
+  };
+
+  const moveFocusDown = () => {
+    setFocusedItemIndex(prev => Math.min(filteredItems.length - 1, prev + 1));
+  };
+
+  // 工具方法
+  const openItem = (item: WorkspaceItem) => {
+    window.open(item.url, '_blank', 'noopener,noreferrer');
+  };
+
+  const copyItemUrl = async (item: WorkspaceItem) => {
+    try {
+      await navigator.clipboard.writeText(item.url);
+      console.log('URL 已复制到剪贴板');
+    } catch (error) {
+      console.error('复制 URL 失败:', error);
+    }
+  };
+
+  const copyItemCredentials = async (item: WorkspaceItem, type: 'username' | 'password') => {
+    try {
+      const value = type === 'username' ? item.username : item.password;
+      if (value) {
+        await navigator.clipboard.writeText(value);
+        console.log(`${type === 'username' ? '账号' : '密码'} 已复制到剪贴板`);
+      }
+    } catch (error) {
+      console.error(`复制${type === 'username' ? '账号' : '密码'}失败:`, error);
+    }
+  };
 
   const value: WorkspaceContextType = {
-    // 状态
+    // 基础状态
     isWorkspaceOpen,
     workspaceItems,
     isLoading,
@@ -158,7 +322,22 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     isConfigured,
     lastSync,
 
-    // 操作
+    // 视图状态
+    viewType,
+    
+    // 筛选状态
+    selectedCategory,
+    searchQuery,
+    searchSuggestions,
+    
+    // 派生状态
+    filteredItems,
+    categories,
+    
+    // 键盘导航状态
+    focusedItemIndex,
+
+    // 基础操作
     setIsWorkspaceOpen,
     syncWorkspaceData,
     configureNotion,
@@ -166,6 +345,24 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     clearConfiguration,
     refreshItems,
     getConfiguration: () => workspaceManager.getConfig(),
+    
+    // 视图操作
+    setViewType,
+    
+    // 筛选操作
+    setSelectedCategory,
+    setSearchQuery,
+    clearFilters,
+    
+    // 键盘导航操作
+    setFocusedItemIndex,
+    moveFocusUp,
+    moveFocusDown,
+    
+    // 工具方法
+    openItem,
+    copyItemUrl,
+    copyItemCredentials,
   };
 
   return <WorkspaceContext.Provider value={value}>{children}</WorkspaceContext.Provider>;

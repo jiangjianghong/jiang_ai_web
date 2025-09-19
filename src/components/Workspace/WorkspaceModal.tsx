@@ -1,9 +1,20 @@
-import { useState, useEffect, useRef, memo } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useWorkspace } from '@/contexts/WorkspaceContext';
-import WorkspaceCard from './WorkspaceCard';
-import WorkspaceSettings from './WorkspaceSettings';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
+import { useKeyboardNavigation } from './hooks/useKeyboardNavigation';
+
+// 导航组件
+import CategoryTabs from './Navigation/CategoryTabs';
+import SearchBar from './Navigation/SearchBar';
+import ViewSwitcher from './Navigation/ViewSwitcher';
+
+// 视图组件
+import ListView from './Views/ListView';
+import CardView from './Views/CardView';
+
+// 其他组件
+import WorkspaceSettings from './WorkspaceSettings';
 
 interface WorkspaceModalProps {
   isOpen: boolean;
@@ -17,15 +28,20 @@ function WorkspaceModalComponent({ isOpen, onClose }: WorkspaceModalProps) {
     error,
     isConfigured,
     lastSync,
-    syncWorkspaceData,
-    refreshItems,
+    viewType,
+    selectedCategory,
+    filteredItems,
+    refreshItems
   } = useWorkspace();
 
   const { isMobile } = useResponsiveLayout();
   const [showSettings, setShowSettings] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // 键盘导航
+  useKeyboardNavigation({ 
+    isEnabled: isOpen && !showSettings,
+    onEscape: onClose 
+  });
 
   // 如果未配置，默认显示设置
   useEffect(() => {
@@ -33,65 +49,6 @@ function WorkspaceModalComponent({ isOpen, onClose }: WorkspaceModalProps) {
       setShowSettings(true);
     }
   }, [isOpen, isConfigured]);
-
-  // 键盘事件处理 - 空格键聚焦搜索框
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // 只在工作空间模态框打开且未显示设置页面时处理空格键
-      if (showSettings) return;
-
-      if (e.code === 'Space' || e.key === ' ' || e.keyCode === 32) {
-        // 判断当前聚焦元素是否是输入框/textarea/可编辑内容
-        const active = document.activeElement;
-        const isInput =
-          active &&
-          (active.tagName === 'INPUT' ||
-            active.tagName === 'TEXTAREA' ||
-            (active as HTMLElement).isContentEditable);
-
-        // 如果当前不在任何输入框中，则聚焦工作空间搜索框
-        if (!isInput && searchInputRef.current) {
-          e.preventDefault(); // 阻止页面滚动
-          searchInputRef.current.focus();
-        }
-      }
-
-      // ESC键关闭模态框
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [isOpen, showSettings, onClose]);
-
-  // 过滤和搜索逻辑
-  const filteredItems = workspaceItems.filter((item) => {
-    // 搜索过滤
-    const matchesSearch =
-      !searchQuery ||
-      item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.description?.toLowerCase().includes(searchQuery.toLowerCase());
-
-    // 分类过滤
-    const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
-
-    // 只显示激活的项目
-    return item.isActive && matchesSearch && matchesCategory;
-  });
-
-  // 获取所有分类
-  const categories = ['all', ...new Set(workspaceItems.map((item) => item.category))];
-
-  // 处理卡片点击
-  const handleCardClick = (url: string) => {
-    window.open(url, '_blank', 'noopener,noreferrer');
-  };
 
   // 格式化同步时间
   const formatSyncTime = (isoString: string | null) => {
@@ -108,229 +65,271 @@ function WorkspaceModalComponent({ isOpen, onClose }: WorkspaceModalProps) {
   };
 
   const containerClasses = isMobile
-    ? 'fixed inset-4 max-h-[90vh]'
-    : 'w-full max-w-6xl max-h-[85vh]';
-
-  const gridClasses = isMobile
-    ? 'grid-cols-2 gap-3 auto-rows-fr'
-    : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 auto-rows-fr';
+    ? 'fixed inset-4 max-h-[95vh]'
+    : 'w-full max-w-7xl max-h-[90vh]';
 
   return (
     <AnimatePresence mode="wait">
       {isOpen && (
         <>
-          {/* 背景遮罩 - 点击关闭 */}
+          {/* 背景遮罩 */}
           <motion.div
             className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.4, ease: 'easeOut' }}
+            transition={{ duration: 0.3, ease: 'easeOut' }}
             onClick={onClose}
           />
 
-          {/* 工作空间内容容器 */}
+          {/* 工作空间容器 */}
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
-            {/* 工作空间内容 */}
             <motion.div
               data-workspace-modal
-              className={`${containerClasses} bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl overflow-hidden flex flex-col pointer-events-auto`}
-              initial={{ scale: 0.7, opacity: 0, y: 50, rotateX: -15 }}
-              animate={{ scale: 1, opacity: 1, y: 0, rotateX: 0 }}
-              exit={{ scale: 0.7, opacity: 0, y: 50, rotateX: -15 }}
+              className={`${containerClasses} bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl overflow-hidden border border-gray-200`}
+              style={{ 
+                display: 'flex', 
+                flexDirection: 'column',
+                height: isMobile ? 'calc(100vh - 32px)' : '90vh', // 明确设置高度
+                maxHeight: isMobile ? 'calc(100vh - 32px)' : '90vh',
+                pointerEvents: 'auto'
+              }}
+              initial={{ scale: 0.8, opacity: 0, y: 40 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.8, opacity: 0, y: 40 }}
               transition={{
                 type: 'spring',
-                damping: 20,
+                damping: 25,
                 stiffness: 300,
-                duration: 0.6,
+                duration: 0.5,
               }}
-              onAnimationStart={() => console.log('🎬 工作空间动画开始')}
-              onAnimationComplete={() => console.log('✅ 工作空间动画完成')}
             >
-              {/* 头部 */}
-              <div className="flex items-center justify-between p-6 border-b border-gray-200/50">
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
-                    <i className="fa-solid fa-briefcase text-white text-sm"></i>
+              {/* 头部区域 */}
+              <div className="flex-shrink-0 border-b border-gray-200/80 bg-white/90 backdrop-blur-sm">
+                {/* 标题栏 */}
+                <div className="flex items-center justify-between px-6 py-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                      <i className="fa-solid fa-briefcase text-white text-lg"></i>
+                    </div>
+                    <div>
+                      <h1 className="text-xl font-bold text-gray-900">工作空间</h1>
+                      <p className="text-sm text-gray-600">
+                        {isConfigured ? (
+                          <>
+                            {workspaceItems.length} 个项目 • {formatSyncTime(lastSync)}
+                          </>
+                        ) : (
+                          '请先配置 Notion 数据库连接'
+                        )}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h2 className="text-lg font-semibold text-gray-800">工作空间</h2>
-                    <p className="text-xs text-gray-500">
-                      {isConfigured ? (
-                        <>
-                          共 {workspaceItems.length} 个项目 • {formatSyncTime(lastSync)}
-                        </>
-                      ) : (
-                        '请先配置 Notion 数据库连接'
-                      )}
-                    </p>
-                  </div>
-                </div>
 
-                <div className="flex items-center space-x-2">
-                  {isConfigured && (
-                    <>
-                      {/* 刷新按钮 */}
-                      <button
-                        onClick={refreshItems}
-                        disabled={isLoading}
-                        className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
-                        title="刷新数据"
-                      >
-                        <i
-                          className={`fa-solid fa-refresh text-sm ${isLoading ? 'animate-spin' : ''}`}
-                        ></i>
-                      </button>
-
-                      {/* 设置按钮 */}
-                      <button
-                        onClick={() => setShowSettings(true)}
-                        className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                        title="设置"
-                      >
-                        <i className="fa-solid fa-cog text-sm"></i>
-                      </button>
-                    </>
-                  )}
-
-                  {/* 关闭按钮 */}
-                  <button
-                    onClick={onClose}
-                    className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                  >
-                    <i className="fa-solid fa-times text-sm"></i>
-                  </button>
-                </div>
-              </div>
-
-              {/* 主要内容区域 */}
-              <div className="flex-1 overflow-hidden flex flex-col">
-                {showSettings ? (
-                  /* 设置页面 */
-                  <WorkspaceSettings
-                    onClose={() => setShowSettings(false)}
-                    onConfigured={() => {
-                      setShowSettings(false);
-                      syncWorkspaceData();
-                    }}
-                  />
-                ) : isConfigured ? (
-                  <>
-                    {/* 搜索和筛选栏 */}
-                    {workspaceItems.length > 0 && (
-                      <div className="px-6 py-4 border-b border-gray-200/50">
-                        <div
-                          className={`flex ${isMobile ? 'flex-col space-y-3' : 'items-center space-x-4'}`}
+                  <div className="flex items-center space-x-2">
+                    {isConfigured && (
+                      <>
+                        {/* 刷新按钮 */}
+                        <motion.button
+                          onClick={refreshItems}
+                          disabled={isLoading}
+                          className="p-2.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-colors disabled:opacity-50"
+                          title="刷新数据"
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
                         >
-                          {/* 搜索框 */}
-                          <div className="relative flex-1">
-                            <i className="fa-solid fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"></i>
-                            <input
-                              ref={searchInputRef}
-                              type="text"
-                              placeholder="搜索工作空间..."
-                              value={searchQuery}
-                              onChange={(e) => setSearchQuery(e.target.value)}
-                              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                            />
-                          </div>
+                          <i className={`fa-solid fa-refresh text-sm ${isLoading ? 'animate-spin' : ''}`}></i>
+                        </motion.button>
 
-                          {/* 分类筛选 */}
-                          {categories.length > 2 && (
-                            <select
-                              value={selectedCategory}
-                              onChange={(e) => setSelectedCategory(e.target.value)}
-                              className={`${isMobile ? 'w-full' : 'w-48'} px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm`}
-                            >
-                              <option value="all">所有分类</option>
-                              {categories
-                                .filter((cat) => cat !== 'all')
-                                .map((category) => (
-                                  <option key={category} value={category}>
-                                    {category}
-                                  </option>
-                                ))}
-                            </select>
-                          )}
-                        </div>
-                      </div>
+                        {/* 设置按钮 */}
+                        <motion.button
+                          onClick={() => setShowSettings(true)}
+                          className="p-2.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-colors"
+                          title="设置"
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          <i className="fa-solid fa-cog text-sm"></i>
+                        </motion.button>
+                      </>
                     )}
 
-                    {/* 工作空间项目网格 */}
-                    <div className="flex-1 overflow-y-auto p-6">
-                      {error && (
-                        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-                          <div className="flex items-center space-x-2">
-                            <i className="fa-solid fa-exclamation-triangle text-red-500"></i>
-                            <span className="text-red-700 text-sm">{error}</span>
-                          </div>
-                        </div>
-                      )}
-
-                      {isLoading ? (
-                        /* 加载状态 */
-                        <div className="flex flex-col items-center justify-center py-12">
-                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mb-4"></div>
-                          <p className="text-gray-500 text-sm">正在同步工作空间数据...</p>
-                        </div>
-                      ) : filteredItems.length > 0 ? (
-                        /* 工作空间项目网格 */
-                        <div className={`grid ${gridClasses}`}>
-                          {filteredItems.map((item) => (
-                            <WorkspaceCard
-                              key={item.id}
-                              item={item}
-                              onClick={() => handleCardClick(item.url)}
-                            />
-                          ))}
-                        </div>
-                      ) : workspaceItems.length > 0 ? (
-                        /* 无匹配结果 */
-                        <div className="flex flex-col items-center justify-center py-12">
-                          <i className="fa-solid fa-search text-gray-300 text-3xl mb-4"></i>
-                          <p className="text-gray-500 text-sm mb-2">没有找到匹配的工作空间项目</p>
-                          <button
-                            onClick={() => {
-                              setSearchQuery('');
-                              setSelectedCategory('all');
-                            }}
-                            className="text-blue-500 hover:text-blue-600 text-sm"
-                          >
-                            清除筛选条件
-                          </button>
-                        </div>
-                      ) : (
-                        /* 空状态 */
-                        <div className="flex flex-col items-center justify-center py-12">
-                          <i className="fa-solid fa-briefcase text-gray-300 text-3xl mb-4"></i>
-                          <p className="text-gray-500 text-sm mb-4">工作空间为空</p>
-                          <button
-                            onClick={refreshItems}
-                            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm"
-                          >
-                            从Notion同步数据
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </>
-                ) : (
-                  /* 未配置状态 */
-                  <div className="flex-1 flex flex-col items-center justify-center p-6">
-                    <i className="fa-brands fa-notion text-gray-300 text-4xl mb-4"></i>
-                    <h3 className="text-lg font-medium text-gray-700 mb-2">欢迎使用工作空间</h3>
-                    <p className="text-gray-500 text-sm text-center mb-6">
-                      连接您的 Notion 数据库，让工作链接触手可及
-                    </p>
-                    <button
-                      onClick={() => setShowSettings(true)}
-                      className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium"
+                    {/* 关闭按钮 */}
+                    <motion.button
+                      onClick={onClose}
+                      className="p-2.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-colors"
+                      title="关闭 (Esc)"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                     >
-                      开始配置
-                    </button>
+                      <i className="fa-solid fa-times text-sm"></i>
+                    </motion.button>
+                  </div>
+                </div>
+
+                {/* 导航栏 */}
+                {isConfigured && !showSettings && (
+                  <div className="border-t border-gray-100">
+                    {/* 分类标签 */}
+                    <CategoryTabs />
+                    
+                    {/* 搜索和视图控制 */}
+                    <div className="px-6 py-4 bg-gray-50/50 border-t border-gray-100">
+                      <div className={`flex ${isMobile ? 'flex-col space-y-3' : 'items-center justify-between'}`}>
+                        {/* 搜索栏 */}
+                        <div className={isMobile ? 'w-full' : 'flex-1 max-w-md'}>
+                          <SearchBar placeholder="搜索工作空间..." />
+                        </div>
+
+                        {/* 视图切换器 */}
+                        <div className={isMobile ? 'w-full' : 'flex-shrink-0'}>
+                          <ViewSwitcher />
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
+
+              {/* 主内容区域 - 确保有固定高度用于滚动 */}
+              <div style={{ 
+                flex: '1 1 0', 
+                minHeight: '0',
+                display: 'flex',
+                flexDirection: 'column',
+                overflow: 'hidden'
+              }}>
+                <AnimatePresence mode="wait">
+                  {showSettings ? (
+                    /* 设置页面 */
+                    <motion.div
+                      key="settings"
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      transition={{ duration: 0.3 }}
+                      style={{ flex: '1 1 0', overflow: 'hidden' }}
+                    >
+                      <WorkspaceSettings
+                        onClose={() => setShowSettings(false)}
+                        onConfigured={() => {
+                          setShowSettings(false);
+                          refreshItems();
+                        }}
+                      />
+                    </motion.div>
+                  ) : isConfigured ? (
+                    /* 主工作空间视图 */
+                    <motion.div
+                      key="workspace"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      transition={{ duration: 0.3 }}
+                      style={{ 
+                        flex: '1 1 0', 
+                        minHeight: '0',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        overflow: 'hidden'
+                      }}
+                    >
+                      {/* 错误提示 */}
+                      {error && (
+                        <div className="flex-shrink-0 mx-6 mt-4 mb-2 p-4 bg-red-50 border border-red-200 rounded-xl">
+                          <div className="flex items-center space-x-3">
+                            <i className="fa-solid fa-exclamation-triangle text-red-500"></i>
+                            <div>
+                              <h3 className="text-sm font-medium text-red-800">同步失败</h3>
+                              <p className="text-sm text-red-700 mt-1">{error}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 内容视图 - 这里是滚动的关键 */}
+                      <div style={{ 
+                        flex: '1 1 0', 
+                        minHeight: '0',
+                        overflow: 'hidden'
+                      }}>
+                        <AnimatePresence mode="wait">
+                          {viewType === 'list' ? (
+                            <motion.div
+                              key="list-view"
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              transition={{ duration: 0.2 }}
+                              style={{ height: '100%' }}
+                            >
+                              <ListView />
+                            </motion.div>
+                          ) : (
+                            <motion.div
+                              key="card-view"
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              transition={{ duration: 0.2 }}
+                              style={{ height: '100%' }}
+                            >
+                              <CardView />
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    </motion.div>
+                  ) : (
+                    /* 未配置状态 */
+                    <motion.div
+                      key="unconfigured"
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      transition={{ duration: 0.3 }}
+                      className="h-full flex flex-col items-center justify-center p-8"
+                    >
+                      <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-purple-100 rounded-2xl flex items-center justify-center mb-6">
+                        <i className="fa-brands fa-notion text-3xl text-blue-600"></i>
+                      </div>
+                      <h2 className="text-2xl font-bold text-gray-900 mb-2">欢迎使用工作空间</h2>
+                      <p className="text-gray-600 text-center mb-8 max-w-md">
+                        连接您的 Notion 数据库，让工作链接触手可及。支持智能搜索、分类管理和键盘快捷操作。
+                      </p>
+                      <motion.button
+                        onClick={() => setShowSettings(true)}
+                        className="px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all font-medium shadow-lg shadow-blue-500/25"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        开始配置
+                      </motion.button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* 底部状态栏 */}
+              {isConfigured && !showSettings && (
+                <div className="flex-shrink-0 px-6 py-3 bg-gray-50/80 border-t border-gray-200 backdrop-blur-sm">
+                  <div className="flex items-center justify-between text-xs text-gray-500">
+                    <div className="flex items-center space-x-6">
+                      <span>💡 快捷键: Space-搜索 • ↑↓-导航 • Enter-打开 • C-复制</span>
+                      {!isMobile && (
+                        <span>1-9-分类切换 • V-切换视图</span>
+                      )}
+                    </div>
+                    <div className="flex items-center space-x-4">
+                      <span>当前: {selectedCategory === 'all' ? '全部' : selectedCategory}</span>
+                      <span>视图: {viewType === 'list' ? '列表' : '卡片'}</span>
+                      {filteredItems.length !== workspaceItems.length && (
+                        <span>筛选: {filteredItems.length}/{workspaceItems.length}</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
             </motion.div>
           </div>
         </>

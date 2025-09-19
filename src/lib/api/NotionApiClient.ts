@@ -223,6 +223,8 @@ export class NotionApiClient {
                     return prop.checkbox !== undefined ? prop.checkbox : false;
                   case 'multi_select':
                     return prop.multi_select?.[0]?.name || '';
+                  case 'created_time':
+                    return prop.created_time || '';
                   default:
                     return prop.plain_text || prop.name || '';
                 }
@@ -235,21 +237,34 @@ export class NotionApiClient {
           return '';
         };
 
-        const title = getPropertyValue('Name', ['名称', 'Title', '标题']);
-        const url = getPropertyValue('URL', ['网址', 'Link', '链接']);
-        const description = getPropertyValue('Description', ['描述', '说明', 'Notes']);
-        const category = getPropertyValue('Category', ['分类', '类别', 'Type']);
-        const isActive = getPropertyValue('Active', ['激活', '启用', 'Enabled']) || true;
-        const username = getPropertyValue('Username', ['账号', '用户名', 'Account']);
-        const password = getPropertyValue('Password', ['密码', 'Pass', 'Pwd']);
+        // 数据清理函数 - 过滤无效值
+        const cleanValue = (value: string) => {
+          if (!value) return '';
+          const cleanedValue = value.trim();
+          // 过滤常见的无效值
+          if (cleanedValue.toLowerCase() === 'null' || 
+              cleanedValue.toLowerCase() === 'undefined' ||
+              cleanedValue === '') {
+            return '';
+          }
+          return cleanedValue;
+        };
+
+        // 根据新数据库结构映射字段
+        const title = getPropertyValue('名称', ['Name', 'Title', '标题']);
+        const url = getPropertyValue('网址', ['URL', 'Link', '链接']);
+        const description = getPropertyValue('描述', ['Description', '说明', 'Notes']);
+        const category = getPropertyValue('Select', ['Category', '分类', '类别', 'Type']);
+        const username = cleanValue(getPropertyValue('账号', ['Username', '用户名', 'Account']));
+        const password = cleanValue(getPropertyValue('密码', ['Password', 'Pass', 'Pwd']));
 
         return {
           id: `notion-${page.id}`,
           title: title || 'Untitled',
           url: url || page.url,
-          description,
+          description: cleanValue(description),
           category: category || 'Default',
-          isActive: typeof isActive === 'boolean' ? isActive : true,
+          isActive: true, // 新数据库中所有项目都是激活的
           lastSync: new Date().toISOString(),
           notionId: page.id,
           icon: this.extractIcon(),

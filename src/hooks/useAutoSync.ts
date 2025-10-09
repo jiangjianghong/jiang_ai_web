@@ -238,6 +238,12 @@ export function useAutoSync(websites: WebsiteData[], dataInitialized: boolean = 
       return;
     }
 
+    // 检测是否是删除操作（数据量减少）
+    const previousData = lastSyncDataRef.current ? JSON.parse(lastSyncDataRef.current) : null;
+    const isDeleteOperation = previousData && 
+      previousData.websites && 
+      validWebsitesForFingerprint.length < previousData.websites.length;
+
     // 首次初始化时，设置指纹但不触发同步（避免用户刚登录时立即同步）
     if (!initialSyncDoneRef.current && lastSyncDataRef.current === '') {
       console.log('🔧 首次设置数据指纹，跳过初始同步');
@@ -253,10 +259,11 @@ export function useAutoSync(websites: WebsiteData[], dataInitialized: boolean = 
     }
 
     // 确保同步间隔在3-60秒范围内
-    const clampedInterval = Math.max(3, Math.min(60, autoSyncInterval));
+    // 如果是删除操作，使用更短的延迟（3秒）以快速同步
+    const clampedInterval = isDeleteOperation ? 3 : Math.max(3, Math.min(60, autoSyncInterval));
     const syncDelayMs = clampedInterval * 1000;
 
-    console.log(`🔄 检测到数据变化，将在 ${clampedInterval}s 后执行一次同步`);
+    console.log(`🔄 检测到数据变化${isDeleteOperation ? '（删除操作）' : ''}，将在 ${clampedInterval}s 后执行一次同步`);
 
     // 设置新的同步延迟 - 只执行一次，直到下次变化
     syncTimeoutRef.current = setTimeout(() => {
@@ -267,7 +274,7 @@ export function useAutoSync(websites: WebsiteData[], dataInitialized: boolean = 
 
       // 确保这是当前有效的超时才执行同步
       if (currentTimeout) {
-        performSync(false);
+        performSync(isDeleteOperation); // 如果是删除操作，强制同步
       }
     }, syncDelayMs);
 

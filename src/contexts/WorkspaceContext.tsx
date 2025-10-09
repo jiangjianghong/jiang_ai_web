@@ -98,8 +98,15 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [isConfigured, setIsConfigured] = useState(false);
   const [lastSync, setLastSync] = useState<string | null>(null);
 
-  // 视图状态
-  const [viewType, setViewType] = useState<ViewType>('list');
+  // 视图状态 - 从 localStorage 读取上次保存的视图类型
+  const [viewType, setViewType] = useState<ViewType>(() => {
+    try {
+      const savedViewType = localStorage.getItem('workspace-view-type');
+      return (savedViewType === 'card' || savedViewType === 'list') ? savedViewType : 'list';
+    } catch {
+      return 'list';
+    }
+  });
   
   // 筛选状态
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -181,6 +188,15 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     setFocusedItemIndex(-1);
   }, [filteredItems]);
+
+  // 保存视图类型到 localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('workspace-view-type', viewType);
+    } catch (error) {
+      console.warn('保存视图类型失败:', error);
+    }
+  }, [viewType]);
 
   // 初始化时检查配置状态
   useEffect(() => {

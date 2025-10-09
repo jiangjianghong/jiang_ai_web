@@ -110,7 +110,15 @@ function AppContent() {
       return;
     }
 
-    // 1. 处理网站数据合并
+    // 检查是否已经初始化过数据（避免覆盖用户的本地修改）
+    if (dataInitialized && websites.length > 0) {
+      logger.debug('⚠️ 数据已初始化，使用当前状态中的数据，避免覆盖用户修改');
+      // 只更新标识，但不重新合并数据
+      setLastMergedDataId(currentDataId);
+      return;
+    }
+
+    // 1. 处理网站数据合并（只在首次初始化时执行）
     if (cloudWebsites && cloudWebsites.length > 0) {
       // 有云端数据，进行智能合并
       logger.debug('🔄 合并本地和云端网站数据', {

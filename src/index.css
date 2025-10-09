@@ -420,3 +420,23 @@ input[type='range']::-moz-range-thumb:hover {
   backdrop-filter: blur(10px);
   border: 1px solid rgb(255 255 255 / 20%);
 }
+
+/* 工作空间文本选择控制 */
+[data-workspace-modal] * {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* 工作空间中允许选择的文本 */
+[data-workspace-modal] a,
+[data-workspace-modal] code.select-text,
+[data-workspace-modal] input,
+[data-workspace-modal] textarea {
+  user-select: text !important;
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+}
+

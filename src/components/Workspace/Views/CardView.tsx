@@ -105,7 +105,7 @@ export default function CardView({ className = '' }: CardViewProps) {
   };
 
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }} className="select-none">
       {/* 滚动容器 - 使用内联样式确保正确的滚动 */}
       <div 
         className="scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400"

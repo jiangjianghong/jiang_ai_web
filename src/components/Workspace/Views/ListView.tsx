@@ -100,7 +100,7 @@ export default function ListView({ className = '' }: ListViewProps) {
   }
 
   return (
-    <div className={`list-view h-full ${className}`}>
+    <div className={`list-view h-full select-none ${className}`} style={{ userSelect: 'none' }}>
       {/* 滚动容器 - 明确设置滚动行为 */}
       <div 
         className="h-full overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400 list-container"

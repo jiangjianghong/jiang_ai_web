@@ -82,7 +82,7 @@ export default function CategoryTabs({ className = '' }: CategoryTabsProps) {
 
   return (
     <div className={`category-tabs ${className}`}>
-      <div className="flex flex-wrap gap-2 p-4 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100">
+      <div className="flex flex-wrap gap-2 p-4 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100 select-none" style={{ userSelect: 'none' }}>
         {categories.map((category, index) => {
           const isActive = activeIndex === index;
           const displayName = category.name === 'all' ? '全部' : category.name;

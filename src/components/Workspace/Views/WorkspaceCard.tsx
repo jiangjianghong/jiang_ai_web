@@ -125,6 +125,7 @@ export default function WorkspaceCard({ item, index, isFocused, searchQuery = ''
     <motion.div
       ref={cardRef}
       className="workspace-card group cursor-pointer select-none relative"
+      style={{ userSelect: 'none' }}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       tabIndex={0}
@@ -249,7 +250,7 @@ export default function WorkspaceCard({ item, index, isFocused, searchQuery = ''
                       <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
                         <i className="fa-solid fa-user text-blue-600 text-sm"></i>
                       </div>
-                      <code className="text-sm text-gray-900 truncate font-mono">
+                      <code className="text-sm text-gray-900 truncate font-mono select-text" style={{ userSelect: 'text' }}>
                         {item.username}
                       </code>
                     </div>
@@ -273,7 +274,7 @@ export default function WorkspaceCard({ item, index, isFocused, searchQuery = ''
                       <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center flex-shrink-0">
                         <i className="fa-solid fa-key text-amber-600 text-sm"></i>
                       </div>
-                      <code className="text-sm text-gray-900 font-mono">
+                      <code className="text-sm text-gray-900 font-mono select-text" style={{ userSelect: 'text' }}>
                         {'●'.repeat(Math.min(item.password.length, 12))}
                       </code>
                     </div>

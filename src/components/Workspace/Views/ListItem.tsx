@@ -124,6 +124,7 @@ export default function ListItem({ item, index, isFocused, searchQuery = '' }: L
         transition-all duration-200
         border border-gray-200 hover:border-gray-300
       `}
+      style={{ userSelect: 'none' }}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       tabIndex={0}
@@ -223,7 +224,8 @@ export default function ListItem({ item, index, isFocused, searchQuery = '' }: L
               target="_blank"
               rel="noopener noreferrer"
               onClick={(e) => e.stopPropagation()}
-              className="text-sm text-blue-600 hover:text-blue-700 hover:underline truncate block"
+              className="text-sm text-blue-600 hover:text-blue-700 hover:underline truncate block select-text"
+              style={{ userSelect: 'text' }}
             >
               {highlightText(item.url, searchQuery)}
             </a>
@@ -251,7 +253,7 @@ export default function ListItem({ item, index, isFocused, searchQuery = '' }: L
                     <div className="flex items-center space-x-2">
                       <i className="fa-solid fa-user text-blue-600 text-sm"></i>
                       <span className="text-sm font-medium text-gray-700">账号:</span>
-                      <code className="text-sm text-gray-900 bg-white px-2 py-1 rounded border">
+                      <code className="text-sm text-gray-900 bg-white px-2 py-1 rounded border select-text" style={{ userSelect: 'text' }}>
                         {item.username}
                       </code>
                     </div>
@@ -267,13 +269,13 @@ export default function ListItem({ item, index, isFocused, searchQuery = '' }: L
                     </button>
                   </div>
                 )}
-                
+
                 {item.password && (
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <i className="fa-solid fa-key text-amber-600 text-sm"></i>
                       <span className="text-sm font-medium text-gray-700">密码:</span>
-                      <code className="text-sm text-gray-900 bg-white px-2 py-1 rounded border">
+                      <code className="text-sm text-gray-900 bg-white px-2 py-1 rounded border select-text" style={{ userSelect: 'text' }}>
                         {'●'.repeat(Math.min(item.password.length, 12))}
                       </code>
                     </div>

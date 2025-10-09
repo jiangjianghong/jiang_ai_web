@@ -83,10 +83,10 @@ function WorkspaceModalComponent({ isOpen, onClose }: WorkspaceModalProps) {
           />
 
           {/* 工作空间容器 */}
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none select-none">
             <motion.div
               data-workspace-modal
-              className={`${containerClasses} bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl overflow-hidden border border-gray-200`}
+              className={`${containerClasses} bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl overflow-hidden border border-gray-200 select-none`}
               style={{ 
                 display: 'flex', 
                 flexDirection: 'column',

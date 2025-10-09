@@ -69,7 +69,7 @@ export default function ViewSwitcher({ className = '' }: ViewSwitcherProps) {
   };
 
   return (
-    <div className={`view-switcher flex items-center space-x-4 ${className}`}>
+    <div className={`view-switcher flex items-center space-x-4 select-none ${className}`} style={{ userSelect: 'none' }}>
       {/* 结果统计 */}
       <div className="text-sm text-gray-600">
         <span className="font-medium">{filteredItems.length}</span> 个项目

@@ -1,24 +1,31 @@
 import { useState, useRef, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useWorkspace } from '@/contexts/WorkspaceContext';
+import type { SearchSuggestion } from '@/contexts/WorkspaceContext';
 
 interface SearchBarProps {
   className?: string;
   placeholder?: string;
 }
 
-export default function SearchBar({ 
+export default function SearchBar({
   className = '',
   placeholder = '搜索工作空间链接...'
 }: SearchBarProps) {
-  const { 
-    searchQuery, 
-    setSearchQuery, 
-    setFocusedItemIndex
+  const {
+    searchQuery,
+    setSearchQuery,
+    setFocusedItemIndex,
+    searchSuggestions,
+    openItem,
+    workspaceItems
   } = useWorkspace();
 
   const [isFocused, setIsFocused] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
 
   // 当工作空间打开时自动聚焦
   useEffect(() => {
@@ -44,7 +51,7 @@ export default function SearchBar({
           activeElement.tagName === 'TEXTAREA' ||
           (activeElement as HTMLElement).isContentEditable
         );
-        
+
         if (!isInInput) {
           e.preventDefault();
           inputRef.current?.focus();
@@ -56,6 +63,25 @@ export default function SearchBar({
     return () => document.removeEventListener('keydown', handleGlobalKeyDown);
   }, []);
 
+  // 控制建议下拉框的显示
+  useEffect(() => {
+    setShowSuggestions(isFocused && searchSuggestions.length > 0 && searchQuery.trim().length > 0);
+    setSelectedSuggestionIndex(-1); // 重置选中索引
+  }, [searchSuggestions, isFocused, searchQuery]);
+
+  // 点击外部关闭建议
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (suggestionsRef.current && !suggestionsRef.current.contains(e.target as Node) &&
+          inputRef.current && !inputRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const handleInputChange = (value: string) => {
     setSearchQuery(value);
     setFocusedItemIndex(-1);
@@ -65,10 +91,33 @@ export default function SearchBar({
     switch (e.key) {
       case 'Escape':
         e.preventDefault();
-        if (searchQuery) {
+        if (showSuggestions) {
+          setShowSuggestions(false);
+          setSelectedSuggestionIndex(-1);
+        } else if (searchQuery) {
           setSearchQuery('');
         } else {
           inputRef.current?.blur();
+        }
+        break;
+      case 'ArrowDown':
+        if (showSuggestions) {
+          e.preventDefault();
+          setSelectedSuggestionIndex(prev =>
+            prev < searchSuggestions.length - 1 ? prev + 1 : prev
+          );
+        }
+        break;
+      case 'ArrowUp':
+        if (showSuggestions) {
+          e.preventDefault();
+          setSelectedSuggestionIndex(prev => prev > 0 ? prev - 1 : -1);
+        }
+        break;
+      case 'Enter':
+        if (showSuggestions && selectedSuggestionIndex >= 0) {
+          e.preventDefault();
+          selectSuggestion(searchSuggestions[selectedSuggestionIndex]);
         }
         break;
       case 'ArrowRight':
@@ -83,12 +132,16 @@ export default function SearchBar({
           }
         }
         break;
-      case 'ArrowUp':
-        // 上移到分类标签 - 由全局hook处理
-        break;
-      case 'ArrowDown':
-        // 下移到内容区域 - 由全局hook处理
-        break;
+    }
+  };
+
+  const selectSuggestion = (suggestion: SearchSuggestion) => {
+    // 找到对应的完整工作空间项目
+    const fullItem = workspaceItems.find(item => item.id === suggestion.id);
+    if (fullItem) {
+      openItem(fullItem);
+      setShowSuggestions(false);
+      setSearchQuery(''); // 清空搜索
     }
   };
 
@@ -98,9 +151,37 @@ export default function SearchBar({
     inputRef.current?.focus();
   };
 
+  // 高亮搜索文本
+  const highlightText = (text: string, query: string) => {
+    if (!query.trim()) return text;
+
+    const regex = new RegExp(`(${query})`, 'gi');
+    const parts = text.split(regex);
+
+    return parts.map((part, i) =>
+      regex.test(part) ? (
+        <mark key={i} className="bg-blue-100 text-blue-900 px-0.5 rounded font-semibold">
+          {part}
+        </mark>
+      ) : part
+    );
+  };
+
+  // 获取分类图标
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case '工作链接':
+        return '🏢';
+      case '工具链接':
+        return '🛠️';
+      default:
+        return '📁';
+    }
+  };
+
   return (
     <div className={`search-bar relative ${className}`}>
-      <motion.div 
+      <motion.div
         className="relative"
         animate={{
           scale: isFocused ? 1.02 : 1
@@ -144,8 +225,8 @@ export default function SearchBar({
           className={`
             w-full pl-10 pr-12 py-3 border rounded-xl text-sm transition-colors duration-200
             focus:outline-none
-            ${isFocused 
-              ? 'border-transparent bg-white' 
+            ${isFocused
+              ? 'border-transparent bg-white'
               : 'border-gray-200 bg-gray-50 hover:bg-white hover:border-gray-300'
             }
           `}
@@ -165,6 +246,116 @@ export default function SearchBar({
           </motion.button>
         )}
       </motion.div>
+
+      {/* 搜索建议下拉框 */}
+      <AnimatePresence>
+        {showSuggestions && (
+          <motion.div
+            ref={suggestionsRef}
+            className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden z-50"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+          >
+            {/* 标题栏 */}
+            <div className="px-4 py-2 bg-gradient-to-r from-blue-50 to-purple-50 border-b border-gray-100">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-gray-600 flex items-center gap-1">
+                  <i className="fa-solid fa-briefcase text-blue-500"></i>
+                  工作空间搜索结果
+                </span>
+                <span className="text-xs text-gray-500">
+                  {searchSuggestions.length} 个匹配项
+                </span>
+              </div>
+            </div>
+
+            {/* 建议列表 */}
+            <div className="max-h-96 overflow-y-auto">
+              {searchSuggestions.map((suggestion, index) => (
+                <motion.div
+                  key={suggestion.id}
+                  className={`
+                    px-4 py-3 hover:bg-blue-50 cursor-pointer border-b border-gray-50 last:border-0
+                    transition-colors duration-150
+                    ${selectedSuggestionIndex === index ? 'bg-blue-50' : ''}
+                  `}
+                  onClick={() => selectSuggestion(suggestion)}
+                  onMouseEnter={() => setSelectedSuggestionIndex(index)}
+                  whileHover={{ x: 2 }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      {/* 标题 */}
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-sm font-medium text-gray-900">
+                          {highlightText(suggestion.title, searchQuery)}
+                        </span>
+                        {suggestion.hasCredentials && (
+                          <span className="px-1.5 py-0.5 bg-green-100 text-green-700 text-xs rounded-full flex items-center gap-0.5">
+                            <i className="fa-solid fa-key text-xs"></i>
+                            <span>登录</span>
+                          </span>
+                        )}
+                      </div>
+
+                      {/* 描述 */}
+                      {suggestion.description && (
+                        <p className="text-xs text-gray-600 line-clamp-1 mb-1">
+                          {highlightText(suggestion.description, searchQuery)}
+                        </p>
+                      )}
+
+                      {/* URL */}
+                      <p className="text-xs text-gray-400 truncate">
+                        {highlightText(suggestion.url, searchQuery)}
+                      </p>
+                    </div>
+
+                    {/* 分类标签 */}
+                    <div className="flex-shrink-0">
+                      <span className={`
+                        inline-flex items-center px-2 py-1 rounded-lg text-xs font-medium
+                        ${suggestion.category === '工作链接'
+                          ? 'bg-blue-100 text-blue-700'
+                          : 'bg-orange-100 text-orange-700'
+                        }
+                      `}>
+                        <span className="mr-1">{getCategoryIcon(suggestion.category)}</span>
+                        {suggestion.category}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* 快捷操作提示 */}
+                  {selectedSuggestionIndex === index && (
+                    <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
+                      <span className="flex items-center gap-1">
+                        <kbd className="px-1.5 py-0.5 bg-gray-100 rounded text-xs">Enter</kbd>
+                        打开链接
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <kbd className="px-1.5 py-0.5 bg-gray-100 rounded text-xs">Esc</kbd>
+                        关闭建议
+                      </span>
+                    </div>
+                  )}
+                </motion.div>
+              ))}
+            </div>
+
+            {/* 底部提示 */}
+            <div className="px-4 py-2 bg-gray-50 border-t border-gray-100">
+              <p className="text-xs text-gray-500 text-center">
+                使用 <kbd className="px-1 py-0.5 bg-gray-100 rounded text-xs">↑↓</kbd> 导航，
+                <kbd className="px-1 py-0.5 bg-gray-100 rounded text-xs">Enter</kbd> 打开
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

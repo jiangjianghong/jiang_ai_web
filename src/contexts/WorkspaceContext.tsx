@@ -35,6 +35,16 @@ interface CategoryInfo {
   icon: string;
 }
 
+// 搜索建议项
+export interface SearchSuggestion {
+  id: string;
+  title: string;
+  description?: string;
+  category: string;
+  url: string;
+  hasCredentials: boolean;
+}
+
 interface WorkspaceContextType {
   // 基础状态
   isWorkspaceOpen: boolean;
@@ -46,16 +56,16 @@ interface WorkspaceContextType {
 
   // 视图状态
   viewType: ViewType;
-  
+
   // 筛选状态
   selectedCategory: string; // 'all' 或具体分类名
   searchQuery: string;
-  searchSuggestions: string[];
-  
+  searchSuggestions: SearchSuggestion[];
+
   // 派生状态
   filteredItems: WorkspaceItem[];
   categories: CategoryInfo[];
-  
+
   // 键盘导航状态
   focusedItemIndex: number;
 
@@ -111,7 +121,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   // 筛选状态
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [searchSuggestions, setSearchSuggestions] = useState<string[]>([]);
+  const [searchSuggestions, setSearchSuggestions] = useState<SearchSuggestion[]>([]);
   
   // 键盘导航状态
   const [focusedItemIndex, setFocusedItemIndex] = useState<number>(-1);
@@ -169,16 +179,23 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   // 更新搜索建议
   useEffect(() => {
     if (searchQuery.trim()) {
-      const suggestions = Array.from(new Set(
-        workspaceItems
-          .filter(item => 
-            item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            item.description?.toLowerCase().includes(searchQuery.toLowerCase())
-          )
-          .map(item => item.title)
-          .slice(0, 5)
-      ));
-      setSearchSuggestions(suggestions);
+      const query = searchQuery.toLowerCase();
+      const matchedItems = workspaceItems
+        .filter(item =>
+          item.title.toLowerCase().includes(query) ||
+          item.description?.toLowerCase().includes(query) ||
+          item.url.toLowerCase().includes(query)
+        )
+        .slice(0, 8) // 最多显示8个建议
+        .map(item => ({
+          id: item.id,
+          title: item.title,
+          description: item.description,
+          category: item.category,
+          url: item.url,
+          hasCredentials: !!(item.username || item.password)
+        }));
+      setSearchSuggestions(matchedItems);
     } else {
       setSearchSuggestions([]);
     }

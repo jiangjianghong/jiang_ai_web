@@ -20,6 +20,20 @@ export default function SearchBar({
   const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // 当工作空间打开时自动聚焦
+  useEffect(() => {
+    // 延迟一小段时间以确保动画完成后聚焦
+    const timer = setTimeout(() => {
+      // 检查是否在工作空间模态框内
+      const workspaceModal = document.querySelector('[data-workspace-modal]');
+      if (workspaceModal && inputRef.current) {
+        inputRef.current.focus();
+      }
+    }, 500); // 动画时长约500ms
+
+    return () => clearTimeout(timer);
+  }, []);
+
   // 全局空格键聚焦
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
@@ -141,13 +155,13 @@ export default function SearchBar({
         {searchQuery && (
           <motion.button
             onClick={clearSearch}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 w-6 h-6 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+            className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
             title="清除搜索 (Esc)"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
           >
-            <i className="fa-solid fa-times text-xs"></i>
+            <i className="fa-solid fa-times text-xs leading-none"></i>
           </motion.button>
         )}
       </motion.div>

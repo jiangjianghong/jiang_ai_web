@@ -70,13 +70,8 @@ export default function WorkspaceCard({ item, index, isFocused, searchQuery = ''
   // 处理点击
   const handleClick = () => {
     setFocusedItemIndex(index);
-    if (hasCredentials && !showCredentials) {
-      setShowCredentials(true); // 如果有登录信息且未显示，则显示登录信息
-    } else if (showCredentials) {
-      setShowCredentials(false); // 如果正在显示登录信息，则隐藏
-    } else {
-      openItem(item); // 否则打开链接
-    }
+    // 有密码的卡片，主体点击也直接跳转
+    openItem(item);
   };
 
   // 处理键盘事件

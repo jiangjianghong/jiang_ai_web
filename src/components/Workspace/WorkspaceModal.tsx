@@ -86,13 +86,14 @@ function WorkspaceModalComponent({ isOpen, onClose }: WorkspaceModalProps) {
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none select-none">
             <motion.div
               data-workspace-modal
-              className={`${containerClasses} bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl overflow-hidden border border-gray-200 select-none`}
-              style={{ 
-                display: 'flex', 
+              className={`${containerClasses} bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200 select-none`}
+              style={{
+                display: 'flex',
                 flexDirection: 'column',
                 height: isMobile ? 'calc(100vh - 32px)' : '90vh', // 明确设置高度
                 maxHeight: isMobile ? 'calc(100vh - 32px)' : '90vh',
-                pointerEvents: 'auto'
+                pointerEvents: 'auto',
+                position: 'relative'
               }}
               initial={{ scale: 0.8, opacity: 0, y: 40 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -105,7 +106,7 @@ function WorkspaceModalComponent({ isOpen, onClose }: WorkspaceModalProps) {
               }}
             >
               {/* 头部区域 */}
-              <div className="flex-shrink-0 border-b border-gray-200/80 bg-white/90 backdrop-blur-sm">
+              <div className="flex-shrink-0 border-b border-gray-200/80 bg-white/90 backdrop-blur-sm rounded-t-2xl overflow-visible" style={{ position: 'relative', zIndex: 100 }}>
                 {/* 标题栏 */}
                 <div className="flex items-center justify-between px-6 py-4">
                   <div className="flex items-center space-x-3">
@@ -169,12 +170,12 @@ function WorkspaceModalComponent({ isOpen, onClose }: WorkspaceModalProps) {
 
                 {/* 导航栏 */}
                 {isConfigured && !showSettings && (
-                  <div className="border-t border-gray-100">
+                  <div className="border-t border-gray-100 overflow-visible" style={{ position: 'relative', zIndex: 50 }}>
                     {/* 分类标签 */}
                     <CategoryTabs />
-                    
+
                     {/* 搜索和视图控制 */}
-                    <div className="px-6 py-4 bg-gray-50/50 border-t border-gray-100">
+                    <div className="px-6 py-4 bg-gray-50/50 border-t border-gray-100 overflow-visible" style={{ position: 'relative' }}>
                       <div className={`flex ${isMobile ? 'flex-col space-y-3' : 'items-center justify-between'}`}>
                         {/* 搜索栏 */}
                         <div className={isMobile ? 'w-full' : 'flex-1 max-w-md'}>
@@ -192,12 +193,14 @@ function WorkspaceModalComponent({ isOpen, onClose }: WorkspaceModalProps) {
               </div>
 
               {/* 主内容区域 - 确保有固定高度用于滚动 */}
-              <div style={{ 
-                flex: '1 1 0', 
+              <div style={{
+                flex: '1 1 0',
                 minHeight: '0',
                 display: 'flex',
                 flexDirection: 'column',
-                overflow: 'hidden'
+                overflow: 'hidden',
+                borderBottomLeftRadius: '1rem',
+                borderBottomRightRadius: '1rem'
               }}>
                 <AnimatePresence mode="wait">
                   {showSettings ? (

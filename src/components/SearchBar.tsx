@@ -17,6 +17,15 @@ interface WebsiteData {
   note?: string;
 }
 
+interface WorkspaceSuggestionData {
+  id: string;
+  title: string;
+  url: string;
+  description?: string;
+  icon?: string;
+  category: string;
+}
+
 interface SearchBarProps {
   websites?: WebsiteData[];
   onOpenSettings?: () => void;
@@ -29,7 +38,7 @@ function SearchBarComponent(props: SearchBarProps = {}) {
   const { searchBarOpacity, searchBarColor, setIsSearchFocused, searchInNewTab, isSettingsOpen } =
     useTransparency();
   const { isMobile } = useResponsiveLayout();
-  const { isWorkspaceOpen, setIsWorkspaceOpen } = useWorkspace();
+  const { isWorkspaceOpen, setIsWorkspaceOpen, workspaceItems } = useWorkspace();
 
   // 状态变量声明移到useEffect之前
   const [searchQuery, setSearchQuery] = useState('');
@@ -37,6 +46,7 @@ function SearchBarComponent(props: SearchBarProps = {}) {
   const [engine, setEngine] = useState<'bing' | 'google'>('bing');
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [websiteSuggestions, setWebsiteSuggestions] = useState<WebsiteData[]>([]);
+  const [workspaceSuggestions, setWorkspaceSuggestions] = useState<WorkspaceSuggestionData[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
   const searchBtnRef = useRef<HTMLButtonElement>(null);
@@ -732,6 +742,84 @@ function SearchBarComponent(props: SearchBarProps = {}) {
     return 1 - distance / Math.max(len1, len2);
   };
 
+  // 搜索工作空间内容 - 智能匹配算法
+  const searchWorkspace = (query: string): WorkspaceSuggestionData[] => {
+    if (!query.trim() || workspaceItems.length === 0 || query.trim().length < 2) return [];
+
+    const queryLower = query.toLowerCase();
+    const matches: Array<{ item: WorkspaceSuggestionData; score: number; matchType: string }> = [];
+
+    workspaceItems.forEach((item) => {
+      let score = 0;
+      let matchType = '';
+
+      // 1. 标题匹配 (权重最高)
+      if (item.title.toLowerCase().includes(queryLower)) {
+        score += 100;
+        matchType = '标题';
+        // 完全匹配加分
+        if (item.title.toLowerCase() === queryLower) {
+          score += 50;
+        }
+        // 开头匹配加分
+        if (item.title.toLowerCase().startsWith(queryLower)) {
+          score += 30;
+        }
+      }
+
+      // 2. 分类匹配 (权重高)
+      if (item.category && item.category.toLowerCase().includes(queryLower)) {
+        score += 80;
+        matchType = matchType || '分类';
+      }
+
+      // 3. 描述匹配 (权重中等)
+      if (item.description && item.description.toLowerCase().includes(queryLower)) {
+        score += 60;
+        matchType = matchType || '描述';
+      }
+
+      // 4. URL匹配 (权重较低)
+      if (item.url.toLowerCase().includes(queryLower) && queryLower.length >= 3) {
+        score += 40;
+        matchType = matchType || 'URL';
+      }
+
+      // 5. 模糊匹配加分
+      const similarity = calculateSimilarity(queryLower, item.title.toLowerCase());
+      if (similarity > 0.7 && queryLower.length >= 3) {
+        score += similarity * 30;
+        matchType = matchType || '模糊匹配';
+      }
+
+      // 设置最低分数阈值
+      const MIN_SCORE_THRESHOLD = 80;
+      if (score >= MIN_SCORE_THRESHOLD) {
+        matches.push({
+          item: {
+            id: item.id,
+            title: item.title,
+            url: item.url,
+            description: item.description,
+            icon: item.icon,
+            category: item.category,
+          },
+          score,
+          matchType,
+        });
+      }
+    });
+
+    // 按分数排序并限制为最多3个
+    return matches
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 3)
+      .map((match) => ({
+        ...match.item,
+        matchType: match.matchType,
+      }));
+  };
+
   // 监听搜索查询变化，更新建议（优化逻辑：同时显示网站卡片和搜索建议）
   useEffect(() => {
     const debounceTimer = setTimeout(() => {
@@ -852,9 +940,11 @@ function SearchBarComponent(props: SearchBarProps = {}) {
           return;
         }
         
-        // 同时搜索网站和生成搜索建议
+        // 同时搜索网站、工作空间和生成搜索建议
         const matchedWebsites = searchWebsites(searchQuery);
+        const matchedWorkspace = searchWorkspace(searchQuery);
         setWebsiteSuggestions(matchedWebsites);
+        setWorkspaceSuggestions(matchedWorkspace);
 
         // 检测是否为URL输入
         const isURL = isValidURL(searchQuery);
@@ -876,7 +966,7 @@ function SearchBarComponent(props: SearchBarProps = {}) {
             const allSuggestions = [urlSuggestion, ...newSuggestions];
             setSuggestions(allSuggestions);
             // 只要有任一类型的建议就显示下拉框
-            setShowSuggestions(matchedWebsites.length > 0 || allSuggestions.length > 0);
+            setShowSuggestions(matchedWebsites.length > 0 || matchedWorkspace.length > 0 || allSuggestions.length > 0);
             setSelectedSuggestionIndex(-1);
           });
         } else {
@@ -884,20 +974,21 @@ function SearchBarComponent(props: SearchBarProps = {}) {
           generateSuggestions(searchQuery).then((newSuggestions) => {
             setSuggestions(newSuggestions);
             // 只要有任一类型的建议就显示下拉框
-            setShowSuggestions(matchedWebsites.length > 0 || newSuggestions.length > 0);
+            setShowSuggestions(matchedWebsites.length > 0 || matchedWorkspace.length > 0 || newSuggestions.length > 0);
             setSelectedSuggestionIndex(-1);
           });
         }
       } else {
         setSuggestions([]);
         setWebsiteSuggestions([]);
+        setWorkspaceSuggestions([]);
         setShowSuggestions(false);
         setSelectedSuggestionIndex(-1);
       }
     }, 300);
 
     return () => clearTimeout(debounceTimer);
-  }, [searchQuery, websites]);
+  }, [searchQuery, websites, workspaceItems]);
 
   const handleSearch = (
     e: React.FormEvent,
@@ -913,6 +1004,7 @@ function SearchBarComponent(props: SearchBarProps = {}) {
       setSearchQuery('');
       setShowSuggestions(false);
       setWebsiteSuggestions([]);
+      setWorkspaceSuggestions([]);
       return;
     }
 
@@ -922,11 +1014,12 @@ function SearchBarComponent(props: SearchBarProps = {}) {
       setSearchQuery('');
       setShowSuggestions(false);
       setWebsiteSuggestions([]);
+      setWorkspaceSuggestions([]);
       return;
     }
 
     // 处理选中的建议
-    const totalSuggestions = websiteSuggestions.length + suggestions.length;
+    const totalSuggestions = websiteSuggestions.length + workspaceSuggestions.length + suggestions.length;
     if (selectedSuggestionIndex >= 0 && selectedSuggestionIndex < totalSuggestions) {
       if (selectedSuggestionIndex < websiteSuggestions.length) {
         // 选中的是网站建议
@@ -935,10 +1028,21 @@ function SearchBarComponent(props: SearchBarProps = {}) {
         setSearchQuery('');
         setShowSuggestions(false);
         setWebsiteSuggestions([]);
+        setWorkspaceSuggestions([]);
+        return;
+      } else if (selectedSuggestionIndex < websiteSuggestions.length + workspaceSuggestions.length) {
+        // 选中的是工作空间建议
+        const workspaceIndex = selectedSuggestionIndex - websiteSuggestions.length;
+        const selectedWorkspace = workspaceSuggestions[workspaceIndex];
+        openUrl(selectedWorkspace.url);
+        setSearchQuery('');
+        setShowSuggestions(false);
+        setWebsiteSuggestions([]);
+        setWorkspaceSuggestions([]);
         return;
       } else {
         // 选中的是搜索引擎建议
-        const suggestionIndex = selectedSuggestionIndex - websiteSuggestions.length;
+        const suggestionIndex = selectedSuggestionIndex - websiteSuggestions.length - workspaceSuggestions.length;
         const selectedSuggestion = suggestions[suggestionIndex];
 
         // 检查是否是TODO操作
@@ -1091,7 +1195,7 @@ function SearchBarComponent(props: SearchBarProps = {}) {
 
   // 处理键盘导航
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    const totalSuggestions = websiteSuggestions.length + suggestions.length;
+    const totalSuggestions = websiteSuggestions.length + workspaceSuggestions.length + suggestions.length;
 
     switch (e.key) {
       case 'ArrowDown':
@@ -1291,7 +1395,7 @@ function SearchBarComponent(props: SearchBarProps = {}) {
 
                 {/* 搜索建议列表 - 现在相对于输入框定位 */}
                 <AnimatePresence>
-                  {showSuggestions && (websiteSuggestions.length > 0 || suggestions.length > 0) && (
+                  {showSuggestions && (websiteSuggestions.length > 0 || workspaceSuggestions.length > 0 || suggestions.length > 0) && (
                     <motion.div
                       className={`absolute top-full left-3 right-0 mt-2 backdrop-blur-md rounded-lg shadow-lg border border-white/20 z-30 overflow-hidden overflow-y-auto ${
                         isMobile ? 'max-h-60' : 'max-h-80'
@@ -1457,10 +1561,129 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                         </div>
                       )}
 
+                      {/* 工作空间建议部分 */}
+                      {workspaceSuggestions.length > 0 && (
+                        <div className="border-b border-gray-200/50">
+                          <div
+                            className={`${isMobile ? 'px-3 py-1.5' : 'px-4 py-2'} bg-gradient-to-r from-orange-50 to-amber-50 border-b border-orange-100`}
+                          >
+                            <div className="flex items-center gap-2">
+                              <i className="fa-solid fa-briefcase text-orange-500 text-sm"></i>
+                              <span
+                                className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium text-orange-700`}
+                              >
+                                工作空间建议
+                              </span>
+                            </div>
+                          </div>
+                          {workspaceSuggestions.map((workspace, index) => {
+                            const adjustedIndex = index + websiteSuggestions.length;
+                            const isSelected = adjustedIndex === selectedSuggestionIndex;
+                            return (
+                              <div
+                                key={workspace.id}
+                                className={`${isMobile ? 'px-3 py-2' : 'px-4 py-3'} cursor-pointer transition-all duration-200 border-b border-gray-100/50 last:border-b-0 select-none ${
+                                  isSelected
+                                    ? 'bg-gradient-to-r from-orange-500/10 to-amber-500/10 border-orange-200'
+                                    : 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-orange-50'
+                                }`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openUrl(workspace.url);
+                                  setSearchQuery('');
+                                  setShowSuggestions(false);
+                                  setWebsiteSuggestions([]);
+                                  setWorkspaceSuggestions([]);
+                                }}
+                                onMouseEnter={() => setSelectedSuggestionIndex(adjustedIndex)}
+                                onMouseDown={(e) => e.preventDefault()}
+                              >
+                                <div
+                                  className={`flex items-center ${isMobile ? 'gap-2' : 'gap-3'} select-none`}
+                                >
+                                  {/* 工作空间图标 */}
+                                  <div
+                                    className={`${isMobile ? 'w-6 h-6' : 'w-8 h-8'} rounded-lg overflow-hidden bg-gradient-to-br from-orange-100 to-amber-100 shadow-sm border border-orange-200/50 flex items-center justify-center flex-shrink-0`}
+                                  >
+                                    {workspace.icon ? (
+                                      <span className="text-lg">{workspace.icon}</span>
+                                    ) : (
+                                      <i className="fa-solid fa-link text-orange-600 text-sm"></i>
+                                    )}
+                                  </div>
+
+                                  {/* 工作空间信息 */}
+                                  <div className="flex-1 min-w-0">
+                                    <div
+                                      className={`flex items-center gap-2 ${isMobile ? 'mb-0.5' : 'mb-1'}`}
+                                    >
+                                      <h4
+                                        className={`font-medium text-gray-800 ${isMobile ? 'text-xs' : 'text-sm'} truncate`}
+                                      >
+                                        {workspace.title}
+                                      </h4>
+                                      {(workspace as any).matchType && !isMobile && (
+                                        <span className="px-2 py-0.5 bg-orange-100 text-orange-700 text-xs rounded-full font-medium">
+                                          {(workspace as any).matchType}
+                                        </span>
+                                      )}
+                                    </div>
+
+                                    {/* 分类和描述 */}
+                                    <div
+                                      className={`flex items-center gap-1 ${isMobile ? 'text-[10px]' : 'text-xs'} text-gray-500`}
+                                    >
+                                      {/* 分类标签 */}
+                                      {workspace.category && (
+                                        <>
+                                          <span className="px-1.5 py-0.5 bg-orange-100 text-orange-600 rounded text-xs font-medium">
+                                            {workspace.category}
+                                          </span>
+                                        </>
+                                      )}
+
+                                      {/* URL */}
+                                      {!isMobile && (
+                                        <>
+                                          <span>•</span>
+                                          <span
+                                            className="truncate max-w-[150px]"
+                                          >
+                                            {(() => {
+                                              try {
+                                                return new URL(workspace.url).hostname;
+                                              } catch {
+                                                return workspace.url;
+                                              }
+                                            })()}
+                                          </span>
+                                        </>
+                                      )}
+                                    </div>
+
+                                    {/* 描述显示 */}
+                                    {workspace.description && !isMobile && (
+                                      <div className="mt-1 text-xs text-gray-600 truncate">
+                                        {workspace.description}
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  {/* 快捷键提示 */}
+                                  <div className="text-xs text-orange-600 bg-orange-100 px-2 py-1 rounded">
+                                    Enter
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+
                       {/* 搜索引擎建议部分 */}
                       {suggestions.length > 0 && (
                         <div>
-                          {websiteSuggestions.length > 0 && (
+                          {(websiteSuggestions.length > 0 || workspaceSuggestions.length > 0) && (
                             <div className="px-4 py-2 bg-gradient-to-r from-gray-50 to-slate-50 border-b border-gray-100">
                               <div className="flex items-center gap-2">
                                 <i className="fa-solid fa-magnifying-glass text-gray-500 text-sm"></i>
@@ -1469,7 +1692,7 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                             </div>
                           )}
                           {suggestions.map((suggestion, index) => {
-                            const adjustedIndex = index + websiteSuggestions.length;
+                            const adjustedIndex = index + websiteSuggestions.length + workspaceSuggestions.length;
                             const isSelected = adjustedIndex === selectedSuggestionIndex;
                             const isDirectVisit = (suggestion as any).isDirectVisit;
                             const isTodoAction = (suggestion as any).isTodoAction;

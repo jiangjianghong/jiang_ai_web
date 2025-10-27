@@ -1629,7 +1629,7 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
 
           <div className="space-y-5 select-none settings-section">
             <div className="flex items-center gap-3 select-none">
-              <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+              <div className="w-6 h-6 bg-gradient-to-br from-cyan-500 to-teal-600 rounded-lg flex items-center justify-center">
                 <i className="fa-solid fa-layer-group text-white text-xs"></i>
               </div>
               <h3 className="text-base font-semibold text-gray-800 select-none">卡片管理</h3>
@@ -1637,9 +1637,9 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
             </div>
 
             <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+                  <div className="w-8 h-8 bg-cyan-500 rounded-lg flex items-center justify-center">
                     <i className="fa-solid fa-layer-group text-white text-sm"></i>
                   </div>
                   <div>
@@ -1653,7 +1653,7 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
 
               <button
                 onClick={() => setShowAddCardModal(true)}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-b from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-[1.02] select-none"
+                className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-b from-cyan-500 to-teal-600 hover:from-cyan-600 hover:to-teal-700 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-[1.02] select-none"
               >
                 <i className="fa-solid fa-plus select-none"></i>
                 <span className="select-none">添加新卡片</span>
@@ -1663,7 +1663,7 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
 
           <div className="space-y-5 select-none settings-section">
             <div className="flex items-center gap-3 select-none">
-              <div className="w-6 h-6 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+              <div className="w-6 h-6 bg-gradient-to-br from-orange-500 to-amber-600 rounded-lg flex items-center justify-center">
                 <i className="fa-solid fa-database text-white text-xs"></i>
               </div>
               <h3 className="text-base font-semibold text-gray-800 select-none">数据管理</h3>
@@ -1671,8 +1671,8 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
             </div>
 
             <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 space-y-4">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
                   <i className="fa-solid fa-database text-white text-sm"></i>
                 </div>
                 <div>
@@ -1685,10 +1685,10 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                 <button
                   onClick={exportData}
                   disabled={isExporting}
-                  className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 select-none ${
+                  className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 select-none ${
                     isExporting
                       ? 'bg-gray-400 cursor-not-allowed text-white shadow-lg shadow-gray-400/30'
-                      : 'bg-gradient-to-b from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg shadow-green-500/30 hover:shadow-xl hover:shadow-green-600/40 hover:scale-[1.02]'
+                      : 'bg-gradient-to-b from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white shadow-lg shadow-orange-500/30 hover:shadow-xl hover:shadow-orange-600/40 hover:scale-[1.02]'
                   }`}
                 >
                   {isExporting ? (
@@ -1707,10 +1707,10 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isImporting}
-                  className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 select-none ${
+                  className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 select-none ${
                     isImporting
                       ? 'bg-gray-400 cursor-not-allowed text-white shadow-lg shadow-gray-400/30'
-                      : 'bg-gradient-to-b from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg shadow-green-500/30 hover:shadow-xl hover:shadow-green-600/40 hover:scale-[1.02]'
+                      : 'bg-gradient-to-b from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white shadow-lg shadow-orange-500/30 hover:shadow-xl hover:shadow-orange-600/40 hover:scale-[1.02]'
                   }`}
                 >
                   {isImporting ? (
@@ -1762,7 +1762,7 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
             </div>
 
             <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 space-y-4">
-              <div className="flex items-center gap-3 mb-4">
+              <div className="flex items-center gap-3 mb-3">
                 <div className="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center">
                   <i className="fa-solid fa-shield-halved text-white text-sm"></i>
                 </div>
@@ -1777,7 +1777,7 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
               <div className="grid grid-cols-1 gap-3">
                 <button
                   onClick={() => setShowPrivacySettings(true)}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-b from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-[1.02] select-none"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-b from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-[1.02] select-none"
                 >
                   <i className="fa-solid fa-shield-halved select-none"></i>
                   <span className="select-none">隐私设置</span>
@@ -1787,7 +1787,7 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                   href={`${import.meta.env.BASE_URL}tutorial.html`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-b from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 text-sm font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-[1.02] select-none"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-b from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 text-sm font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-[1.02] select-none"
                   style={{ textDecoration: 'none' }}
                 >
                   <i className="fa-solid fa-graduation-cap select-none"></i>

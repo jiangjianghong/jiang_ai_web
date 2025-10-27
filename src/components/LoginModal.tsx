@@ -14,12 +14,15 @@ export default function LoginModal({ onClose }: LoginModalProps) {
   const [localError, setLocalError] = useState('');
   const [showVerificationMessage, setShowVerificationMessage] = useState(false);
   const [verificationEmail, setVerificationEmail] = useState('');
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
 
   const {
     login,
     register,
     loginWithGoogle,
     sendVerificationEmail,
+    resetPasswordForEmail,
     error: authError,
     successMessage,
   } = useAuth();
@@ -104,6 +107,32 @@ export default function LoginModal({ onClose }: LoginModalProps) {
     }
   };
 
+  // 处理忘记密码
+  const handleForgotPassword = async () => {
+    setLocalError('');
+
+    // 验证邮箱格式
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!resetEmail || !emailRegex.test(resetEmail)) {
+      setLocalError('请输入有效的邮箱地址');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      await resetPasswordForEmail(resetEmail);
+      setShowForgotPassword(false);
+      setResetEmail('');
+      alert('✅ 密码重置邮件已发送，请检查您的邮箱！');
+    } catch (error) {
+      console.error('发送密码重置邮件失败:', error);
+      setLocalError((error as Error).message || '发送失败，请重试');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 select-none">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
@@ -116,7 +145,7 @@ export default function LoginModal({ onClose }: LoginModalProps) {
       >
         <div className="flex justify-between items-center mb-6 select-none">
           <h2 className="text-2xl font-bold text-gray-800 select-none">
-            {isLogin ? '登录' : '注册'}
+            {showForgotPassword ? '重置密码' : isLogin ? '登录' : '注册'}
           </h2>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-700 select-none">
             <i className="fa-solid fa-xmark text-xl select-none"></i>
@@ -135,39 +164,98 @@ export default function LoginModal({ onClose }: LoginModalProps) {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1 select-none">邮箱</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="请输入邮箱"
-              disabled={loading}
-            />
-          </div>
+        {showForgotPassword ? (
+          /* 忘记密码表单 */
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600 select-none">
+              请输入您的邮箱地址，我们将向您发送密码重置链接。
+            </p>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1 select-none">密码</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="请输入密码"
-              disabled={loading}
-            />
-          </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1 select-none">邮箱</label>
+              <input
+                type="email"
+                value={resetEmail}
+                onChange={(e) => setResetEmail(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="请输入您的邮箱"
+                disabled={loading}
+              />
+            </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white py-2 px-4 rounded-md transition-colors select-none"
-          >
-            {loading ? '处理中...' : isLogin ? '登录' : '注册'}
-          </button>
-        </form>
+            <button
+              onClick={handleForgotPassword}
+              disabled={loading || !resetEmail}
+              className="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white py-2 px-4 rounded-md transition-colors select-none"
+            >
+              {loading ? '发送中...' : '发送重置邮件'}
+            </button>
+
+            <div className="text-center">
+              <button
+                onClick={() => {
+                  setShowForgotPassword(false);
+                  setResetEmail('');
+                  setLocalError('');
+                }}
+                className="text-blue-500 hover:text-blue-600 text-sm select-none"
+                disabled={loading}
+              >
+                返回登录
+              </button>
+            </div>
+          </div>
+        ) : (
+          /* 原来的登录/注册表单 */
+          <>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1 select-none">邮箱</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="请输入邮箱"
+                  disabled={loading}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1 select-none">密码</label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="请输入密码"
+                  disabled={loading}
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white py-2 px-4 rounded-md transition-colors select-none"
+              >
+                {loading ? '处理中...' : isLogin ? '登录' : '注册'}
+              </button>
+
+              {isLogin && (
+                <div className="text-center mt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowForgotPassword(true);
+                      setLocalError('');
+                    }}
+                    className="text-sm text-blue-500 hover:text-blue-600 hover:underline select-none font-medium"
+                  >
+                    忘记密码？
+                  </button>
+                </div>
+              )}
+            </form>
 
         <div className="mt-4">
           <div className="relative">
@@ -228,15 +316,19 @@ export default function LoginModal({ onClose }: LoginModalProps) {
           </motion.div>
         )}
 
-        <div className="mt-6 text-center">
-          <button
-            onClick={() => setIsLogin(!isLogin)}
-            className="text-blue-500 hover:text-blue-600 select-none"
-            disabled={loading}
-          >
-            {isLogin ? '没有账号？点击注册' : '已有账号？点击登录'}
-          </button>
-        </div>
+        {!showForgotPassword && (
+          <div className="mt-6 text-center">
+            <button
+              onClick={() => setIsLogin(!isLogin)}
+              className="text-blue-500 hover:text-blue-600 select-none"
+              disabled={loading}
+            >
+              {isLogin ? '没有账号？点击注册' : '已有账号？点击登录'}
+            </button>
+          </div>
+        )}
+          </>
+        )}
       </motion.div>
     </div>
   );

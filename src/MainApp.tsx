@@ -1,5 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
 import Home from '@/pages/Home';
+import ResetPassword from '@/pages/ResetPassword';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { TransparencyProvider } from '@/contexts/TransparencyContext';
@@ -225,6 +226,7 @@ function AppContent() {
             <Home websites={websites} setWebsites={setWebsites} dataInitialized={dataInitialized} />
           }
         />
+        <Route path="/reset-password" element={<ResetPassword />} />
       </Routes>
 
       <CookieConsent />

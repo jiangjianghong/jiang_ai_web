@@ -41,6 +41,11 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
   const [nameLoading, setNameLoading] = useState(false);
   const [isFixingIcons, setIsFixingIcons] = useState(false);
   const [fixIconsMessage, setFixIconsMessage] = useState('');
+  const [showChangePassword, setShowChangePassword] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [passwordLoading, setPasswordLoading] = useState(false);
 
   // 自定义壁纸相关状态
   const [customWallpaperInfo, setCustomWallpaperInfo] = useState<{
@@ -95,7 +100,7 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
     setShowMonth,
     setShowDay,
   } = useTransparency();
-  const { currentUser, logout } = useAuth();
+  const { currentUser, logout, updatePassword } = useAuth();
   const { updateSyncStatus } = useSyncStatus();
   const { displayName, updateDisplayName } = useUserProfile();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -315,6 +320,51 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
     setNewName(displayName || '');
     setIsEditingName(false);
     setNameError('');
+  };
+
+  // 处理密码修改
+  const handleChangePassword = async () => {
+    setPasswordError('');
+
+    // 验证密码
+    if (!newPassword || !confirmPassword) {
+      setPasswordError('请填写完整密码信息');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setPasswordError('密码至少需要6位字符');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setPasswordError('两次输入的密码不一致');
+      return;
+    }
+
+    setPasswordLoading(true);
+
+    try {
+      await updatePassword(newPassword);
+      // 成功后重置表单
+      setNewPassword('');
+      setConfirmPassword('');
+      setShowChangePassword(false);
+      alert('✅ 密码修改成功！');
+    } catch (error) {
+      console.error('修改密码失败:', error);
+      setPasswordError((error as Error).message || '修改密码失败，请重试');
+    } finally {
+      setPasswordLoading(false);
+    }
+  };
+
+  // 取消密码���改
+  const handleCancelChangePassword = () => {
+    setNewPassword('');
+    setConfirmPassword('');
+    setPasswordError('');
+    setShowChangePassword(false);
   };
 
   // 设置页面打开时暂时关闭视差
@@ -722,6 +772,92 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                           title="邮箱已验证"
                         ></i>
                       </div>
+                    </div>
+
+                    {/* 密码修改区域 */}
+                    <div className="mt-4 pt-4 border-t border-blue-200/50 select-none">
+                      {!showChangePassword ? (
+                        <button
+                          onClick={() => setShowChangePassword(true)}
+                          className="group flex items-center gap-2 text-sm text-slate-600 hover:text-slate-800 transition-all duration-200 select-none"
+                        >
+                          <div className="w-6 h-6 rounded-lg bg-slate-100 group-hover:bg-slate-200 flex items-center justify-center transition-colors duration-200 select-none">
+                            <i className="fa-solid fa-key text-xs select-none"></i>
+                          </div>
+                          <span className="font-medium select-none">修改密码</span>
+                          <i className="fa-solid fa-arrow-right text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200 select-none"></i>
+                        </button>
+                      ) : (
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <i className="fa-solid fa-key text-blue-500 text-sm"></i>
+                              <span className="text-sm font-medium text-gray-700 select-none">修改密码</span>
+                            </div>
+                            <button
+                              onClick={handleCancelChangePassword}
+                              className="text-xs text-gray-500 hover:text-gray-700"
+                            >
+                              <i className="fa-solid fa-times"></i>
+                            </button>
+                          </div>
+
+                          {passwordError && (
+                            <div className="p-2 bg-red-50 border border-red-200 rounded-lg text-xs text-red-600">
+                              {passwordError}
+                            </div>
+                          )}
+
+                          <div>
+                            <input
+                              type="password"
+                              value={newPassword}
+                              onChange={(e) => setNewPassword(e.target.value)}
+                              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                              placeholder="请输入新密码（至少6位）"
+                              disabled={passwordLoading}
+                            />
+                          </div>
+
+                          <div>
+                            <input
+                              type="password"
+                              value={confirmPassword}
+                              onChange={(e) => setConfirmPassword(e.target.value)}
+                              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                              placeholder="请再次输入新密码"
+                              disabled={passwordLoading}
+                            />
+                          </div>
+
+                          <div className="flex gap-2">
+                            <button
+                              onClick={handleChangePassword}
+                              disabled={passwordLoading || !newPassword || !confirmPassword}
+                              className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 disabled:from-gray-400 disabled:to-gray-500 text-white text-sm rounded-lg transition-all duration-200 select-none"
+                            >
+                              {passwordLoading ? (
+                                <>
+                                  <i className="fa-solid fa-spinner fa-spin text-xs"></i>
+                                  <span>修改中...</span>
+                                </>
+                              ) : (
+                                <>
+                                  <i className="fa-solid fa-check text-xs"></i>
+                                  <span>确认修改</span>
+                                </>
+                              )}
+                            </button>
+                            <button
+                              onClick={handleCancelChangePassword}
+                              disabled={passwordLoading}
+                              className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm rounded-lg transition-colors select-none"
+                            >
+                              取消
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* 优雅的退出登录 */}

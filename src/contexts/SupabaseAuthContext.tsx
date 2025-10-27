@@ -11,6 +11,8 @@ interface AuthContextType {
   logout: () => Promise<void>;
   sendVerificationEmail: () => Promise<void>;
   reloadUser: () => Promise<void>;
+  updatePassword: (newPassword: string) => Promise<void>;
+  resetPasswordForEmail: (email: string) => Promise<void>;
   loading: boolean;
   isNetworkOnline: boolean;
   isSupabaseConnected: boolean;
@@ -204,6 +206,60 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
+  // 更新密码（已登录用户）
+  const updatePassword = async (newPassword: string) => {
+    try {
+      clearError();
+
+      if (!currentUser) {
+        throw new Error('请先登录');
+      }
+
+      if (!newPassword || newPassword.length < 6) {
+        throw new Error('新密码至少需要6位字符');
+      }
+
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (error) throw error;
+
+      console.log('密码更新成功');
+      setSuccessMessage('✅ 密码已更新成功！');
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (err) {
+      const message = getLocalizedErrorMessage(err);
+      setError(message);
+      throw new Error(message);
+    }
+  };
+
+  // 发送密码重置邮件（忘记密码）
+  const resetPasswordForEmail = async (email: string) => {
+    try {
+      clearError();
+
+      if (!email) {
+        throw new Error('请输入邮箱地址');
+      }
+
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      if (error) throw error;
+
+      console.log('密码重置邮件已发送');
+      setSuccessMessage('✅ 密码重置邮件已发送，请检查您的邮箱');
+      setTimeout(() => setSuccessMessage(null), 5000);
+    } catch (err) {
+      const message = getLocalizedErrorMessage(err);
+      setError(message);
+      throw new Error(message);
+    }
+  };
+
   useEffect(() => {
     // 获取初始会话
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -344,6 +400,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     logout,
     sendVerificationEmail,
     reloadUser,
+    updatePassword,
+    resetPasswordForEmail,
     loading,
     isNetworkOnline,
     isSupabaseConnected,

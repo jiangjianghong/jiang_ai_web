@@ -15,8 +15,10 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
   const [localError, setLocalError] = useState('');
   const [showVerificationMessage, setShowVerificationMessage] = useState(false);
   const [verificationEmail, setVerificationEmail] = useState('');
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
 
-  const { login, register, sendVerificationEmail, error: authError } = useAuth();
+  const { login, register, sendVerificationEmail, resetPasswordForEmail, error: authError } = useAuth();
 
   // 组合错误显示：优先显示本地验证错误，然后是认证错误
   const displayError = localError || authError;
@@ -88,6 +90,32 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
     }
   };
 
+  // 处理忘记密码
+  const handleForgotPassword = async () => {
+    setLocalError('');
+
+    // 验证邮箱格式
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!resetEmail || !emailRegex.test(resetEmail)) {
+      setLocalError('请输入有效的邮箱地址');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      await resetPasswordForEmail(resetEmail);
+      setShowForgotPassword(false);
+      setResetEmail('');
+      alert('✅ 密码重置邮件已发送，请检查您的邮箱！');
+    } catch (error) {
+      console.error('发送密码重置邮件失败:', error);
+      setLocalError((error as Error).message || '发送失败，请重试');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (showVerificationMessage) {
     return (
       <motion.div
@@ -132,9 +160,15 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
   return (
     <div className="space-y-4">
       <div className="text-center mb-4">
-        <h3 className="text-lg font-semibold text-gray-800">{isLogin ? '登录账号' : '注册账号'}</h3>
+        <h3 className="text-lg font-semibold text-gray-800">
+          {showForgotPassword ? '重置密码' : isLogin ? '登录账号' : '注册账号'}
+        </h3>
         <p className="text-sm text-gray-600">
-          {isLogin ? '使用邮箱登录您的账号' : '创建新账号并设置用户名'}
+          {showForgotPassword
+            ? '请输入您的邮箱地址'
+            : isLogin
+              ? '使用邮箱登录您的账号'
+              : '创建新账号并设置用户名'}
         </p>
       </div>
 
@@ -144,7 +178,47 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      {showForgotPassword ? (
+        /* 忘记密码表单 */
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">邮箱 *</label>
+            <input
+              type="email"
+              value={resetEmail}
+              onChange={(e) => setResetEmail(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="请输入您的邮箱"
+              disabled={loading}
+            />
+          </div>
+
+          <button
+            onClick={handleForgotPassword}
+            disabled={loading || !resetEmail}
+            className="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white py-2 px-4 rounded-md transition-colors"
+          >
+            {loading ? '发送中...' : '发送重置邮件'}
+          </button>
+
+          <div className="text-center">
+            <button
+              onClick={() => {
+                setShowForgotPassword(false);
+                setResetEmail('');
+                setLocalError('');
+              }}
+              className="text-blue-500 hover:text-blue-600 text-sm"
+              disabled={loading}
+            >
+              返回登录
+            </button>
+          </div>
+        </div>
+      ) : (
+        /* 原来的登录/注册表单 */
+        <>
+          <form onSubmit={handleSubmit} className="space-y-4">
         {!isLogin && (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">用户名 *</label>
@@ -193,17 +267,36 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
         >
           {loading ? '处理中...' : isLogin ? '登录' : '注册'}
         </button>
+
+        {isLogin && (
+          <div className="text-center">
+            <button
+              type="button"
+              onClick={() => {
+                setShowForgotPassword(true);
+                setLocalError('');
+              }}
+              className="text-sm text-blue-500 hover:text-blue-600 hover:underline font-medium"
+            >
+              忘记密码？
+            </button>
+          </div>
+        )}
       </form>
 
-      <div className="mt-6 text-center">
-        <button
-          onClick={() => setIsLogin(!isLogin)}
-          className="text-blue-500 hover:text-blue-600"
-          disabled={loading}
-        >
-          {isLogin ? '没有账号？点击注册' : '已有账号？点击登录'}
-        </button>
-      </div>
+      {!showForgotPassword && (
+        <div className="mt-6 text-center">
+          <button
+            onClick={() => setIsLogin(!isLogin)}
+            className="text-blue-500 hover:text-blue-600"
+            disabled={loading}
+          >
+            {isLogin ? '没有账号？点击注册' : '已有账号？点击登录'}
+          </button>
+        </div>
+      )}
+        </>
+      )}
     </div>
   );
 }

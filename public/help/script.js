@@ -22,6 +22,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     placeholder.remove();
                 }
                 container.removeAttribute('data-src');
+
+                // Add click event for image zoom
+                img.style.cursor = 'pointer';
+                img.addEventListener('click', function() {
+                    openLightbox(img.src, img.alt);
+                });
+
                 resolve();
             };
 
@@ -161,3 +168,67 @@ window.addEventListener('load', function() {
         }, index * 500);
     });
 });
+
+// Image Lightbox功能
+function createLightbox() {
+    const lightbox = document.createElement('div');
+    lightbox.id = 'image-lightbox';
+    lightbox.className = 'lightbox';
+    lightbox.innerHTML = `
+        <div class="lightbox-backdrop"></div>
+        <div class="lightbox-content">
+            <button class="lightbox-close" aria-label="关闭">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+            <img class="lightbox-image" src="" alt="">
+            <div class="lightbox-caption"></div>
+        </div>
+    `;
+    document.body.appendChild(lightbox);
+    return lightbox;
+}
+
+function openLightbox(src, alt) {
+    let lightbox = document.getElementById('image-lightbox');
+    if (!lightbox) {
+        lightbox = createLightbox();
+    }
+
+    const img = lightbox.querySelector('.lightbox-image');
+    const caption = lightbox.querySelector('.lightbox-caption');
+    const closeBtn = lightbox.querySelector('.lightbox-close');
+    const backdrop = lightbox.querySelector('.lightbox-backdrop');
+
+    // Set image and caption
+    img.src = src;
+    img.alt = alt || '';
+    caption.textContent = alt || '';
+
+    // Show lightbox
+    lightbox.classList.add('active');
+    document.body.style.overflow = 'hidden';
+
+    // Close on click
+    closeBtn.addEventListener('click', closeLightbox);
+    backdrop.addEventListener('click', closeLightbox);
+
+    // Close on Escape key
+    const escapeHandler = function(e) {
+        if (e.key === 'Escape') {
+            closeLightbox();
+            document.removeEventListener('keydown', escapeHandler);
+        }
+    };
+    document.addEventListener('keydown', escapeHandler);
+}
+
+function closeLightbox() {
+    const lightbox = document.getElementById('image-lightbox');
+    if (lightbox) {
+        lightbox.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+}

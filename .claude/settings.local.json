@@ -23,7 +23,9 @@
       "Read(C:\\Users\\19404/**)",
       "Bash(dir C:Users19404jiang_* /AD)",
       "Bash(node analyze_database.js)",
-      "Bash(node get_complete_data.js)"
+      "Bash(node get_complete_data.js)",
+      "Bash(dir \"C:\\Users\\19404\\jiangjiang_page\" /B)",
+      "Read(//c/Users/19404/jiangjiang_page/**)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"

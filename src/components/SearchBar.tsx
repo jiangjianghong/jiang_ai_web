@@ -920,11 +920,11 @@ function SearchBarComponent(props: SearchBarProps = {}) {
         }
         
         // 检测Settings相关输入（支持中英文）
-        if (queryLower === 'settings' || queryLower === 'setting' || 
+        if (queryLower === 'settings' || queryLower === 'setting' ||
             queryLower === '设置' || queryLower === 'config' || queryLower === '配置') {
           // 生成设置相关建议
           const settingsSuggestions = [];
-          
+
           settingsSuggestions.push({
             id: 'open-settings',
             text: '打开设置页面',
@@ -932,10 +932,50 @@ function SearchBarComponent(props: SearchBarProps = {}) {
             isSettingsAction: true,
             action: 'open'
           });
-          
+
           setSuggestions(settingsSuggestions);
           setWebsiteSuggestions([]);
           setShowSuggestions(settingsSuggestions.length > 0);
+          setSelectedSuggestionIndex(-1);
+          return;
+        }
+
+        // 检测Help相关输入（支持中英文）
+        if (queryLower === 'help' || queryLower === '帮助' ||
+          queryLower === '帮助页面' || queryLower === '帮助界面' || queryLower === '指南') {
+          // 生成帮助相关建议
+          const helpSuggestions = [{
+            id: 'open-help',
+            text: '打开帮助页面',
+            query: queryLower,
+            isHelpAction: true,
+            action: 'open'
+          }];
+
+          setSuggestions(helpSuggestions);
+          setWebsiteSuggestions([]);
+          setShowSuggestions(helpSuggestions.length > 0);
+          setSelectedSuggestionIndex(-1);
+          return;
+        }
+
+        // 检测开发者/作者相关输入（支持中英文）
+        if (queryLower === 'author' || queryLower === 'developer' ||
+            queryLower === 'coder' || queryLower === '作者' ||
+            queryLower === '开发者' || queryLower === '开发' ||
+            queryLower === 'about me' || queryLower === 'me') {
+          // 生成开发者相关建议
+          const developerSuggestions = [{
+            id: 'open-developer',
+            text: '查看开发者信息',
+            query: queryLower,
+            isDeveloperAction: true,
+            action: 'open'
+          }];
+
+          setSuggestions(developerSuggestions);
+          setWebsiteSuggestions([]);
+          setShowSuggestions(developerSuggestions.length > 0);
           setSelectedSuggestionIndex(-1);
           return;
         }
@@ -1088,6 +1128,28 @@ function SearchBarComponent(props: SearchBarProps = {}) {
           }
         }
 
+        // 检查是否是Help操作
+        if ((selectedSuggestion as any)?.isHelpAction) {
+          if ((selectedSuggestion as any).action === 'open') {
+            openUrl('/help');
+            setSearchQuery('');
+            setShowSuggestions(false);
+            setWebsiteSuggestions([]);
+            return;
+          }
+        }
+
+        // 检查是否是开发者操作
+        if ((selectedSuggestion as any)?.isDeveloperAction) {
+          if ((selectedSuggestion as any).action === 'open') {
+            openUrl('/me');
+            setSearchQuery('');
+            setShowSuggestions(false);
+            setWebsiteSuggestions([]);
+            return;
+          }
+        }
+
         // 检查是否是直接访问建议
         if (selectedSuggestion?.isDirectVisit) {
           openUrl(selectedSuggestion.query);
@@ -1164,7 +1226,7 @@ function SearchBarComponent(props: SearchBarProps = {}) {
       }
       
       // 检测Settings相关输入（支持中英文）
-      if (queryLower === 'settings' || queryLower === 'setting' || 
+      if (queryLower === 'settings' || queryLower === 'setting' ||
           queryLower === '设置' || queryLower === 'config' || queryLower === '配置') {
         // 打开设置页面
         if (onOpenSettings) {
@@ -1175,7 +1237,31 @@ function SearchBarComponent(props: SearchBarProps = {}) {
           return;
         }
       }
-      
+
+      // 检测Help相关输入（支持中英文）
+      if (queryLower === 'help' || queryLower === '帮助' ||
+          queryLower === '帮助页面' || queryLower === '帮助界面') {
+        // 打开帮助页面
+        openUrl('/help');
+        setSearchQuery('');
+        setShowSuggestions(false);
+        setWebsiteSuggestions([]);
+        return;
+      }
+
+      // 检测开发者/作者相关输入（支持中英文）
+      if (queryLower === 'author' || queryLower === 'developer' ||
+          queryLower === 'coder' || queryLower === '作者' ||
+          queryLower === '开发者' || queryLower === '开发' ||
+          queryLower === 'about me' || queryLower === 'me') {
+        // 打开开发者页面
+        openUrl('/me');
+        setSearchQuery('');
+        setShowSuggestions(false);
+        setWebsiteSuggestions([]);
+        return;
+      }
+
       // 检测是否为URL
       if (isValidURL(queryToSearch)) {
         // 直接访问URL
@@ -1711,6 +1797,10 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                                         : 'bg-blue-500/10 text-gray-800 border-l-4 border-blue-500'
                                       : isSettingsAction
                                       ? 'bg-purple-500/10 text-gray-800 border-l-4 border-purple-500'
+                                      : (suggestion as any).isHelpAction
+                                      ? 'bg-teal-500/10 text-gray-800 border-l-4 border-teal-500'
+                                      : (suggestion as any).isDeveloperAction
+                                      ? 'bg-indigo-500/10 text-gray-800 border-l-4 border-indigo-500'
                                       : isHint
                                       ? 'bg-gray-100/50 text-gray-600'
                                       : isDirectVisit
@@ -1722,6 +1812,10 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                                         : 'hover:bg-blue-50 text-gray-700 border-l-4 border-transparent hover:border-blue-200'
                                       : isSettingsAction
                                       ? 'hover:bg-purple-50 text-gray-700 border-l-4 border-transparent hover:border-purple-200'
+                                      : (suggestion as any).isHelpAction
+                                      ? 'hover:bg-teal-50 text-gray-700 border-l-4 border-transparent hover:border-teal-200'
+                                      : (suggestion as any).isDeveloperAction
+                                      ? 'hover:bg-indigo-50 text-gray-700 border-l-4 border-transparent hover:border-indigo-200'
                                       : isHint
                                       ? 'bg-gray-50/50 text-gray-600'
                                       : isDirectVisit
@@ -1760,6 +1854,20 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                                       setShowSuggestions(false);
                                       setWebsiteSuggestions([]);
                                     }
+                                  } else if ((suggestion as any).isHelpAction) {
+                                    if ((suggestion as any).action === 'open') {
+                                      openUrl('/help');
+                                      setSearchQuery('');
+                                      setShowSuggestions(false);
+                                      setWebsiteSuggestions([]);
+                                    }
+                                  } else if ((suggestion as any).isDeveloperAction) {
+                                    if ((suggestion as any).action === 'open') {
+                                      openUrl('/me');
+                                      setSearchQuery('');
+                                      setShowSuggestions(false);
+                                      setWebsiteSuggestions([]);
+                                    }
                                   } else if (isDirectVisit) {
                                     handleSearch(e as any, suggestion.query, undefined, true);
                                   } else {
@@ -1792,6 +1900,20 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                                         设置
                                       </div>
                                     </div>
+                                  ) : (suggestion as any).isHelpAction ? (
+                                    <div className="flex items-center gap-2">
+                                      <i className="fa-solid fa-question-circle text-teal-600 text-sm w-4 select-none"></i>
+                                      <div className="bg-teal-100 text-teal-700 px-2 py-1 rounded-full text-xs font-medium">
+                                        帮助
+                                      </div>
+                                    </div>
+                                  ) : (suggestion as any).isDeveloperAction ? (
+                                    <div className="flex items-center gap-2">
+                                      <i className="fa-solid fa-user-circle text-indigo-600 text-sm w-4 select-none"></i>
+                                      <div className="bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full text-xs font-medium">
+                                        开发者
+                                      </div>
+                                    </div>
                                   ) : isDirectVisit ? (
                                     <div className="flex items-center gap-2">
                                       <i className="fa-solid fa-external-link-alt text-green-600 text-sm w-4 select-none"></i>
@@ -1809,6 +1931,14 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                                       </div>
                                     ) : (suggestion as any).isSettingsAction ? (
                                       <div className="font-medium text-sm text-purple-700 select-none">
+                                        {suggestion.text}
+                                      </div>
+                                    ) : (suggestion as any).isHelpAction ? (
+                                      <div className="font-medium text-sm text-teal-700 select-none">
+                                        {suggestion.text}
+                                      </div>
+                                    ) : (suggestion as any).isDeveloperAction ? (
+                                      <div className="font-medium text-sm text-indigo-700 select-none">
                                         {suggestion.text}
                                       </div>
                                     ) : isDirectVisit ? (
@@ -1834,6 +1964,10 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                                           : 'text-blue-600 bg-blue-100'
                                         : (suggestion as any).isSettingsAction
                                         ? 'text-purple-600 bg-purple-100'
+                                        : (suggestion as any).isHelpAction
+                                        ? 'text-teal-600 bg-teal-100'
+                                        : (suggestion as any).isDeveloperAction
+                                        ? 'text-indigo-600 bg-indigo-100'
                                         : isHint
                                         ? 'text-gray-500 bg-gray-200'
                                         : isDirectVisit

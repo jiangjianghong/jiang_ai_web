@@ -16,6 +16,11 @@ document.addEventListener('DOMContentLoaded', function() {
             img.onload = function() {
                 img.className = 'loaded';
                 container.appendChild(img);
+                // Remove the placeholder after image is loaded
+                const placeholder = container.querySelector('.image-placeholder');
+                if (placeholder) {
+                    placeholder.remove();
+                }
                 container.removeAttribute('data-src');
                 resolve();
             };

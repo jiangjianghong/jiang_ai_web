@@ -14,7 +14,7 @@ export const AnimatedCat = memo(function AnimatedCatComponent() {
   }, []);
 
   const handleCatClick = () => {
-    window.open('https://github.com/jiangjianghong', '_blank');
+    window.location.href = '/me';
   };
 
   // 如果还不可见，不渲染任何内容

@@ -110,8 +110,8 @@ function WorkspaceModalComponent({ isOpen, onClose }: WorkspaceModalProps) {
                 {/* 标题栏 */}
                 <div className="flex items-center justify-between px-6 py-4">
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                      <i className="fa-solid fa-briefcase text-white text-lg"></i>
+                    <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center shadow-lg">
+                      <i className="fa-solid fa-briefcase text-blue-600 text-lg"></i>
                     </div>
                     <div>
                       <h1 className="text-xl font-bold text-gray-900">工作空间</h1>

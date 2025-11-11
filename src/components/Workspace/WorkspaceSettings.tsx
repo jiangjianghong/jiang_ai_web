@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useWorkspace } from '@/contexts/WorkspaceContext';
-import NotionGuide from './NotionGuide';
 import { parseNotionUrl, isValidDatabaseId } from '@/lib/notionUrlParser';
 
 interface WorkspaceSettingsProps {
@@ -16,12 +15,9 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
   const [databaseId, setDatabaseId] = useState('');
   const [databaseIdInput, setDatabaseIdInput] = useState(''); // 用户输入的原始内容
   const [parseResult, setParseResult] = useState<{ isValid: boolean; error?: string } | null>(null);
-  // Vercel 代理已内置，无需配置
   const [isTestingConnection, setIsTestingConnection] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
-  const [showGuide, setShowGuide] = useState(false);
-  // 简化设置，直接显示网络连接状态
 
   // 加载现有配置
   useEffect(() => {
@@ -126,11 +122,6 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
     }
   };
 
-  // 如果显示指南，渲染指南组件
-  if (showGuide) {
-    return <NotionGuide onClose={() => setShowGuide(false)} />;
-  }
-
   return (
     <div className="h-full flex flex-col select-none" style={{ userSelect: 'none' }}>
       {/* 设置头部 */}
@@ -150,13 +141,15 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
           </div>
 
           <div className="flex items-center space-x-2">
-            <button
-              onClick={() => setShowGuide(true)}
+            <a
+              href="/help"
+              target="_blank"
+              rel="noopener noreferrer"
               className="px-3 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors text-sm font-medium flex items-center space-x-1"
             >
               <i className="fa-solid fa-book text-xs"></i>
               <span>设置指南</span>
-            </button>
+            </a>
 
             {isConfigured && (
               <button
@@ -183,13 +176,15 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
                   <p className="text-sm text-blue-800 mb-3">
                     需要创建 Notion Integration 并获取 API 密钥。我们为您准备了详细的设置指南。
                   </p>
-                  <button
-                    onClick={() => setShowGuide(true)}
+                  <a
+                    href="/help"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="inline-flex items-center space-x-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
                   >
                     <i className="fa-solid fa-book text-xs"></i>
                     <span>查看完整设置指南</span>
-                  </button>
+                  </a>
                 </div>
               </div>
             </div>
@@ -282,26 +277,6 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
               <p className="mt-1 text-xs text-gray-500">
                 支持粘贴完整的 Notion 分享链接，系统会自动提取数据库 ID
               </p>
-            </div>
-          </div>
-
-          {/* 高级配置 */}
-          <div>
-            {/* 网络连接状态 */}
-            <div className="mt-4">
-              <div className="flex items-center mb-3">
-                <i className="fa-solid fa-shield-alt text-blue-500 mr-2"></i>
-                <label className="block text-sm font-medium text-gray-700">网络连接</label>
-              </div>
-              <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                <div className="flex items-center space-x-2">
-                  <i className="fa-solid fa-check-circle text-green-500"></i>
-                  <span className="text-sm text-green-800 font-medium">已启用 Supabase 代理</span>
-                </div>
-                <p className="text-sm text-green-700 mt-1">
-                  使用 Supabase Edge Functions 自动解决 CORS 跨域问题
-                </p>
-              </div>
             </div>
           </div>
 

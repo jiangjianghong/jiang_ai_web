@@ -3,403 +3,358 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>工作空间教程 - JiangJiang's Site</title>
+    <title>Notion 工作空间配置指南</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- 进度指示器 -->
-    <div class="progress-indicator" id="progressIndicator"></div>
-
     <!-- 头部导航 -->
     <header class="header">
         <div class="header-container">
-            <div class="header-left">
-                <button class="menu-toggle" id="menuToggle">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </button>
-                <h1 class="header-title">工作空间教程</h1>
-            </div>
-            <div class="header-right">
-                <button class="theme-toggle" id="themeToggle">
-                    <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                    <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                </button>
-                <a href="/" class="back-home">返回首页</a>
-            </div>
+            <a href="/" class="logo">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4 4h16v16H4V4z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                    <path d="M9 9h6M9 12h6M9 15h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <span>文档</span>
+            </a>
+            <nav class="header-nav">
+                <a href="/" class="nav-item">首页</a>
+                <a href="/help" class="nav-item active">帮助文档</a>
+            </nav>
         </div>
     </header>
 
     <div class="container">
-        <!-- 侧边导航栏 -->
-        <nav class="sidebar" id="sidebar">
-            <div class="sidebar-content">
-                <h3 class="sidebar-title">目录</h3>
-                <ul class="nav-list">
-                    <li><a href="#intro" class="nav-link active">简介</a></li>
-                    <li><a href="#demo" class="nav-link">示例效果</a></li>
-                    <li><a href="#usage" class="nav-link">使用方法</a></li>
-                    <li class="nav-submenu">
-                        <a href="#step1" class="nav-link nav-sub">1. 登录 Notion</a>
-                    </li>
-                    <li class="nav-submenu">
-                        <a href="#step2" class="nav-link nav-sub">2. 创建数据库</a>
-                    </li>
-                    <li class="nav-submenu">
-                        <a href="#step3" class="nav-link nav-sub">3. 编辑数据库</a>
-                    </li>
-                    <li class="nav-submenu">
-                        <a href="#step4" class="nav-link nav-sub">4. 获取集成令牌</a>
-                    </li>
-                    <li class="nav-submenu">
-                        <a href="#step5" class="nav-link nav-sub">5. 安装扩展程序</a>
-                    </li>
-                    <li class="nav-submenu">
-                        <a href="#step6" class="nav-link nav-sub">6. 添加第一个条目</a>
-                    </li>
-                    <li class="nav-submenu">
-                        <a href="#step7" class="nav-link nav-sub">7. 配置工作空间</a>
-                    </li>
-                    <li><a href="#notes" class="nav-link">使用说明</a></li>
-                </ul>
-            </div>
-        </nav>
+        <!-- 侧边栏导航 -->
+        <aside class="sidebar">
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <h5 class="nav-title">快速开始</h5>
+                    <a href="#overview" class="nav-link active">概述</a>
+                    <a href="#demo" class="nav-link">演示效果</a>
+                </div>
+
+                <div class="nav-section">
+                    <h5 class="nav-title">配置步骤</h5>
+                    <a href="#step1" class="nav-link">1. 登录 Notion</a>
+                    <a href="#step2" class="nav-link">2. 创建数据库</a>
+                    <a href="#step3" class="nav-link">3. 配置属性</a>
+                    <a href="#step4" class="nav-link">4. 获取 API 密钥</a>
+                    <a href="#step5" class="nav-link">5. 安装扩展</a>
+                    <a href="#step6" class="nav-link">6. 添加条目</a>
+                    <a href="#step7" class="nav-link">7. 连接工作空间</a>
+                </div>
+
+                <div class="nav-section">
+                    <h5 class="nav-title">其他</h5>
+                    <a href="#tips" class="nav-link">使用技巧</a>
+                    <a href="#privacy" class="nav-link">隐私说明</a>
+                </div>
+            </nav>
+        </aside>
 
         <!-- 主内容区 -->
-        <main class="main-content">
-            <!-- 简介部分 -->
-            <section id="intro" class="content-section">
-                <div class="section-card">
-                    <h2 class="section-title">
-                        <span class="icon">📚</span>
-                        工作空间教程
-                    </h2>
-                    <p class="intro-text">
-                        欢迎使用工作空间！Notion是一个强大的工具，作者本身非常喜欢使用。因此将此网站工作空间接入到了notion，可以帮助你组织和管理你的工作和生活。
-                    </p>
-                    <div class="feature-grid">
-                        <div class="feature-card">
-                            <div class="feature-icon">🚀</div>
-                            <h4>快速集成</h4>
-                            <p>简单几步即可完成配置</p>
+        <main class="content">
+            <!-- 标题区域 -->
+            <div class="content-header">
+                <h1>Notion 工作空间配置指南</h1>
+                <p class="subtitle">通过集成 Notion，管理你的工作空间和收藏内容</p>
+            </div>
+
+            <!-- 概述 -->
+            <section id="overview" class="section">
+                <h2>概述</h2>
+                <p>
+                    本指南将帮助你将 Notion 数据库集成到网站的工作空间功能中。通过简单的配置，你可以使用 Notion 作为后端数据库，
+                    管理网站收藏、密码等信息，并享受实时同步的便利。
+                </p>
+                <div class="feature-list">
+                    <div class="feature">
+                        <div class="feature-icon">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M10 2L3 7v6c0 3.86 2.67 7.47 6.5 8.35.5.11 1-.01 1.35-.35.12-.12.21-.27.26-.43C14.83 19.53 17 15.86 17 12V7l-7-5z" fill="#10B981"/>
+                            </svg>
                         </div>
-                        <div class="feature-card">
-                            <div class="feature-icon">🔐</div>
-                            <h4>安全可靠</h4>
-                            <p>数据仅保存在本地</p>
+                        <div class="feature-content">
+                            <h4>数据安全</h4>
+                            <p>所有数据存储在你的 Notion 账户中，本地仅缓存</p>
                         </div>
-                        <div class="feature-card">
-                            <div class="feature-icon">⚡</div>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M4 5h12M4 10h12M4 15h12" stroke="#3B82F6" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <div class="feature-content">
                             <h4>实时同步</h4>
-                            <p>与Notion实时同步数据</p>
+                            <p>与 Notion 数据库保持实时同步，随时访问最新内容</p>
+                        </div>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M10 2v16M3 9h14" stroke="#8B5CF6" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <div class="feature-content">
+                            <h4>灵活扩展</h4>
+                            <p>自定义字段和分类，适应不同的使用场景</p>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- 示例效果 -->
-            <section id="demo" class="content-section">
-                <div class="section-card">
-                    <h2 class="section-title">
-                        <span class="icon">🎨</span>
-                        示例效果
-                    </h2>
-                    <div class="demo-container">
-                        <div class="demo-item">
-                            <h3>空间内部</h3>
-                            <div class="image-wrapper">
-                                <img src="image.png" alt="空间内部展示" loading="lazy">
-                                <div class="image-caption">工作空间内部界面展示</div>
+            <!-- 演示效果 -->
+            <section id="demo" class="section">
+                <h2>演示效果</h2>
+                <div class="demo-grid">
+                    <figure class="demo-item">
+                        <div class="image-container" data-src="image.png">
+                            <div class="image-placeholder">
+                                <span>加载中...</span>
                             </div>
                         </div>
-                        <div class="demo-item">
-                            <h3>搜索建议</h3>
-                            <div class="image-wrapper">
-                                <img src="image-1.png" alt="搜索建议功能" loading="lazy">
-                                <div class="image-caption">智能搜索建议功能</div>
+                        <figcaption>工作空间界面</figcaption>
+                    </figure>
+                    <figure class="demo-item">
+                        <div class="image-container" data-src="image-1.png">
+                            <div class="image-placeholder">
+                                <span>加载中...</span>
                             </div>
+                        </div>
+                        <figcaption>搜索建议功能</figcaption>
+                    </figure>
+                </div>
+            </section>
+
+            <!-- 配置步骤 -->
+            <section id="step1" class="section">
+                <h2><span class="step-number">1</span>登录 Notion</h2>
+                <p>
+                    首先，你需要一个 Notion 账户。访问 <a href="https://www.notion.so/" target="_blank" rel="noopener">notion.so</a>
+                    登录你的账户。如果还没有账户，可以免费注册。
+                </p>
+                <div class="note">
+                    <strong>提示：</strong>建议使用 Notion 桌面版应用，体验更流畅。该应用完全免费，请从官网下载。
+                </div>
+            </section>
+
+            <section id="step2" class="section">
+                <h2><span class="step-number">2</span>创建数据库</h2>
+                <p>在 Notion 中创建一个新的数据库：</p>
+                <ol class="step-list">
+                    <li>点击左侧边栏的"新增页面"按钮</li>
+                    <li>选择"表格"模板</li>
+                    <li>给数据库起一个名字，如"网站收藏"</li>
+                </ol>
+                <div class="image-container" data-src="image-2.png">
+                    <div class="image-placeholder">
+                        <span>加载中...</span>
+                    </div>
+                </div>
+            </section>
+
+            <section id="step3" class="section">
+                <h2><span class="step-number">3</span>配置数据库属性</h2>
+                <p>为数据库添加必要的属性字段：</p>
+
+                <div class="property-list">
+                    <div class="property">
+                        <h4>名称（默认）</h4>
+                        <p>标题字段，无需修改</p>
+                        <div class="image-container" data-src="image-3.png">
+                            <div class="image-placeholder">
+                                <span>加载中...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="property">
+                        <h4>网址</h4>
+                        <p>添加"URL"类型的属性</p>
+                        <div class="image-container" data-src="image-4.png">
+                            <div class="image-placeholder">
+                                <span>加载中...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="property">
+                        <h4>账号</h4>
+                        <p>添加"文本"类型的属性，命名为"账号"</p>
+                        <div class="image-container" data-src="image-5.png">
+                            <div class="image-placeholder">
+                                <span>加载中...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="property">
+                        <h4>密码</h4>
+                        <p>添加"文本"类型的属性，命名为"密码"</p>
+                        <div class="image-container" data-src="image-6.png">
+                            <div class="image-placeholder">
+                                <span>加载中...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="property">
+                        <h4>分类</h4>
+                        <p>添加"选择"类型的属性，用于分类管理</p>
+                        <div class="image-container" data-src="image-7.png">
+                            <div class="image-placeholder">
+                                <span>加载中...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="property">
+                        <h4>描述</h4>
+                        <p>添加"文本"类型的属性，用于搜索优化</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="step4" class="section">
+                <h2><span class="step-number">4</span>获取 Notion API 密钥</h2>
+
+                <div class="substeps">
+                    <div class="substep">
+                        <h3>创建集成</h3>
+                        <p>
+                            访问 <a href="https://www.notion.so/my-integrations" target="_blank" rel="noopener">Notion 集成页面</a>，
+                            点击"新建集成"。
+                        </p>
+                        <div class="image-container" data-src="image-8.png">
+                            <div class="image-placeholder">
+                                <span>加载中...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="substep">
+                        <h3>配置集成</h3>
+                        <p>填写集成名称，选择关联的工作区，类型选择"内部集成"。</p>
+                    </div>
+
+                    <div class="substep">
+                        <h3>复制密钥</h3>
+                        <p>创建后，在集成设置中找到"内部集成密钥"，点击"显示"并复制。</p>
+                        <div class="image-container" data-src="image-9.png">
+                            <div class="image-placeholder">
+                                <span>加载中...</span>
+                            </div>
+                        </div>
+                        <div class="warning">
+                            <strong>安全提示：</strong>请妥善保管你的 API 密钥，不要分享给他人或提交到公开代码库。
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- 使用方法 -->
-            <section id="usage" class="content-section">
-                <div class="section-card">
-                    <h2 class="section-title">
-                        <span class="icon">📝</span>
-                        使用方法
-                    </h2>
+            <section id="step5" class="section">
+                <h2><span class="step-number">5</span>安装 Notion Web Clipper</h2>
+                <p>
+                    为了方便地保存网页到 Notion 数据库，建议安装
+                    <a href="https://chrome.google.com/webstore/detail/notion-web-clipper/knheggckgoiihginacbkhaalnibhilkk" target="_blank" rel="noopener">
+                        Notion Web Clipper 扩展
+                    </a>。
+                </p>
+                <ol class="step-list">
+                    <li>在浏览器扩展商店搜索 "Notion Web Clipper"</li>
+                    <li>点击"添加到浏览器"</li>
+                    <li>登录你的 Notion 账户并授权</li>
+                </ol>
+            </section>
 
-                    <!-- 步骤1 -->
-                    <div id="step1" class="step-card">
-                        <div class="step-header">
-                            <span class="step-number">1</span>
-                            <h3>登录 Notion</h3>
-                        </div>
-                        <div class="step-content">
-                            <p>打开<a href="https://www.notion.so/" target="_blank" class="link">Notion</a>并登录你的账户。如果你还没有账户，可以免费注册一个。</p>
-                            <div class="tip-card">
-                                <span class="tip-icon">💡</span>
-                                <p>建议使用桌面app，这个软件完全免费，千万不要付费下载。</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 步骤2 -->
-                    <div id="step2" class="step-card">
-                        <div class="step-header">
-                            <span class="step-number">2</span>
-                            <h3>创建数据库</h3>
-                        </div>
-                        <div class="step-content">
-                            <p>点击左侧的 "+新增" 按钮，然后选择新建数据库。</p>
-                            <div class="image-wrapper">
-                                <img src="image-2.png" alt="创建数据库" loading="lazy">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 步骤3 -->
-                    <div id="step3" class="step-card">
-                        <div class="step-header">
-                            <span class="step-number">3</span>
-                            <h3>编辑数据库</h3>
-                        </div>
-                        <div class="step-content">
-                            <!-- 子步骤 -->
-                            <div class="substep">
-                                <h4>(1) 创建名称属性</h4>
-                                <p>默认是带有名称数据的，不需要改变它</p>
-                                <div class="image-wrapper">
-                                    <img src="image-3.png" alt="名称属性" loading="lazy">
-                                </div>
-                            </div>
-
-                            <div class="substep">
-                                <h4>(2) 创建网址属性</h4>
-                                <p>点击 "+添加属性" 按钮，选择 "网址" 视图，然后点击 "创建"。</p>
-                                <div class="image-wrapper">
-                                    <img src="image-4.png" alt="网址属性" loading="lazy">
-                                </div>
-                            </div>
-
-                            <div class="substep">
-                                <h4>(3) 创建账号属性</h4>
-                                <p>点击 "+添加属性" 按钮，选择 "文本" 视图，然后点击 "创建"。创建完，再点击刚刚创建的文本属性，重命名为 "账号"。</p>
-                                <div class="image-wrapper">
-                                    <img src="image-5.png" alt="账号属性" loading="lazy">
-                                </div>
-                            </div>
-
-                            <div class="substep">
-                                <h4>(4) 创建密码属性</h4>
-                                <p>点击 "+添加属性" 按钮，选择 "文本" 视图，然后点击 "创建"。创建完，再点击刚刚创建的文本属性，重命名为 "密码"。</p>
-                                <div class="image-wrapper">
-                                    <img src="image-6.png" alt="密码属性" loading="lazy">
-                                </div>
-                            </div>
-
-                            <div class="substep">
-                                <h4>(5) 创建选择属性</h4>
-                                <p>点击 "+添加属性" 按钮，选择 "选择" 视图，然后点击 "创建"。创建完，再点击刚刚创建的选择属性，重命名为 "Select"。</p>
-                                <div class="image-wrapper">
-                                    <img src="image-7.png" alt="选择属性" loading="lazy">
-                                </div>
-                            </div>
-
-                            <div class="substep">
-                                <h4>(6) 创建描述属性</h4>
-                                <p>点击 "+添加属性" 按钮，选择 "文本" 视图，然后点击 "创建"。创建完，再点击刚刚创建的文本属性，重命名为 "描述"。</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 步骤4 -->
-                    <div id="step4" class="step-card">
-                        <div class="step-header">
-                            <span class="step-number">4</span>
-                            <h3>获取 Notion 集成令牌</h3>
-                        </div>
-                        <div class="step-content">
-                            <div class="substep">
-                                <h4>(1) 创建集成</h4>
-                                <p>打开<a href="https://www.notion.so/my-integrations" target="_blank" class="link">Notion集成页面</a>，登录后，点击 "新集成" 按钮。</p>
-                                <div class="image-wrapper">
-                                    <img src="image-8.png" alt="创建集成" loading="lazy">
-                                </div>
-                            </div>
-
-                            <div class="substep">
-                                <h4>(2) 填写集成信息</h4>
-                                <p>名称可以随意填写，选择你的工作区(默认就一个)，类型就是内部，logo随意，然后点击 "提交" 按钮。</p>
-                            </div>
-
-                            <div class="substep">
-                                <h4>(3) 获取秘钥</h4>
-                                <p>创建成功后，点击配置集成设置。里面有一个内部集成秘钥，点击"显示"，复制这个秘钥，稍后会用到。</p>
-                                <div class="image-wrapper">
-                                    <img src="image-9.png" alt="获取秘钥" loading="lazy">
-                                </div>
-                                <div class="warning-card">
-                                    <span class="warning-icon">⚠️</span>
-                                    <p>请妥善保管你的秘钥，不要分享给他人</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 步骤5 -->
-                    <div id="step5" class="step-card">
-                        <div class="step-header">
-                            <span class="step-number">5</span>
-                            <h3>安装 Notion Web Clipper</h3>
-                        </div>
-                        <div class="step-content">
-                            <p>(1) 打开<a href="https://chromewebstore.google.com/detail/notion-web-clipper/knheggckgoiihginacbkhaalnibhilkk" target="_blank" class="link">Notion Web Clipper扩展程序页面</a>，根据你的浏览器，选择对应的扩展程序安装。</p>
-                            <p>(2) 安装完成后，点击浏览器右上角的Notion图标，登录你的Notion账户，授权扩展程序访问你的Notion数据。</p>
-                        </div>
-                    </div>
-
-                    <!-- 步骤6 -->
-                    <div id="step6" class="step-card">
-                        <div class="step-header">
-                            <span class="step-number">6</span>
-                            <h3>添加你的第一个条目</h3>
-                        </div>
-                        <div class="step-content">
-                            <p>随便打开一个你要收藏的网页。点击浏览器右上角的Notion图标，选择你刚刚创建的数据库，然后填写相关信息，点击 "保存" 按钮。</p>
-                            <div class="image-wrapper">
-                                <img src="image-10.png" alt="添加条目" loading="lazy">
-                            </div>
-                            <div class="tip-card">
-                                <span class="tip-icon">💡</span>
-                                <p>如果右上角没有Notion图标，点击浏览器的扩展程序图标，找到Notion Web Clipper，点击它即可。</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 步骤7 -->
-                    <div id="step7" class="step-card">
-                        <div class="step-header">
-                            <span class="step-number">7</span>
-                            <h3>将秘钥添加到工作空间</h3>
-                        </div>
-                        <div class="step-content">
-                            <p>回到我们的网站，点击左上角的工作空间。再点击工作空间右上角设置图标，打开设置页面。</p>
-
-                            <div class="substep">
-                                <h4>配置秘钥</h4>
-                                <p>把你刚刚复制的Notion集成秘钥，粘贴到 "Notion API秘钥" 输入框中</p>
-                            </div>
-
-                            <div class="substep">
-                                <h4>配置数据库ID</h4>
-                                <p>回到Notion，打开你创建的数据库页面：</p>
-                                <ul class="step-list">
-                                    <li>如果你使用的是网页版，直接复制浏览器地址栏中的URL。</li>
-                                    <li>如果你使用的是桌面版，点击右上角的 "分享" 按钮，选择 "复制链接"。</li>
-                                </ul>
-                                <p>得到的链接类似于：</p>
-                                <div class="code-block">
-                                    <code>https://www.notion.so/aaaaaaaaaaaaaa?v=bbbbbbbbbb</code>
-                                    <button class="copy-btn" data-code="https://www.notion.so/aaaaaaaaaaaaaa?v=bbbbbbbbbb">复制</button>
-                                </div>
-                                <p>其中，<code>aaaaaaaaaaaaaa</code> 就是你的数据库ID。把它粘贴到 "Notion数据库ID" 输入框中。（现在也支持直接复制链接了）</p>
-                            </div>
-
-                            <div class="substep">
-                                <h4>测试并保存</h4>
-                                <p>完成后，点击 "测试连接" 按钮。</p>
-                                <div class="image-wrapper">
-                                    <img src="image-11.png" alt="配置工作空间" loading="lazy">
-                                </div>
-                                <p>成功后，会有提示。点击 "保存设置" 按钮，完成配置。</p>
-                                <div class="success-card">
-                                    <span class="success-icon">🎉</span>
-                                    <p>恭喜你！你已经成功将Notion工作空间集成到我们的网站了。</p>
-                                </div>
-                            </div>
-                        </div>
+            <section id="step6" class="section">
+                <h2><span class="step-number">6</span>添加第一个条目</h2>
+                <p>使用 Web Clipper 保存网页：</p>
+                <ol class="step-list">
+                    <li>访问任意网页</li>
+                    <li>点击浏览器工具栏的 Notion 图标</li>
+                    <li>选择刚创建的数据库</li>
+                    <li>填写相关信息后保存</li>
+                </ol>
+                <div class="image-container" data-src="image-10.png">
+                    <div class="image-placeholder">
+                        <span>加载中...</span>
                     </div>
                 </div>
             </section>
 
-            <!-- 使用说明 -->
-            <section id="notes" class="content-section">
-                <div class="section-card">
-                    <h2 class="section-title">
-                        <span class="icon">📌</span>
-                        使用说明
-                    </h2>
-                    <ul class="notes-list">
-                        <li>
-                            <span class="note-icon">🔄</span>
-                            每次添加条目后，刷新工作空间页面即可看到最新的条目。
-                        </li>
-                        <li>
-                            <span class="note-icon">✏️</span>
-                            你可以在Notion中编辑条目，工作空间会同步显示最新内容。
-                        </li>
-                        <li>
-                            <span class="note-icon">🔑</span>
-                            如果你更改了Notion集成秘钥或数据库ID，记得在工作空间设置中更新它们。
-                        </li>
-                        <li>
-                            <span class="note-icon">🏷️</span>
-                            你可以自由编辑Select属性的选项，以适应你的分类需求。
-                        </li>
-                        <li>
-                            <span class="note-icon">🔍</span>
-                            描述会影响搜索结果的显示，建议填写有助于搜索的信息。
-                        </li>
-                        <li>
-                            <span class="note-icon">🟢</span>
-                            对于有填写账号密码的条目，工作空间的卡片左下角会显示绿色小点，方便识别，点击小眼睛可显示。
-                        </li>
-                        <li>
-                            <span class="note-icon">🔒</span>
-                            <strong>工作空间的内容只保存在本地浏览器缓存中，不会上传到任何服务器，请放心使用。</strong>
-                        </li>
-                    </ul>
+            <section id="step7" class="section">
+                <h2><span class="step-number">7</span>连接到工作空间</h2>
+
+                <div class="substeps">
+                    <div class="substep">
+                        <h3>配置 API 密钥</h3>
+                        <p>在网站的工作空间设置中，粘贴之前复制的 Notion API 密钥。</p>
+                    </div>
+
+                    <div class="substep">
+                        <h3>配置数据库 ID</h3>
+                        <p>获取数据库 ID 的方法：</p>
+                        <ol class="step-list">
+                            <li>在 Notion 中打开你的数据库</li>
+                            <li>复制浏览器地址栏的 URL</li>
+                            <li>URL 格式：<code>https://notion.so/[数据库ID]?v=[视图ID]</code></li>
+                            <li>提取其中的数据库 ID 部分</li>
+                        </ol>
+                        <div class="code-example">
+                            <pre><code>https://www.notion.so/abc123def456 ← 这部分是数据库 ID</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="substep">
+                        <h3>测试连接</h3>
+                        <p>配置完成后，点击"测试连接"按钮验证配置是否正确。</p>
+                        <div class="image-container" data-src="image-11.png">
+                            <div class="image-placeholder">
+                                <span>加载中...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="success-message">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M10 0C4.48 0 0 4.48 0 10s4.48 10 10 10 10-4.48 10-10S15.52 0 10 0zm-1 15l-5-5 1.41-1.41L9 12.17l7.59-7.59L18 6l-9 9z"/>
+                    </svg>
+                    <span>配置完成！现在你可以在工作空间中管理你的 Notion 数据了。</span>
                 </div>
             </section>
 
-            <!-- 底部 -->
-            <footer class="footer">
-                <p>© 2025 JiangJiang. All rights reserved.</p>
-            </footer>
+            <!-- 使用技巧 -->
+            <section id="tips" class="section">
+                <h2>使用技巧</h2>
+                <ul class="tips-list">
+                    <li>刷新页面即可同步最新的 Notion 数据</li>
+                    <li>可以在 Notion 中直接编辑条目，修改会实时同步</li>
+                    <li>使用分类标签可以更好地组织内容</li>
+                    <li>描述字段有助于搜索，建议填写关键词</li>
+                    <li>包含账号密码的条目会有特殊标记</li>
+                </ul>
+            </section>
+
+            <!-- 隐私说明 -->
+            <section id="privacy" class="section">
+                <h2>隐私说明</h2>
+                <div class="privacy-notice">
+                    <p>
+                        <strong>数据安全：</strong>工作空间的所有数据仅存储在你的浏览器本地缓存中，
+                        不会上传到我们的服务器。API 密钥等敏感信息均采用加密存储。
+                    </p>
+                    <p>
+                        <strong>权限说明：</strong>网站仅读取你授权的 Notion 数据库，
+                        不会访问你的其他 Notion 内容。
+                    </p>
+                </div>
+            </section>
         </main>
-    </div>
-
-    <!-- 返回顶部按钮 -->
-    <button class="back-to-top" id="backToTop">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 19V5M5 12l7-7 7 7"/>
-        </svg>
-    </button>
-
-    <!-- 图片预览模态框 -->
-    <div class="image-modal" id="imageModal">
-        <div class="modal-content">
-            <span class="modal-close" id="modalClose">&times;</span>
-            <img src="" alt="" id="modalImage">
-            <div class="modal-caption" id="modalCaption"></div>
-        </div>
     </div>
 
     <script src="script.js"></script>

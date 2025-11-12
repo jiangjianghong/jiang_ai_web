@@ -80,6 +80,7 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
     showYear,
     showMonth,
     showDay,
+    searchBarBorderRadius,
     setCardOpacity,
     setSearchBarOpacity,
     setParallaxEnabled,
@@ -99,6 +100,7 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
     setShowYear,
     setShowMonth,
     setShowDay,
+    setSearchBarBorderRadius,
   } = useTransparency();
   const { currentUser, logout, updatePassword } = useAuth();
   const { updateSyncStatus } = useSyncStatus();
@@ -1093,6 +1095,41 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                   selectedColor={searchBarColor}
                   onChange={setSearchBarColor}
                 />
+              </div>
+
+              {/* 搜索框圆角调节 */}
+              <div className="space-y-3 pt-4 border-t border-gray-200/60">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <i className="fa-solid fa-border-all text-blue-500 text-sm"></i>
+                    <label className="text-sm font-medium text-gray-700 select-none">
+                      搜索框圆角
+                    </label>
+                  </div>
+                  <span className="text-sm text-blue-600 font-medium bg-blue-50 px-2 py-1 rounded select-none">
+                    {searchBarBorderRadius >= 50 ? '全圆角' : `${searchBarBorderRadius}px`}
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="50"
+                  step="1"
+                  value={searchBarBorderRadius >= 50 ? 50 : searchBarBorderRadius}
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value);
+                    setSearchBarBorderRadius(value === 50 ? 9999 : value);
+                  }}
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                  style={{
+                    background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${(Math.min(searchBarBorderRadius, 50) / 50) * 100}%, #e2e8f0 ${(Math.min(searchBarBorderRadius, 50) / 50) * 100}%, #e2e8f0 100%)`,
+                  }}
+                />
+                <div className="flex justify-between text-xs text-gray-400 select-none">
+                  <span className="select-none">直角</span>
+                  <span className="text-gray-600 select-none">圆角</span>
+                  <span className="text-gray-600 select-none">全圆</span>
+                </div>
               </div>
 
               {/* 卡片不透明度控制 */}

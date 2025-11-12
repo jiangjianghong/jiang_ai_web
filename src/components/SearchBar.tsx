@@ -35,7 +35,7 @@ function SearchBarComponent(props: SearchBarProps = {}) {
   const { websites = [], onOpenSettings } = props;
   const inputRef = useRef<HTMLInputElement>(null);
   const [isFocused, setIsFocused] = useState(false);
-  const { searchBarOpacity, searchBarColor, setIsSearchFocused, searchInNewTab, isSettingsOpen } =
+  const { searchBarOpacity, searchBarColor, setIsSearchFocused, searchInNewTab, isSettingsOpen, searchBarBorderRadius } =
     useTransparency();
   const { isMobile } = useResponsiveLayout();
   const { isWorkspaceOpen, setIsWorkspaceOpen, workspaceItems } = useWorkspace();
@@ -1559,11 +1559,12 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                     }, 150);
                   }}
                   placeholder="🧸搜点啥捏..."
-                  className="backdrop-blur-md border border-white/20 rounded-full pl-4 py-2 text-white placeholder-white/60 outline-none text-base transition-all duration-200 pr-12 w-full ml-3"
+                  className="backdrop-blur-md border border-white/20 pl-4 py-2 text-white placeholder-white/60 outline-none text-base transition-all duration-200 pr-12 w-full ml-3"
                   style={{
                     backgroundColor: `rgba(${searchBarColor}, ${searchBarOpacity})`,
                     minWidth: '4rem',
                     maxWidth: '100%',
+                    borderRadius: `${searchBarBorderRadius}px`,
                   }}
                 />
 

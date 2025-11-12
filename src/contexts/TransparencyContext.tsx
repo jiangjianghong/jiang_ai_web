@@ -41,6 +41,7 @@ interface TransparencyContextType {
   showMonth: boolean; // 是否显示月份
   showDay: boolean; // 是否显示日期
   dateDisplayMode: 'yearMonth' | 'yearMonthDay'; // 日期显示模式
+  searchBarBorderRadius: number; // 搜索框圆角大小（像素）
   setCardOpacity: (opacity: number) => void;
   setSearchBarOpacity: (opacity: number) => void;
   setParallaxEnabled: (enabled: boolean) => void;
@@ -62,6 +63,7 @@ interface TransparencyContextType {
   setShowMonth: (enabled: boolean) => void;
   setShowDay: (enabled: boolean) => void;
   setDateDisplayMode: (mode: 'yearMonth' | 'yearMonthDay') => void;
+  setSearchBarBorderRadius: (radius: number) => void;
 }
 
 const TransparencyContext = createContext<TransparencyContextType | undefined>(undefined);
@@ -186,6 +188,12 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
     return saved || 'yearMonthDay'; // 默认显示年月日
   });
 
+  const [searchBarBorderRadius, setSearchBarBorderRadius] = useState(() => {
+    const saved = localStorage.getItem('searchBarBorderRadius');
+    const value = saved ? parseInt(saved) : 9999; // 默认全圆角
+    return Math.max(0, Math.min(50, value)); // 限制在0-50px之间
+  });
+
   // 初始化autoSortEnabled从localStorage
   useEffect(() => {
     try {
@@ -274,6 +282,10 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('dateDisplayMode', dateDisplayMode);
   }, [dateDisplayMode]);
 
+  useEffect(() => {
+    localStorage.setItem('searchBarBorderRadius', searchBarBorderRadius.toString());
+  }, [searchBarBorderRadius]);
+
   return (
     <TransparencyContext.Provider
       value={{
@@ -298,6 +310,7 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
         showMonth,
         showDay,
         dateDisplayMode,
+        searchBarBorderRadius,
         setCardOpacity,
         setSearchBarOpacity,
         setParallaxEnabled,
@@ -319,6 +332,7 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
         setShowMonth,
         setShowDay,
         setDateDisplayMode,
+        setSearchBarBorderRadius,
       }}
     >
       {children}

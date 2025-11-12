@@ -315,13 +315,24 @@ function SearchBarComponent(props: SearchBarProps = {}) {
     }
   };
 
-  // 表情名称和图标
-  const emojiNames = ['chatGPT', 'Gemini', 'Deepseek', 'Kimi'];
+  // 表情名称和图标 - 双层布局：内圈4个 + 外圈4个
+  const emojiNames = [
+    // 内圈（原有4个）
+    'chatGPT', 'Gemini', 'Deepseek', 'Kimi',
+    // 外圈（新增4个）
+    'Grok', 'Claude', 'Zhipu', 'Qwen'
+  ];
   const emojiLinks = [
+    // 内圈
     'https://chatgpt.com/',
     'https://gemini.google.com/',
     'https://chat.deepseek.com/',
     'https://www.kimi.com/',
+    // 外圈
+    'https://grok.x.ai/',
+    'https://claude.ai/',
+    'https://chatglm.cn/',
+    'https://tongyi.com/',
   ];
   const emojiList = [
     <span
@@ -397,6 +408,83 @@ function SearchBarComponent(props: SearchBarProps = {}) {
       <img
         src={import.meta.env.BASE_URL + 'icon/kimi.svg'}
         alt="Kimi"
+        style={{ width: 20, height: 20, display: 'block', userSelect: 'none' }}
+      />
+    </span>,
+    // 外圈新增图标
+    <span
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: 22,
+        height: 22,
+        verticalAlign: 'middle',
+        position: 'relative',
+        top: '1px',
+        userSelect: 'none',
+      }}
+    >
+      <img
+        src={import.meta.env.BASE_URL + 'icon/grok.svg'}
+        alt="Grok"
+        style={{ width: 20, height: 20, display: 'block', userSelect: 'none' }}
+      />
+    </span>,
+    <span
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: 22,
+        height: 22,
+        verticalAlign: 'middle',
+        position: 'relative',
+        top: '1px',
+        userSelect: 'none',
+      }}
+    >
+      <img
+        src={import.meta.env.BASE_URL + 'icon/claude.svg'}
+        alt="Claude"
+        style={{ width: 20, height: 20, display: 'block', userSelect: 'none' }}
+      />
+    </span>,
+    <span
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: 22,
+        height: 22,
+        verticalAlign: 'middle',
+        position: 'relative',
+        top: '1px',
+        userSelect: 'none',
+      }}
+    >
+      <img
+        src={import.meta.env.BASE_URL + 'icon/zhipu.svg'}
+        alt="Zhipu"
+        style={{ width: 20, height: 20, display: 'block', userSelect: 'none' }}
+      />
+    </span>,
+    <span
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: 22,
+        height: 22,
+        verticalAlign: 'middle',
+        position: 'relative',
+        top: '1px',
+        userSelect: 'none',
+      }}
+    >
+      <img
+        src={import.meta.env.BASE_URL + 'icon/qwen.svg'}
+        alt="Qwen"
         style={{ width: 20, height: 20, display: 'block', userSelect: 'none' }}
       />
     </span>,
@@ -2017,10 +2105,16 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                   >
                     <div style={{ position: 'absolute', left: 0, top: 0 }}>
                       {emojiList.map((emoji, i, arr) => {
-                        // -60°到60°，右上半圆分布，半径增大为44
-                        const N = arr.length;
-                        const angle = (-60 + (120 / (N - 1)) * i) * (Math.PI / 180);
-                        const r = 44;
+                        // 双层布局：前4个为内圈，后4个为外圈
+                        const isInnerCircle = i < 4; // 前4个是内圈
+                        const N = isInnerCircle ? 4 : 4; // 每层4个图标
+                        const layerIndex = isInnerCircle ? i : i - 4; // 当前层的索引
+
+                        // 内圈半径44px，外圈半径75px
+                        const r = isInnerCircle ? 44 : 75;
+
+                        // -60°到60°扇形分布
+                        const angle = (-60 + (120 / (N - 1)) * layerIndex) * (Math.PI / 180);
                         const x = r * Math.cos(angle);
                         const y = r * Math.sin(angle);
                         const rectHeight = 19;
@@ -2030,11 +2124,10 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                             key={i}
                             role="img"
                             aria-label={emojiNames[i]}
-                            initial={{ x: 0, y: 0, scale: 0.3, opacity: 0, filter: 'none' }}
-                            animate={{ x, y, scale: 1.18, opacity: 1, filter: 'none' }}
+                            initial={{ x: 0, y: 0, scale: 0.3, opacity: 0 }}
+                            animate={{ x, y, scale: 1.18, opacity: 1 }}
                             whileHover={{
                               scale: 1.38,
-                              filter: 'drop-shadow(0 0 4px #fff) drop-shadow(0 0 8px #fff)',
                             }}
                             transition={{
                               type: 'spring',

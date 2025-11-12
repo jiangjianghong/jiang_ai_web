@@ -1,7 +1,7 @@
 // 离线优先的Service Worker for 炫酷收藏夹
-const CACHE_NAME = 'jiang-ai-web-v4-offline';
-const STATIC_CACHE_NAME = 'static-v4';
-const DYNAMIC_CACHE_NAME = 'dynamic-v4';
+const CACHE_NAME = 'jiang-ai-web-v5-offline';
+const STATIC_CACHE_NAME = 'static-v5';
+const DYNAMIC_CACHE_NAME = 'dynamic-v5';
 
 // 动态获取正确的路径前缀
 const getBasePath = () => {
@@ -116,27 +116,37 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 对于HTML文件，使用网络优先策略确保内容最新
+  // 对于HTML文件，使用缓存优先策略(后台更新)确保快速加载
   if (event.request.destination === 'document') {
     event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          // 网络请求成功，更新缓存
-          if (response.status === 200) {
-            const responseClone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, responseClone);
+      caches.match(event.request)
+        .then((cachedResponse) => {
+          // 后台更新缓存
+          const fetchPromise = fetch(event.request)
+            .then((response) => {
+              if (response.status === 200) {
+                const responseClone = response.clone();
+                caches.open(CACHE_NAME).then((cache) => {
+                  cache.put(event.request, responseClone);
+                });
+              }
+              return response;
+            })
+            .catch(() => {
+              // 网络错误忽略
             });
+
+          // 如果有缓存，立即返回缓存
+          if (cachedResponse) {
+            return cachedResponse;
           }
-          return response;
-        })
-        .catch(() => {
-          // 网络失败，回退到缓存
-          return caches.match(event.request).then((cachedResponse) => {
-            if (cachedResponse) {
-              return cachedResponse;
+
+          // 无缓存时等待网络请求
+          return fetchPromise.then((response) => {
+            if (response && response.status === 200) {
+              return response;
             }
-            // 如果没有缓存，对于SPA路由返回index.html
+            // 如果网络也失败，对于SPA路由返回index.html
             if (event.request.mode === 'navigate') {
               return caches.match(`${basePath}/index.html`);
             }

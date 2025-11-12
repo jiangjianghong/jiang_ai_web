@@ -2096,7 +2096,7 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                     className="absolute z-30"
                     style={{
                       left: '50%', // 按钮中心
-                      top: 'calc(50% - 15px)', // 向上调整15px
+                      top: 'calc(50% - 20px)', // 向上调整20px
                       width: 0,
                       height: 0,
                       pointerEvents: 'auto',
@@ -2128,6 +2128,11 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                             animate={{ x, y, scale: 1.18, opacity: 1 }}
                             whileHover={{
                               scale: 1.38,
+                              transition: {
+                                type: 'spring',
+                                stiffness: 800,
+                                damping: 20,
+                              },
                             }}
                             transition={{
                               type: 'spring',
@@ -2142,13 +2147,30 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                               fontSize: 22,
                               cursor: 'pointer',
                               userSelect: 'none',
-                              zIndex: 2,
+                              zIndex: hoveredEmojiIdx === i ? 100 : 2,
                               willChange: 'filter, transform',
                             }}
                             onClick={() => window.open(emojiLinks[i], '_blank')}
                             onMouseEnter={() => setHoveredEmojiIdx(i)}
                             onMouseLeave={() => setHoveredEmojiIdx(null)}
                           >
+                            {/* 圆形背景 - 纯模糊效果，无实色背景 */}
+                            <div
+                              className="backdrop-blur-md"
+                              style={{
+                                position: 'absolute',
+                                left: '50%',
+                                top: '60%',
+                                transform: 'translate(-50%, -50%)',
+                                width: 25,
+                                height: 25,
+                                borderRadius: '50%',
+                                backgroundColor: `rgba(${searchBarColor}, ${searchBarOpacity})`,
+                                border: '1px solid rgba(255, 255, 255, 0.2)',
+                                zIndex: -1,
+                                pointerEvents: 'none',
+                              }}
+                            />
                             {emoji}
                             {hoveredEmojiIdx === i && (
                               <div

@@ -11,6 +11,7 @@ export interface WallpaperMetadata {
   uploadTime: number;
   width: number;
   height: number;
+  sourceUrl?: string; // 原始URL（用于收藏功能判重）
 }
 
 // 壁纸数据接口（包含原图和缩略图）
@@ -448,6 +449,183 @@ class CustomWallpaperManager {
       };
     } catch (error) {
       return { exists: false };
+    }
+  }
+
+  // 提取URL的核心标识（用于判重）
+  private extractUrlCore(url: string): string {
+    try {
+      // 移除 URL 参数
+      const urlWithoutParams = url.split('?')[0];
+
+      // 多种匹配模式，适配不同的 URL 格式
+      // 1. Unsplash 格式: /photo-xxx 或 photo-xxx
+      let match = urlWithoutParams.match(/photo-[a-zA-Z0-9_-]+/);
+      if (match) {
+        logger.wallpaper.debug('提取 Unsplash photo ID:', match[0]);
+        return match[0];
+      }
+
+      // 2. 尝试提取路径的最后一段（通常是图片ID）
+      const pathSegments = urlWithoutParams.split('/').filter(Boolean);
+      if (pathSegments.length > 0) {
+        const lastSegment = pathSegments[pathSegments.length - 1];
+        logger.wallpaper.debug('提取路径最后一段作为ID:', lastSegment);
+        return lastSegment;
+      }
+
+      logger.wallpaper.debug('无法提取核心ID，使用完整URL（无参数）:', urlWithoutParams);
+      return urlWithoutParams;
+    } catch (error) {
+      logger.wallpaper.warn('提取URL核心标识失败', error);
+      return url;
+    }
+  }
+
+  // 检查URL是否已经被收藏
+  async isUrlAlreadyFavorited(url: string): Promise<boolean> {
+    try {
+      const list = await this.getWallpaperList();
+      const urlCore = this.extractUrlCore(url);
+
+      logger.wallpaper.debug('🔍 检查收藏状态', {
+        checkingUrl: url,
+        extractedCore: urlCore,
+        totalSavedWallpapers: list.length,
+      });
+
+      // 检查列表中是否有相同的URL（比较核心部分）
+      const found = list.some((item) => {
+        if (!item.sourceUrl) return false;
+        const itemUrlCore = this.extractUrlCore(item.sourceUrl);
+        const isMatch = itemUrlCore === urlCore;
+
+        if (isMatch) {
+          logger.wallpaper.info('✅ 找到匹配的收藏壁纸', {
+            savedUrl: item.sourceUrl,
+            savedCore: itemUrlCore,
+            checkingCore: urlCore,
+          });
+        }
+
+        return isMatch;
+      });
+
+      if (!found) {
+        logger.wallpaper.debug('❌ 未找到匹配的收藏壁纸', {
+          checkingCore: urlCore,
+          savedCores: list.map((item) =>
+            item.sourceUrl ? this.extractUrlCore(item.sourceUrl) : 'no-url'
+          ),
+        });
+      }
+
+      return found;
+    } catch (error) {
+      logger.wallpaper.error('检查URL是否已收藏失败', error);
+      return false;
+    }
+  }
+
+  // 从URL下载并保存壁纸（用于收藏功能）
+  async downloadAndSaveFromUrl(
+    url: string,
+    filename?: string
+  ): Promise<{ success: boolean; id?: string; error?: string }> {
+    try {
+      logger.wallpaper.info('开始从URL下载壁纸', { url });
+
+      // 检查是否已经收藏过这个URL
+      const alreadyFavorited = await this.isUrlAlreadyFavorited(url);
+      if (alreadyFavorited) {
+        logger.wallpaper.info('壁纸已收藏，跳过重复保存', { url });
+        return {
+          success: false,
+          error: '这张壁纸已经在你的收藏中啦',
+        };
+      }
+
+      // 下载图片
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error('下载失败');
+      }
+
+      const blob = await response.blob();
+
+      // 验证文件类型
+      if (!this.ALLOWED_TYPES.includes(blob.type)) {
+        return {
+          success: false,
+          error: '不支持的图片格式',
+        };
+      }
+
+      // 验证文件大小
+      if (blob.size > this.MAX_FILE_SIZE) {
+        return {
+          success: false,
+          error: `图片过大（${(blob.size / 1024 / 1024).toFixed(2)}MB），最大支持${this.MAX_FILE_SIZE / 1024 / 1024}MB`,
+        };
+      }
+
+      // 生成唯一ID
+      const id = this.generateId();
+
+      // 获取图片尺寸
+      const { width, height } = await this.getImageDimensions(
+        new File([blob], 'temp.jpg', { type: blob.type })
+      );
+
+      // 保存原图（不压缩）
+      const originalBlob = blob;
+
+      // 生成缩略图
+      const thumbnail = await this.generateThumbnail(originalBlob);
+
+      // 创建元数据（包含 sourceUrl）
+      const metadata: WallpaperMetadata = {
+        id,
+        name: filename || `wallpaper-${Date.now()}.jpg`,
+        size: originalBlob.size,
+        uploadTime: Date.now(),
+        width,
+        height,
+        sourceUrl: url, // 保存原始URL
+      };
+
+      // 保存原图到 IndexedDB
+      await indexedDBCache.set(
+        `${this.WALLPAPER_PREFIX}${id}`,
+        originalBlob,
+        365 * 24 * 60 * 60 * 1000
+      );
+
+      // 保存缩略图到 IndexedDB
+      await indexedDBCache.set(
+        `${this.THUMBNAIL_PREFIX}${id}`,
+        thumbnail,
+        365 * 24 * 60 * 60 * 1000
+      );
+
+      // 更新壁纸列表
+      const list = await this.getWallpaperList();
+      list.push(metadata);
+      await this.saveWallpaperList(list);
+
+      logger.wallpaper.info('从URL下载并保存壁纸成功', {
+        id,
+        size: `${(blob.size / 1024 / 1024).toFixed(2)}MB`,
+        sourceUrl: url,
+      });
+
+      return { success: true, id };
+    } catch (error) {
+      logger.wallpaper.error('从URL下载壁纸失败', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : '下载失败',
+      };
     }
   }
 }

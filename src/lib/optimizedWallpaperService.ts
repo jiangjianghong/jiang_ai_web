@@ -170,7 +170,7 @@ class OptimizedWallpaperService {
   // 智能获取缓存（今天 > 昨天 > 更早）
   private async getSmartCache(
     resolution: string
-  ): Promise<{ url: string; isToday: boolean } | null> {
+  ): Promise<{ url: string; isToday: boolean; originalUrl?: string } | null> {
     try {
       // 注意：BlobURL由memoryManager统一管理生命周期，不需要手动检测有效性
 
@@ -180,10 +180,12 @@ class OptimizedWallpaperService {
 
       if (todayCache) {
         logger.wallpaper.info('使用今天的壁纸缓存');
+        const originalUrl = await this.getOriginalUrl(todayKey);
         // 每次都重新创建BlobURL，确保有效性
         return {
           url: await memoryManager.createBlobUrl(todayCache, 'wallpaper'),
           isToday: true,
+          originalUrl,
         };
       }
 
@@ -193,16 +195,18 @@ class OptimizedWallpaperService {
 
       if (yesterdayCache) {
         logger.wallpaper.info('使用昨天的壁纸缓存作为降级');
+        const originalUrl = await this.getOriginalUrl(yesterdayKey);
         return {
           url: await memoryManager.createBlobUrl(yesterdayCache, 'wallpaper'),
           isToday: false,
+          originalUrl,
         };
       }
 
       // 3. 尝试任何可用的壁纸缓存
       const allKeys = await indexedDBCache.getAllKeys();
       const wallpaperKeys = allKeys.filter(
-        (key) => key.startsWith('wallpaper-optimized:') && key.includes(resolution)
+        (key) => key.startsWith('wallpaper-optimized:') && key.includes(resolution) && !key.includes('-metadata')
       );
 
       if (wallpaperKeys.length > 0) {
@@ -213,9 +217,11 @@ class OptimizedWallpaperService {
 
         if (latestCache) {
           logger.wallpaper.info('使用最新可用的壁纸缓存', { key: latestKey });
+          const originalUrl = await this.getOriginalUrl(latestKey);
           return {
             url: await memoryManager.createBlobUrl(latestCache, 'wallpaper'),
             isToday: false,
+            originalUrl,
           };
         }
       }
@@ -226,8 +232,28 @@ class OptimizedWallpaperService {
     return null;
   }
 
+  // 获取缓存的原始 URL
+  private async getOriginalUrl(cacheKey: string): Promise<string | undefined> {
+    try {
+      const metadataKey = `${cacheKey}-metadata`;
+      const metadataBlob = (await indexedDBCache.get(metadataKey)) as Blob;
+
+      if (metadataBlob) {
+        const text = await metadataBlob.text();
+        const metadata = JSON.parse(text);
+        return metadata.originalUrl;
+      }
+    } catch (error) {
+      logger.wallpaper.debug('读取壁纸元数据失败', error);
+    }
+    return undefined;
+  }
+
   // 下载并缓存壁纸
-  private async downloadAndCache(url: string, resolution: string): Promise<string> {
+  private async downloadAndCache(
+    url: string,
+    resolution: string
+  ): Promise<{ blobUrl: string; originalUrl: string }> {
     try {
       logger.wallpaper.info('开始下载壁纸', { url: url.substring(0, 50) });
 
@@ -247,17 +273,30 @@ class OptimizedWallpaperService {
       const blob = await response.blob();
       const blobUrl = await memoryManager.createBlobUrl(blob, 'wallpaper');
 
-      // 异步缓存到IndexedDB
+      // 异步缓存到IndexedDB（保存 Blob）
       const cacheKey = this.getTodayCacheKey(resolution);
       indexedDBCache
         .set(cacheKey, blob, 48 * 60 * 60 * 1000) // 48小时缓存
         .then(() => logger.wallpaper.info('壁纸已缓存到IndexedDB'))
         .catch((error) => logger.wallpaper.warn('缓存壁纸失败', error));
 
+      // 保存原始 URL 元数据
+      const metadataKey = `${cacheKey}-metadata`;
+      indexedDBCache
+        .set(
+          metadataKey,
+          new Blob([JSON.stringify({ originalUrl: url })], { type: 'application/json' }),
+          48 * 60 * 60 * 1000
+        )
+        .then(() => logger.wallpaper.info('壁纸元数据已缓存'))
+        .catch((error) => logger.wallpaper.warn('缓存元数据失败', error));
+
       logger.wallpaper.info('壁纸下载完成', {
         size: `${(blob.size / 1024 / 1024).toFixed(2)}MB`,
+        originalUrl: url,
       });
-      return blobUrl;
+
+      return { blobUrl, originalUrl: url };
     } catch (error) {
       logger.wallpaper.error('下载壁纸失败', error);
       throw error;
@@ -270,6 +309,7 @@ class OptimizedWallpaperService {
     isFromCache: boolean;
     isToday: boolean;
     needsUpdate: boolean;
+    originalUrl?: string; // 原始 URL（非 Blob URL）
   }> {
     const cacheKey = `loading-${resolution}`;
 
@@ -299,6 +339,7 @@ class OptimizedWallpaperService {
     isFromCache: boolean;
     isToday: boolean;
     needsUpdate: boolean;
+    originalUrl?: string;
   }> {
     try {
       // 0. 如果是自定义壁纸，直接返回（每次从 IndexedDB 生成新的 Blob URL）
@@ -338,23 +379,48 @@ class OptimizedWallpaperService {
       const cachedResult = await this.getSmartCache(resolution);
 
       if (cachedResult) {
-        // 有缓存，立即返回，但可能需要后台更新
-        const result = {
-          url: cachedResult.url,
-          isFromCache: true,
-          isToday: cachedResult.isToday,
-          needsUpdate: !cachedResult.isToday,
-        };
+        // 🔧 检查旧缓存是否缺少 originalUrl（旧版本的缓存）
+        if (!cachedResult.originalUrl && cachedResult.isToday) {
+          logger.wallpaper.warn('⚠️ 检测到今天的缓存缺少 originalUrl，清除并重新下载');
+          await this.clearTodayCache(resolution);
+          // 继续执行，触发重新下载
+        } else if (cachedResult.originalUrl) {
+          // 有 originalUrl 的缓存，正常返回
+          const result = {
+            url: cachedResult.url,
+            isFromCache: true,
+            isToday: cachedResult.isToday,
+            needsUpdate: !cachedResult.isToday,
+            originalUrl: cachedResult.originalUrl,
+          };
 
-        // 如果不是今天的缓存，后台更新
-        if (!cachedResult.isToday) {
-          logger.wallpaper.info('后台更新今天的壁纸');
+          // 如果不是今天的缓存，后台更新
+          if (!cachedResult.isToday) {
+            logger.wallpaper.info('后台更新今天的壁纸');
+            this.updateWallpaperInBackground(resolution).catch((error) => {
+              logger.wallpaper.warn('后台更新壁纸失败', error);
+            });
+          }
+
+          return result;
+        } else {
+          // 旧缓存但不是今天的，先用着但标记需要更新
+          logger.wallpaper.warn('⚠️ 使用旧缓存壁纸（无 originalUrl），将后台更新');
+          const result = {
+            url: cachedResult.url,
+            isFromCache: true,
+            isToday: cachedResult.isToday,
+            needsUpdate: true,
+            originalUrl: cachedResult.originalUrl, // undefined
+          };
+
+          // 后台更新以获取新壁纸和 originalUrl
           this.updateWallpaperInBackground(resolution).catch((error) => {
             logger.wallpaper.warn('后台更新壁纸失败', error);
           });
-        }
 
-        return result;
+          return result;
+        }
       }
 
       // 2. 无缓存，需要下载
@@ -371,13 +437,14 @@ class OptimizedWallpaperService {
         };
       }
 
-      const downloadedUrl = await this.downloadAndCache(wallpaperUrl, resolution);
+      const downloaded = await this.downloadAndCache(wallpaperUrl, resolution);
 
       return {
-        url: downloadedUrl,
+        url: downloaded.blobUrl,
         isFromCache: false,
         isToday: true,
         needsUpdate: false,
+        originalUrl: downloaded.originalUrl,
       };
     } catch (error) {
       const errorInfo = errorHandler.handleError(error as Error, 'wallpaper-load');

@@ -16,6 +16,7 @@ import { optimizedWallpaperService } from '@/lib/optimizedWallpaperService';
 import { useRAFThrottledMouseMove } from '@/hooks/useRAFThrottle';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import { logger } from '@/utils/logger';
+import { customWallpaperManager } from '@/lib/customWallpaperManager';
 
 interface HomeProps {
   websites: any[];
@@ -46,9 +47,86 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
   };
 
   const [bgImage, setBgImage] = useState('');
+  const [bgOriginalUrl, setBgOriginalUrl] = useState<string | undefined>(); // 原始URL用于收藏检测
   const [bgImageLoaded, setBgImageLoaded] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [mousePosition, setMousePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [isFavoriting, setIsFavoriting] = useState(false);
+  const [isFavorited, setIsFavorited] = useState(false);
+  const [isAlreadyFavorited, setIsAlreadyFavorited] = useState(false);
+
+  // 检查当前壁纸是否已收藏
+  useEffect(() => {
+    const checkIfFavorited = async () => {
+      if (!bgOriginalUrl || wallpaperResolution === 'custom') {
+        setIsAlreadyFavorited(false);
+        return;
+      }
+
+      const favorited = await customWallpaperManager.isUrlAlreadyFavorited(bgOriginalUrl);
+      setIsAlreadyFavorited(favorited);
+
+      console.log('🔍 [收藏状态检查]', {
+        bgOriginalUrl: bgOriginalUrl ? '有原始URL' : '无原始URL',
+        isAlreadyFavorited: favorited,
+      });
+    };
+
+    checkIfFavorited();
+  }, [bgOriginalUrl, wallpaperResolution]);
+
+  // 调试：监控状态变化
+  useEffect(() => {
+    console.log('🔍 [收藏按钮调试]', {
+      wallpaperResolution,
+      bgImage: bgImage ? '有图片' : '无图片',
+      bgOriginalUrl: bgOriginalUrl ? bgOriginalUrl : '无原始URL',
+      isSearchFocused,
+      shouldShow: wallpaperResolution !== 'custom' && bgImage,
+      isAlreadyFavorited,
+    });
+  }, [wallpaperResolution, bgImage, bgOriginalUrl, isSearchFocused, isAlreadyFavorited]);
+
+  // 收藏当前壁纸
+  const handleFavoriteWallpaper = async () => {
+    // 如果已经收藏，不允许重复收藏
+    if (isFavoriting || !bgOriginalUrl || wallpaperResolution === 'custom' || isAlreadyFavorited) {
+      return;
+    }
+
+    setIsFavoriting(true);
+
+    try {
+      // 使用原始 Unsplash URL 下载并保存壁纸
+      const result = await customWallpaperManager.downloadAndSaveFromUrl(
+        bgOriginalUrl, // 使用原始URL而不是Blob URL
+        `unsplash-${wallpaperResolution}-${Date.now()}.jpg`
+      );
+
+      if (result.success) {
+        setIsFavorited(true);
+        setIsAlreadyFavorited(true); // 标记为已收藏
+        logger.debug('✅ 壁纸收藏成功', { id: result.id });
+
+        // 3秒后隐藏"收藏成功"提示（但保持已收藏状态）
+        setTimeout(() => {
+          setIsFavorited(false);
+        }, 3000);
+      } else {
+        logger.warn('❌ 壁纸收藏失败', result.error);
+        // 如果是重复收藏的错误，更新状态
+        if (result.error?.includes('已经在你的收藏中')) {
+          setIsAlreadyFavorited(true);
+        }
+        alert(`收藏失败: ${result.error || '未知错误'}`);
+      }
+    } catch (error) {
+      logger.error('收藏壁纸时出错', error);
+      alert('收藏失败，请重试');
+    } finally {
+      setIsFavoriting(false);
+    }
+  };
 
   // 组件挂载时立即检查缓存，提供即时加载体验
   useEffect(() => {
@@ -72,6 +150,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
 
         if (result.url && result.isFromCache) {
           setBgImage(result.url);
+          setBgOriginalUrl(result.originalUrl); // 保存原始 URL
           setBgImageLoaded(true);
           logger.debug('⚡ 即时加载缓存壁纸', { isToday: result.isToday });
 
@@ -82,6 +161,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
         } else if (result.url) {
           // 新下载的壁纸
           setBgImage(result.url);
+          setBgOriginalUrl(result.originalUrl); // 保存原始 URL
           setBgImageLoaded(true);
           logger.debug('🌐 加载新下载壁纸');
         }
@@ -134,15 +214,18 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
         if (result.url) {
           logger.debug(result.isFromCache ? '📦 使用缓存壁纸' : '🌐 加载新壁纸');
           setBgImage(result.url);
+          setBgOriginalUrl(result.originalUrl); // 保存原始 URL 用于收藏检测
           setBgImageLoaded(true);
         } else {
           logger.warn('❌ 无法获取壁纸');
           setBgImage('');
+          setBgOriginalUrl(undefined);
           setBgImageLoaded(true);
         }
       } catch (error) {
         logger.warn('获取壁纸失败:', error);
         setBgImage('');
+        setBgOriginalUrl(undefined);
         setBgImageLoaded(true);
       }
     })();
@@ -350,7 +433,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
         {/* 工作空间触发按钮 - 响应式调整 */}
         <motion.div
           className={classes.workspaceButton}
-          animate={{ 
+          animate={{
             opacity: isSearchFocused ? 0 : 1,
             scale: isSearchFocused ? 0.8 : 1
           }}
@@ -373,6 +456,69 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
             </div>
           </div>
         </motion.div>
+
+        {/* 收藏壁纸按钮 - 右上角，仅在搜索框聚焦且不是自定义壁纸时显示 */}
+        {wallpaperResolution !== 'custom' && bgImage && (
+          <motion.div
+            className={isMobile ? 'fixed top-2 right-2 z-40 scale-90' : 'fixed top-4 right-4 z-40'}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{
+              opacity: isSearchFocused ? 1 : 0,
+              scale: isSearchFocused ? 1 : 0.8
+            }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+          >
+            <div className="relative group">
+              <button
+                onClick={handleFavoriteWallpaper}
+                disabled={isFavoriting || isAlreadyFavorited}
+                className={`flex items-center justify-center transition-all duration-300 p-3 rounded-full backdrop-blur-sm border ${
+                  isAlreadyFavorited
+                    ? 'bg-red-500/20 border-red-500/50 cursor-default'
+                    : isFavorited
+                    ? 'bg-red-500/20 border-red-500/50'
+                    : 'bg-white/10 border-white/20 hover:bg-white/20 cursor-pointer'
+                } ${isFavoriting ? 'cursor-not-allowed opacity-50' : ''}`}
+              >
+                {isFavoriting ? (
+                  <i className="fa-solid fa-spinner fa-spin text-white/80 text-xl"></i>
+                ) : (
+                  <i
+                    className={`fa-${isAlreadyFavorited || isFavorited ? 'solid' : 'regular'} fa-heart transition-all duration-300 ${
+                      isAlreadyFavorited || isFavorited
+                        ? 'text-red-500 text-2xl'
+                        : 'text-white/60 group-hover:text-white text-xl group-hover:scale-110'
+                    }`}
+                  ></i>
+                )}
+              </button>
+
+              {/* hover提示文字 - 未收藏时 */}
+              {!isFavoriting && !isFavorited && !isAlreadyFavorited && (
+                <div className="absolute right-0 top-full mt-2 px-4 py-2 bg-gray-900/90 text-white text-sm rounded-lg shadow-lg backdrop-blur-sm border border-white/10 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none z-50">
+                  喜欢此壁纸？点击拿下
+                  <div className="absolute bottom-full right-4 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-gray-900/90"></div>
+                </div>
+              )}
+
+              {/* hover提示文字 - 已收藏时 */}
+              {!isFavoriting && isAlreadyFavorited && !isFavorited && (
+                <div className="absolute right-0 top-full mt-2 px-4 py-2 bg-red-500/90 text-white text-sm rounded-lg shadow-lg backdrop-blur-sm border border-red-400/30 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none z-50">
+                  ❤️ 已收藏
+                  <div className="absolute bottom-full right-4 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-red-500/90"></div>
+                </div>
+              )}
+
+              {/* 收藏成功提示 */}
+              {isFavorited && (
+                <div className="absolute right-0 top-full mt-2 px-4 py-2 bg-green-500/90 text-white text-sm rounded-lg shadow-lg backdrop-blur-sm border border-green-400/30 whitespace-nowrap z-50">
+                  ✅ 已添加到壁纸库
+                  <div className="absolute bottom-full right-4 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-green-500/90"></div>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
 
         {/* 设置触发按钮 - 右下角 */}
         <motion.div

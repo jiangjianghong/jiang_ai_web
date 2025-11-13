@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Favicon 获取测试</title>
+    <!-- 阻止加载React相关资源 -->
+    <script>
+        // 阻止Vite开发服务器的HMR连接
+        if (window.location.hostname === 'localhost') {
+            window.__vite_is_modern_browser = false;
+        }
+    </script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-item {
+            background: white;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .favicon {
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        .domain {
+            font-weight: bold;
+            color: #333;
+        }
+        .status {
+            margin-left: auto;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .loading { background: #fff3cd; color: #856404; }
+        .error { background: #f8d7da; color: #721c24; }
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 0 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .stats {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎯 Favicon 获取策略测试</h1>
+    
+    <div class="controls">
+        <button onclick="testAllFavicons()">🚀 测试所有域名</button>
+        <button onclick="clearCache()">🗑️ 清除缓存</button>
+        <button onclick="showStats()">📊 显示统计</button>
+    </div>
+
+    <div class="stats" id="stats">
+        <strong>测试统计:</strong> 等待测试...
+    </div>
+
+    <div id="test-results">
+        <!-- 测试结果将在这里显示 -->
+    </div>
+
+    <script>
+        // 测试域名列表
+        const testDomains = [
+            'github.com',
+            'google.com',
+            'microsoft.com',
+            'apple.com',
+            'amazon.com',
+            'facebook.com',
+            'twitter.com',
+            'linkedin.com',
+            'stackoverflow.com',
+            'reddit.com',
+            'youtube.com',
+            'netflix.com',
+            'spotify.com',
+            'discord.com',
+            'notion.so',
+            'figma.com',
+            'vercel.com',
+            'netlify.com',
+            'cloudflare.com',
+            'aws.amazon.com'
+        ];
+
+        let testResults = {};
+        let startTime = 0;
+
+        // 获取favicon的多种策略
+        function getFaviconUrls(domain) {
+            return [
+                `https://www.google.com/s2/favicons?domain=${domain}&sz=32`,
+                `https://icons.duckduckgo.com/ip3/${domain}.ico`,
+                `https://${domain}/favicon.ico`,
+                `https://corsproxy.io/?${encodeURIComponent(`https://favicon.im/${domain}?size=32`)}`
+            ];
+        }
+
+        // 测试单个域名的favicon获取
+        async function testFavicon(domain) {
+            const urls = getFaviconUrls(domain);
+            const resultDiv = document.getElementById(`result-${domain}`);
+            const statusDiv = resultDiv.querySelector('.status');
+            const imgElement = resultDiv.querySelector('.favicon');
+            
+            statusDiv.textContent = '加载中...';
+            statusDiv.className = 'status loading';
+            
+            for (let i = 0; i < urls.length; i++) {
+                const url = urls[i];
+                try {
+                    console.log(`🔄 [${i + 1}/${urls.length}] 测试 ${domain}: ${getUrlDescription(url)}`);
+                    
+                    const response = await fetch(url, {
+                        mode: 'cors',
+                        credentials: 'omit',
+                        headers: {
+                            'Accept': 'image/*,*/*;q=0.8'
+                        },
+                        signal: AbortSignal.timeout(5000)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+
+                    const blob = await response.blob();
+                    
+                    if (blob.size < 50) {
+                        throw new Error(`文件太小 (${blob.size} bytes)`);
+                    }
+
+                    // 成功获取
+                    const blobUrl = URL.createObjectURL(blob);
+                    imgElement.src = blobUrl;
+                    imgElement.onload = () => {
+                        statusDiv.textContent = `✅ 成功 (${getUrlDescription(url)})`;
+                        statusDiv.className = 'status success';
+                        testResults[domain] = { success: true, source: getUrlDescription(url), size: blob.size };
+                        updateStats();
+                    };
+                    imgElement.onerror = () => {
+                        throw new Error('图片加载失败');
+                    };
+                    return;
+                    
+                } catch (error) {
+                    console.log(`❌ [${i + 1}/${urls.length}] ${domain} 失败: ${error.message}`);
+                    continue;
+                }
+            }
+            
+            // 所有尝试失败
+            imgElement.src = '/icon/icon.jpg';
+            statusDiv.textContent = '❌ 全部失败';
+            statusDiv.className = 'status error';
+            testResults[domain] = { success: false, source: 'none' };
+            updateStats();
+        }
+
+        function getUrlDescription(url) {
+            if (url.includes('google.com/s2/favicons')) return 'Google';
+            if (url.includes('icons.duckduckgo.com')) return 'DuckDuckGo';
+            if (url.includes('corsproxy.io')) return 'CORS Proxy';
+            if (url.includes('/favicon.')) return 'Direct';
+            return 'Other';
+        }
+
+        // 创建测试结果显示
+        function createTestResults() {
+            const container = document.getElementById('test-results');
+            container.innerHTML = '';
+            
+            testDomains.forEach(domain => {
+                const div = document.createElement('div');
+                div.className = 'test-item';
+                div.id = `result-${domain}`;
+                div.innerHTML = `
+                    <img class="favicon" src="/icon/icon.jpg" alt="${domain}">
+                    <span class="domain">${domain}</span>
+                    <span class="status">等待测试</span>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // 测试所有favicon
+        async function testAllFavicons() {
+            testResults = {};
+            startTime = Date.now();
+            createTestResults();
+            updateStats();
+            
+            console.log('🚀 开始测试所有域名的 favicon 获取');
+            
+            // 分批测试，避免过多并发请求
+            const batchSize = 3;
+            for (let i = 0; i < testDomains.length; i += batchSize) {
+                const batch = testDomains.slice(i, i + batchSize);
+                const promises = batch.map(domain => testFavicon(domain));
+                await Promise.allSettled(promises);
+                
+                // 批次间延迟
+                if (i + batchSize < testDomains.length) {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+            }
+            
+            console.log('✅ 所有测试完成');
+        }
+
+        // 更新统计信息
+        function updateStats() {
+            const total = Object.keys(testResults).length;
+            const successful = Object.values(testResults).filter(r => r.success).length;
+            const failed = total - successful;
+            const elapsed = startTime ? ((Date.now() - startTime) / 1000).toFixed(1) : 0;
+            
+            const sources = {};
+            Object.values(testResults).forEach(result => {
+                if (result.success) {
+                    sources[result.source] = (sources[result.source] || 0) + 1;
+                }
+            });
+            
+            const sourceStats = Object.entries(sources)
+                .map(([source, count]) => `${source}: ${count}`)
+                .join(', ');
+            
+            document.getElementById('stats').innerHTML = `
+                <strong>测试统计:</strong> 
+                总计: ${total}, 成功: ${successful}, 失败: ${failed}, 
+                用时: ${elapsed}s<br>
+                <strong>成功来源:</strong> ${sourceStats || '无'}
+            `;
+        }
+
+        // 清除缓存
+        function clearCache() {
+            if (confirm('确定要清除所有缓存吗？')) {
+                // 清除浏览器缓存（模拟）
+                location.reload();
+            }
+        }
+
+        // 显示详细统计
+        function showStats() {
+            const stats = Object.entries(testResults)
+                .map(([domain, result]) => `${domain}: ${result.success ? '✅' : '❌'} ${result.source}`)
+                .join('\n');
+            alert('详细统计:\n\n' + stats);
+        }
+
+        // 页面加载完成后创建测试界面
+        document.addEventListener('DOMContentLoaded', () => {
+            createTestResults();
+        });
+    </script>
+</body>
+</html>

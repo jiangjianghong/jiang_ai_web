@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JiangJiang's World</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+    <link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+    <!-- 第一页：欢迎页 -->
+    <section class="page" id="page1">
+        <!-- 流星容器 -->
+        <div class="meteor-container" id="meteorContainer"></div>
+
+        <div class="welcome-container">
+            <div class="content-wrapper">
+                <h1 class="welcome-text">
+                    <span class="line">你好，</span>
+                    <span class="line">欢迎来到</span>
+                    <span class="line highlight">JiangJiang</span>
+                    <span class="line">的世界</span>
+                </h1>
+
+                <!-- 动态装饰图案 -->
+                <div class="decorative-pattern">
+                    <div class="pattern-container">
+                        <!-- 主要几何图形 -->
+                        <div class="geometric-shape shape-1"></div>
+                        <div class="geometric-shape shape-2"></div>
+                        <div class="geometric-shape shape-3"></div>
+
+                        <!-- 连接线条 -->
+                        <div class="connecting-line line-1"></div>
+                        <div class="connecting-line line-2"></div>
+                        <div class="connecting-line line-3"></div>
+
+                        <!-- 装饰圆点 -->
+                        <div class="decorative-dot dot-1"></div>
+                        <div class="decorative-dot dot-2"></div>
+                        <div class="decorative-dot dot-3"></div>
+                        <div class="decorative-dot dot-4"></div>
+
+                        <!-- 光晕效果 -->
+                        <div class="glow-effect glow-1"></div>
+                        <div class="glow-effect glow-2"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="scroll-hint">
+                <div class="scroll-arrow"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 第二页：个人介绍 -->
+    <section class="page" id="page2">
+        <div class="about-container">
+            <h2 class="section-title">关于我</h2>
+            <div class="about-content">
+                <!-- 左侧时间轴 -->
+                <div class="timeline-section">
+                    <div class="timeline">
+                        <!-- 高中 -->
+                        <div class="timeline-item">
+                            <div class="timeline-dot"></div>
+                            <div class="timeline-content">
+                                <span class="timeline-period">高中</span>
+                                <h3 class="timeline-title">池州市第八中学</h3>
+                                <span class="timeline-date">2015 - 2018</span>
+                                <p class="timeline-desc">改革前的理科</p>
+                            </div>
+                        </div>
+
+                        <!-- 本科 -->
+                        <div class="timeline-item">
+                            <div class="timeline-dot"></div>
+                            <div class="timeline-content">
+                                <span class="timeline-period">本科</span>
+                                <h3 class="timeline-title">安徽大学</h3>
+                                <span class="timeline-date">2017 - 2021</span>
+                                <p class="timeline-desc">物联网工程</p>
+                            </div>
+                        </div>
+
+                        <!-- 硕士 -->
+                        <div class="timeline-item">
+                            <div class="timeline-dot"></div>
+                            <div class="timeline-content">
+                                <span class="timeline-period">硕士</span>
+                                <h3 class="timeline-title">安徽大学</h3>
+                                <span class="timeline-date">2022 - 2025</span>
+                                <p class="timeline-desc">电子信息-人工智能</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 右侧个人介绍 -->
+                <div class="intro-section">
+                    <div class="intro-card">
+                        <h3 class="intro-heading">个人简介</h3>
+                        <p class="intro-text">
+                            一个喜欢用AI写AI的算法工程师，目标是成为更优秀的算法工程师。<br>
+                            一个喜欢追求新鲜事物但又相对保守的矛盾体。
+                        </p>
+                    </div>
+
+                    <div class="intro-card">
+                        <h3 class="intro-heading">技术栈</h3>
+                        <div class="skills-tags">
+                            <span class="skill-tag">Python</span>
+                            <span class="skill-tag">Linux</span>
+                            <span class="skill-tag">Machine Learning</span>
+                            <span class="skill-tag">Muti-objective Optimization</span>
+                            <span class="skill-tag">Claude🤪</span>
+                            <span class="skill-tag">Chatgpt🤪</span>
+                            <span class="skill-tag">Gemini🤪</span>
+                            <span class="skill-tag">Deepseek🤪</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 第三页：项目展示 -->
+    <section class="page" id="page3">
+        <div class="projects-container">
+            <h2 class="section-title">我的项目</h2>
+
+            <!-- Swiper 3D卡片轮播 -->
+            <div class="swiper projectSwiper">
+                <div class="swiper-wrapper">
+                    <!-- 项目卡片 1 -->
+                    <div class="swiper-slide">
+                        <div class="project-card">
+                            <div class="project-image">
+                                <div class="project-placeholder">🤖</div>
+                            </div>
+                            <div class="project-content">
+                                <h3 class="project-title">AI数据库项目</h3>
+                                <p class="project-desc">结合LLM实现自然语言转SQL并执行，实现对国产数据库的支持，支持安全检验、表格展示、结果分析、模拟对话，目标是作为智能体的上游。</p>
+                                <div class="project-tags">
+                                    <span class="project-tag">Python</span>
+                                    <span class="project-tag">LLM</span>
+                                    <span class="project-tag">NLP</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 项目卡片 2 -->
+                    <div class="swiper-slide">
+                        <div class="project-card">
+                            <div class="project-image">
+                                <div class="project-placeholder">📊</div>
+                            </div>
+                            <div class="project-content">
+                                <h3 class="project-title">超多目标及不规则多目标优化算法</h3>
+                                <p class="project-desc">提出一种基于角度的流形嵌入算法，并基于此扩展出用于解决超多目标及不规则问题的多目标优化算法，效果位居世界前列。</p>
+                                <div class="project-tags">
+                                    <span class="project-tag">Matlab</span>
+                                    <span class="project-tag">Platemo</span>
+                                    <span class="project-tag">Muti-objective Optimization</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 项目卡片 3 -->
+                    <div class="swiper-slide">
+                        <div class="project-card">
+                            <div class="project-image">
+                                <div class="project-placeholder">🔬</div>
+                            </div>
+                            <div class="project-content">
+                                <h3 class="project-title">通用不规则多目标优化算法</h3>
+                                <p class="project-desc">提出一种参考向量动态调整的所目标优化算法，有效处理高维及低维的不规则多目标优化问题。</p>
+                                <div class="project-tags">
+                                    <span class="project-tag">Matlab</span>
+                                    <span class="project-tag">Platemo</span>
+                                    <span class="project-tag">Muti-objective Optimization</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 项目卡片 4 -->
+                    <div class="swiper-slide">
+                        <div class="project-card">
+                            <div class="project-image">
+                                <div class="project-placeholder">💻</div>
+                            </div>
+                            <div class="project-content">
+                                <h3 class="project-title">Web开发项目</h3>
+                                <p class="project-desc">一个借助AI实现个人使用的新标签页，符合个人审美与使用习惯，支持接入notion，已开源。</p>
+                                <div class="project-tags">
+                                    <span class="project-tag">JavaScript</span>
+                                    <span class="project-tag">AI</span>
+                                    <span class="project-tag">HTML5</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 项目卡片 5 -->
+                    <div class="swiper-slide">
+                        <div class="project-card">
+                            <div class="project-image">
+                                <div class="project-placeholder">🚀</div>
+                            </div>
+                            <div class="project-content">
+                                <h3 class="project-title">某AI开发项目</h3>
+                                <p class="project-desc">实现批量对图片型和文本型PDF实现特定字段的提取，构建审查表格。</p>
+                                <div class="project-tags">
+                                    <span class="project-tag">Python</span>
+                                    <span class="project-tag">LLM</span>
+                                    <span class="project-tag">vLM</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 导航按钮 -->
+                <div class="swiper-button-prev"></div>
+                <div class="swiper-button-next"></div>
+
+                <!-- 分页器 -->
+                <div class="swiper-pagination"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 第四页：联系我 -->
+    <section class="page" id="page4">
+        <div class="contact-container">
+            <h2 class="section-title">联系我</h2>
+
+            <div class="contact-content">
+                <div class="contact-intro">
+                    <p class="contact-text">
+                        感谢您的访问！如果您对我的项目感兴趣，<br>
+                        或者想要交流合作，欢迎通过以下方式联系我。
+                    </p>
+                </div>
+
+                <div class="contact-links">
+                    <a href="https://github.com/jiangjianghong" target="_blank" class="contact-link github-link">
+                        <div class="contact-icon">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                            </svg>
+                        </div>
+                        <div class="contact-info">
+                            <h3 class="contact-title">GitHub</h3>
+                            <p class="contact-subtitle">查看我的开源项目</p>
+                        </div>
+                    </a>
+
+                    <div class="contact-link email-link">
+                        <div class="contact-icon">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+                            </svg>
+                        </div>
+                        <div class="contact-info">
+                            <h3 class="contact-title">Email</h3>
+                            <p class="contact-subtitle">jiangxihong666@gmail.com</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="contact-footer">
+                    <p>© 2025 JiangJiang. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script src="./script.js"></script>
+</body>
+
+</html>

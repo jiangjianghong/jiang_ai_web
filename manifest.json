@@ -1,0 +1,70 @@
+{
+  "name": "江的标签页",
+  "short_name": "江的标签页",
+  "description": "江的个人标签页与收藏夹管理",
+  "theme_color": "#1e293b",
+  "background_color": "#0f172a",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "start_url": "/",
+  "icons": [
+    {
+      "src": "/icon/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "utilities"],
+  "lang": "zh-CN",
+  "dir": "ltr",
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "shortcuts": [
+    {
+      "name": "搜索",
+      "short_name": "搜索",
+      "description": "快速搜索",
+      "url": "/?action=search",
+      "icons": [
+        {
+          "src": "/icon/favicon.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "设置",
+      "short_name": "设置",
+      "description": "应用设置",
+      "url": "/?action=settings",
+      "icons": [
+        {
+          "src": "/icon/favicon.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/icon/favicon.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide"
+    },
+    {
+      "src": "/icon/favicon.png",
+      "sizes": "750x1334",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ]
+}

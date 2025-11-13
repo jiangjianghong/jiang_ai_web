@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>使用指南</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- 头部导航 -->
+    <header class="header">
+        <div class="header-container">
+            <a href="/" class="logo">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4 4h16v16H4V4z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                    <path d="M9 9h6M9 12h6M9 15h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <span>文档</span>
+            </a>
+            <nav class="header-nav">
+                <a href="/" class="nav-item">首页</a>
+                <a href="/help" class="nav-item active">帮助文档</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- 侧边栏导航 -->
+        <aside class="sidebar">
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <h5 class="nav-title">快速开始</h5>
+                    <a href="#overview" class="nav-link active">概述</a>
+                </div>
+
+                <div class="nav-section">
+                    <h5 class="nav-title">功能指南</h5>
+                    <a href="#register-login" class="nav-link">注册与登录</a>
+                    <a href="#card-config" class="nav-link">卡片配置</a>
+                    <a href="#search" class="nav-link">搜索</a>
+                    <a href="#workspace" class="nav-link">工作空间</a>
+                </div>
+
+                <div class="nav-section">
+                    <h5 class="nav-title">工作空间配置</h5>
+                    <a href="#workspace-step1" class="nav-link">1. 登录 Notion</a>
+                    <a href="#workspace-step2" class="nav-link">2. 创建数据库</a>
+                    <a href="#workspace-step3" class="nav-link">3. 配置属性</a>
+                    <a href="#workspace-step4" class="nav-link">4. 获取 API 密钥</a>
+                    <a href="#workspace-step5" class="nav-link">5. 安装扩展</a>
+                    <a href="#workspace-step6" class="nav-link">6. 添加条目</a>
+                    <a href="#workspace-step7" class="nav-link">7. 连接工作空间</a>
+                </div>
+
+                <div class="nav-section">
+                    <h5 class="nav-title">其他</h5>
+                    <a href="#tips" class="nav-link">使用技巧</a>
+                    <a href="#privacy" class="nav-link">隐私说明</a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- 主内容区 -->
+        <main class="content">
+            <!-- 标题区域 -->
+            <div class="content-header">
+                <h1>使用指南</h1>
+                <p class="subtitle">了解如何使用本网站的各项功能</p>
+            </div>
+
+            <!-- 概述 -->
+            <section id="overview" class="section">
+                <h2>概述</h2>
+                <p>
+                    欢迎使用本网站！本指南将帮助你了解和使用网站的各项功能，包括注册登录、卡片配置、搜索以及 Notion 工作空间集成等。
+                </p>
+                <div class="feature-list">
+                    <div class="feature">
+                        <div class="feature-icon">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M10 2L3 7v6c0 3.86 2.67 7.47 6.5 8.35.5.11 1-.01 1.35-.35.12-.12.21-.27.26-.43C14.83 19.53 17 15.86 17 12V7l-7-5z" fill="#10B981"/>
+                            </svg>
+                        </div>
+                        <div class="feature-content">
+                            <h4>数据安全</h4>
+                            <p>所有数据存储在你的 Notion 账户中，本地仅缓存</p>
+                        </div>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M4 5h12M4 10h12M4 15h12" stroke="#3B82F6" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <div class="feature-content">
+                            <h4>实时同步</h4>
+                            <p>与 Notion 数据库保持实时同步，随时访问最新内容</p>
+                        </div>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M10 2v16M3 9h14" stroke="#8B5CF6" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <div class="feature-content">
+                            <h4>灵活扩展</h4>
+                            <p>自定义字段和分类，适应不同的使用场景</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 注册与登录 -->
+            <section id="register-login" class="section">
+                <h2>注册与登录</h2>
+                <p>XXX</p>
+            </section>
+
+            <!-- 卡片配置 -->
+            <section id="card-config" class="section">
+                <h2>卡片配置</h2>
+                <p>XXX</p>
+            </section>
+
+            <!-- 搜索 -->
+            <section id="search" class="section">
+                <h2>搜索</h2>
+                <p>XXX</p>
+            </section>
+
+            <!-- 工作空间 -->
+            <section id="workspace" class="section">
+                <h2>工作空间</h2>
+                <p>
+                    工作空间是一个强大的功能，通过集成 Notion 数据库，你可以在网站中管理你的网站收藏、账号密码等信息。
+                    Notion 是一个强大的工具，通过将网站工作空间接入到 Notion，可以帮助你组织和管理你的工作和生活。
+                </p>
+
+                <h3>演示效果</h3>
+                <div class="demo-grid">
+                    <figure class="demo-item">
+                        <div class="image-container" data-src="image.png">
+                            <div class="image-placeholder">
+                                <span>加载中...</span>
+                            </div>
+                        </div>
+                        <figcaption>工作空间内部界面</figcaption>
+                    </figure>
+                    <figure class="demo-item">
+                        <div class="image-container" data-src="image-1.png">
+                            <div class="image-placeholder">
+                                <span>加载中...</span>
+                            </div>
+                        </div>
+                        <figcaption>搜索建议功能</figcaption>
+                    </figure>
+                </div>
+
+                <div class="note">
+                    <strong>提示：</strong>以下是详细的工作空间配置步骤，请按照步骤操作。
+                </div>
+            </section>
+
+            <!-- 配置步骤 -->
+            <section id="workspace-step1" class="section">
+                <h2><span class="step-number">1</span>登录 Notion</h2>
+                <p>
+                    首先，你需要一个 Notion 账户。访问 <a href="https://www.notion.so/" target="_blank" rel="noopener">notion.so</a>
+                    登录你的账户。如果还没有账户，可以免费注册。
+                </p>
+                <div class="note">
+                    <strong>提示：</strong>建议使用 Notion 桌面版应用，体验更流畅。该应用完全免费，请从官网下载。
+                </div>
+            </section>
+
+            <section id="workspace-step2" class="section">
+                <h2><span class="step-number">2</span>创建数据库</h2>
+                <p>在 Notion 中创建一个新的数据库：</p>
+                <ol class="step-list">
+                    <li>点击左侧边栏的"新增页面"按钮</li>
+                    <li>选择"表格"模板</li>
+                    <li>给数据库起一个名字，如"网站收藏"</li>
+                </ol>
+                <div class="image-container" data-src="image-2.png">
+                    <div class="image-placeholder">
+                        <span>加载中...</span>
+                    </div>
+                </div>
+            </section>
+
+            <section id="workspace-step3" class="section">
+                <h2><span class="step-number">3</span>配置数据库属性</h2>
+                <p>为数据库添加必要的属性字段：</p>
+
+                <div class="property-list">
+                    <div class="property">
+                        <h4>名称（默认）</h4>
+                        <p>标题字段，无需修改</p>
+                        <div class="image-container" data-src="image-3.png">
+                            <div class="image-placeholder">
+                                <span>加载中...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="property">
+                        <h4>网址</h4>
+                        <p>添加"URL"类型的属性</p>
+                        <div class="image-container" data-src="image-4.png">
+                            <div class="image-placeholder">
+                                <span>加载中...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="property">
+                        <h4>账号</h4>
+                        <p>添加"文本"类型的属性，命名为"账号"</p>
+                        <div class="image-container" data-src="image-5.png">
+                            <div class="image-placeholder">
+                                <span>加载中...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="property">
+                        <h4>密码</h4>
+                        <p>添加"文本"类型的属性，命名为"密码"</p>
+                        <div class="image-container" data-src="image-6.png">
+                            <div class="image-placeholder">
+                                <span>加载中...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="property">
+                        <h4>分类</h4>
+                        <p>添加"选择"类型的属性，用于分类管理</p>
+                        <div class="image-container" data-src="image-7.png">
+                            <div class="image-placeholder">
+                                <span>加载中...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="property">
+                        <h4>描述</h4>
+                        <p>添加"文本"类型的属性，用于搜索优化</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="workspace-step4" class="section">
+                <h2><span class="step-number">4</span>获取 Notion API 密钥</h2>
+
+                <div class="substeps">
+                    <div class="substep">
+                        <h3>创建集成</h3>
+                        <p>
+                            访问 <a href="https://www.notion.so/my-integrations" target="_blank" rel="noopener">Notion 集成页面</a>，
+                            点击"新建集成"。
+                        </p>
+                        <div class="image-container" data-src="image-8.png">
+                            <div class="image-placeholder">
+                                <span>加载中...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="substep">
+                        <h3>配置集成</h3>
+                        <p>填写集成名称，选择关联的工作区，类型选择"内部集成"。</p>
+                    </div>
+
+                    <div class="substep">
+                        <h3>复制密钥</h3>
+                        <p>创建后，在集成设置中找到"内部集成密钥"，点击"显示"并复制。</p>
+                        <div class="image-container" data-src="image-9.png">
+                            <div class="image-placeholder">
+                                <span>加载中...</span>
+                            </div>
+                        </div>
+                        <div class="warning">
+                            <strong>安全提示：</strong>请妥善保管你的 API 密钥，不要分享给他人或提交到公开代码库。
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="workspace-step5" class="section">
+                <h2><span class="step-number">5</span>安装 Notion Web Clipper</h2>
+                <p>
+                    为了方便地保存网页到 Notion 数据库，建议安装
+                    <a href="https://chrome.google.com/webstore/detail/notion-web-clipper/knheggckgoiihginacbkhaalnibhilkk" target="_blank" rel="noopener">
+                        Notion Web Clipper 扩展
+                    </a>。
+                </p>
+                <ol class="step-list">
+                    <li>在浏览器扩展商店搜索 "Notion Web Clipper"</li>
+                    <li>点击"添加到浏览器"</li>
+                    <li>登录你的 Notion 账户并授权</li>
+                </ol>
+            </section>
+
+            <section id="workspace-step6" class="section">
+                <h2><span class="step-number">6</span>添加第一个条目</h2>
+                <p>使用 Web Clipper 保存网页：</p>
+                <ol class="step-list">
+                    <li>访问任意网页</li>
+                    <li>点击浏览器工具栏的 Notion 图标</li>
+                    <li>选择刚创建的数据库</li>
+                    <li>填写相关信息后保存</li>
+                </ol>
+                <div class="image-container" data-src="image-10.png">
+                    <div class="image-placeholder">
+                        <span>加载中...</span>
+                    </div>
+                </div>
+            </section>
+
+            <section id="workspace-step7" class="section">
+                <h2><span class="step-number">7</span>连接到工作空间</h2>
+
+                <div class="substeps">
+                    <div class="substep">
+                        <h3>配置 API 密钥</h3>
+                        <p>在网站的工作空间设置中，粘贴之前复制的 Notion API 密钥。</p>
+                    </div>
+
+                    <div class="substep">
+                        <h3>配置数据库 ID</h3>
+                        <p>回到 Notion，打开你创建的数据库页面：</p>
+                        <ul class="step-list">
+                            <li>如果你使用的是网页版，直接复制浏览器地址栏中的 URL</li>
+                            <li>如果你使用的是桌面版，点击右上角的 "分享" 按钮，选择 "复制链接"</li>
+                        </ul>
+                        <p>得到的链接类似于：</p>
+                        <div class="code-example">
+                            <pre><code>https://www.notion.so/aaaaaaaaaaaaaa?v=bbbbbbbbbb</code></pre>
+                        </div>
+                        <p>或者：</p>
+                        <div class="code-example">
+                            <pre><code>https://www.notion.so/aaaaaaaaaaaaaaa?v=bbbbbbbbbbbb&source=copy_link</code></pre>
+                        </div>
+                        <p>其中，<code>aaaaaaaaaaaaaa</code> 或 <code>aaaaaaaaaaaaaaa</code> 就是你的数据库 ID。</p>
+                        <p>把它粘贴到 "Notion数据库ID" 输入框中。（现在也支持直接复制链接了）</p>
+                    </div>
+
+                    <div class="substep">
+                        <h3>测试连接</h3>
+                        <p>配置完成后，点击"测试连接"按钮验证配置是否正确。</p>
+                        <div class="image-container" data-src="image-11.png">
+                            <div class="image-placeholder">
+                                <span>加载中...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="success-message">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M10 0C4.48 0 0 4.48 0 10s4.48 10 10 10 10-4.48 10-10S15.52 0 10 0zm-1 15l-5-5 1.41-1.41L9 12.17l7.59-7.59L18 6l-9 9z"/>
+                    </svg>
+                    <span>配置完成！现在你可以在工作空间中管理你的 Notion 数据了。</span>
+                </div>
+            </section>
+
+            <!-- 使用技巧 -->
+            <section id="tips" class="section">
+                <h2>使用技巧</h2>
+                <ul class="tips-list">
+                    <li>刷新页面即可同步最新的 Notion 数据</li>
+                    <li>可以在 Notion 中直接编辑条目，修改会实时同步</li>
+                    <li>使用分类标签可以更好地组织内容</li>
+                    <li>描述字段有助于搜索，建议填写关键词</li>
+                    <li>包含账号密码的条目会有特殊标记</li>
+                </ul>
+            </section>
+
+            <!-- 隐私说明 -->
+            <section id="privacy" class="section">
+                <h2>隐私说明</h2>
+                <div class="privacy-notice">
+                    <p>
+                        <strong>数据安全：</strong>工作空间的所有数据仅存储在你的浏览器本地缓存中，
+                        不会上传到我们的服务器。API 密钥等敏感信息均采用加密存储。
+                    </p>
+                    <p>
+                        <strong>权限说明：</strong>网站仅读取你授权的 Notion 数据库，
+                        不会访问你的其他 Notion 内容。
+                    </p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

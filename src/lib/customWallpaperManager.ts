@@ -104,55 +104,28 @@ class CustomWallpaperManager {
     });
   }
 
-  // 图片处理（压缩和优化）
-  private async processImage(file: File): Promise<{ blob: Blob; width: number; height: number }> {
+  // 获取图片尺寸（不压缩）
+  private async getImageDimensions(file: File): Promise<{ width: number; height: number }> {
     return new Promise((resolve, reject) => {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
       const img = new Image();
 
       img.onload = () => {
-        try {
-          // 计算合适的尺寸（最大4K）
-          const maxWidth = 3840;
-          const maxHeight = 2160;
-
-          let { width, height } = img;
-          const originalWidth = width;
-          const originalHeight = height;
-
-          if (width > maxWidth || height > maxHeight) {
-            const ratio = Math.min(maxWidth / width, maxHeight / height);
-            width = Math.floor(width * ratio);
-            height = Math.floor(height * ratio);
-          }
-
-          canvas.width = width;
-          canvas.height = height;
-
-          // 绘制图片
-          ctx?.drawImage(img, 0, 0, width, height);
-
-          // 转换为 Blob
-          canvas.toBlob(
-            (blob) => {
-              if (blob) {
-                resolve({ blob, width: originalWidth, height: originalHeight });
-              } else {
-                reject(new Error('图片处理失败'));
-              }
-            },
-            'image/jpeg',
-            0.85 // 85% 质量
-          );
-        } catch (error) {
-          reject(error);
-        }
+        resolve({ width: img.width, height: img.height });
+        URL.revokeObjectURL(img.src);
       };
 
-      img.onerror = () => reject(new Error('图片加载失败'));
+      img.onerror = () => {
+        URL.revokeObjectURL(img.src);
+        reject(new Error('图片加载失败'));
+      };
+
       img.src = URL.createObjectURL(file);
     });
+  }
+
+  // 将 File 转换为 Blob（保持原格式）
+  private async fileToBlob(file: File): Promise<Blob> {
+    return new Blob([await file.arrayBuffer()], { type: file.type });
   }
 
   // 获取壁纸列表（存储在 localStorage 中，因为是小型 JSON 数据）
@@ -176,7 +149,7 @@ class CustomWallpaperManager {
     }
   }
 
-  // 上传并保存自定义壁纸
+  // 上传并保存自定义壁纸（保存原图）
   async uploadWallpaper(file: File): Promise<{ success: boolean; id?: string; error?: string }> {
     try {
       // 验证文件
@@ -194,29 +167,33 @@ class CustomWallpaperManager {
       // 生成唯一ID
       const id = this.generateId();
 
-      // 压缩图片
-      const { blob: processedBlob, width, height } = await this.processImage(file);
+      // 获取图片尺寸
+      const { width, height } = await this.getImageDimensions(file);
 
-      // 生成缩略图
-      const thumbnail = await this.generateThumbnail(processedBlob);
+      // 保存原图（不压缩）
+      const originalBlob = await this.fileToBlob(file);
+
+      // 生成缩略图（从原图生成）
+      const thumbnail = await this.generateThumbnail(originalBlob);
 
       // 创建元数据
       const metadata: WallpaperMetadata = {
         id,
         name: file.name,
-        size: processedBlob.size,
+        size: originalBlob.size,
         uploadTime: Date.now(),
         width,
         height,
       };
 
-      // 保存到 IndexedDB
+      // 保存原图到 IndexedDB
       await indexedDBCache.set(
         `${this.WALLPAPER_PREFIX}${id}`,
-        processedBlob,
+        originalBlob,
         365 * 24 * 60 * 60 * 1000 // 1年有效期
       );
 
+      // 保存缩略图到 IndexedDB
       await indexedDBCache.set(
         `${this.THUMBNAIL_PREFIX}${id}`,
         thumbnail,
@@ -231,11 +208,11 @@ class CustomWallpaperManager {
       // 设置为当前壁纸
       await this.setCurrentWallpaper(id);
 
-      logger.wallpaper.info('自定义壁纸上传成功', {
+      logger.wallpaper.info('自定义壁纸上传成功（保存原图）', {
         id,
-        originalSize: `${(file.size / 1024 / 1024).toFixed(2)}MB`,
-        processedSize: `${(processedBlob.size / 1024 / 1024).toFixed(2)}MB`,
+        originalSize: `${(originalBlob.size / 1024 / 1024).toFixed(2)}MB`,
         thumbnailSize: `${(thumbnail.size / 1024).toFixed(2)}KB`,
+        dimensions: `${width}×${height}`,
       });
 
       return { success: true, id };
@@ -313,7 +290,7 @@ class CustomWallpaperManager {
       const blob = (await indexedDBCache.get(`${this.WALLPAPER_PREFIX}${currentId}`)) as Blob;
 
       if (blob) {
-        logger.wallpaper.info('获取当前自定义壁纸成功', { id: currentId });
+        logger.wallpaper.info('获取当前自定义壁纸成功（原图）', { id: currentId });
         // 每次都生成新的 Blob URL，确保刷新后可用
         return await memoryManager.createBlobUrl(blob, 'custom-wallpaper');
       }
@@ -321,6 +298,23 @@ class CustomWallpaperManager {
       return null;
     } catch (error) {
       logger.wallpaper.warn('获取当前自定义壁纸失败', error);
+      return null;
+    }
+  }
+
+  // 获取指定壁纸的原图URL（用于预览）
+  async getWallpaperFullImage(id: string): Promise<string | null> {
+    try {
+      const blob = (await indexedDBCache.get(`${this.WALLPAPER_PREFIX}${id}`)) as Blob;
+
+      if (blob) {
+        logger.wallpaper.info('获取壁纸原图成功', { id });
+        return await memoryManager.createBlobUrl(blob, 'custom-wallpaper-preview');
+      }
+
+      return null;
+    } catch (error) {
+      logger.wallpaper.error('获取壁纸原图失败', error);
       return null;
     }
   }

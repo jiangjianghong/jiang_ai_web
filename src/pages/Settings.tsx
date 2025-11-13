@@ -62,9 +62,10 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
   const [showWallpaperGallery, setShowWallpaperGallery] = useState(false);
   const [previewWallpaper, setPreviewWallpaper] = useState<{
     metadata: any;
-    thumbnailUrl: string;
+    fullImageUrl: string;
   } | null>(null);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [loadingPreview, setLoadingPreview] = useState(false);
 
   // 使用统一的数据管理Hook
   const { exportAllData, importAllData, isExporting, isImporting } = useDataManager(
@@ -199,29 +200,20 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
       const result = await customWallpaperManager.uploadWallpaper(file);
 
       if (result.success && result.id) {
-        // 重新加载壁纸列表
-        await loadWallpapers();
+        setSyncMessage('✅ 自定义壁纸上传成功！页面即将刷新...');
 
-        // 更新壁纸信息
-        const info = await customWallpaperManager.getWallpaperInfo();
-        setCustomWallpaperInfo(info);
-
-        // 切换到自定义壁纸（上传时已自动设置为当前壁纸）
-        // 添加一个小延迟确保状态更新
+        // 延迟后刷新页面以应用新壁纸
         setTimeout(() => {
-          setWallpaperResolution('custom');
-        }, 100);
-
-        setSyncMessage('✅ 自定义壁纸上传成功！');
-        setTimeout(() => setSyncMessage(''), 3000);
+          window.location.reload();
+        }, 500);
       } else {
         setSyncMessage(result.error || '上传失败');
         setTimeout(() => setSyncMessage(''), 3000);
+        setUploadingWallpaper(false);
       }
     } catch (error) {
       setSyncMessage('上传失败，请重试');
       setTimeout(() => setSyncMessage(''), 3000);
-    } finally {
       setUploadingWallpaper(false);
     }
   };
@@ -322,22 +314,44 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
     const success = await customWallpaperManager.setCurrentWallpaper(id);
 
     if (success) {
-      // 切换到自定义壁纸模式并重新加载壁纸列表
-      setWallpaperResolution('custom');
-      await loadWallpapers();
+      setSyncMessage('✅ 壁纸已切换，页面即将刷新...');
 
-      setSyncMessage('✅ 壁纸已切换');
-      setTimeout(() => setSyncMessage(''), 2000);
+      // 延迟后刷新页面以应用新壁纸
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
     } else {
       setSyncMessage('❌ 切换失败，请重试');
       setTimeout(() => setSyncMessage(''), 3000);
     }
   };
 
-  // 预览壁纸
+  // 预览壁纸（加载原图）
   const handlePreviewWallpaper = async (wallpaper: { metadata: any; thumbnailUrl: string }) => {
-    setPreviewWallpaper(wallpaper);
+    setLoadingPreview(true);
     setShowPreviewModal(true);
+
+    try {
+      // 获取原图URL
+      const fullImageUrl = await customWallpaperManager.getWallpaperFullImage(wallpaper.metadata.id);
+
+      if (fullImageUrl) {
+        setPreviewWallpaper({
+          metadata: wallpaper.metadata,
+          fullImageUrl,
+        });
+      } else {
+        setSyncMessage('❌ 加载预览失败');
+        setTimeout(() => setSyncMessage(''), 3000);
+        setShowPreviewModal(false);
+      }
+    } catch (error) {
+      setSyncMessage('❌ 加载预览失败');
+      setTimeout(() => setSyncMessage(''), 3000);
+      setShowPreviewModal(false);
+    } finally {
+      setLoadingPreview(false);
+    }
   };
 
   // 下载壁纸
@@ -2133,14 +2147,17 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
       )}
 
       {/* 壁纸预览模态框 */}
-      {showPreviewModal && previewWallpaper && (
+      {showPreviewModal && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center">
           <motion.div
             className="absolute inset-0 bg-black/80 backdrop-blur-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={() => setShowPreviewModal(false)}
+            onClick={() => {
+              setShowPreviewModal(false);
+              setPreviewWallpaper(null);
+            }}
           />
           <motion.div
             className="relative max-w-6xl max-h-[90vh] mx-4"
@@ -2151,47 +2168,61 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
           >
             {/* 关闭按钮 */}
             <button
-              onClick={() => setShowPreviewModal(false)}
+              onClick={() => {
+                setShowPreviewModal(false);
+                setPreviewWallpaper(null);
+              }}
               className="absolute -top-12 right-0 text-white hover:text-gray-300 transition-colors"
             >
               <i className="fa-solid fa-xmark text-3xl"></i>
             </button>
 
             {/* 预览图片 */}
-            <img
-              src={previewWallpaper.thumbnailUrl}
-              alt={previewWallpaper.metadata.name}
-              className="max-w-full max-h-[80vh] rounded-xl shadow-2xl"
-            />
+            {loadingPreview ? (
+              <div className="flex items-center justify-center w-96 h-64 bg-gray-800 rounded-xl">
+                <div className="text-center text-white">
+                  <i className="fa-solid fa-spinner fa-spin text-4xl mb-4"></i>
+                  <p className="text-lg">正在加载原图...</p>
+                </div>
+              </div>
+            ) : previewWallpaper ? (
+              <>
+                <img
+                  src={previewWallpaper.fullImageUrl}
+                  alt={previewWallpaper.metadata.name}
+                  className="max-w-full max-h-[80vh] rounded-xl shadow-2xl"
+                />
 
-            {/* 图片信息 */}
-            <div className="mt-4 bg-white/90 backdrop-blur-sm rounded-lg p-4 flex items-center justify-between">
-              <div>
-                <div className="text-sm font-medium text-gray-800">
-                  {previewWallpaper.metadata.name}
+                {/* 图片信息 */}
+                <div className="mt-4 bg-white/90 backdrop-blur-sm rounded-lg p-4 flex items-center justify-between">
+                  <div>
+                    <div className="text-sm font-medium text-gray-800">
+                      {previewWallpaper.metadata.name}
+                    </div>
+                    <div className="text-xs text-gray-600 mt-1">
+                      {previewWallpaper.metadata.width} × {previewWallpaper.metadata.height} •{' '}
+                      {(previewWallpaper.metadata.size / 1024 / 1024).toFixed(2)} MB
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleSelectWallpaper(previewWallpaper.metadata.id)}
+                      className="px-4 py-2 bg-pink-500 hover:bg-pink-600 text-white text-sm rounded-lg transition-colors flex items-center gap-2"
+                    >
+                      <i className="fa-solid fa-check"></i>
+                      <span>使用此壁纸</span>
+                    </button>
+                    <button
+                      onClick={() => handleDownloadWallpaper(previewWallpaper.metadata.id)}
+                      className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-lg transition-colors flex items-center gap-2"
+                    >
+                      <i className="fa-solid fa-download"></i>
+                      <span>下载</span>
+                    </button>
+                  </div>
                 </div>
-                <div className="text-xs text-gray-600 mt-1">
-                  {previewWallpaper.metadata.width} × {previewWallpaper.metadata.height} •{' '}
-                  {(previewWallpaper.metadata.size / 1024 / 1024).toFixed(2)} MB
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => handleSelectWallpaper(previewWallpaper.metadata.id)}
-                  className="px-4 py-2 bg-pink-500 hover:bg-pink-600 text-white text-sm rounded-lg transition-colors flex items-center gap-2"
-                >
-                  <i className="fa-solid fa-check"></i>
-                  <span>使用此壁纸</span>
-                </button>
-                <button
-                  onClick={() => handleDownloadWallpaper(previewWallpaper.metadata.id)}
-                  className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-lg transition-colors flex items-center gap-2"
-                >
-                  <i className="fa-solid fa-download"></i>
-                  <span>下载</span>
-                </button>
-              </div>
-            </div>
+              </>
+            ) : null}
           </motion.div>
         </div>
       )}

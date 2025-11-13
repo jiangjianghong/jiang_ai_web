@@ -1,7 +1,7 @@
 // 离线优先的Service Worker for 炫酷收藏夹
-const CACHE_NAME = 'jiang-ai-web-v5-offline';
-const STATIC_CACHE_NAME = 'static-v5';
-const DYNAMIC_CACHE_NAME = 'dynamic-v5';
+const CACHE_NAME = 'jiang-ai-web-v6-offline';
+const STATIC_CACHE_NAME = 'static-v6';
+const DYNAMIC_CACHE_NAME = 'dynamic-v6';
 
 // 动态获取正确的路径前缀
 const getBasePath = () => {

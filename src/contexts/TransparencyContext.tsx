@@ -32,7 +32,6 @@ interface TransparencyContextType {
   autoSyncInterval: number; // 自动同步间隔（秒）
   searchInNewTab: boolean; // 搜索是否在新标签页打开
   autoSortEnabled: boolean; // 自动排序开关
-  customWallpaperUrl: string; // 自定义壁纸URL
   timeComponentEnabled: boolean; // 时间组件显示开关
   showFullDate: boolean; // 是否显示完整日期（年月日周）
   showSeconds: boolean; // 是否精确到秒
@@ -54,7 +53,6 @@ interface TransparencyContextType {
   setAutoSyncInterval: (interval: number) => void;
   setSearchInNewTab: (enabled: boolean) => void;
   setAutoSortEnabled: (enabled: boolean) => void;
-  setCustomWallpaperUrl: (url: string) => void;
   setTimeComponentEnabled: (enabled: boolean) => void;
   setShowFullDate: (enabled: boolean) => void;
   setShowSeconds: (enabled: boolean) => void;
@@ -139,12 +137,6 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
 
   // 自动排序设置
   const [autoSortEnabled, setAutoSortEnabled] = useState<boolean>(false);
-
-  // 自定义壁纸URL
-  const [customWallpaperUrl, setCustomWallpaperUrl] = useState(() => {
-    const saved = localStorage.getItem('customWallpaperUrl');
-    return saved || '';
-  });
 
   // 时间组件显示开关
   const [timeComponentEnabled, setTimeComponentEnabled] = useState(() => {
@@ -247,10 +239,6 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
   }, [autoSortEnabled]);
 
   useEffect(() => {
-    localStorage.setItem('customWallpaperUrl', customWallpaperUrl);
-  }, [customWallpaperUrl]);
-
-  useEffect(() => {
     localStorage.setItem('timeComponentEnabled', timeComponentEnabled.toString());
   }, [timeComponentEnabled]);
 
@@ -301,7 +289,6 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
         autoSyncInterval,
         searchInNewTab,
         autoSortEnabled,
-        customWallpaperUrl,
         timeComponentEnabled,
         showFullDate,
         showSeconds,
@@ -323,7 +310,6 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
         setAutoSyncInterval,
         setSearchInNewTab,
         setAutoSortEnabled,
-        setCustomWallpaperUrl,
         setTimeComponentEnabled,
         setShowFullDate,
         setShowSeconds,

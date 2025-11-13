@@ -56,6 +56,15 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
   const [uploadingWallpaper, setUploadingWallpaper] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const [isGlobalDragOver, setIsGlobalDragOver] = useState(false);
+  const [wallpapers, setWallpapers] = useState<
+    Array<{ metadata: any; thumbnailUrl: string; isActive: boolean }>
+  >([]);
+  const [showWallpaperGallery, setShowWallpaperGallery] = useState(false);
+  const [previewWallpaper, setPreviewWallpaper] = useState<{
+    metadata: any;
+    thumbnailUrl: string;
+  } | null>(null);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
 
   // 使用统一的数据管理Hook
   const { exportAllData, importAllData, isExporting, isImporting } = useDataManager(
@@ -88,7 +97,6 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
     setIsSettingsOpen,
     setCardColor,
     setSearchBarColor,
-    setCustomWallpaperUrl,
     setAutoSyncEnabled,
     setAutoSyncInterval,
     setSearchInNewTab,
@@ -119,7 +127,18 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
       setCustomWallpaperInfo(info);
     };
     loadCustomWallpaperInfo();
+    loadWallpapers(); // 同时加载壁纸列表
   }, []);
+
+  // 加载壁纸列表
+  const loadWallpapers = async () => {
+    try {
+      const list = await customWallpaperManager.getAllWallpapers();
+      setWallpapers(list);
+    } catch (error) {
+      console.error('加载壁纸列表失败:', error);
+    }
+  };
 
   // 全局拖拽检测
   useEffect(() => {
@@ -179,16 +198,21 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
     try {
       const result = await customWallpaperManager.uploadWallpaper(file);
 
-      if (result.success && result.url) {
-        // 更新自定义壁纸URL
-        setCustomWallpaperUrl(result.url);
-        // 切换到自定义壁纸
-        setWallpaperResolution('custom');
+      if (result.success && result.id) {
+        // 重新加载壁纸列表
+        await loadWallpapers();
+
         // 更新壁纸信息
         const info = await customWallpaperManager.getWallpaperInfo();
         setCustomWallpaperInfo(info);
 
-        setSyncMessage('自定义壁纸上传成功！');
+        // 切换到自定义壁纸（上传时已自动设置为当前壁纸）
+        // 添加一个小延迟确保状态更新
+        setTimeout(() => {
+          setWallpaperResolution('custom');
+        }, 100);
+
+        setSyncMessage('✅ 自定义壁纸上传成功！');
         setTimeout(() => setSyncMessage(''), 3000);
       } else {
         setSyncMessage(result.error || '上传失败');
@@ -260,23 +284,71 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
     }
   };
 
-  // 删除自定义壁纸
-  const handleDeleteCustomWallpaper = async () => {
-    const success = await customWallpaperManager.deleteCustomWallpaper();
+  // 删除指定壁纸
+  const handleDeleteWallpaper = async (id: string) => {
+    const success = await customWallpaperManager.deleteWallpaper(id);
 
     if (success) {
-      setCustomWallpaperUrl('');
-      setCustomWallpaperInfo({ exists: false });
+      // 重新加载壁纸信息
+      const info = await customWallpaperManager.getWallpaperInfo();
+      setCustomWallpaperInfo(info);
 
-      // 如果当前使用的是自定义壁纸，切换到默认分辨率
-      if (wallpaperResolution === 'custom') {
+      // 重新加载壁纸列表
+      await loadWallpapers();
+
+      // 如果删除的是当前使用的壁纸，且没有其他自定义壁纸，切换到默认分辨率
+      if (!info.exists && wallpaperResolution === 'custom') {
         setWallpaperResolution('1080p');
       }
 
-      setSyncMessage('自定义壁纸已删除');
+      setSyncMessage('壁纸已删除');
       setTimeout(() => setSyncMessage(''), 3000);
     } else {
       setSyncMessage('删除失败，请重试');
+      setTimeout(() => setSyncMessage(''), 3000);
+    }
+  };
+
+  // 删除当前自定义壁纸的包装函数
+  const handleDeleteCustomWallpaper = async () => {
+    const currentId = await customWallpaperManager.getCurrentWallpaperId();
+    if (currentId) {
+      await handleDeleteWallpaper(currentId);
+    }
+  };
+
+  // 选择/激活壁纸
+  const handleSelectWallpaper = async (id: string) => {
+    const success = await customWallpaperManager.setCurrentWallpaper(id);
+
+    if (success) {
+      // 切换到自定义壁纸模式并重新加载壁纸列表
+      setWallpaperResolution('custom');
+      await loadWallpapers();
+
+      setSyncMessage('✅ 壁纸已切换');
+      setTimeout(() => setSyncMessage(''), 2000);
+    } else {
+      setSyncMessage('❌ 切换失败，请重试');
+      setTimeout(() => setSyncMessage(''), 3000);
+    }
+  };
+
+  // 预览壁纸
+  const handlePreviewWallpaper = async (wallpaper: { metadata: any; thumbnailUrl: string }) => {
+    setPreviewWallpaper(wallpaper);
+    setShowPreviewModal(true);
+  };
+
+  // 下载壁纸
+  const handleDownloadWallpaper = async (id: string) => {
+    const success = await customWallpaperManager.downloadWallpaper(id);
+
+    if (success) {
+      setSyncMessage('✅ 壁纸已下载');
+      setTimeout(() => setSyncMessage(''), 2000);
+    } else {
+      setSyncMessage('❌ 下载失败，请重试');
       setTimeout(() => setSyncMessage(''), 3000);
     }
   };
@@ -1659,6 +1731,17 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                       </button>
                     )}
                   </div>
+
+                  {/* 壁纸管理按钮 */}
+                  {wallpapers.length > 0 && (
+                    <button
+                      onClick={() => setShowWallpaperGallery(true)}
+                      className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-[1.02]"
+                    >
+                      <i className="fa-solid fa-images"></i>
+                      <span>管理壁纸库 ({wallpapers.length})</span>
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -1913,6 +1996,205 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
         cancelText="取消"
         type="warning"
       />
+
+      {/* 壁纸管理画廊 */}
+      {showWallpaperGallery && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center">
+          <motion.div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowWallpaperGallery(false)}
+          />
+          <motion.div
+            className="relative bg-white rounded-2xl shadow-2xl max-w-4xl w-full mx-4 max-h-[80vh] flex flex-col"
+            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 400 }}
+          >
+            {/* 标题栏 */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-rose-600 rounded-xl flex items-center justify-center">
+                  <i className="fa-solid fa-images text-white"></i>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-800">壁纸管理</h3>
+                  <p className="text-sm text-gray-500">共 {wallpapers.length} 张壁纸</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowWallpaperGallery(false)}
+                className="text-gray-500 hover:text-gray-700 transition-colors"
+              >
+                <i className="fa-solid fa-xmark text-xl"></i>
+              </button>
+            </div>
+
+            {/* 壁纸网格 */}
+            <div className="flex-1 overflow-y-auto p-6">
+              {wallpapers.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-gray-400">
+                  <i className="fa-solid fa-image text-6xl mb-4"></i>
+                  <p className="text-lg">暂无壁纸</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {wallpapers.map((wallpaper) => (
+                    <motion.div
+                      key={wallpaper.metadata.id}
+                      className={`relative group rounded-xl overflow-hidden border-2 transition-all duration-200 ${
+                        wallpaper.isActive
+                          ? 'border-pink-500 shadow-lg shadow-pink-200'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      {/* 壁纸缩略图 */}
+                      <div className="aspect-video bg-gray-100 relative">
+                        <img
+                          src={wallpaper.thumbnailUrl}
+                          alt={wallpaper.metadata.name}
+                          className="w-full h-full object-cover"
+                        />
+
+                        {/* 当前使用指示器 */}
+                        {wallpaper.isActive && (
+                          <div className="absolute top-2 right-2 bg-pink-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                            <i className="fa-solid fa-check"></i>
+                            <span>使用中</span>
+                          </div>
+                        )}
+
+                        {/* 悬浮操作按钮 */}
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-200 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
+                          {/* 预览 */}
+                          <button
+                            onClick={() => handlePreviewWallpaper(wallpaper)}
+                            className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 transition-colors"
+                            title="预览"
+                          >
+                            <i className="fa-solid fa-eye"></i>
+                          </button>
+
+                          {/* 使用 */}
+                          {!wallpaper.isActive && (
+                            <button
+                              onClick={() => handleSelectWallpaper(wallpaper.metadata.id)}
+                              className="w-10 h-10 bg-pink-500 rounded-full flex items-center justify-center text-white hover:bg-pink-600 transition-colors"
+                              title="使用此壁纸"
+                            >
+                              <i className="fa-solid fa-check"></i>
+                            </button>
+                          )}
+
+                          {/* 下载 */}
+                          <button
+                            onClick={() => handleDownloadWallpaper(wallpaper.metadata.id)}
+                            className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white hover:bg-blue-600 transition-colors"
+                            title="下载"
+                          >
+                            <i className="fa-solid fa-download"></i>
+                          </button>
+
+                          {/* 删除 */}
+                          <button
+                            onClick={() => handleDeleteWallpaper(wallpaper.metadata.id)}
+                            className="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center text-white hover:bg-red-600 transition-colors"
+                            title="删除"
+                          >
+                            <i className="fa-solid fa-trash"></i>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* 壁纸信息 */}
+                      <div className="p-3 bg-white">
+                        <div className="text-sm font-medium text-gray-800 truncate">
+                          {wallpaper.metadata.name}
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          {wallpaper.metadata.width} × {wallpaper.metadata.height}
+                        </div>
+                        <div className="text-xs text-gray-400">
+                          {(wallpaper.metadata.size / 1024 / 1024).toFixed(2)} MB
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* 壁纸预览模态框 */}
+      {showPreviewModal && previewWallpaper && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center">
+          <motion.div
+            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowPreviewModal(false)}
+          />
+          <motion.div
+            className="relative max-w-6xl max-h-[90vh] mx-4"
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.8, opacity: 0 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 400 }}
+          >
+            {/* 关闭按钮 */}
+            <button
+              onClick={() => setShowPreviewModal(false)}
+              className="absolute -top-12 right-0 text-white hover:text-gray-300 transition-colors"
+            >
+              <i className="fa-solid fa-xmark text-3xl"></i>
+            </button>
+
+            {/* 预览图片 */}
+            <img
+              src={previewWallpaper.thumbnailUrl}
+              alt={previewWallpaper.metadata.name}
+              className="max-w-full max-h-[80vh] rounded-xl shadow-2xl"
+            />
+
+            {/* 图片信息 */}
+            <div className="mt-4 bg-white/90 backdrop-blur-sm rounded-lg p-4 flex items-center justify-between">
+              <div>
+                <div className="text-sm font-medium text-gray-800">
+                  {previewWallpaper.metadata.name}
+                </div>
+                <div className="text-xs text-gray-600 mt-1">
+                  {previewWallpaper.metadata.width} × {previewWallpaper.metadata.height} •{' '}
+                  {(previewWallpaper.metadata.size / 1024 / 1024).toFixed(2)} MB
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleSelectWallpaper(previewWallpaper.metadata.id)}
+                  className="px-4 py-2 bg-pink-500 hover:bg-pink-600 text-white text-sm rounded-lg transition-colors flex items-center gap-2"
+                >
+                  <i className="fa-solid fa-check"></i>
+                  <span>使用此壁纸</span>
+                </button>
+                <button
+                  onClick={() => handleDownloadWallpaper(previewWallpaper.metadata.id)}
+                  className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-lg transition-colors flex items-center gap-2"
+                >
+                  <i className="fa-solid fa-download"></i>
+                  <span>下载</span>
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }

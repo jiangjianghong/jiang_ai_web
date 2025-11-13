@@ -301,11 +301,11 @@ class OptimizedWallpaperService {
     needsUpdate: boolean;
   }> {
     try {
-      // 0. 如果是自定义壁纸，直接返回
+      // 0. 如果是自定义壁纸，直接返回（每次从 IndexedDB 生成新的 Blob URL）
       if (resolution === 'custom') {
-        const customUrl = await customWallpaperManager.getCustomWallpaper();
+        const customUrl = await customWallpaperManager.getCurrentWallpaper();
         if (customUrl) {
-          logger.wallpaper.info('使用自定义壁纸');
+          logger.wallpaper.info('使用自定义壁纸（从 IndexedDB 重新生成 Blob URL）');
           return {
             url: customUrl,
             isFromCache: true,

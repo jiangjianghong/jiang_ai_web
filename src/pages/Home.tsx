@@ -29,7 +29,6 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
     wallpaperResolution,
     isSettingsOpen,
     autoSortEnabled,
-    customWallpaperUrl,
     isSearchFocused,
   } = useTransparency();
   const { isWorkspaceOpen, setIsWorkspaceOpen } = useWorkspace();
@@ -57,19 +56,11 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
       try {
         logger.debug('🔍 检查壁纸缓存');
 
-        // 如果有自定义壁纸，直接使用
-        if (customWallpaperUrl && customWallpaperUrl.trim()) {
-          setBgImage(customWallpaperUrl);
-          setBgImageLoaded(true);
-          logger.debug('⚡ 即时加载自定义壁纸');
-          return;
-        }
-
         // 检查是否需要新的壁纸（跨天检查）
         const today = new Date().toISOString().split('T')[0];
         const lastWallpaperDateKey = `last-wallpaper-date-${wallpaperResolution}`;
         const lastWallpaperDate = localStorage.getItem(lastWallpaperDateKey);
-        
+
         // 如果是新的一天，在最后尝试触发重新加载
         const shouldRefreshForNewDay = lastWallpaperDate !== today;
         if (shouldRefreshForNewDay) {
@@ -138,14 +129,6 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
         logger.debug('🖼️ 开始加载壁纸，分辨率:', wallpaperResolution);
         setBgImageLoaded(false);
 
-        // 如果有自定义壁纸URL，优先使用
-        if (customWallpaperUrl && customWallpaperUrl.trim()) {
-          logger.debug('🎨 使用自定义壁纸:', customWallpaperUrl);
-          setBgImage(customWallpaperUrl);
-          setBgImageLoaded(true);
-          return;
-        }
-
         const result = await optimizedWallpaperService.getWallpaper(wallpaperResolution);
 
         if (result.url) {
@@ -163,7 +146,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
         setBgImageLoaded(true);
       }
     })();
-  }, [wallpaperResolution, customWallpaperUrl]);
+  }, [wallpaperResolution]);
 
   // 预加载当前页面的图标
   useEffect(() => {

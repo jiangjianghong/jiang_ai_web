@@ -88,7 +88,10 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
   }, [wallpaperResolution, bgImage, bgOriginalUrl, isSearchFocused, isAlreadyFavorited]);
 
   // 收藏当前壁纸
-  const handleFavoriteWallpaper = async () => {
+  const handleFavoriteWallpaper = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
     // 如果已经收藏，不允许重复收藏
     if (isFavoriting || !bgOriginalUrl || wallpaperResolution === 'custom' || isAlreadyFavorited) {
       return;
@@ -472,22 +475,16 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
               <button
                 onClick={handleFavoriteWallpaper}
                 disabled={isFavoriting || isAlreadyFavorited}
-                className={`flex items-center justify-center transition-all duration-300 p-3 rounded-full backdrop-blur-sm border ${
-                  isAlreadyFavorited
-                    ? 'bg-red-500/20 border-red-500/50 cursor-default'
-                    : isFavorited
-                    ? 'bg-red-500/20 border-red-500/50'
-                    : 'bg-white/10 border-white/20 hover:bg-white/20 cursor-pointer'
-                } ${isFavoriting ? 'cursor-not-allowed opacity-50' : ''}`}
+                className="flex items-center justify-center transition-all duration-300 cursor-pointer hover:scale-110 disabled:cursor-default"
               >
                 {isFavoriting ? (
-                  <i className="fa-solid fa-spinner fa-spin text-white/80 text-xl"></i>
+                  <i className="fa-solid fa-spinner fa-spin text-white/80 text-lg drop-shadow-lg"></i>
                 ) : (
                   <i
-                    className={`fa-${isAlreadyFavorited || isFavorited ? 'solid' : 'regular'} fa-heart transition-all duration-300 ${
+                    className={`fa-${isAlreadyFavorited || isFavorited ? 'solid' : 'regular'} fa-heart transition-all duration-300 drop-shadow-lg ${
                       isAlreadyFavorited || isFavorited
-                        ? 'text-red-500 text-2xl'
-                        : 'text-white/60 group-hover:text-white text-xl group-hover:scale-110'
+                        ? 'text-red-500 text-xl'
+                        : 'text-white/70 hover:text-white text-lg'
                     }`}
                   ></i>
                 )}

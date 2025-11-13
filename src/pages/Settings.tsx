@@ -1725,25 +1725,11 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
                         ) : (
                           <>
                             <i className="fa-solid fa-cloud-upload-alt"></i>
-                            <span>
-                              {customWallpaperInfo.exists ? '更换壁纸' : '点击或拖拽上传壁纸'}
-                            </span>
+                            <span>点击或拖拽上传壁纸</span>
                           </>
                         )}
                       </label>
                     </div>
-
-                    {/* 删除按钮 */}
-                    {customWallpaperInfo.exists && (
-                      <button
-                        onClick={handleDeleteCustomWallpaper}
-                        className="px-4 py-3 text-sm font-medium text-red-600 bg-white border border-red-300 rounded-lg hover:bg-red-50 hover:border-red-400 transition-all duration-200"
-                        disabled={uploadingWallpaper}
-                        title="删除自定义壁纸"
-                      >
-                        <i className="fa-solid fa-trash"></i>
-                      </button>
-                    )}
                   </div>
 
                   {/* 壁纸管理按钮 */}

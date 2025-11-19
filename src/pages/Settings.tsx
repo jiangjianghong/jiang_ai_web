@@ -1062,12 +1062,15 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                 <div className="space-y-3 pt-3 border-t border-gray-100">
                   <div className="flex items-center justify-between">
                     <label className="text-sm font-medium text-gray-700 select-none">
-                      同步间隔
+                      数据变化后延迟同步
                     </label>
                     <span className="text-sm text-blue-600 font-medium bg-blue-50 px-2 py-1 rounded">
                       {autoSyncInterval}秒
                     </span>
                   </div>
+                  <p className="text-xs text-gray-500 select-none">
+                    数据变化后等待此时间再同步，避免频繁请求。关闭设置或保存卡片时会立即同步。
+                  </p>
                   <input
                     type="range"
                     min="3"

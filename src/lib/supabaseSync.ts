@@ -21,6 +21,7 @@ export interface UserSettings {
   searchBarColor: string; // 搜索框颜色 (RGB字符串)
   autoSyncEnabled: boolean; // 自动同步开关
   autoSyncInterval: number; // 自动同步间隔（秒）
+  searchInNewTab?: boolean; // 搜索打开方式（可选，向后兼容）
   autoSortEnabled?: boolean; // 自动排序开关（可选，向后兼容）
   timeComponentEnabled?: boolean; // 时间组件显示开关
   showFullDate?: boolean; // 是否显示完整日期
@@ -29,6 +30,7 @@ export interface UserSettings {
   showYear?: boolean; // 是否显示年份
   showMonth?: boolean; // 是否显示月份
   showDay?: boolean; // 是否显示日期
+  searchBarBorderRadius?: number; // 搜索框圆角大小（可选，向后兼容）
   lastSync: string;
 }
 
@@ -113,6 +115,16 @@ export const saveUserSettings = async (
         search_bar_color: validatedSettings.searchBarColor,
         auto_sync_enabled: validatedSettings.autoSyncEnabled,
         auto_sync_interval: validatedSettings.autoSyncInterval,
+        search_in_new_tab: validatedSettings.searchInNewTab ?? true,
+        auto_sort_enabled: validatedSettings.autoSortEnabled ?? false,
+        time_component_enabled: validatedSettings.timeComponentEnabled ?? true,
+        show_full_date: validatedSettings.showFullDate ?? true,
+        show_seconds: validatedSettings.showSeconds ?? true,
+        show_weekday: validatedSettings.showWeekday ?? true,
+        show_year: validatedSettings.showYear ?? true,
+        show_month: validatedSettings.showMonth ?? true,
+        show_day: validatedSettings.showDay ?? true,
+        search_bar_border_radius: validatedSettings.searchBarBorderRadius ?? 12,
         last_sync: new Date().toISOString(),
       };
 
@@ -193,6 +205,17 @@ export const getUserSettings = async (user: User): Promise<UserSettings | null> 
           data.auto_sync_interval && data.auto_sync_interval >= 3 && data.auto_sync_interval <= 300
             ? data.auto_sync_interval
             : 30,
+        // 新增的设置项
+        searchInNewTab: data.search_in_new_tab !== undefined ? data.search_in_new_tab : true,
+        autoSortEnabled: data.auto_sort_enabled !== undefined ? data.auto_sort_enabled : false,
+        timeComponentEnabled: data.time_component_enabled !== undefined ? data.time_component_enabled : true,
+        showFullDate: data.show_full_date !== undefined ? data.show_full_date : true,
+        showSeconds: data.show_seconds !== undefined ? data.show_seconds : true,
+        showWeekday: data.show_weekday !== undefined ? data.show_weekday : true,
+        showYear: data.show_year !== undefined ? data.show_year : true,
+        showMonth: data.show_month !== undefined ? data.show_month : true,
+        showDay: data.show_day !== undefined ? data.show_day : true,
+        searchBarBorderRadius: data.search_bar_border_radius !== undefined ? data.search_bar_border_radius : 12,
         lastSync: data.last_sync,
       };
     } else {

@@ -612,6 +612,7 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
         searchBarColor,
         autoSyncEnabled,
         autoSyncInterval,
+        searchInNewTab,
         autoSortEnabled,
         timeComponentEnabled,
         showFullDate,
@@ -620,6 +621,7 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
         showYear,
         showMonth,
         showDay,
+        searchBarBorderRadius,
         lastSync: new Date().toISOString(),
       };
 
@@ -664,9 +666,10 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
         setSearchBarColor(cloudSettings.searchBarColor);
         setAutoSyncEnabled(cloudSettings.autoSyncEnabled);
         setAutoSyncInterval(cloudSettings.autoSyncInterval);
-        setAutoSortEnabled(cloudSettings.autoSortEnabled ?? false); // 提供默认值
 
-        // 时间设置同步
+        // 新增设置项的同步
+        setSearchInNewTab(cloudSettings.searchInNewTab ?? true);
+        setAutoSortEnabled(cloudSettings.autoSortEnabled ?? false);
         setTimeComponentEnabled(cloudSettings.timeComponentEnabled ?? true);
         setShowFullDate(cloudSettings.showFullDate ?? true);
         setShowSeconds(cloudSettings.showSeconds ?? true);
@@ -674,6 +677,7 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
         setShowYear(cloudSettings.showYear ?? true);
         setShowMonth(cloudSettings.showMonth ?? true);
         setShowDay(cloudSettings.showDay ?? true);
+        setSearchBarBorderRadius(cloudSettings.searchBarBorderRadius ?? 12);
 
         localStorage.setItem('theme', cloudSettings.theme || 'light');
       }

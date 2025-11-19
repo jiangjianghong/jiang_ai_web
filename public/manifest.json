@@ -4,7 +4,7 @@
   "description": "江的个人标签页与收藏夹管理",
   "theme_color": "#1e293b",
   "background_color": "#0f172a",
-  "display": "standalone",
+  "display": "fullscreen",
   "orientation": "portrait-primary",
   "scope": "/",
   "start_url": "/",

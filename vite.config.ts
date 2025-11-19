@@ -32,7 +32,7 @@ function getPlugins() {
 }
 
 export default defineConfig({
-  // 运行在基础端口上，不使用子目录
+  // 运行在基础端口上，不使用子目录（适合自定义域名）
   base: '/',
   plugins: getPlugins(),
   
@@ -72,16 +72,17 @@ export default defineConfig({
         }
       }
     },
-    // esbuild配置 - 生产环境移除console
-    esbuild: {
-      drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : [],
-    },
     // 启用source map但仅在开发环境
     sourcemap: process.env.NODE_ENV !== 'production',
     // 设置chunk大小警告阈值
     chunkSizeWarningLimit: 1000,
   },
-  
+
+  // esbuild配置 - 生产环境移除console
+  esbuild: {
+    drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : [],
+  },
+
   // 开发服务器配置
   server: {
     // WebSocket HMR 配置

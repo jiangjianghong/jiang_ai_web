@@ -6,10 +6,24 @@
   <title>炫酷收藏夹 - 页面重定向</title>
   <script>
     // GitHub Pages SPA 重定向脚本
-    // 将 404 页面重定向到主页面，并保持路径信息
+    // 将 404 页面重定向到主页面，但排除静态目录（如 /me）
     (function(l) {
+      // 静态目录列表（不需要重定向的路径）
+      var staticDirs = ['/me'];
+
+      // 检查是否是静态目录
+      var isStaticDir = staticDirs.some(function(dir) {
+        return l.pathname.startsWith(dir + '/') || l.pathname === dir;
+      });
+
+      // 如果是静态目录，不进行重定向
+      if (isStaticDir) {
+        return;
+      }
+
+      // SPA 路由重定向逻辑
       if (l.search[1] === '/' ) {
-        var decoded = l.search.slice(1).split('&').map(function(s) { 
+        var decoded = l.search.slice(1).split('&').map(function(s) {
           return s.replace(/~and~/g, '&')
         }).join('?');
         window.history.replaceState(null, null,
@@ -61,14 +75,14 @@
   <div class="container">
     <div class="spinner"></div>
     <div class="loading">正在重定向到炫酷收藏夹...</div>
-    <div class="redirect-info">如果页面没有自动跳转，请点击<a href="/jiang_ai_web/" style="color: #fff; text-decoration: underline;">这里</a></div>
+    <div class="redirect-info">如果页面没有自动跳转，请点击<a href="/" style="color: #fff; text-decoration: underline;">这里</a></div>
   </div>
-  
+
   <script>
-    // 备用重定向逻辑
+    // 备用重定向逻辑（仅针对真正的 404 错误）
     setTimeout(function() {
-      if (window.location.pathname === '/jiang_ai_web/404.html') {
-        window.location.href = '/jiang_ai_web/';
+      if (window.location.pathname === '/404.html') {
+        window.location.href = '/';
       }
     }, 3000);
   </script>

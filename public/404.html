@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>炫酷收藏夹 - 页面重定向</title>
+  <title>页面未找到 - 炫酷收藏夹</title>
   <script>
     // GitHub Pages SPA 重定向脚本
     // 将 404 页面重定向到主页面，但排除静态目录（如 /me）
@@ -39,58 +39,274 @@
     }(window.location))
   </script>
   <style>
-    body {
+    * {
       margin: 0;
-      padding: 20px;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
       min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
       color: white;
+      overflow: hidden;
+      position: relative;
     }
+
+    /* 背景动画粒子 */
+    .particles {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .particle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      animation: float 15s infinite;
+    }
+
+    .particle:nth-child(1) { left: 10%; animation-delay: 0s; animation-duration: 12s; }
+    .particle:nth-child(2) { left: 20%; animation-delay: 2s; animation-duration: 14s; }
+    .particle:nth-child(3) { left: 30%; animation-delay: 4s; animation-duration: 11s; }
+    .particle:nth-child(4) { left: 40%; animation-delay: 1s; animation-duration: 16s; }
+    .particle:nth-child(5) { left: 50%; animation-delay: 3s; animation-duration: 13s; }
+    .particle:nth-child(6) { left: 60%; animation-delay: 5s; animation-duration: 15s; }
+    .particle:nth-child(7) { left: 70%; animation-delay: 2s; animation-duration: 12s; }
+    .particle:nth-child(8) { left: 80%; animation-delay: 4s; animation-duration: 14s; }
+    .particle:nth-child(9) { left: 90%; animation-delay: 1s; animation-duration: 11s; }
+
+    @keyframes float {
+      0% {
+        transform: translateY(100vh) scale(0);
+        opacity: 0;
+      }
+      10% {
+        opacity: 1;
+      }
+      90% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(-100vh) scale(1);
+        opacity: 0;
+      }
+    }
+
     .container {
       text-align: center;
-      max-width: 500px;
+      max-width: 600px;
+      padding: 40px 20px;
+      position: relative;
+      z-index: 1;
     }
-    .loading {
-      font-size: 18px;
+
+    /* 404 数字动画 */
+    .error-code {
+      font-size: 120px;
+      font-weight: 800;
+      background: linear-gradient(90deg, #667eea, #764ba2, #f093fb, #f5576c);
+      background-size: 300% 300%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: gradient 3s ease infinite;
       margin-bottom: 20px;
+      line-height: 1;
+      text-shadow: 0 0 80px rgba(102, 126, 234, 0.5);
     }
-    .spinner {
-      width: 40px;
-      height: 40px;
-      border: 4px solid rgba(255,255,255,0.3);
-      border-top: 4px solid white;
+
+    @keyframes gradient {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .error-title {
+      font-size: 28px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      opacity: 0;
+      animation: fadeInUp 0.6s ease forwards 0.3s;
+    }
+
+    .error-message {
+      font-size: 16px;
+      color: rgba(255, 255, 255, 0.7);
+      margin-bottom: 40px;
+      line-height: 1.6;
+      opacity: 0;
+      animation: fadeInUp 0.6s ease forwards 0.5s;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* 加载指示器 */
+    .loader {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 30px;
+      opacity: 0;
+      animation: fadeInUp 0.6s ease forwards 0.7s;
+    }
+
+    .loader-dot {
+      width: 12px;
+      height: 12px;
       border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin: 0 auto 20px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      animation: bounce 1.4s ease-in-out infinite;
     }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+
+    .loader-dot:nth-child(1) { animation-delay: 0s; }
+    .loader-dot:nth-child(2) { animation-delay: 0.2s; }
+    .loader-dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes bounce {
+      0%, 80%, 100% {
+        transform: scale(0.6);
+        opacity: 0.5;
+      }
+      40% {
+        transform: scale(1);
+        opacity: 1;
+      }
     }
-    .redirect-info {
+
+    .redirect-text {
       font-size: 14px;
-      opacity: 0.8;
+      color: rgba(255, 255, 255, 0.6);
+      margin-bottom: 24px;
+      opacity: 0;
+      animation: fadeInUp 0.6s ease forwards 0.9s;
+    }
+
+    /* 返回按钮 */
+    .home-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 28px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      text-decoration: none;
+      border-radius: 50px;
+      font-size: 15px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+      opacity: 0;
+      animation: fadeInUp 0.6s ease forwards 1.1s;
+    }
+
+    .home-button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 15px 40px rgba(102, 126, 234, 0.6);
+    }
+
+    .home-button:active {
+      transform: translateY(-1px);
+    }
+
+    .home-button svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    /* 倒计时 */
+    .countdown {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.4);
+      margin-top: 30px;
+      opacity: 0;
+      animation: fadeInUp 0.6s ease forwards 1.3s;
+    }
+
+    .countdown span {
+      color: rgba(255, 255, 255, 0.7);
+      font-weight: 600;
     }
   </style>
 </head>
 <body>
+  <!-- 背景粒子 -->
+  <div class="particles">
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+  </div>
+
   <div class="container">
-    <div class="spinner"></div>
-    <div class="loading">正在重定向到炫酷收藏夹...</div>
-    <div class="redirect-info">如果页面没有自动跳转，请点击<a href="/" style="color: #fff; text-decoration: underline;">这里</a></div>
+    <div class="error-code">404</div>
+    <h1 class="error-title">页面走丢了</h1>
+    <p class="error-message">
+      抱歉，您访问的页面不存在或已被移除。<br>
+      别担心，我们正在帮您返回首页。
+    </p>
+
+    <div class="loader">
+      <div class="loader-dot"></div>
+      <div class="loader-dot"></div>
+      <div class="loader-dot"></div>
+    </div>
+
+    <p class="redirect-text">正在自动跳转...</p>
+
+    <a href="/" class="home-button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+      </svg>
+      返回首页
+    </a>
+
+    <p class="countdown"><span id="timer">3</span> 秒后自动跳转</p>
   </div>
 
   <script>
-    // 备用重定向逻辑（仅针对真正的 404 错误）
-    setTimeout(function() {
-      if (window.location.pathname === '/404.html') {
+    // 倒计时并跳转
+    var seconds = 3;
+    var timerEl = document.getElementById('timer');
+
+    var countdown = setInterval(function() {
+      seconds--;
+      if (timerEl) {
+        timerEl.textContent = seconds;
+      }
+
+      if (seconds <= 0) {
+        clearInterval(countdown);
         window.location.href = '/';
       }
-    }, 3000);
+    }, 1000);
   </script>
 </body>
 </html>

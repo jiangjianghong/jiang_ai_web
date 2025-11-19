@@ -1,9 +1,16 @@
 import { useEffect } from 'react';
 
-export const usePageTitle = () => {
+interface UsePageTitleOptions {
+  displayName?: string;
+}
+
+export const usePageTitle = (options: UsePageTitleOptions = {}) => {
+  const { displayName = '江' } = options;
+
   useEffect(() => {
-    // 设置初始标题
-    document.title = '江的标签页';
+    // 设置初始标题（根据用户名动态生成）
+    const defaultTitle = `${displayName}的标签页`;
+    document.title = defaultTitle;
 
     const handleVisibilityChange = () => {
       if (document.hidden) {
@@ -11,7 +18,7 @@ export const usePageTitle = () => {
         document.title = '😭你就要离开我了吗';
       } else {
         // 页面获得焦点时显示默认标题
-        document.title = '江的标签页';
+        document.title = defaultTitle;
       }
     };
 
@@ -22,5 +29,5 @@ export const usePageTitle = () => {
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, []);
+  }, [displayName]);
 };

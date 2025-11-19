@@ -6,7 +6,7 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import { TransparencyProvider } from '@/contexts/TransparencyContext';
 import { AuthProvider, useAuth } from '@/contexts/SupabaseAuthContext';
 import { SyncProvider } from '@/contexts/SyncContext';
-import { UserProfileProvider } from '@/contexts/UserProfileContext';
+import { UserProfileProvider, useUserProfile } from '@/contexts/UserProfileContext';
 import { WorkspaceProvider } from '@/contexts/WorkspaceContext';
 import { WebsiteData } from '@/lib/supabaseSync';
 import { useState, useEffect } from 'react';
@@ -24,8 +24,11 @@ import { logger } from '@/utils/logger';
 function AppContent() {
   logger.debug('🎯 AppContent 开始渲染');
 
-  // 使用页面标题hook
-  usePageTitle();
+  // 获取用户资料
+  const { displayName } = useUserProfile();
+
+  // 使用页面标题hook（传入用户名）
+  usePageTitle({ displayName });
 
   // 启用资源预加载
   useResourcePreloader();

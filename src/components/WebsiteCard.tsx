@@ -19,6 +19,7 @@ interface WebsiteCardProps {
   moveCard: (dragIndex: number, hoverIndex: number) => void;
   onSave: (data: any) => void;
   onDelete?: (id: string) => void;
+  onCardSave?: () => void; // 可选的保存回调，用于触发同步
 }
 
 export const WebsiteCard = memo(function WebsiteCardComponent({
@@ -33,6 +34,7 @@ export const WebsiteCard = memo(function WebsiteCardComponent({
   moveCard,
   onSave,
   onDelete,
+  onCardSave,
 }: WebsiteCardProps) {
   const [showEditModal, setShowEditModal] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -401,6 +403,8 @@ export const WebsiteCard = memo(function WebsiteCardComponent({
           onSave={(data) => {
             onSave(data);
             setShowEditModal(false);
+            // 保存后触发同步
+            onCardSave?.();
           }}
           onDelete={onDelete}
         />

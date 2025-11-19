@@ -36,7 +36,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
   const { isMobile, getGridClasses, getSearchBarLayout } = useResponsiveLayout();
 
   // 启用自动同步（传递数据初始化状态）
-  useAutoSync(websites, dataInitialized);
+  const { triggerSync } = useAutoSync(websites, dataInitialized);
 
   // 拖拽排序逻辑
   const moveCard = (dragIndex: number, hoverIndex: number) => {
@@ -419,6 +419,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
                   onDelete={(id) => {
                     setWebsites(websites.filter((card) => card.id !== id));
                   }}
+                  onCardSave={triggerSync}
                 />
               );
             })}
@@ -430,6 +431,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
             onClose={() => setShowSettings(false)}
             websites={websites}
             setWebsites={setWebsites}
+            onSettingsClose={triggerSync}
           />
         )}
 

@@ -26,9 +26,10 @@ interface SettingsProps {
   onClose: () => void;
   websites: WebsiteData[];
   setWebsites: (websites: WebsiteData[]) => void;
+  onSettingsClose?: () => void; // 可选的关闭回调，用于触发同步
 }
 
-function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
+function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: SettingsProps) {
   const [showAddCardModal, setShowAddCardModal] = useState(false);
   const [showPrivacySettings, setShowPrivacySettings] = useState(false);
   const [showImportConfirm, setShowImportConfirm] = useState(false);
@@ -477,6 +478,8 @@ function SettingsComponent({ onClose, websites, setWebsites }: SettingsProps) {
 
   const handleClose = () => {
     setIsSettingsOpen(false);
+    // 触发同步（如果设置了回调）
+    onSettingsClose?.();
     onClose();
   };
 

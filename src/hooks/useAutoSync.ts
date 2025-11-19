@@ -14,6 +14,8 @@ export function useAutoSync(websites: WebsiteData[], dataInitialized: boolean = 
     wallpaperResolution,
     autoSyncEnabled,
     autoSyncInterval,
+    searchInNewTab,
+    searchBarBorderRadius,
     autoSortEnabled,
     timeComponentEnabled,
     showFullDate,
@@ -100,6 +102,8 @@ export function useAutoSync(websites: WebsiteData[], dataInitialized: boolean = 
         searchBarColor: localStorage.getItem('searchBarColor') || '255, 255, 255',
         autoSyncEnabled,
         autoSyncInterval,
+        searchInNewTab,
+        searchBarBorderRadius,
         autoSortEnabled,
         timeComponentEnabled,
         showFullDate,
@@ -143,6 +147,8 @@ export function useAutoSync(websites: WebsiteData[], dataInitialized: boolean = 
               theme: settings.theme,
               autoSyncEnabled,
               autoSyncInterval,
+              searchInNewTab,
+              searchBarBorderRadius,
               autoSortEnabled,
               timeComponentEnabled,
               showFullDate,
@@ -222,6 +228,8 @@ export function useAutoSync(websites: WebsiteData[], dataInitialized: boolean = 
         theme: localStorage.getItem('theme') || 'light',
         autoSyncEnabled,
         autoSyncInterval,
+        searchInNewTab,
+        searchBarBorderRadius,
         autoSortEnabled,
         timeComponentEnabled,
         showFullDate,
@@ -293,6 +301,8 @@ export function useAutoSync(websites: WebsiteData[], dataInitialized: boolean = 
     wallpaperResolution,
     autoSyncEnabled,
     autoSyncInterval,
+    searchInNewTab,
+    searchBarBorderRadius,
     autoSortEnabled,
     timeComponentEnabled,
     showFullDate,
@@ -313,4 +323,24 @@ export function useAutoSync(websites: WebsiteData[], dataInitialized: boolean = 
       }
     };
   }, []);
+
+  // 提供手动触发同步的函数
+  const triggerSync = useCallback(() => {
+    // 只有开启自动同步时才触发
+    if (!autoSyncEnabled) {
+      console.log('⏸️ 自动同步已禁用，跳过手动触发');
+      return;
+    }
+
+    // 检查用户是否登录且邮箱已验证
+    if (!currentUser || !currentUser.email_confirmed_at) {
+      console.log('⏸️ 用户未登录或邮箱未验证，跳过同步');
+      return;
+    }
+
+    console.log('👆 手动触发同步（关闭设置或保存卡片）');
+    performSync(true); // 强制执行同步
+  }, [autoSyncEnabled, currentUser, performSync]);
+
+  return { triggerSync };
 }

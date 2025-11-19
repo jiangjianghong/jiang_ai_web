@@ -9,7 +9,7 @@
     // 将 404 页面重定向到主页面，但排除静态目录（如 /me）
     (function(l) {
       // 静态目录列表（不需要重定向到 SPA 的路径）
-      var staticDirs = ['/me'];
+      var staticDirs = ['/me', '/help'];
 
       // 规范化路径（移除尾部斜杠）
       var pathname = l.pathname.replace(/\/$/, '');

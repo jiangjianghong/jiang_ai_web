@@ -276,7 +276,7 @@ export default function PrivacySettings({ isOpen, onClose }: PrivacySettingsProp
                 </h3>
                 <p className="text-sm text-gray-600 mb-3">详细了解本主页的全部功能与技巧。</p>
                 <a
-                  href={`${import.meta.env.BASE_URL}tutorial.html`}
+                  href="/help/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium shadow transition-colors"

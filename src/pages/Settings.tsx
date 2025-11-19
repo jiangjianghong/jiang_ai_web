@@ -1914,7 +1914,7 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                 </button>
 
                 <a
-                  href={`${import.meta.env.BASE_URL}tutorial.html`}
+                  href="/help/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-b from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 text-sm font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-[1.02] select-none"

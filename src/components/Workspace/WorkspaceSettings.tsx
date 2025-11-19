@@ -208,32 +208,6 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
           <div className="space-y-4">
             <h4 className="font-medium text-gray-900">基础配置</h4>
 
-            {/* API 密钥输入 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Notion API 密钥 *
-              </label>
-              <input
-                type="password"
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                placeholder="secret_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono"
-              />
-              <p className="mt-1 text-xs text-gray-500">
-                从{' '}
-                <a
-                  href="https://www.notion.so/my-integrations"
-                  target="_blank"
-                  rel="noopener"
-                  className="text-blue-500 hover:underline"
-                >
-                  Notion Integrations
-                </a>{' '}
-                获取
-              </p>
-            </div>
-
             {/* 数据库 ID 输入 */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">数据库 ID *</label>
@@ -276,6 +250,32 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
 
               <p className="mt-1 text-xs text-gray-500">
                 支持粘贴完整的 Notion 分享链接，系统会自动提取数据库 ID
+              </p>
+            </div>
+
+            {/* API 密钥输入 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Notion API 密钥 *
+              </label>
+              <input
+                type="password"
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                placeholder="secret_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono"
+              />
+              <p className="mt-1 text-xs text-gray-500">
+                从{' '}
+                <a
+                  href="https://www.notion.so/my-integrations"
+                  target="_blank"
+                  rel="noopener"
+                  className="text-blue-500 hover:underline"
+                >
+                  Notion Integrations
+                </a>{' '}
+                获取
               </p>
             </div>
           </div>

@@ -8,16 +8,22 @@
     // GitHub Pages SPA 重定向脚本
     // 将 404 页面重定向到主页面，但排除静态目录（如 /me）
     (function(l) {
-      // 静态目录列表（不需要重定向的路径）
+      // 静态目录列表（不需要重定向到 SPA 的路径）
       var staticDirs = ['/me'];
+
+      // 规范化路径（移除尾部斜杠）
+      var pathname = l.pathname.replace(/\/$/, '');
 
       // 检查是否是静态目录
       var isStaticDir = staticDirs.some(function(dir) {
-        return l.pathname.startsWith(dir + '/') || l.pathname === dir;
+        return pathname === dir || pathname.startsWith(dir + '/');
       });
 
-      // 如果是静态目录，不进行重定向
+      // 如果是静态目录，重定向到该目录的 index.html
       if (isStaticDir) {
+        // 直接重定向到 index.html
+        var targetPath = pathname + '/index.html';
+        window.location.replace(targetPath);
         return;
       }
 

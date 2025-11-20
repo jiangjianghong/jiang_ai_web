@@ -41,11 +41,9 @@ export const WebsiteCard = memo(function WebsiteCardComponent({
   const [, setClickAnimation] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
-  const { cardOpacity, cardColor } = useTransparency();
+  const { cardOpacity, cardColor, autoSortEnabled, searchInNewTab } = useTransparency();
   const { faviconUrl, isLoading, error } = useLazyFavicon(url, favicon, cardRef);
   const { isMobile, getCardClasses } = useResponsiveLayout();
-
-  const { autoSortEnabled } = useTransparency();
 
   const [{ isDragging }, drag] = useDrag({
     type: 'WEBSITE_CARD',
@@ -154,8 +152,14 @@ export const WebsiteCard = memo(function WebsiteCardComponent({
       setTimeout(() => setClickAnimation(false), 200);
     }
 
-    // 访问网站
-    window.open(url, '_blank');
+    // 根据设置决定打开方式
+    if (searchInNewTab) {
+      // 在新标签页中打开
+      window.open(url, '_blank');
+    } else {
+      // 在当前页面直接跳转
+      window.location.href = url;
+    }
 
     // 更新访问次数
     onSave({

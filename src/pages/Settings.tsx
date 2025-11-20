@@ -1320,11 +1320,11 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                   <div className="flex items-center gap-2 mb-1">
                     <i className="fa-solid fa-external-link-alt text-blue-500 text-sm"></i>
                     <span className="text-sm font-medium text-gray-700 select-none">
-                      搜索打开方式
+                      链接打开方式
                     </span>
                   </div>
                   <p className="text-xs text-gray-500 select-none">
-                    {searchInNewTab ? '在新标签页中打开搜索结果' : '在当前页面直接跳转'}
+                    {searchInNewTab ? '在新标签页中打开搜索结果和卡片' : '在当前页面直接跳转'}
                   </p>
                 </div>
                 <button

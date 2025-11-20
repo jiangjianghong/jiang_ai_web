@@ -323,38 +323,287 @@ GitHub Actions is configured to auto-deploy when pushing to main branch.
 
 ---
 
-## 🗄️ Database Setup
+## 🗄️ Supabase Configuration
 
-If you need to set up your own Supabase instance, refer to the SQL below:
+### Database Setup
+
+If you need to set up your own Supabase instance, follow these steps:
 
 <details>
-<summary>Click to view database migration SQL</summary>
+<summary>1️⃣ Complete Database Schema (First Time Setup)</summary>
+
+Execute the following script in Supabase SQL Editor:
 
 ```sql
--- Add color settings fields
-ALTER TABLE user_settings
-ADD COLUMN IF NOT EXISTS card_color TEXT DEFAULT '255, 255, 255';
+-- ====================================
+-- 1. Create Tables
+-- ====================================
 
-ALTER TABLE user_settings
-ADD COLUMN IF NOT EXISTS search_bar_color TEXT DEFAULT '255, 255, 255';
+-- User profiles table
+CREATE TABLE IF NOT EXISTS user_profiles (
+  id UUID REFERENCES auth.users(id) PRIMARY KEY,
+  email TEXT,
+  display_name TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 
--- Add auto-sync settings fields
-ALTER TABLE user_settings
-ADD COLUMN IF NOT EXISTS auto_sync_enabled BOOLEAN DEFAULT true;
+-- User settings table
+CREATE TABLE IF NOT EXISTS user_settings (
+  id UUID REFERENCES auth.users(id) PRIMARY KEY,
+  -- Basic settings
+  card_opacity NUMERIC DEFAULT 0.8,
+  search_bar_opacity NUMERIC DEFAULT 0.9,
+  parallax_enabled BOOLEAN DEFAULT true,
+  wallpaper_resolution TEXT DEFAULT 'high',
+  theme TEXT DEFAULT 'dark',
+  -- Color settings
+  card_color TEXT DEFAULT '255, 255, 255',
+  search_bar_color TEXT DEFAULT '255, 255, 255',
+  -- Sync settings
+  auto_sync_enabled BOOLEAN DEFAULT true,
+  auto_sync_interval INTEGER DEFAULT 30,
+  -- Search and sort
+  search_in_new_tab BOOLEAN DEFAULT true,
+  auto_sort_enabled BOOLEAN DEFAULT false,
+  -- Time component settings
+  time_component_enabled BOOLEAN DEFAULT true,
+  show_full_date BOOLEAN DEFAULT true,
+  show_seconds BOOLEAN DEFAULT true,
+  show_weekday BOOLEAN DEFAULT true,
+  show_year BOOLEAN DEFAULT true,
+  show_month BOOLEAN DEFAULT true,
+  show_day BOOLEAN DEFAULT true,
+  -- Style settings
+  search_bar_border_radius INTEGER DEFAULT 12,
+  -- Timestamps
+  last_sync TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 
-ALTER TABLE user_settings
-ADD COLUMN IF NOT EXISTS auto_sync_interval INTEGER DEFAULT 30;
+-- User websites table
+CREATE TABLE IF NOT EXISTS user_websites (
+  id UUID REFERENCES auth.users(id) PRIMARY KEY,
+  websites JSONB DEFAULT '[]'::jsonb,
+  last_sync TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 
--- Add constraints for data validity
-ALTER TABLE user_settings
-ADD CONSTRAINT IF NOT EXISTS check_auto_sync_interval
-CHECK (auto_sync_interval >= 3 AND auto_sync_interval <= 60);
+-- ====================================
+-- 2. Enable Row Level Security (RLS)
+-- ====================================
 
--- Add indexes for better query performance
+ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_websites ENABLE ROW LEVEL SECURITY;
+
+-- ====================================
+-- 3. Create Security Policies
+-- ====================================
+
+-- user_profiles policies
+CREATE POLICY "Users can read own profile" ON user_profiles
+  FOR SELECT USING (auth.uid() = id);
+CREATE POLICY "Users can update own profile" ON user_profiles
+  FOR UPDATE USING (auth.uid() = id);
+CREATE POLICY "Users can insert own profile" ON user_profiles
+  FOR INSERT WITH CHECK (auth.uid() = id);
+
+-- user_settings policies
+CREATE POLICY "Users can read own settings" ON user_settings
+  FOR SELECT USING (auth.uid() = id);
+CREATE POLICY "Users can update own settings" ON user_settings
+  FOR UPDATE USING (auth.uid() = id);
+CREATE POLICY "Users can insert own settings" ON user_settings
+  FOR INSERT WITH CHECK (auth.uid() = id);
+
+-- user_websites policies
+CREATE POLICY "Users can read own websites" ON user_websites
+  FOR SELECT USING (auth.uid() = id);
+CREATE POLICY "Users can update own websites" ON user_websites
+  FOR UPDATE USING (auth.uid() = id);
+CREATE POLICY "Users can insert own websites" ON user_websites
+  FOR INSERT WITH CHECK (auth.uid() = id);
+
+-- ====================================
+-- 4. Create Functions and Triggers
+-- ====================================
+
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+CREATE TRIGGER update_user_profiles_updated_at
+  BEFORE UPDATE ON user_profiles
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_user_settings_updated_at
+  BEFORE UPDATE ON user_settings
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_user_websites_updated_at
+  BEFORE UPDATE ON user_websites
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- ====================================
+-- 5. Create Indexes
+-- ====================================
+
 CREATE INDEX IF NOT EXISTS idx_user_settings_id ON user_settings(id);
 CREATE INDEX IF NOT EXISTS idx_user_websites_id ON user_websites(id);
 CREATE INDEX IF NOT EXISTS idx_user_profiles_id ON user_profiles(id);
 ```
+
+</details>
+
+<details>
+<summary>2️⃣ Incremental Migration (Existing Database)</summary>
+
+If you already have a database, just add the new fields:
+
+```sql
+-- Add color settings fields
+ALTER TABLE user_settings
+ADD COLUMN IF NOT EXISTS card_color TEXT DEFAULT '255, 255, 255',
+ADD COLUMN IF NOT EXISTS search_bar_color TEXT DEFAULT '255, 255, 255';
+
+-- Add sync settings fields
+ALTER TABLE user_settings
+ADD COLUMN IF NOT EXISTS auto_sync_enabled BOOLEAN DEFAULT true,
+ADD COLUMN IF NOT EXISTS auto_sync_interval INTEGER DEFAULT 30;
+
+-- Add search and sort settings fields
+ALTER TABLE user_settings
+ADD COLUMN IF NOT EXISTS search_in_new_tab BOOLEAN DEFAULT true,
+ADD COLUMN IF NOT EXISTS auto_sort_enabled BOOLEAN DEFAULT false;
+
+-- Add time component settings fields
+ALTER TABLE user_settings
+ADD COLUMN IF NOT EXISTS time_component_enabled BOOLEAN DEFAULT true,
+ADD COLUMN IF NOT EXISTS show_full_date BOOLEAN DEFAULT true,
+ADD COLUMN IF NOT EXISTS show_seconds BOOLEAN DEFAULT true,
+ADD COLUMN IF NOT EXISTS show_weekday BOOLEAN DEFAULT true,
+ADD COLUMN IF NOT EXISTS show_year BOOLEAN DEFAULT true,
+ADD COLUMN IF NOT EXISTS show_month BOOLEAN DEFAULT true,
+ADD COLUMN IF NOT EXISTS show_day BOOLEAN DEFAULT true;
+
+-- Add search bar style settings field
+ALTER TABLE user_settings
+ADD COLUMN IF NOT EXISTS search_bar_border_radius INTEGER DEFAULT 12;
+```
+
+</details>
+
+<details>
+<summary>3️⃣ Storage Buckets Configuration</summary>
+
+Create Storage buckets for Favicon and Wallpaper services:
+
+```sql
+-- Create favicons bucket
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('favicons', 'favicons', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- Create wallpapers bucket
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('wallpapers', 'wallpapers', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- favicons bucket policies
+CREATE POLICY "Public favicon access" ON storage.objects
+FOR SELECT USING (bucket_id = 'favicons');
+
+CREATE POLICY "Service role favicon upload" ON storage.objects
+FOR INSERT WITH CHECK (bucket_id = 'favicons');
+
+CREATE POLICY "Service role favicon update" ON storage.objects
+FOR UPDATE USING (bucket_id = 'favicons');
+
+-- wallpapers bucket policies
+CREATE POLICY "Public wallpaper access" ON storage.objects
+FOR SELECT USING (bucket_id = 'wallpapers');
+
+CREATE POLICY "Service role wallpaper upload" ON storage.objects
+FOR INSERT WITH CHECK (bucket_id = 'wallpapers');
+
+CREATE POLICY "Service role wallpaper update" ON storage.objects
+FOR UPDATE USING (bucket_id = 'wallpapers');
+```
+
+</details>
+
+### Edge Functions Deployment
+
+<details>
+<summary>📦 Favicon Service</summary>
+
+Unified favicon fetching and caching service.
+
+**Deploy Command:**
+```bash
+supabase functions deploy favicon-service
+```
+
+**API Usage:**
+```bash
+GET https://your-project.supabase.co/functions/v1/favicon-service?domain=github.com&size=64
+```
+
+**Features:**
+- 🚀 Unified API for website favicons
+- 💾 Auto-cache to Supabase Storage
+- 🔄 Multi-source support with automatic failover
+- ⚡ Edge computing, global low latency
+
+See: `supabase/functions/favicon-service/README.md`
+
+</details>
+
+<details>
+<summary>🖼️ Wallpaper Service</summary>
+
+Daily wallpaper fetching and caching service (Bing daily wallpaper).
+
+**Deploy Command:**
+```bash
+supabase functions deploy wallpaper-service
+```
+
+**API Usage:**
+```bash
+GET https://your-project.supabase.co/functions/v1/wallpaper-service?resolution=uhd
+```
+
+**Supported Resolutions:**
+- `uhd` - 3840x2160 (4K)
+- `1920x1080` - Full HD
+- `1366x768` - HD
+- `mobile` - 1080x1920 (Mobile)
+
+See: `supabase/functions/wallpaper-service/README.md`
+
+</details>
+
+<details>
+<summary>🔗 Notion Proxy</summary>
+
+Notion API proxy service for workspace integration.
+
+**Deploy Command:**
+```bash
+supabase functions deploy notion-proxy
+```
+
+**Configuration Required:**
+Set environment variables in Supabase Dashboard:
+- `NOTION_API_KEY` - Notion Integration Token
 
 </details>
 

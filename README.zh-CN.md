@@ -323,38 +323,287 @@ pnpm run deploy
 
 ---
 
-## 🗄️ 数据库配置
+## 🗄️ Supabase 配置
 
-如果你需要设置自己的 Supabase 实例，请参考以下 SQL：
+### 数据库设置
+
+如果你需要设置自己的 Supabase 实例，请按以下步骤操作：
 
 <details>
-<summary>点击查看数据库迁移 SQL</summary>
+<summary>1️⃣ 完整数据库架构（首次部署）</summary>
+
+在 Supabase SQL Editor 中执行以下脚本：
 
 ```sql
--- 添加颜色设置字段
-ALTER TABLE user_settings
-ADD COLUMN IF NOT EXISTS card_color TEXT DEFAULT '255, 255, 255';
+-- ====================================
+-- 1. 创建数据表
+-- ====================================
 
-ALTER TABLE user_settings
-ADD COLUMN IF NOT EXISTS search_bar_color TEXT DEFAULT '255, 255, 255';
+-- 用户资料表
+CREATE TABLE IF NOT EXISTS user_profiles (
+  id UUID REFERENCES auth.users(id) PRIMARY KEY,
+  email TEXT,
+  display_name TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 
--- 添加自动同步设置字段
-ALTER TABLE user_settings
-ADD COLUMN IF NOT EXISTS auto_sync_enabled BOOLEAN DEFAULT true;
+-- 用户设置表
+CREATE TABLE IF NOT EXISTS user_settings (
+  id UUID REFERENCES auth.users(id) PRIMARY KEY,
+  -- 基础设置
+  card_opacity NUMERIC DEFAULT 0.8,
+  search_bar_opacity NUMERIC DEFAULT 0.9,
+  parallax_enabled BOOLEAN DEFAULT true,
+  wallpaper_resolution TEXT DEFAULT 'high',
+  theme TEXT DEFAULT 'dark',
+  -- 颜色设置
+  card_color TEXT DEFAULT '255, 255, 255',
+  search_bar_color TEXT DEFAULT '255, 255, 255',
+  -- 同步设置
+  auto_sync_enabled BOOLEAN DEFAULT true,
+  auto_sync_interval INTEGER DEFAULT 30,
+  -- 搜索和排序
+  search_in_new_tab BOOLEAN DEFAULT true,
+  auto_sort_enabled BOOLEAN DEFAULT false,
+  -- 时间组件设置
+  time_component_enabled BOOLEAN DEFAULT true,
+  show_full_date BOOLEAN DEFAULT true,
+  show_seconds BOOLEAN DEFAULT true,
+  show_weekday BOOLEAN DEFAULT true,
+  show_year BOOLEAN DEFAULT true,
+  show_month BOOLEAN DEFAULT true,
+  show_day BOOLEAN DEFAULT true,
+  -- 样式设置
+  search_bar_border_radius INTEGER DEFAULT 12,
+  -- 时间戳
+  last_sync TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 
-ALTER TABLE user_settings
-ADD COLUMN IF NOT EXISTS auto_sync_interval INTEGER DEFAULT 30;
+-- 用户网站数据表
+CREATE TABLE IF NOT EXISTS user_websites (
+  id UUID REFERENCES auth.users(id) PRIMARY KEY,
+  websites JSONB DEFAULT '[]'::jsonb,
+  last_sync TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 
--- 添加约束确保数据有效性
-ALTER TABLE user_settings
-ADD CONSTRAINT IF NOT EXISTS check_auto_sync_interval
-CHECK (auto_sync_interval >= 3 AND auto_sync_interval <= 60);
+-- ====================================
+-- 2. 启用行级安全策略（RLS）
+-- ====================================
 
--- 添加索引以提高查询性能
+ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_websites ENABLE ROW LEVEL SECURITY;
+
+-- ====================================
+-- 3. 创建安全策略
+-- ====================================
+
+-- user_profiles 策略
+CREATE POLICY "Users can read own profile" ON user_profiles
+  FOR SELECT USING (auth.uid() = id);
+CREATE POLICY "Users can update own profile" ON user_profiles
+  FOR UPDATE USING (auth.uid() = id);
+CREATE POLICY "Users can insert own profile" ON user_profiles
+  FOR INSERT WITH CHECK (auth.uid() = id);
+
+-- user_settings 策略
+CREATE POLICY "Users can read own settings" ON user_settings
+  FOR SELECT USING (auth.uid() = id);
+CREATE POLICY "Users can update own settings" ON user_settings
+  FOR UPDATE USING (auth.uid() = id);
+CREATE POLICY "Users can insert own settings" ON user_settings
+  FOR INSERT WITH CHECK (auth.uid() = id);
+
+-- user_websites 策略
+CREATE POLICY "Users can read own websites" ON user_websites
+  FOR SELECT USING (auth.uid() = id);
+CREATE POLICY "Users can update own websites" ON user_websites
+  FOR UPDATE USING (auth.uid() = id);
+CREATE POLICY "Users can insert own websites" ON user_websites
+  FOR INSERT WITH CHECK (auth.uid() = id);
+
+-- ====================================
+-- 4. 创建自动更新时间戳的函数和触发器
+-- ====================================
+
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+CREATE TRIGGER update_user_profiles_updated_at
+  BEFORE UPDATE ON user_profiles
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_user_settings_updated_at
+  BEFORE UPDATE ON user_settings
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_user_websites_updated_at
+  BEFORE UPDATE ON user_websites
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- ====================================
+-- 5. 创建索引以提高性能
+-- ====================================
+
 CREATE INDEX IF NOT EXISTS idx_user_settings_id ON user_settings(id);
 CREATE INDEX IF NOT EXISTS idx_user_websites_id ON user_websites(id);
 CREATE INDEX IF NOT EXISTS idx_user_profiles_id ON user_profiles(id);
 ```
+
+</details>
+
+<details>
+<summary>2️⃣ 增量迁移（已有数据库）</summary>
+
+如果你已经有数据库，只需要添加新字段：
+
+```sql
+-- 添加颜色设置字段
+ALTER TABLE user_settings
+ADD COLUMN IF NOT EXISTS card_color TEXT DEFAULT '255, 255, 255',
+ADD COLUMN IF NOT EXISTS search_bar_color TEXT DEFAULT '255, 255, 255';
+
+-- 添加同步设置字段
+ALTER TABLE user_settings
+ADD COLUMN IF NOT EXISTS auto_sync_enabled BOOLEAN DEFAULT true,
+ADD COLUMN IF NOT EXISTS auto_sync_interval INTEGER DEFAULT 30;
+
+-- 添加搜索和排序设置字段
+ALTER TABLE user_settings
+ADD COLUMN IF NOT EXISTS search_in_new_tab BOOLEAN DEFAULT true,
+ADD COLUMN IF NOT EXISTS auto_sort_enabled BOOLEAN DEFAULT false;
+
+-- 添加时间组件设置字段
+ALTER TABLE user_settings
+ADD COLUMN IF NOT EXISTS time_component_enabled BOOLEAN DEFAULT true,
+ADD COLUMN IF NOT EXISTS show_full_date BOOLEAN DEFAULT true,
+ADD COLUMN IF NOT EXISTS show_seconds BOOLEAN DEFAULT true,
+ADD COLUMN IF NOT EXISTS show_weekday BOOLEAN DEFAULT true,
+ADD COLUMN IF NOT EXISTS show_year BOOLEAN DEFAULT true,
+ADD COLUMN IF NOT EXISTS show_month BOOLEAN DEFAULT true,
+ADD COLUMN IF NOT EXISTS show_day BOOLEAN DEFAULT true;
+
+-- 添加搜索框样式设置字段
+ALTER TABLE user_settings
+ADD COLUMN IF NOT EXISTS search_bar_border_radius INTEGER DEFAULT 12;
+```
+
+</details>
+
+<details>
+<summary>3️⃣ Storage Buckets 配置</summary>
+
+为 Favicon 和 Wallpaper 服务创建 Storage buckets：
+
+```sql
+-- 创建 favicons bucket
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('favicons', 'favicons', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- 创建 wallpapers bucket
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('wallpapers', 'wallpapers', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- favicons bucket 策略
+CREATE POLICY "Public favicon access" ON storage.objects
+FOR SELECT USING (bucket_id = 'favicons');
+
+CREATE POLICY "Service role favicon upload" ON storage.objects
+FOR INSERT WITH CHECK (bucket_id = 'favicons');
+
+CREATE POLICY "Service role favicon update" ON storage.objects
+FOR UPDATE USING (bucket_id = 'favicons');
+
+-- wallpapers bucket 策略
+CREATE POLICY "Public wallpaper access" ON storage.objects
+FOR SELECT USING (bucket_id = 'wallpapers');
+
+CREATE POLICY "Service role wallpaper upload" ON storage.objects
+FOR INSERT WITH CHECK (bucket_id = 'wallpapers');
+
+CREATE POLICY "Service role wallpaper update" ON storage.objects
+FOR UPDATE USING (bucket_id = 'wallpapers');
+```
+
+</details>
+
+### Edge Functions 部署
+
+<details>
+<summary>📦 Favicon Service</summary>
+
+统一的 favicon 获取和缓存服务。
+
+**部署命令：**
+```bash
+supabase functions deploy favicon-service
+```
+
+**API 使用：**
+```bash
+GET https://your-project.supabase.co/functions/v1/favicon-service?domain=github.com&size=64
+```
+
+**功能特性：**
+- 🚀 统一 API 获取网站 favicon
+- 💾 自动缓存到 Supabase Storage
+- 🔄 多源支持，自动故障转移
+- ⚡ 边缘计算，全球低延迟
+
+详见：`supabase/functions/favicon-service/README.md`
+
+</details>
+
+<details>
+<summary>🖼️ Wallpaper Service</summary>
+
+每日壁纸获取和缓存服务（Bing 每日壁纸）。
+
+**部署命令：**
+```bash
+supabase functions deploy wallpaper-service
+```
+
+**API 使用：**
+```bash
+GET https://your-project.supabase.co/functions/v1/wallpaper-service?resolution=uhd
+```
+
+**支持的分辨率：**
+- `uhd` - 3840x2160 (4K)
+- `1920x1080` - 全高清
+- `1366x768` - 高清
+- `mobile` - 1080x1920 (手机)
+
+详见：`supabase/functions/wallpaper-service/README.md`
+
+</details>
+
+<details>
+<summary>🔗 Notion Proxy</summary>
+
+Notion API 代理服务，用于工作空间集成。
+
+**部署命令：**
+```bash
+supabase functions deploy notion-proxy
+```
+
+**配置要求：**
+需要在 Supabase Dashboard 中设置环境变量：
+- `NOTION_API_KEY` - Notion Integration Token
 
 </details>
 

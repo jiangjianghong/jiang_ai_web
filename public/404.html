@@ -11,29 +11,33 @@
       // 静态目录列表（不需要重定向到 SPA 的路径）
       var staticDirs = ['/me', '/help'];
 
-      // 规范化路径（移除尾部斜杠）
+      // 获取路径（移除尾部斜杠）
       var pathname = l.pathname.replace(/\/$/, '');
 
-      // 检查是否是静态目录
-      var isStaticDir = staticDirs.some(function(dir) {
-        return pathname === dir || pathname.startsWith(dir + '/');
-      });
-
-      // 如果是静态目录，重定向到该目录的 index.html
-      if (isStaticDir) {
-        // 直接重定向到 index.html
-        var targetPath = pathname + '/index.html';
-        window.location.replace(targetPath);
-        return;
+      // 检查是否是静态目录（精确匹配或子路径）
+      for (var i = 0; i < staticDirs.length; i++) {
+        var dir = staticDirs[i];
+        // 如果路径是 /me 或 /help，重定向到其 index.html
+        if (pathname === dir) {
+          window.location.replace(l.origin + dir + '/index.html');
+          return;
+        }
+        // 如果是这些目录的子路径（如 /me/xxx.html），不做处理，让浏览器正常访问
+        if (pathname.startsWith(dir + '/')) {
+          return;
+        }
       }
 
-      // SPA 路由重定向逻辑
-      if (l.search[1] === '/' ) {
-        var decoded = l.search.slice(1).split('&').map(function(s) {
-          return s.replace(/~and~/g, '&')
-        }).join('?');
-        window.history.replaceState(null, null,
-            l.pathname.slice(0, -1) + decoded + l.hash
+      // 对于其他路径，使用 SPA 路由重定向
+      // 将路径信息编码到查询参数中
+      var pathSegment = l.pathname.slice(1);
+      if (pathSegment) {
+        // 将路径转换为查询参数，用于 index.html 恢复
+        window.location.replace(
+          l.origin + l.pathname.split('/').slice(0, -1).join('/') +
+          '/?/' + pathSegment +
+          (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
+          l.hash
         );
       }
     }(window.location))

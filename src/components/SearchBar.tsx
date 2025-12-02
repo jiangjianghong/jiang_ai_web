@@ -1220,7 +1220,7 @@ function SearchBarComponent(props: SearchBarProps = {}) {
         // 检查是否是Help操作
         if ((selectedSuggestion as any)?.isHelpAction) {
           if ((selectedSuggestion as any).action === 'open') {
-            openUrl('/help');
+            openUrl('/help/');
             setSearchQuery('');
             setShowSuggestions(false);
             setWebsiteSuggestions([]);
@@ -1231,7 +1231,7 @@ function SearchBarComponent(props: SearchBarProps = {}) {
         // 检查是否是开发者操作
         if ((selectedSuggestion as any)?.isDeveloperAction) {
           if ((selectedSuggestion as any).action === 'open') {
-            openUrl('/me');
+            openUrl('/me/');
             setSearchQuery('');
             setShowSuggestions(false);
             setWebsiteSuggestions([]);
@@ -1331,7 +1331,7 @@ function SearchBarComponent(props: SearchBarProps = {}) {
       if (queryLower === 'help' || queryLower === '帮助' ||
           queryLower === '帮助页面' || queryLower === '帮助界面') {
         // 打开帮助页面
-        openUrl('/help');
+        openUrl('/help/');
         setSearchQuery('');
         setShowSuggestions(false);
         setWebsiteSuggestions([]);
@@ -1344,7 +1344,7 @@ function SearchBarComponent(props: SearchBarProps = {}) {
           queryLower === '开发者' || queryLower === '开发' ||
           queryLower === 'about me' || queryLower === 'me') {
         // 打开开发者页面
-        openUrl('/me');
+        openUrl('/me/');
         setSearchQuery('');
         setShowSuggestions(false);
         setWebsiteSuggestions([]);
@@ -1946,14 +1946,14 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                                     }
                                   } else if ((suggestion as any).isHelpAction) {
                                     if ((suggestion as any).action === 'open') {
-                                      openUrl('/help');
+                                      openUrl('/help/');
                                       setSearchQuery('');
                                       setShowSuggestions(false);
                                       setWebsiteSuggestions([]);
                                     }
                                   } else if ((suggestion as any).isDeveloperAction) {
                                     if ((suggestion as any).action === 'open') {
-                                      openUrl('/me');
+                                      openUrl('/me/');
                                       setSearchQuery('');
                                       setShowSuggestions(false);
                                       setWebsiteSuggestions([]);

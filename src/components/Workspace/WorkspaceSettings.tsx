@@ -142,7 +142,7 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
 
           <div className="flex items-center space-x-2">
             <a
-              href="/help"
+              href="/help/"
               target="_blank"
               rel="noopener noreferrer"
               className="px-3 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors text-sm font-medium flex items-center space-x-1"
@@ -177,7 +177,7 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
                     需要创建 Notion Integration 并获取 API 密钥。我们为您准备了详细的设置指南。
                   </p>
                   <a
-                    href="/help"
+                    href="/help/"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center space-x-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"

@@ -519,9 +519,9 @@ function SearchBarComponent(props: SearchBarProps = {}) {
       // 处理各种URL格式
       let urlToCheck = trimmedInput;
 
-      // 如果没有协议，尝试添加http://
+      // 如果没有协议，尝试添加https://
       if (!trimmedInput.match(/^https?:\/\//i)) {
-        urlToCheck = `http://${trimmedInput}`;
+        urlToCheck = `https://${trimmedInput}`;
       }
 
       // 使用validator.js检验URL
@@ -577,8 +577,8 @@ function SearchBarComponent(props: SearchBarProps = {}) {
       return trimmedInput;
     }
 
-    // 否则添加http://
-    return `http://${trimmedInput}`;
+    // 否则添加https://
+    return `https://${trimmedInput}`;
   };
 
   // 生成搜索建议 - 使用百度联想API (带CORS处理)

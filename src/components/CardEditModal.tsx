@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { z } from 'zod';
 import Tilt from 'react-parallax-tilt';
 import { uploadFaviconToStorage } from '@/lib/supabaseFaviconUpload';
+import { processFaviconUrl } from '@/lib/faviconUtils';
 
 const websiteSchema = z.object({
   name: z.string().min(1, '网站名不能为空'),
@@ -456,7 +457,7 @@ export default function CardEditModal({
               {formData.favicon && (
                 <div className="mt-2 flex items-center select-none">
                   <img
-                    src={formData.favicon}
+                    src={formData.favicon.startsWith('data:image') ? formData.favicon : processFaviconUrl(formData.favicon, formData.url || '', formData.favicon)}
                     alt="图标预览"
                     className="w-8 h-8 rounded mr-2 select-none"
                   />

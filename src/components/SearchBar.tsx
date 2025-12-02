@@ -5,6 +5,7 @@ import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import { useWorkspace } from '@/contexts/WorkspaceContext';
 import * as validator from 'validator';
 import { TodoModal } from './TodoModal';
+import { processFaviconUrl } from '@/lib/faviconUtils';
 
 interface WebsiteData {
   id: string;
@@ -1643,7 +1644,7 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                                     className={`${isMobile ? 'w-6 h-6' : 'w-8 h-8'} rounded-lg overflow-hidden bg-white shadow-sm border border-gray-200/50 flex-shrink-0`}
                                   >
                                     <img
-                                      src={website.favicon}
+                                      src={processFaviconUrl(website.favicon, website.url, website.favicon)}
                                       alt={website.name}
                                       className="w-full h-full object-contain"
                                       loading="lazy"

@@ -16,7 +16,7 @@
 [![Vite](https://img.shields.io/badge/Vite-6.2.0-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
 [![Supabase](https://img.shields.io/badge/Supabase-Enabled-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com/)
 
-[🌐 在线演示](https://jiangjiangjiang.top) | [🐛 问题反馈](https://github.com/jiangjianghong/jiang_ai_web/issues) | [✨ 功能建议](https://github.com/jiangjianghong/jiang_ai_web/issues)
+[🌐 在线演示](https://jiangjiang.cc) | [🐛 问题反馈](https://github.com/jiangjianghong/jiang_ai_web/issues) | [✨ 功能建议](https://github.com/jiangjianghong/jiang_ai_web/issues)
 
 **[ [English](README.md) | 简体中文 ]**
 
@@ -708,7 +708,7 @@ supabase functions deploy notion-proxy
 
 - **项目地址**: [GitHub](https://github.com/jiangjianghong/jiang_ai_web)
 - **问题反馈**: [Issues](https://github.com/jiangjianghong/jiang_ai_web/issues)
-- **在线访问**: [jiangjiangjiang.top](https://jiangjiangjiang.top)
+- **在线访问**: [jiangjiang.cc](https://jiangjiang.cc)
 
 ---
 

@@ -1,6 +1,6 @@
 # JiangJiang's Personal Website
 
-个人介绍网站，部署在 https://jiangjiangjiang.top/me
+个人介绍网站，部署在 https://jiangjiang.cc/me
 
 ## 项目结构
 

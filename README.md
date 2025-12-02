@@ -16,7 +16,7 @@
 [![Vite](https://img.shields.io/badge/Vite-6.2.0-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
 [![Supabase](https://img.shields.io/badge/Supabase-Enabled-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com/)
 
-[🌐 Live Demo](https://jiangjiangjiang.top) | [🐛 Report Bug](https://github.com/jiangjianghong/jiang_ai_web/issues) | [✨ Request Feature](https://github.com/jiangjianghong/jiang_ai_web/issues)
+[🌐 Live Demo](https://jiangjiang.cc) | [🐛 Report Bug](https://github.com/jiangjianghong/jiang_ai_web/issues) | [✨ Request Feature](https://github.com/jiangjianghong/jiang_ai_web/issues)
 
 **[ English | [简体中文](README.zh-CN.md) ]**
 
@@ -708,7 +708,7 @@ Thanks to the following open source projects and services:
 
 - **Repository**: [GitHub](https://github.com/jiangjianghong/jiang_ai_web)
 - **Issue Tracker**: [Issues](https://github.com/jiangjianghong/jiang_ai_web/issues)
-- **Live Demo**: [jiangjiangjiang.top](https://jiangjiangjiang.top)
+- **Live Demo**: [jiangjiang.cc](https://jiangjiang.cc)
 
 ---
 

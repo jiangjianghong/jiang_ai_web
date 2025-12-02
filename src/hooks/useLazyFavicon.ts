@@ -33,7 +33,7 @@ export function useLazyFavicon(
     if (cached && !isDefaultIcon(cached)) {
       return cached;
     }
-    return faviconUrl;
+    return processFaviconUrl(faviconUrl, originalUrl, faviconUrl);
   });
 
   const [isLoading, setIsLoading] = useState(false);

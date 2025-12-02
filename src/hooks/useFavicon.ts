@@ -18,7 +18,7 @@ export function useFavicon(originalUrl: string, faviconUrl: string) {
       console.log(`🚀 初始化使用缓存图标: ${originalUrl} -> ${cached.substring(0, 50)}...`);
       return cached;
     }
-    return faviconUrl;
+    return processFaviconUrl(faviconUrl, originalUrl, faviconUrl);
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(false);

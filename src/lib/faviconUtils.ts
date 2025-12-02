@@ -32,7 +32,24 @@ export const processFaviconUrl = (url: string, originalUrl: string, faviconUrl: 
 
   const proxyPrefix = 'https://api.allorigins.win/raw?url=';
 
-  // 检查是否是需要代理的URL
+  // 1. 如果是 HTTP 协议，尝试升级或代理
+  if (url.startsWith('http://')) {
+    // 开发环境本地调试不处理
+    if (url.includes('localhost') || url.includes('127.0.0.1')) {
+      return url;
+    }
+
+    // 如果是 favicon.im 或其他已知支持 HTTPS 的服务，直接升级
+    if (url.includes('favicon.im') || url.includes('google.com') || url.includes('duckduckgo.com')) {
+       return url.replace('http://', 'https://');
+    }
+    
+    // 其他 HTTP 链接使用代理，避免混合内容警告
+    console.log(`🔒 检测到不安全的 HTTP 图标链接，使用代理: ${url}`);
+    return proxyPrefix + encodeURIComponent(url);
+  }
+
+  // 2. 检查是否是需要代理的URL
   if (url.includes('favicon.im') && !url.includes('api.allorigins.win')) {
     // 先检查是否已有缓存，如果有缓存则不需要代理
     const cached = faviconCache.getCachedFavicon(originalUrl);

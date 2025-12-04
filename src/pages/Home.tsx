@@ -9,7 +9,7 @@ import { motion } from 'framer-motion';
 import { useTransparency } from '@/contexts/TransparencyContext';
 import { useAutoSync } from '@/hooks/useAutoSync';
 import EmailVerificationBanner from '@/components/EmailVerificationBanner';
-import { LazySettings, LazyWorkspaceModal } from '@/utils/lazyComponents';
+import { LazySettings, LazyWorkspaceModal, preloadWorkspaceModal } from '@/utils/lazyComponents';
 import { useWorkspace } from '@/contexts/WorkspaceContext';
 import { faviconCache } from '@/lib/faviconCache';
 import { optimizedWallpaperService } from '@/lib/optimizedWallpaperService';
@@ -443,6 +443,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
             scale: isSearchFocused ? 0.8 : 1
           }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
+          onMouseEnter={preloadWorkspaceModal} // 鼠标悬停时预加载工作空间组件
         >
           <div className="relative group">
             <button

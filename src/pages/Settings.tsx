@@ -1801,7 +1801,7 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
 
           <div className="space-y-5 select-none settings-section">
             <div className="flex items-center gap-3 select-none">
-              <div className="w-6 h-6 bg-gradient-to-br from-cyan-500 to-teal-600 rounded-lg flex items-center justify-center">
+              <div className="w-6 h-6 bg-gradient-to-br from-violet-500 to-purple-600 rounded-lg flex items-center justify-center">
                 <i className="fa-solid fa-layer-group text-white text-xs"></i>
               </div>
               <h3 className="text-base font-semibold text-gray-800 select-none">卡片管理</h3>
@@ -1811,7 +1811,7 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
             <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-cyan-500 rounded-lg flex items-center justify-center">
+                  <div className="w-8 h-8 bg-violet-500 rounded-lg flex items-center justify-center">
                     <i className="fa-solid fa-layer-group text-white text-sm"></i>
                   </div>
                   <div>
@@ -1825,7 +1825,7 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
 
               <button
                 onClick={() => setShowAddCardModal(true)}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-b from-cyan-500 to-teal-600 hover:from-cyan-600 hover:to-teal-700 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-[1.02] select-none"
+                className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-b from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-[1.02] select-none"
               >
                 <i className="fa-solid fa-plus select-none"></i>
                 <span className="select-none">添加新卡片</span>
@@ -1835,7 +1835,7 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
 
           <div className="space-y-5 select-none settings-section">
             <div className="flex items-center gap-3 select-none">
-              <div className="w-6 h-6 bg-gradient-to-br from-orange-500 to-amber-600 rounded-lg flex items-center justify-center">
+              <div className="w-6 h-6 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center">
                 <i className="fa-solid fa-database text-white text-xs"></i>
               </div>
               <h3 className="text-base font-semibold text-gray-800 select-none">数据管理</h3>
@@ -1844,7 +1844,7 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
 
             <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 space-y-4">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
+                <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center">
                   <i className="fa-solid fa-database text-white text-sm"></i>
                 </div>
                 <div>
@@ -1860,7 +1860,7 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                   className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 select-none ${
                     isExporting
                       ? 'bg-gray-400 cursor-not-allowed text-white shadow-lg shadow-gray-400/30'
-                      : 'bg-gradient-to-b from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white shadow-lg shadow-orange-500/30 hover:shadow-xl hover:shadow-orange-600/40 hover:scale-[1.02]'
+                      : 'bg-gradient-to-b from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:shadow-emerald-600/40 hover:scale-[1.02]'
                   }`}
                 >
                   {isExporting ? (
@@ -1882,7 +1882,7 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                   className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 select-none ${
                     isImporting
                       ? 'bg-gray-400 cursor-not-allowed text-white shadow-lg shadow-gray-400/30'
-                      : 'bg-gradient-to-b from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white shadow-lg shadow-orange-500/30 hover:shadow-xl hover:shadow-orange-600/40 hover:scale-[1.02]'
+                      : 'bg-gradient-to-b from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:shadow-emerald-600/40 hover:scale-[1.02]'
                   }`}
                 >
                   {isImporting ? (
@@ -1907,14 +1907,14 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                 className="hidden"
               />
 
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 select-none">
+              <div className="bg-teal-50 border border-teal-200 rounded-lg p-3 select-none">
                 <div className="flex items-start gap-2 select-none">
-                  <i className="fa-solid fa-exclamation-triangle text-amber-500 text-sm mt-0.5 select-none"></i>
+                  <i className="fa-solid fa-exclamation-triangle text-teal-500 text-sm mt-0.5 select-none"></i>
                   <div className="select-none">
-                    <div className="text-xs font-medium text-amber-700 mb-1 select-none">
+                    <div className="text-xs font-medium text-teal-700 mb-1 select-none">
                       重要提醒
                     </div>
-                    <div className="text-xs text-amber-600 select-none">
+                    <div className="text-xs text-teal-600 select-none">
                       导入会覆盖所有当前数据，建议先导出备份
                     </div>
                   </div>

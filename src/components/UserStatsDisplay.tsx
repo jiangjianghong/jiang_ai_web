@@ -37,23 +37,8 @@ export default function UserStatsDisplay({ websites = [] }: UserStatsDisplayProp
 
   return (
     <div className="space-y-6 select-none">
-      {/* 云同步状态 */}
-      {isLoggedIn && (
-        <div className="flex items-center gap-2 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg px-3 py-2 text-sm text-green-700 select-none">
-          <i className={`fa-solid ${isSyncing ? 'fa-sync fa-spin' : 'fa-cloud-check'}`}></i>
-          <span>{isSyncing ? '同步中...' : '统计数据已同步到云端'}</span>
-        </div>
-      )}
-
-      {!isLoggedIn && (
-        <div className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 text-sm text-gray-500 select-none">
-          <i className="fa-solid fa-cloud-slash"></i>
-          <span>登录后可同步统计数据到云端</span>
-        </div>
-      )}
-
-      {/* 使用概览 */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {/* 使用概览 - 田字排列 */}
+      <div className="grid grid-cols-2 gap-4">
         <StatCard
           icon="fa-solid fa-calendar-days"
           iconColor="text-blue-500"

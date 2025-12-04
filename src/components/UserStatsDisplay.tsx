@@ -14,7 +14,7 @@ interface UserStatsDisplayProps {
 }
 
 export default function UserStatsDisplay({ websites = [] }: UserStatsDisplayProps) {
-  const { stats, getTopCards, getDaysUsed, resetStats, isSyncing, lastSyncTime, isLoggedIn, manualSync } = useUserStats();
+  const { stats, getTopCards, getDaysUsed, isSyncing, isLoggedIn } = useUserStats();
 
   const daysUsed = getDaysUsed();
   const topCards = getTopCards(5);
@@ -35,64 +35,13 @@ export default function UserStatsDisplay({ websites = [] }: UserStatsDisplayProp
   const avgDailyVisits = daysUsed > 0 ? Math.round(stats.totalSiteVisits / daysUsed * 10) / 10 : 0;
   const avgDailySearches = daysUsed > 0 ? Math.round(stats.totalSearches / daysUsed * 10) / 10 : 0;
 
-  const handleReset = () => {
-    const confirmed = window.confirm(
-      '⚠️ 确认重置所有统计数据？\n\n此操作将清除所有使用统计记录，不可撤销！'
-    );
-    if (confirmed) {
-      resetStats();
-    }
-  };
-
-  const handleManualSync = async () => {
-    if (!isLoggedIn) {
-      window.alert('请先登录以同步数据到云端');
-      return;
-    }
-    const success = await manualSync();
-    if (success) {
-      window.alert('✅ 统计数据已同步到云端');
-    } else {
-      window.alert('❌ 同步失败，请稍后重试');
-    }
-  };
-
-  // 格式化最后同步时间
-  const formatLastSync = (time: string | null) => {
-    if (!time) return '从未同步';
-    const date = new Date(time);
-    return date.toLocaleString('zh-CN', {
-      month: 'numeric',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
-
   return (
     <div className="space-y-6">
       {/* 云同步状态 */}
       {isLoggedIn && (
-        <div className="flex items-center justify-between bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg px-3 py-2">
-          <div className="flex items-center gap-2 text-sm text-green-700">
-            <i className={`fa-solid ${isSyncing ? 'fa-sync fa-spin' : 'fa-cloud'}`}></i>
-            <span>
-              {isSyncing ? '同步中...' : `云同步已启用`}
-            </span>
-            {lastSyncTime && !isSyncing && (
-              <span className="text-xs text-green-600">
-                (上次: {formatLastSync(lastSyncTime)})
-              </span>
-            )}
-          </div>
-          <button
-            onClick={handleManualSync}
-            disabled={isSyncing}
-            className="text-xs px-2 py-1 bg-green-100 hover:bg-green-200 text-green-700 rounded transition-colors disabled:opacity-50"
-          >
-            <i className="fa-solid fa-refresh mr-1"></i>
-            同步
-          </button>
+        <div className="flex items-center gap-2 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg px-3 py-2 text-sm text-green-700">
+          <i className={`fa-solid ${isSyncing ? 'fa-sync fa-spin' : 'fa-cloud-check'}`}></i>
+          <span>{isSyncing ? '同步中...' : '统计数据已同步到云端'}</span>
         </div>
       )}
 
@@ -241,18 +190,9 @@ export default function UserStatsDisplay({ websites = [] }: UserStatsDisplayProp
       )}
 
       {/* 首次使用日期 */}
-      <div className="flex items-center justify-between text-xs text-gray-500 px-1">
-        <span>
-          <i className="fa-solid fa-clock-rotate-left mr-1"></i>
-          首次使用: {stats.firstUseDate}
-        </span>
-        <button
-          onClick={handleReset}
-          className="text-red-500 hover:text-red-700 transition-colors"
-        >
-          <i className="fa-solid fa-trash-can mr-1"></i>
-          重置统计
-        </button>
+      <div className="text-xs text-gray-500 px-1">
+        <i className="fa-solid fa-clock-rotate-left mr-1"></i>
+        首次使用: {stats.firstUseDate}
       </div>
     </div>
   );

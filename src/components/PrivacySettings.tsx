@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { storageManager } from '@/lib/storageManager';
+import { useUserStats } from '@/hooks/useUserStats';
 
 interface PrivacySettingsProps {
   isOpen: boolean;
@@ -10,6 +11,7 @@ interface PrivacySettingsProps {
 export default function PrivacySettings({ isOpen, onClose }: PrivacySettingsProps) {
   const [stats, setStats] = useState(() => storageManager.getStorageStats());
   const [consentStatus, setConsentStatus] = useState(() => storageManager.getConsentStatus());
+  const { resetStats: resetUserStats } = useUserStats();
 
   useEffect(() => {
     if (isOpen) {
@@ -264,6 +266,26 @@ export default function PrivacySettings({ isOpen, onClose }: PrivacySettingsProp
                     <div>
                       <div className="font-medium">清除所有数据</div>
                       <div className="text-sm opacity-75">删除所有非必要的本地存储数据</div>
+                    </div>
+                  </div>
+                </button>
+                <button
+                  onClick={() => {
+                    const confirmed = confirm(
+                      '⚠️ 确认重置使用统计？\n\n' + '这将清除您的所有使用统计记录，包括：\n' + '• 网站访问次数\n' + '• 搜索次数\n' + '• 卡片点击统计\n\n' + '此操作不可撤销！'
+                    );
+                    if (confirmed) {
+                      resetUserStats();
+                      alert('✅ 使用统计已重置');
+                    }
+                  }}
+                  className="w-full p-3 bg-orange-100 hover:bg-orange-200 text-orange-800 rounded-lg transition-colors text-left"
+                >
+                  <div className="flex items-center gap-3">
+                    <i className="fa-solid fa-chart-bar"></i>
+                    <div>
+                      <div className="font-medium">重置使用统计</div>
+                      <div className="text-sm opacity-75">清除所有访问、搜索统计记录</div>
                     </div>
                   </div>
                 </button>

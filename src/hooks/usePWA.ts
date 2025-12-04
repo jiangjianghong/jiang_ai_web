@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { CACHE_NAMES } from '../lib/swConfig';
 
 interface NetworkStatus {
   isOnline: boolean;
@@ -77,7 +78,8 @@ export function useOfflineCapabilities(): OfflineCapabilities {
       try {
         if ('serviceWorker' in navigator) {
           const registration = await navigator.serviceWorker.ready;
-          const hasCache = await caches.has('v1');
+          // 使用统一配置的缓存名
+          const hasCache = await caches.has(CACHE_NAMES.STATIC);
 
           setCapabilities((prev) => ({
             ...prev,

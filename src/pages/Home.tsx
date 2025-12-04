@@ -131,18 +131,19 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
     }
   };
 
-  // 组件挂载时立即检查缓存，提供即时加载体验
+  // 壁纸加载 - 统一处理挂载和分辨率变化
   useEffect(() => {
-    const checkCacheAndLoadWallpaper = async () => {
+    const loadWallpaper = async () => {
       try {
-        logger.debug('🔍 检查壁纸缓存');
+        logger.debug('🖼️ 开始加载壁纸，分辨率:', wallpaperResolution);
+        setBgImageLoaded(false);
 
         // 检查是否需要新的壁纸（跨天检查）
         const today = new Date().toISOString().split('T')[0];
         const lastWallpaperDateKey = `last-wallpaper-date-${wallpaperResolution}`;
         const lastWallpaperDate = localStorage.getItem(lastWallpaperDateKey);
 
-        // 如果是新的一天，在最后尝试触发重新加载
+        // 如果是新的一天，记录日期
         const shouldRefreshForNewDay = lastWallpaperDate !== today;
         if (shouldRefreshForNewDay) {
           localStorage.setItem(lastWallpaperDateKey, today);
@@ -151,30 +152,35 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
 
         const result = await optimizedWallpaperService.getWallpaper(wallpaperResolution);
 
-        if (result.url && result.isFromCache) {
+        if (result.url) {
+          logger.debug(result.isFromCache ? '📦 使用缓存壁纸' : '🌐 加载新壁纸', {
+            isToday: result.isToday,
+            needsUpdate: result.needsUpdate,
+          });
           setBgImage(result.url);
-          setBgOriginalUrl(result.originalUrl); // 保存原始 URL
+          setBgOriginalUrl(result.originalUrl); // 保存原始 URL 用于收藏检测
           setBgImageLoaded(true);
-          logger.debug('⚡ 即时加载缓存壁纸', { isToday: result.isToday });
 
-          // 如果缓存的不是今天的壁纸或检测到新的一天，记录警告并后续将触发更新
-          if (!result.isToday || shouldRefreshForNewDay) {
-            logger.warn('⚠️ 使用的是过期壁纸缓存或新的一天，将在后续更新');
+          // 如果缓存的不是今天的壁纸，记录警告
+          if (!result.isToday && result.isFromCache) {
+            logger.warn('⚠️ 使用的是过期壁纸缓存，后台正在更新');
           }
-        } else if (result.url) {
-          // 新下载的壁纸
-          setBgImage(result.url);
-          setBgOriginalUrl(result.originalUrl); // 保存原始 URL
+        } else {
+          logger.warn('❌ 无法获取壁纸');
+          setBgImage('');
+          setBgOriginalUrl(undefined);
           setBgImageLoaded(true);
-          logger.debug('🌐 加载新下载壁纸');
         }
       } catch (error) {
-        logger.warn('检查缓存失败:', error);
+        logger.warn('获取壁纸失败:', error);
+        setBgImage('');
+        setBgOriginalUrl(undefined);
+        setBgImageLoaded(true);
       }
     };
 
-    checkCacheAndLoadWallpaper();
-  }, []); // 只在组件挂载时执行一次
+    loadWallpaper();
+  }, [wallpaperResolution]); // 分辨率变化时重新加载
 
   // 根据设置决定是否自动排序卡片
   const displayWebsites = autoSortEnabled
@@ -205,34 +211,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
     );
   };
 
-  useEffect(() => {
-    // 主要逻辑：使用优化的壁纸服务
-    (async () => {
-      try {
-        logger.debug('🖼️ 开始加载壁纸，分辨率:', wallpaperResolution);
-        setBgImageLoaded(false);
-
-        const result = await optimizedWallpaperService.getWallpaper(wallpaperResolution);
-
-        if (result.url) {
-          logger.debug(result.isFromCache ? '📦 使用缓存壁纸' : '🌐 加载新壁纸');
-          setBgImage(result.url);
-          setBgOriginalUrl(result.originalUrl); // 保存原始 URL 用于收藏检测
-          setBgImageLoaded(true);
-        } else {
-          logger.warn('❌ 无法获取壁纸');
-          setBgImage('');
-          setBgOriginalUrl(undefined);
-          setBgImageLoaded(true);
-        }
-      } catch (error) {
-        logger.warn('获取壁纸失败:', error);
-        setBgImage('');
-        setBgOriginalUrl(undefined);
-        setBgImageLoaded(true);
-      }
-    })();
-  }, [wallpaperResolution]);
+  // 壁纸加载已在上方统一处理
 
   // 预加载当前页面的图标
   useEffect(() => {

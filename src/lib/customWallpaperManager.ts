@@ -68,6 +68,7 @@ class CustomWallpaperManager {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       const img = new Image();
+      const blobUrl = URL.createObjectURL(blob);
 
       img.onload = () => {
         try {
@@ -86,6 +87,7 @@ class CustomWallpaperManager {
 
           canvas.toBlob(
             (thumbnailBlob) => {
+              URL.revokeObjectURL(blobUrl); // 释放 Blob URL
               if (thumbnailBlob) {
                 resolve(thumbnailBlob);
               } else {
@@ -96,12 +98,16 @@ class CustomWallpaperManager {
             0.7 // 70% 质量
           );
         } catch (error) {
+          URL.revokeObjectURL(blobUrl); // 出错时也要释放
           reject(error);
         }
       };
 
-      img.onerror = () => reject(new Error('图片加载失败'));
-      img.src = URL.createObjectURL(blob);
+      img.onerror = () => {
+        URL.revokeObjectURL(blobUrl); // 加载失败时释放
+        reject(new Error('图片加载失败'));
+      };
+      img.src = blobUrl;
     });
   }
 

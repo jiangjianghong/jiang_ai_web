@@ -234,7 +234,9 @@ function AppContent() {
         <Route path="*" element={<NotFound />} />
       </Routes>
 
-      <CookieConsent />
+      <CookieConsent
+        onCustomize={() => setShowPrivacySettings(true)}
+      />
 
       {showPrivacySettings && (
         <PrivacySettings

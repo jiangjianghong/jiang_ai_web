@@ -127,7 +127,7 @@ export default function CookieConsent({ onAccept, onDecline, onCustomize }: Cook
                         <button
                           className="text-blue-600 hover:text-blue-800 underline mx-1"
                           onClick={() =>
-                            window.open('https://github.com/your-repo/privacy-policy', '_blank')
+                            window.open('https://github.com/jiangjianghong/jiang_ai_web#privacy', '_blank')
                           }
                         >
                           隐私政策

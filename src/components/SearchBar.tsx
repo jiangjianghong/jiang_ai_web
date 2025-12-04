@@ -1648,7 +1648,7 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                   {showSuggestions && (websiteSuggestions.length > 0 || workspaceSuggestions.length > 0 || suggestions.length > 0) && (
                     <motion.div
                       className={`absolute top-full left-3 right-0 mt-2 backdrop-blur-md rounded-lg shadow-lg border border-white/20 z-30 overflow-y-auto custom-scrollbar ${
-                        isMobile ? 'max-h-[50vh]' : 'max-h-[60vh]'
+                        isMobile ? 'max-h-72' : 'max-h-96'
                       }`}
                       initial={{ opacity: 0, y: -10, scaleY: 0.8 }}
                       animate={{ opacity: 1, y: 0, scaleY: 1 }}

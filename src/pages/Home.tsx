@@ -9,7 +9,7 @@ import { motion } from 'framer-motion';
 import { useTransparency } from '@/contexts/TransparencyContext';
 import { useAutoSync } from '@/hooks/useAutoSync';
 import EmailVerificationBanner from '@/components/EmailVerificationBanner';
-import { LazySettings, LazyWorkspaceModal, preloadWorkspaceModal } from '@/utils/lazyComponents';
+import { LazySettings, LazyWorkspaceModal, preloadWorkspaceModal, preloadSettings } from '@/utils/lazyComponents';
 import { useWorkspace } from '@/contexts/WorkspaceContext';
 import { faviconCache } from '@/lib/faviconCache';
 import { optimizedWallpaperService } from '@/lib/optimizedWallpaperService';
@@ -226,6 +226,27 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
       return () => clearTimeout(timer);
     }
   }, [websites]);
+
+  // 页面空闲时预加载设置和工作空间组件
+  useEffect(() => {
+    const preloadComponents = () => {
+      // 使用 requestIdleCallback 在浏览器空闲时预加载
+      if ('requestIdleCallback' in window) {
+        (window as any).requestIdleCallback(() => {
+          preloadSettings();
+          preloadWorkspaceModal();
+        }, { timeout: 3000 }); // 最多等待3秒
+      } else {
+        // 降级方案：延迟2秒后预加载
+        setTimeout(() => {
+          preloadSettings();
+          preloadWorkspaceModal();
+        }, 2000);
+      }
+    };
+
+    preloadComponents();
+  }, []);
 
   // 优化的鼠标移动处理器 - 使用 RAF 节流
   const handleMouseMove = useCallback((e: MouseEvent) => {
@@ -507,6 +528,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
             scale: isSearchFocused ? 0.8 : 1
           }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
+          onMouseEnter={preloadSettings} // 鼠标悬停时预加载设置组件
         >
           <button
             onClick={() => setShowSettings(true)}

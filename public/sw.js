@@ -1,6 +1,6 @@
-// 离线优先的Service Worker for 炫酷收藏夹
+// 离线优先的Service Worker
 // ⚠️ 更新版本时，请同步更新 src/lib/swConfig.ts 中的 SW_VERSION
-const SW_VERSION = 'v12';
+const SW_VERSION = 'v13';
 const CACHE_NAME = `jiang-ai-web-${SW_VERSION}-offline`;
 const STATIC_CACHE_NAME = `static-${SW_VERSION}`;
 const DYNAMIC_CACHE_NAME = `dynamic-${SW_VERSION}`;

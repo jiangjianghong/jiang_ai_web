@@ -7,6 +7,7 @@ import * as validator from 'validator';
 import { TodoModal } from './TodoModal';
 import { processFaviconUrl } from '@/lib/faviconUtils';
 import { pinyin, match as pinyinMatch } from 'pinyin-pro';
+import { userStatsManager } from '@/hooks/useUserStats';
 
 interface WebsiteData {
   id: string;
@@ -499,6 +500,12 @@ function SearchBarComponent(props: SearchBarProps = {}) {
       default:
         return `https://www.bing.com/search?q=${encodeURIComponent(query)}`;
     }
+  };
+
+  // 执行搜索并记录统计
+  const performSearchWithStats = (engine: string, query: string) => {
+    userStatsManager.recordSearch();
+    openUrl(getSearchUrl(engine, query));
   };
 
   // 根据设置打开链接的辅助函数
@@ -1318,7 +1325,7 @@ function SearchBarComponent(props: SearchBarProps = {}) {
         // 常规搜索
         const queryToSearch = selectedSuggestion?.query || searchQuery;
         if (queryToSearch.trim()) {
-          openUrl(getSearchUrl(engine, queryToSearch));
+          performSearchWithStats(engine, queryToSearch);
           setSearchQuery('');
           setShowSuggestions(false);
           setWebsiteSuggestions([]);
@@ -1427,7 +1434,7 @@ function SearchBarComponent(props: SearchBarProps = {}) {
         setWebsiteSuggestions([]);
       } else {
         // 搜索引擎搜索
-        openUrl(getSearchUrl(engine, queryToSearch));
+        performSearchWithStats(engine, queryToSearch);
         setSearchQuery('');
         setShowSuggestions(false);
         setWebsiteSuggestions([]);

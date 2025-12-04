@@ -586,3 +586,114 @@ export const getUserProfile = async (user: User): Promise<UserProfile | null> =>
     return null;
   }
 };
+
+// 用户统计数据接口
+export interface UserStatsData {
+  totalSiteVisits: number;
+  totalSearches: number;
+  settingsOpened: number;
+  appOpened: number;
+  cardClicks: Record<string, number>;
+  firstUseDate: string;
+  lastVisitDate: string;
+}
+
+// 保存用户统计数据到 Supabase
+export const saveUserStats = async (
+  user: User,
+  stats: UserStatsData,
+  callbacks?: SyncStatusCallback
+): Promise<boolean> => {
+  try {
+    callbacks?.onSyncStart?.();
+
+    const { error } = await retryAsync(
+      async () =>
+        supabase.from(TABLES.USER_STATS).upsert(
+          {
+            id: user.id,
+            total_site_visits: stats.totalSiteVisits,
+            total_searches: stats.totalSearches,
+            settings_opened: stats.settingsOpened,
+            app_opened: stats.appOpened,
+            card_clicks: stats.cardClicks,
+            first_use_date: stats.firstUseDate,
+            last_visit_date: stats.lastVisitDate,
+            last_sync: new Date().toISOString(),
+          },
+          { onConflict: 'id' }
+        ),
+      3,
+      1000
+    );
+
+    if (error) {
+      throw error;
+    }
+
+    logger.sync.info('用户统计数据同步成功');
+    callbacks?.onSyncSuccess?.('统计数据已同步');
+    return true;
+  } catch (error) {
+    logger.sync.error('保存用户统计数据失败', error);
+    callbacks?.onSyncError?.('统计数据同步失败: ' + (error as Error).message);
+    return false;
+  }
+};
+
+// 从 Supabase 获取用户统计数据
+export const getUserStats = async (user: User): Promise<UserStatsData | null> => {
+  try {
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('连接超时')), 5000)
+    );
+
+    const dataPromise = supabase.from(TABLES.USER_STATS).select('*').eq('id', user.id).single();
+
+    const { data, error } = await Promise.race([dataPromise, timeoutPromise]);
+
+    if (error && error.code !== 'PGRST116') {
+      throw error;
+    }
+
+    if (data) {
+      logger.sync.info('从云端获取用户统计数据成功');
+      return {
+        totalSiteVisits: data.total_site_visits || 0,
+        totalSearches: data.total_searches || 0,
+        settingsOpened: data.settings_opened || 0,
+        appOpened: data.app_opened || 0,
+        cardClicks: data.card_clicks || {},
+        firstUseDate: data.first_use_date || new Date().toISOString().split('T')[0],
+        lastVisitDate: data.last_visit_date || new Date().toISOString().split('T')[0],
+      };
+    } else {
+      logger.sync.debug('用户统计数据不存在');
+      return null;
+    }
+  } catch (error) {
+    logger.sync.error('获取用户统计数据失败', error);
+    return null;
+  }
+};
+
+// 合并本地和云端统计数据（取较大值）
+export const mergeUserStats = (local: UserStatsData, cloud: UserStatsData): UserStatsData => {
+  // 合并卡片点击数据
+  const mergedCardClicks: Record<string, number> = { ...local.cardClicks };
+  for (const [cardId, clicks] of Object.entries(cloud.cardClicks)) {
+    mergedCardClicks[cardId] = Math.max(mergedCardClicks[cardId] || 0, clicks);
+  }
+
+  return {
+    totalSiteVisits: Math.max(local.totalSiteVisits, cloud.totalSiteVisits),
+    totalSearches: Math.max(local.totalSearches, cloud.totalSearches),
+    settingsOpened: Math.max(local.settingsOpened, cloud.settingsOpened),
+    appOpened: Math.max(local.appOpened, cloud.appOpened),
+    cardClicks: mergedCardClicks,
+    // 使用较早的首次使用日期
+    firstUseDate: local.firstUseDate < cloud.firstUseDate ? local.firstUseDate : cloud.firstUseDate,
+    // 使用较晚的最后访问日期
+    lastVisitDate: local.lastVisitDate > cloud.lastVisitDate ? local.lastVisitDate : cloud.lastVisitDate,
+  };
+};

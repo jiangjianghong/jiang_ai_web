@@ -58,6 +58,7 @@ export const TABLES = {
   USER_PROFILES: 'user_profiles',
   USER_SETTINGS: 'user_settings',
   USER_WEBSITES: 'user_websites',
+  USER_STATS: 'user_stats',
 } as const;
 
 export default supabase;

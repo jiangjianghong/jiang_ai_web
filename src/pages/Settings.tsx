@@ -6,6 +6,8 @@ import AuthForm from '@/components/AuthForm';
 import PrivacySettings from '@/components/PrivacySettings';
 import ConfirmModal from '@/components/ConfirmModal';
 import { ColorPicker } from '@/components/ColorPicker';
+import UserStatsDisplay from '@/components/UserStatsDisplay';
+import { userStatsManager } from '@/hooks/useUserStats';
 import { useTransparency, WallpaperResolution } from '@/contexts/TransparencyContext';
 import { customWallpaperManager } from '@/lib/customWallpaperManager';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
@@ -123,6 +125,11 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
   useEffect(() => {
     setNewName(displayName || '');
   }, [displayName]);
+
+  // 记录设置页面打开次数
+  useEffect(() => {
+    userStatsManager.recordSettingsOpen();
+  }, []);
 
   // 加载自定义壁纸信息
   useEffect(() => {
@@ -1913,6 +1920,32 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* 使用统计 */}
+          <div className="space-y-5 select-none settings-section">
+            <div className="flex items-center gap-3 select-none">
+              <div className="w-6 h-6 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-lg flex items-center justify-center">
+                <i className="fa-solid fa-chart-bar text-white text-xs"></i>
+              </div>
+              <h3 className="text-base font-semibold text-gray-800 select-none">使用统计</h3>
+              <div className="flex-1 h-px bg-gradient-to-r from-gray-200 to-transparent"></div>
+            </div>
+
+            <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-8 h-8 bg-cyan-500 rounded-lg flex items-center justify-center">
+                  <i className="fa-solid fa-chart-pie text-white text-sm"></i>
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-gray-800 select-none">我的使用数据</div>
+                  <div className="text-xs text-gray-500 select-none">
+                    查看您的使用习惯和统计数据
+                  </div>
+                </div>
+              </div>
+              <UserStatsDisplay websites={websites} />
             </div>
           </div>
 

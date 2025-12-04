@@ -6,6 +6,7 @@ import CardEditModal from './CardEditModal';
 import { useTransparency } from '@/contexts/TransparencyContext';
 import { useLazyFavicon } from '@/hooks/useLazyFavicon';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
+import { userStatsManager } from '@/hooks/useUserStats';
 
 interface WebsiteCardProps {
   id: string;
@@ -160,6 +161,9 @@ export const WebsiteCard = memo(function WebsiteCardComponent({
       // 在当前页面直接跳转
       window.location.href = url;
     }
+
+    // 记录用户统计
+    userStatsManager.recordSiteVisit(id);
 
     // 更新访问次数
     onSave({

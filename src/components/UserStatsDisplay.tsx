@@ -36,17 +36,17 @@ export default function UserStatsDisplay({ websites = [] }: UserStatsDisplayProp
   const avgDailySearches = daysUsed > 0 ? Math.round(stats.totalSearches / daysUsed * 10) / 10 : 0;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 select-none">
       {/* 云同步状态 */}
       {isLoggedIn && (
-        <div className="flex items-center gap-2 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg px-3 py-2 text-sm text-green-700">
+        <div className="flex items-center gap-2 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg px-3 py-2 text-sm text-green-700 select-none">
           <i className={`fa-solid ${isSyncing ? 'fa-sync fa-spin' : 'fa-cloud-check'}`}></i>
           <span>{isSyncing ? '同步中...' : '统计数据已同步到云端'}</span>
         </div>
       )}
 
       {!isLoggedIn && (
-        <div className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 text-sm text-gray-500">
+        <div className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 text-sm text-gray-500 select-none">
           <i className="fa-solid fa-cloud-slash"></i>
           <span>登录后可同步统计数据到云端</span>
         </div>
@@ -89,30 +89,30 @@ export default function UserStatsDisplay({ websites = [] }: UserStatsDisplayProp
       </div>
 
       {/* 今日统计 */}
-      <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4">
-        <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+      <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4 select-none">
+        <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2 select-none">
           <i className="fa-solid fa-sun text-yellow-500"></i>
           今日统计
         </h4>
         <div className="grid grid-cols-3 gap-4">
           <div className="text-center">
-            <div className="text-2xl font-bold text-blue-600">{stats.todaySiteVisits}</div>
-            <div className="text-xs text-gray-500">网站访问</div>
+            <div className="text-2xl font-bold text-blue-600 select-none">{stats.todaySiteVisits}</div>
+            <div className="text-xs text-gray-500 select-none">网站访问</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-purple-600">{stats.todaySearches}</div>
-            <div className="text-xs text-gray-500">搜索次数</div>
+            <div className="text-2xl font-bold text-purple-600 select-none">{stats.todaySearches}</div>
+            <div className="text-xs text-gray-500 select-none">搜索次数</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-green-600">{stats.settingsOpened}</div>
-            <div className="text-xs text-gray-500">设置打开</div>
+            <div className="text-2xl font-bold text-green-600 select-none">{stats.settingsOpened}</div>
+            <div className="text-xs text-gray-500 select-none">设置打开</div>
           </div>
         </div>
       </div>
 
       {/* 平均使用 */}
-      <div className="bg-gray-50 rounded-xl p-4">
-        <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+      <div className="bg-gray-50 rounded-xl p-4 select-none">
+        <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2 select-none">
           <i className="fa-solid fa-chart-line text-green-500"></i>
           日均统计
         </h4>
@@ -122,8 +122,8 @@ export default function UserStatsDisplay({ websites = [] }: UserStatsDisplayProp
               <i className="fa-solid fa-globe text-green-600"></i>
             </div>
             <div>
-              <div className="text-lg font-semibold text-gray-800">{avgDailyVisits}</div>
-              <div className="text-xs text-gray-500">日均访问网站</div>
+              <div className="text-lg font-semibold text-gray-800 select-none">{avgDailyVisits}</div>
+              <div className="text-xs text-gray-500 select-none">日均访问网站</div>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -131,8 +131,8 @@ export default function UserStatsDisplay({ websites = [] }: UserStatsDisplayProp
               <i className="fa-solid fa-magnifying-glass text-orange-600"></i>
             </div>
             <div>
-              <div className="text-lg font-semibold text-gray-800">{avgDailySearches}</div>
-              <div className="text-xs text-gray-500">日均搜索次数</div>
+              <div className="text-lg font-semibold text-gray-800 select-none">{avgDailySearches}</div>
+              <div className="text-xs text-gray-500 select-none">日均搜索次数</div>
             </div>
           </div>
         </div>
@@ -140,8 +140,8 @@ export default function UserStatsDisplay({ websites = [] }: UserStatsDisplayProp
 
       {/* 最常访问 TOP 5 */}
       {topCardsWithNames.length > 0 && (
-        <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-4">
-          <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+        <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-4 select-none">
+          <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2 select-none">
             <i className="fa-solid fa-trophy text-amber-500"></i>
             最常访问 TOP 5
           </h4>
@@ -149,13 +149,13 @@ export default function UserStatsDisplay({ websites = [] }: UserStatsDisplayProp
             {topCardsWithNames.map((item, index) => (
               <motion.div
                 key={item.cardId}
-                className="flex items-center gap-3 bg-white/60 rounded-lg p-2"
+                className="flex items-center gap-3 bg-white/60 rounded-lg p-2 select-none"
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.1 }}
               >
                 <div
-                  className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                  className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold select-none ${
                     index === 0
                       ? 'bg-yellow-400 text-yellow-900'
                       : index === 1
@@ -181,8 +181,8 @@ export default function UserStatsDisplay({ websites = [] }: UserStatsDisplayProp
                     <i className="fa-solid fa-globe text-gray-400 text-xs"></i>
                   </div>
                 )}
-                <span className="flex-1 text-sm text-gray-700 truncate">{item.name}</span>
-                <span className="text-xs text-gray-500 font-medium">{item.clicks} 次</span>
+                <span className="flex-1 text-sm text-gray-700 truncate select-none">{item.name}</span>
+                <span className="text-xs text-gray-500 font-medium select-none">{item.clicks} 次</span>
               </motion.div>
             ))}
           </div>
@@ -190,7 +190,7 @@ export default function UserStatsDisplay({ websites = [] }: UserStatsDisplayProp
       )}
 
       {/* 首次使用日期 */}
-      <div className="text-xs text-gray-500 px-1">
+      <div className="text-xs text-gray-500 px-1 select-none">
         <i className="fa-solid fa-clock-rotate-left mr-1"></i>
         首次使用: {stats.firstUseDate}
       </div>
@@ -211,13 +211,13 @@ interface StatCardProps {
 function StatCard({ icon, iconColor, bgColor, label, value, unit }: StatCardProps) {
   return (
     <motion.div
-      className={`${bgColor} rounded-xl p-4 text-center`}
+      className={`${bgColor} rounded-xl p-4 text-center select-none`}
       whileHover={{ scale: 1.02 }}
       transition={{ type: 'spring', stiffness: 300 }}
     >
       <i className={`${icon} ${iconColor} text-xl mb-2`}></i>
-      <div className="text-2xl font-bold text-gray-800">{value}</div>
-      <div className="text-xs text-gray-500">
+      <div className="text-2xl font-bold text-gray-800 select-none">{value}</div>
+      <div className="text-xs text-gray-500 select-none">
         {label} ({unit})
       </div>
     </motion.div>

@@ -92,6 +92,7 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
     showMonth,
     showDay,
     searchBarBorderRadius,
+    animationStyle,
     setCardOpacity,
     setSearchBarOpacity,
     setParallaxEnabled,
@@ -111,6 +112,7 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
     setShowMonth,
     setShowDay,
     setSearchBarBorderRadius,
+    setAnimationStyle,
   } = useTransparency();
   const { currentUser, logout, updatePassword } = useAuth();
   const { updateSyncStatus } = useSyncStatus();
@@ -1371,6 +1373,39 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                   <span
                     className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${
                       autoSortEnabled
+                        ? 'translate-x-6 shadow-purple-200'
+                        : 'translate-x-1 shadow-gray-200'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              <div className="border-t border-gray-100"></div>
+
+              {/* 动画样式开关 */}
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <i className="fa-solid fa-wand-magic-sparkles text-blue-500 text-sm"></i>
+                    <span className="text-sm font-medium text-gray-700 select-none">
+                      动画样式
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 select-none">
+                    {animationStyle === 'dynamic' ? '灵动弹簧动画，更多视觉反馈' : '简约平滑动画，更稳定流畅'}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setAnimationStyle(animationStyle === 'dynamic' ? 'simple' : 'dynamic')}
+                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${
+                    animationStyle === 'dynamic'
+                      ? 'bg-gradient-to-r from-indigo-500 to-purple-600 shadow-lg shadow-purple-300/50'
+                      : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${
+                      animationStyle === 'dynamic'
                         ? 'translate-x-6 shadow-purple-200'
                         : 'translate-x-1 shadow-gray-200'
                     }`}

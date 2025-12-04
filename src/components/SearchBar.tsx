@@ -36,7 +36,7 @@ function SearchBarComponent(props: SearchBarProps = {}) {
   const { websites = [], onOpenSettings } = props;
   const inputRef = useRef<HTMLInputElement>(null);
   const [isFocused, setIsFocused] = useState(false);
-  const { searchBarOpacity, searchBarColor, setIsSearchFocused, searchInNewTab, isSettingsOpen, searchBarBorderRadius } =
+  const { searchBarOpacity, searchBarColor, setIsSearchFocused, searchInNewTab, isSettingsOpen, searchBarBorderRadius, animationStyle } =
     useTransparency();
   const { isMobile } = useResponsiveLayout();
   const { isWorkspaceOpen, setIsWorkspaceOpen, workspaceItems } = useWorkspace();
@@ -1448,9 +1448,9 @@ function SearchBarComponent(props: SearchBarProps = {}) {
               initial={{ width: isMobile ? 280 : 340 }}
               transition={{
                 type: 'spring',
-                stiffness: 200,
-                damping: 5,
-                mass: 0.6,
+                stiffness: animationStyle === 'dynamic' ? 200 : 280,
+                damping: animationStyle === 'dynamic' ? 5 : 20,
+                mass: animationStyle === 'dynamic' ? 0.6 : 0.5,
               }}
               style={{ display: 'flex', alignItems: 'center', position: 'relative' }}
               onAnimationComplete={() => {
@@ -2132,14 +2132,14 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                               scale: 1.38,
                               transition: {
                                 type: 'spring',
-                                stiffness: 800,
-                                damping: 20,
+                                stiffness: animationStyle === 'dynamic' ? 800 : 500,
+                                damping: animationStyle === 'dynamic' ? 20 : 25,
                               },
                             }}
                             transition={{
                               type: 'spring',
-                              stiffness: 400,
-                              damping: 8,
+                              stiffness: animationStyle === 'dynamic' ? 400 : 300,
+                              damping: animationStyle === 'dynamic' ? 8 : 15,
                               delay: 0.08 * i,
                             }}
                             style={{

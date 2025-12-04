@@ -162,10 +162,10 @@ export const WebsiteCard = memo(function WebsiteCardComponent({
       window.location.href = url;
     }
 
-    // 记录用户统计
-    userStatsManager.recordSiteVisit(id);
+    // 记录用户统计（总访问次数）
+    userStatsManager.recordSiteVisit();
 
-    // 更新访问次数
+    // 更新卡片访问次数
     onSave({
       id,
       name,

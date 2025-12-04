@@ -7,6 +7,7 @@ interface WebsiteData {
   name: string;
   url: string;
   favicon?: string;
+  visitCount?: number;
 }
 
 interface UserStatsDisplayProps {
@@ -14,22 +15,23 @@ interface UserStatsDisplayProps {
 }
 
 export default function UserStatsDisplay({ websites = [] }: UserStatsDisplayProps) {
-  const { stats, getTopCards, getDaysUsed, isSyncing, isLoggedIn } = useUserStats();
+  const { stats, getDaysUsed } = useUserStats();
 
   const daysUsed = getDaysUsed();
-  const topCards = getTopCards(5);
 
-  // 将 cardId 映射到网站名称
+  // 直接使用卡片的 visitCount 计算 TOP 5，保证数据一致
   const topCardsWithNames = useMemo(() => {
-    return topCards.map((item) => {
-      const website = websites.find((w) => w.id === item.cardId);
-      return {
-        ...item,
-        name: website?.name || '未知网站',
-        favicon: website?.favicon,
-      };
-    });
-  }, [topCards, websites]);
+    return websites
+      .filter((w) => (w.visitCount || 0) > 0)
+      .sort((a, b) => (b.visitCount || 0) - (a.visitCount || 0))
+      .slice(0, 5)
+      .map((website) => ({
+        cardId: website.id,
+        clicks: website.visitCount || 0,
+        name: website.name,
+        favicon: website.favicon,
+      }));
+  }, [websites]);
 
   // 计算平均每日使用
   const avgDailyVisits = daysUsed > 0 ? Math.round(stats.totalSiteVisits / daysUsed * 10) / 10 : 0;

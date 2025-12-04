@@ -194,20 +194,14 @@ export const useUserStats = () => {
     }
   }, [currentUser, loadFromCloud]);
 
-  // 记录网站点击
+  // 记录网站点击（只记录总数，卡片级别的访问次数由 visitCount 管理）
   const recordSiteVisit = useCallback(
-    (cardId?: string) => {
+    () => {
       setStats((prev) => {
         const newStats = {
           ...prev,
           totalSiteVisits: prev.totalSiteVisits + 1,
           todaySiteVisits: prev.todaySiteVisits + 1,
-          cardClicks: cardId
-            ? {
-                ...prev.cardClicks,
-                [cardId]: (prev.cardClicks[cardId] || 0) + 1,
-              }
-            : prev.cardClicks,
         };
         saveLocalStats(newStats);
         syncToCloud(newStats);

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback, memo } from 'react';
+import { useState, useRef, useEffect, useCallback, memo, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTransparency } from '@/contexts/TransparencyContext';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
@@ -6,6 +6,7 @@ import { useWorkspace } from '@/contexts/WorkspaceContext';
 import * as validator from 'validator';
 import { TodoModal } from './TodoModal';
 import { processFaviconUrl } from '@/lib/faviconUtils';
+import { pinyin, match as pinyinMatch } from 'pinyin-pro';
 
 interface WebsiteData {
   id: string;
@@ -704,9 +705,83 @@ function SearchBarComponent(props: SearchBarProps = {}) {
     return [...new Set(suggestions)];
   };
 
-  // 搜索网站卡片 - 智能匹配算法（添加相关性阈值和限制数量）
+  // 拼音索引缓存 - 为每个网站生成拼音索引
+  const pinyinIndexCache = useMemo(() => {
+    const cache = new Map<string, { full: string; first: string; original: string }>();
+    
+    const getPinyinIndex = (text: string) => {
+      if (cache.has(text)) return cache.get(text)!;
+      
+      const result = {
+        full: pinyin(text, { toneType: 'none', type: 'array' }).join('').toLowerCase(),
+        first: pinyin(text, { pattern: 'first', type: 'array' }).join('').toLowerCase(),
+        original: text.toLowerCase(),
+      };
+      cache.set(text, result);
+      return result;
+    };
+    
+    return { getPinyinIndex, cache };
+  }, []);
+
+  // 拼音匹配函数
+  const matchWithPinyin = useCallback((query: string, text: string): { matched: boolean; score: number; matchType: string } => {
+    const queryLower = query.toLowerCase();
+    const { getPinyinIndex } = pinyinIndexCache;
+    const index = getPinyinIndex(text);
+    
+    // 1. 原文完全匹配 (最高分)
+    if (index.original === queryLower) {
+      return { matched: true, score: 150, matchType: '完全匹配' };
+    }
+    
+    // 2. 原文开头匹配
+    if (index.original.startsWith(queryLower)) {
+      return { matched: true, score: 130, matchType: '开头匹配' };
+    }
+    
+    // 3. 原文包含匹配
+    if (index.original.includes(queryLower)) {
+      return { matched: true, score: 100, matchType: '包含匹配' };
+    }
+    
+    // 4. 拼音首字母完全匹配 (如: bd -> 百度)
+    if (index.first === queryLower) {
+      return { matched: true, score: 120, matchType: '首字母' };
+    }
+    
+    // 5. 拼音首字母开头匹配
+    if (index.first.startsWith(queryLower)) {
+      return { matched: true, score: 95, matchType: '首字母' };
+    }
+    
+    // 6. 全拼完全匹配 (如: baidu -> 百度)
+    if (index.full === queryLower) {
+      return { matched: true, score: 110, matchType: '全拼' };
+    }
+    
+    // 7. 全拼开头匹配
+    if (index.full.startsWith(queryLower)) {
+      return { matched: true, score: 90, matchType: '全拼' };
+    }
+    
+    // 8. 全拼包含匹配
+    if (index.full.includes(queryLower) && queryLower.length >= 2) {
+      return { matched: true, score: 70, matchType: '全拼' };
+    }
+    
+    // 9. 智能拼音匹配 (支持部分匹配，如: baid -> 百度)
+    const smartMatch = pinyinMatch(text, query, { continuous: true });
+    if (smartMatch !== null) {
+      return { matched: true, score: 85, matchType: '智能拼音' };
+    }
+    
+    return { matched: false, score: 0, matchType: '' };
+  }, [pinyinIndexCache]);
+
+  // 搜索网站卡片 - 智能匹配算法（支持拼音搜索）
   const searchWebsites = (query: string): WebsiteData[] => {
-    if (!query.trim() || websites.length === 0 || query.trim().length < 2) return [];
+    if (!query.trim() || websites.length === 0 || query.trim().length < 1) return [];
 
     const queryLower = query.toLowerCase();
     const matches: Array<{ website: WebsiteData; score: number; matchType: string }> = [];
@@ -724,72 +799,63 @@ function SearchBarComponent(props: SearchBarProps = {}) {
         }
       })();
 
-      // 1. 网站名称匹配 (权重最高)
-      if (website.name.toLowerCase().includes(queryLower)) {
-        score += 100;
-        matchType = '网站名称';
-        // 完全匹配加分
-        if (website.name.toLowerCase() === queryLower) {
-          score += 50;
-        }
-        // 开头匹配加分
-        if (website.name.toLowerCase().startsWith(queryLower)) {
-          score += 30;
-        }
+      // 1. 网站名称匹配 (支持拼音) - 权重最高
+      const nameMatch = matchWithPinyin(queryLower, website.name);
+      if (nameMatch.matched) {
+        score += nameMatch.score;
+        matchType = nameMatch.matchType;
       }
 
-      // 2. 标签匹配 (权重高)
-      const matchingTags = website.tags.filter((tag) => tag.toLowerCase().includes(queryLower));
-      if (matchingTags.length > 0) {
-        score += 80 * matchingTags.length;
-        matchType = matchType || '标签';
-        // 完全匹配标签加分
-        if (matchingTags.some((tag) => tag.toLowerCase() === queryLower)) {
-          score += 40;
+      // 2. 标签匹配 (支持拼音)
+      website.tags.forEach((tag) => {
+        const tagMatch = matchWithPinyin(queryLower, tag);
+        if (tagMatch.matched) {
+          score += tagMatch.score * 0.8;
+          matchType = matchType || `标签${tagMatch.matchType}`;
         }
-      }
+      });
 
-      // 3. 域名匹配 (权重中等) - 提高匹配标准
-      if (domain.toLowerCase().includes(queryLower) && queryLower.length >= 3) {
+      // 3. 域名匹配 (权重中等)
+      if (domain.toLowerCase().includes(queryLower) && queryLower.length >= 2) {
         score += 60;
         matchType = matchType || '域名';
-        // 域名开头匹配加分
         if (domain.toLowerCase().startsWith(queryLower)) {
           score += 20;
         }
       }
 
-      // 4. 备注匹配 (权重较低) - 提高匹配标准
-      if (
-        website.note &&
-        website.note.toLowerCase().includes(queryLower) &&
-        queryLower.length >= 3
-      ) {
-        score += 40;
-        matchType = matchType || '备注';
+      // 4. 备注匹配 (支持拼音)
+      if (website.note && queryLower.length >= 2) {
+        const noteMatch = matchWithPinyin(queryLower, website.note);
+        if (noteMatch.matched) {
+          score += noteMatch.score * 0.4;
+          matchType = matchType || `备注${noteMatch.matchType}`;
+        }
       }
 
       // 5. 访问频率加权 (常用网站优先)
       score += Math.min(website.visitCount * 2, 20);
 
-      // 6. 模糊匹配加分 (处理输入错误) - 提高相似度阈值
-      const similarity = calculateSimilarity(queryLower, website.name.toLowerCase());
-      if (similarity > 0.7 && queryLower.length >= 3) {
-        score += similarity * 30;
-        matchType = matchType || '模糊匹配';
+      // 6. 模糊匹配加分 (处理输入错误)
+      if (score === 0 && queryLower.length >= 3) {
+        const similarity = calculateSimilarity(queryLower, website.name.toLowerCase());
+        if (similarity > 0.7) {
+          score += similarity * 30;
+          matchType = matchType || '模糊匹配';
+        }
       }
 
-      // 设置最低分数阈值，提高匹配相关性
-      const MIN_SCORE_THRESHOLD = 80;
+      // 设置最低分数阈值
+      const MIN_SCORE_THRESHOLD = 50;
       if (score >= MIN_SCORE_THRESHOLD) {
         matches.push({ website, score, matchType });
       }
     });
 
-    // 按分数排序并限制为最多3个
+    // 按分数排序并限制为最多5个（拼音搜索可能有更多相关结果）
     return matches
       .sort((a, b) => b.score - a.score)
-      .slice(0, 3)
+      .slice(0, 5)
       .map((match) => ({
         ...match.website,
         matchType: match.matchType,
@@ -831,9 +897,9 @@ function SearchBarComponent(props: SearchBarProps = {}) {
     return 1 - distance / Math.max(len1, len2);
   };
 
-  // 搜索工作空间内容 - 智能匹配算法
+  // 搜索工作空间内容 - 智能匹配算法（支持拼音搜索）
   const searchWorkspace = (query: string): WorkspaceSuggestionData[] => {
-    if (!query.trim() || workspaceItems.length === 0 || query.trim().length < 2) return [];
+    if (!query.trim() || workspaceItems.length === 0 || query.trim().length < 1) return [];
 
     const queryLower = query.toLowerCase();
     const matches: Array<{ item: WorkspaceSuggestionData; score: number; matchType: string }> = [];
@@ -842,47 +908,48 @@ function SearchBarComponent(props: SearchBarProps = {}) {
       let score = 0;
       let matchType = '';
 
-      // 1. 标题匹配 (权重最高)
-      if (item.title.toLowerCase().includes(queryLower)) {
-        score += 100;
-        matchType = '标题';
-        // 完全匹配加分
-        if (item.title.toLowerCase() === queryLower) {
-          score += 50;
+      // 1. 标题匹配 (支持拼音) - 权重最高
+      const titleMatch = matchWithPinyin(queryLower, item.title);
+      if (titleMatch.matched) {
+        score += titleMatch.score;
+        matchType = titleMatch.matchType;
+      }
+
+      // 2. 分类匹配 (支持拼音)
+      if (item.category) {
+        const categoryMatch = matchWithPinyin(queryLower, item.category);
+        if (categoryMatch.matched) {
+          score += categoryMatch.score * 0.8;
+          matchType = matchType || `分类${categoryMatch.matchType}`;
         }
-        // 开头匹配加分
-        if (item.title.toLowerCase().startsWith(queryLower)) {
-          score += 30;
+      }
+
+      // 3. 描述匹配 (支持拼音)
+      if (item.description && queryLower.length >= 2) {
+        const descMatch = matchWithPinyin(queryLower, item.description);
+        if (descMatch.matched) {
+          score += descMatch.score * 0.6;
+          matchType = matchType || `描述${descMatch.matchType}`;
         }
       }
 
-      // 2. 分类匹配 (权重高)
-      if (item.category && item.category.toLowerCase().includes(queryLower)) {
-        score += 80;
-        matchType = matchType || '分类';
-      }
-
-      // 3. 描述匹配 (权重中等)
-      if (item.description && item.description.toLowerCase().includes(queryLower)) {
-        score += 60;
-        matchType = matchType || '描述';
-      }
-
-      // 4. URL匹配 (权重较低)
-      if (item.url.toLowerCase().includes(queryLower) && queryLower.length >= 3) {
+      // 4. URL匹配
+      if (item.url.toLowerCase().includes(queryLower) && queryLower.length >= 2) {
         score += 40;
         matchType = matchType || 'URL';
       }
 
       // 5. 模糊匹配加分
-      const similarity = calculateSimilarity(queryLower, item.title.toLowerCase());
-      if (similarity > 0.7 && queryLower.length >= 3) {
-        score += similarity * 30;
-        matchType = matchType || '模糊匹配';
+      if (score === 0 && queryLower.length >= 3) {
+        const similarity = calculateSimilarity(queryLower, item.title.toLowerCase());
+        if (similarity > 0.7) {
+          score += similarity * 30;
+          matchType = matchType || '模糊匹配';
+        }
       }
 
       // 设置最低分数阈值
-      const MIN_SCORE_THRESHOLD = 80;
+      const MIN_SCORE_THRESHOLD = 50;
       if (score >= MIN_SCORE_THRESHOLD) {
         matches.push({
           item: {
@@ -899,10 +966,10 @@ function SearchBarComponent(props: SearchBarProps = {}) {
       }
     });
 
-    // 按分数排序并限制为最多3个
+    // 按分数排序并限制为最多5个
     return matches
       .sort((a, b) => b.score - a.score)
-      .slice(0, 3)
+      .slice(0, 5)
       .map((match) => ({
         ...match.item,
         matchType: match.matchType,

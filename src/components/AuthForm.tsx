@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 
@@ -17,8 +17,17 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
   const [verificationEmail, setVerificationEmail] = useState('');
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
+  const [cooldown, setCooldown] = useState(0);
 
   const { login, register, sendVerificationEmail, resetPasswordForEmail, error: authError } = useAuth();
+
+  // 倒计时效果
+  useEffect(() => {
+    if (cooldown > 0) {
+      const timer = setTimeout(() => setCooldown(cooldown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [cooldown]);
 
   // 组合错误显示：优先显示本地验证错误，然后是认证错误
   const displayError = localError || authError;
@@ -82,8 +91,11 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
   };
 
   const handleResendVerification = async () => {
+    if (cooldown > 0) return;
+    
     try {
       await sendVerificationEmail();
+      setCooldown(60);
       alert('验证邮件已重新发送，请检查邮箱');
     } catch (error) {
       alert('发送验证邮件失败，请稍后重试');
@@ -92,6 +104,8 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
 
   // 处理忘记密码
   const handleForgotPassword = async () => {
+    if (cooldown > 0) return;
+
     setLocalError('');
 
     // 验证邮箱格式
@@ -105,6 +119,7 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
 
     try {
       await resetPasswordForEmail(resetEmail);
+      setCooldown(60);
       setShowForgotPassword(false);
       setResetEmail('');
       alert('✅ 密码重置邮件已发送，请检查您的邮箱！');
@@ -134,9 +149,10 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
             <div className="mt-3 flex space-x-2">
               <button
                 onClick={handleResendVerification}
-                className="text-xs bg-green-100 hover:bg-green-200 text-green-800 px-2 py-1 rounded"
+                disabled={cooldown > 0}
+                className="text-xs bg-green-100 hover:bg-green-200 text-green-800 px-2 py-1 rounded disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                重新发送验证邮件
+                {cooldown > 0 ? `${cooldown}秒后重试` : '重新发送验证邮件'}
               </button>
               <button
                 onClick={() => {
@@ -195,10 +211,10 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
 
           <button
             onClick={handleForgotPassword}
-            disabled={loading || !resetEmail}
+            disabled={loading || !resetEmail || cooldown > 0}
             className="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white py-2 px-4 rounded-md transition-colors"
           >
-            {loading ? '发送中...' : '发送重置邮件'}
+            {loading ? '发送中...' : cooldown > 0 ? `${cooldown}秒后可重试` : '发送重置邮件'}
           </button>
 
           <div className="text-center">

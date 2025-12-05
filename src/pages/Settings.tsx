@@ -1631,28 +1631,46 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
             {/* 壁纸设置区域 */}
             <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 space-y-5">
               {/* 模式切换 Tab */}
-              <div className="flex p-1 bg-gray-100 rounded-xl select-none">
+              <div className="flex p-1 bg-gray-100 rounded-xl select-none relative">
                 <button
                   onClick={() => setWallpaperResolution(lastBingResolution)}
-                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ${
+                  className={`relative flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200 ${
                     wallpaperResolution !== 'custom'
-                      ? 'bg-white text-pink-600 shadow-sm'
+                      ? 'text-pink-600'
                       : 'text-gray-500 hover:text-gray-700'
                   }`}
                 >
-                  <i className="fa-solid fa-image"></i>
-                  每日必应
+                  {wallpaperResolution !== 'custom' && (
+                    <motion.div
+                      layoutId="activeTab"
+                      className="absolute inset-0 bg-white rounded-lg shadow-sm"
+                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                    />
+                  )}
+                  <span className="relative z-10 flex items-center gap-2">
+                    <i className="fa-solid fa-image"></i>
+                    每日必应
+                  </span>
                 </button>
                 <button
                   onClick={() => setWallpaperResolution('custom')}
-                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ${
+                  className={`relative flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200 ${
                     wallpaperResolution === 'custom'
-                      ? 'bg-white text-pink-600 shadow-sm'
+                      ? 'text-pink-600'
                       : 'text-gray-500 hover:text-gray-700'
                   }`}
                 >
-                  <i className="fa-solid fa-upload"></i>
-                  自定义壁纸
+                  {wallpaperResolution === 'custom' && (
+                    <motion.div
+                      layoutId="activeTab"
+                      className="absolute inset-0 bg-white rounded-lg shadow-sm"
+                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                    />
+                  )}
+                  <span className="relative z-10 flex items-center gap-2">
+                    <i className="fa-solid fa-upload"></i>
+                    自定义壁纸
+                  </span>
                 </button>
               </div>
 

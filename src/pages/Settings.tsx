@@ -69,6 +69,7 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
   } | null>(null);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [loadingPreview, setLoadingPreview] = useState(false);
+  const [showUserStatsModal, setShowUserStatsModal] = useState(false);
 
   // 使用统一的数据管理Hook
   const { exportAllData, importAllData, isExporting, isImporting } = useDataManager(
@@ -1923,32 +1924,6 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
             </div>
           </div>
 
-          {/* 使用统计 */}
-          <div className="space-y-5 select-none settings-section">
-            <div className="flex items-center gap-3 select-none">
-              <div className="w-6 h-6 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-lg flex items-center justify-center">
-                <i className="fa-solid fa-chart-bar text-white text-xs"></i>
-              </div>
-              <h3 className="text-base font-semibold text-gray-800 select-none">使用统计</h3>
-              <div className="flex-1 h-px bg-gradient-to-r from-gray-200 to-transparent"></div>
-            </div>
-
-            <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 bg-cyan-500 rounded-lg flex items-center justify-center">
-                  <i className="fa-solid fa-chart-pie text-white text-sm"></i>
-                </div>
-                <div>
-                  <div className="text-sm font-medium text-gray-800 select-none">我的使用数据</div>
-                  <div className="text-xs text-gray-500 select-none">
-                    查看您的使用习惯和统计数据
-                  </div>
-                </div>
-              </div>
-              <UserStatsDisplay websites={websites} />
-            </div>
-          </div>
-
           {/* 隐私与帮助 */}
           <div className="space-y-5 select-none settings-section">
             <div className="flex items-center gap-3 select-none">
@@ -1979,6 +1954,14 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                 >
                   <i className="fa-solid fa-shield-halved select-none"></i>
                   <span className="select-none">隐私设置</span>
+                </button>
+
+                <button
+                  onClick={() => setShowUserStatsModal(true)}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-b from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-[1.02] select-none"
+                >
+                  <i className="fa-solid fa-chart-simple select-none"></i>
+                  <span className="select-none">查看使用统计</span>
                 </button>
 
                 <a
@@ -2287,6 +2270,47 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                 </div>
               </>
             ) : null}
+          </motion.div>
+        </div>
+      )}
+
+      {/* 使用统计模态框 */}
+      {showUserStatsModal && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center">
+          <motion.div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowUserStatsModal(false)}
+          />
+          <motion.div
+            className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 overflow-hidden"
+            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+          >
+            {/* 标题栏 */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-gray-50/50">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-lg flex items-center justify-center shadow-sm">
+                  <i className="fa-solid fa-chart-pie text-white text-sm"></i>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-800">使用统计</h3>
+              </div>
+              <button
+                onClick={() => setShowUserStatsModal(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200/80 text-gray-500 transition-colors"
+              >
+                <i className="fa-solid fa-xmark text-lg"></i>
+              </button>
+            </div>
+
+            {/* 内容区域 */}
+            <div className="p-6 max-h-[80vh] overflow-y-auto custom-scrollbar">
+              <UserStatsDisplay websites={websites} />
+            </div>
           </motion.div>
         </div>
       )}

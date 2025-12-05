@@ -200,9 +200,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // 登出
   const logout = async () => {
     clearError();
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      console.error('登出失败:', error);
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('登出失败:', error);
+      }
+    } catch (error) {
+      console.error('登出过程发生错误:', error);
+    } finally {
+      // 无论成功与否，都清除本地状态
+      setSession(null);
+      setCurrentUser(null);
     }
   };
 

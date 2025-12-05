@@ -70,6 +70,9 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [loadingPreview, setLoadingPreview] = useState(false);
   const [showUserStatsModal, setShowUserStatsModal] = useState(false);
+  
+  // 记录上一次选择的必应壁纸分辨率，用于切换回必应模式时恢复
+  const [lastBingResolution, setLastBingResolution] = useState<WallpaperResolution>('1080p');
 
   // 使用统一的数据管理Hook
   const { exportAllData, importAllData, isExporting, isImporting } = useDataManager(
@@ -126,6 +129,13 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
   useEffect(() => {
     setNewName(displayName || '');
   }, [displayName]);
+
+  // 记录非自定义模式下的分辨率选择
+  useEffect(() => {
+    if (wallpaperResolution !== 'custom') {
+      setLastBingResolution(wallpaperResolution);
+    }
+  }, [wallpaperResolution]);
 
   // 记录设置页面打开次数
   useEffect(() => {
@@ -309,14 +319,6 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
     } else {
       setSyncMessage('删除失败，请重试');
       setTimeout(() => setSyncMessage(''), 3000);
-    }
-  };
-
-  // 删除当前自定义壁纸的包装函数
-  const handleDeleteCustomWallpaper = async () => {
-    const currentId = await customWallpaperManager.getCurrentWallpaperId();
-    if (currentId) {
-      await handleDeleteWallpaper(currentId);
     }
   };
 
@@ -1628,174 +1630,172 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
 
             {/* 壁纸设置区域 */}
             <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 space-y-5">
-              {/* 壁纸分辨率选择 */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <i className="fa-solid fa-image text-blue-500 text-sm"></i>
-                    <label className="text-sm font-medium text-gray-700 select-none">
-                      壁纸分辨率
-                    </label>
-                  </div>
-                  <div className="relative group">
-                    <i className="fa-solid fa-info-circle text-gray-400 text-xs cursor-help"></i>
-                    <div className="absolute bottom-full right-0 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
-                      💡 更改分辨率后会重新加载壁纸并更新缓存
-                      <div className="absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3 select-none">
-                  {[
-                    { value: '4k', label: '4K 超高清', desc: '大屏设备', icon: 'fa-desktop' },
-                    { value: '1080p', label: '1080p 高清', desc: '推荐', icon: 'fa-laptop' },
-                    { value: '720p', label: '720p 标清', desc: '网络较慢', icon: 'fa-wifi' },
-                    { value: 'mobile', label: '竖屏壁纸', desc: '移动设备', icon: 'fa-mobile-alt' },
-                  ].map((option) => (
-                    <button
-                      key={option.value}
-                      onClick={() => setWallpaperResolution(option.value as WallpaperResolution)}
-                      className={`group p-3 rounded-lg border-2 transition-all duration-200 text-left select-none cursor-pointer ${
-                        wallpaperResolution === option.value
-                          ? 'border-pink-500 bg-pink-50 text-pink-700'
-                          : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2 mb-1">
-                        <i
-                          className={`fa-solid ${option.icon} text-sm transition-colors ${
-                            wallpaperResolution === option.value
-                              ? 'text-pink-500'
-                              : 'text-gray-400 group-hover:text-gray-500'
-                          } select-none`}
-                        ></i>
-                        <div className="font-medium text-sm select-none">{option.label}</div>
-                      </div>
-                      <div className="text-xs text-gray-500 select-none">{option.desc}</div>
-                    </button>
-                  ))}
-                </div>
+              {/* 模式切换 Tab */}
+              <div className="flex p-1 bg-gray-100 rounded-xl select-none">
+                <button
+                  onClick={() => setWallpaperResolution(lastBingResolution)}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ${
+                    wallpaperResolution !== 'custom'
+                      ? 'bg-white text-pink-600 shadow-sm'
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  <i className="fa-solid fa-image"></i>
+                  每日必应
+                </button>
+                <button
+                  onClick={() => setWallpaperResolution('custom')}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ${
+                    wallpaperResolution === 'custom'
+                      ? 'bg-white text-pink-600 shadow-sm'
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  <i className="fa-solid fa-upload"></i>
+                  自定义壁纸
+                </button>
               </div>
 
-              {/* 自定义壁纸管理 */}
-              <div className="pt-4 border-t border-gray-200">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <i className="fa-solid fa-upload text-blue-500 text-sm"></i>
-                      <span className="text-sm font-medium text-gray-700">自定义壁纸</span>
-                    </div>
-                    <div className="relative group">
-                      <i className="fa-solid fa-info-circle text-gray-400 text-xs cursor-help"></i>
-                      <div className="absolute bottom-full right-0 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
-                        <div className="space-y-1">
-                          <div>• 支持 JPG、PNG、WebP 格式</div>
-                          <div>• 文件大小不超过 10MB</div>
-                          <div>• 图片会自动压缩优化</div>
-                          {customWallpaperInfo.exists && (
-                            <div>• 当前壁纸: {customWallpaperInfo.sizeText}</div>
-                          )}
+              {/* 内容区域 */}
+              <div className="min-h-[180px]">
+                {wallpaperResolution !== 'custom' ? (
+                  /* 必应壁纸分辨率选择 */
+                  <div className="space-y-4 animate-fadeIn">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <i className="fa-solid fa-image text-blue-500 text-sm"></i>
+                        <label className="text-sm font-medium text-gray-700 select-none">
+                          壁纸分辨率
+                        </label>
+                      </div>
+                      <div className="relative group">
+                        <i className="fa-solid fa-info-circle text-gray-400 text-xs cursor-help"></i>
+                        <div className="absolute bottom-full right-0 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+                          💡 更改分辨率后会重新加载壁纸并更新缓存
+                          <div className="absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
                         </div>
-                        <div className="absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
                       </div>
                     </div>
+
+                    <div className="grid grid-cols-2 gap-3 select-none">
+                      {[
+                        { value: '4k', label: '4K 超高清', desc: '大屏设备', icon: 'fa-desktop' },
+                        { value: '1080p', label: '1080p 高清', desc: '推荐', icon: 'fa-laptop' },
+                        { value: '720p', label: '720p 标清', desc: '网络较慢', icon: 'fa-wifi' },
+                        { value: 'mobile', label: '竖屏壁纸', desc: '移动设备', icon: 'fa-mobile-alt' },
+                      ].map((option) => (
+                        <button
+                          key={option.value}
+                          onClick={() => setWallpaperResolution(option.value as WallpaperResolution)}
+                          className={`group p-3 rounded-lg border-2 transition-all duration-200 text-left select-none cursor-pointer ${
+                            wallpaperResolution === option.value
+                              ? 'border-pink-500 bg-pink-50 text-pink-700'
+                              : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 mb-1">
+                            <i
+                              className={`fa-solid ${option.icon} text-sm transition-colors ${
+                                wallpaperResolution === option.value
+                                  ? 'text-pink-500'
+                                  : 'text-gray-400 group-hover:text-gray-500'
+                              } select-none`}
+                            ></i>
+                            <div className="font-medium text-sm select-none">{option.label}</div>
+                          </div>
+                          <div className="text-xs text-gray-500 select-none">{option.desc}</div>
+                        </button>
+                      ))}
+                    </div>
                   </div>
-
-                  {/* 自定义壁纸选项卡 */}
-                  <button
-                    onClick={() => setWallpaperResolution('custom')}
-                    className={`w-full p-3 rounded-lg border-2 transition-all duration-200 text-left select-none cursor-pointer ${
-                      wallpaperResolution === 'custom'
-                        ? 'border-pink-500 bg-pink-50 text-pink-700'
-                        : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 mb-1">
-                      <i
-                        className={`fa-solid fa-image text-sm transition-colors ${
-                          wallpaperResolution === 'custom' ? 'text-pink-500' : 'text-gray-400'
-                        } select-none`}
-                      ></i>
-                      <div className="font-medium text-sm select-none">自定义壁纸</div>
-                      {customWallpaperInfo.exists && (
-                        <span className="ml-auto text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
-                          已上传
-                        </span>
-                      )}
+                ) : (
+                  /* 自定义壁纸管理 */
+                  <div className="space-y-4 animate-fadeIn">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <i className="fa-solid fa-upload text-blue-500 text-sm"></i>
+                        <span className="text-sm font-medium text-gray-700">上传壁纸</span>
+                      </div>
+                      <div className="relative group">
+                        <i className="fa-solid fa-info-circle text-gray-400 text-xs cursor-help"></i>
+                        <div className="absolute bottom-full right-0 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+                          <div className="space-y-1">
+                            <div>• 支持 JPG、PNG、WebP 格式</div>
+                            <div>• 文件大小不超过 10MB</div>
+                            <div>• 图片会自动压缩优化</div>
+                            {customWallpaperInfo.exists && (
+                              <div>• 当前壁纸: {customWallpaperInfo.sizeText}</div>
+                            )}
+                          </div>
+                          <div className="absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
+                        </div>
+                      </div>
                     </div>
-                    <div className="text-xs text-gray-500 select-none">
-                      {customWallpaperInfo.exists
-                        ? customWallpaperInfo.sizeText
-                        : '点击下方上传图片'}
-                    </div>
-                  </button>
 
-                  {/* 拖拽上传区域 */}
-                  <div className="flex gap-3">
-                    <input
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp"
-                      onChange={handleWallpaperUpload}
-                      className="hidden"
-                      id="wallpaper-upload"
-                      disabled={uploadingWallpaper}
-                    />
-                    <div
-                      className={`flex-1 relative ${uploadingWallpaper ? 'cursor-not-allowed' : 'cursor-pointer'}`}
-                      onDrop={handleWallpaperDrop}
-                      onDragOver={handleDragOver}
-                      onDragEnter={handleDragEnter}
-                      onDragLeave={handleDragLeave}
-                    >
-                      <label
-                        htmlFor="wallpaper-upload"
-                        className={`flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium rounded-lg border-2 border-dashed transition-all w-full ${
-                          uploadingWallpaper
-                            ? 'border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed'
-                            : isDragOver
-                              ? 'border-pink-500 bg-pink-100 text-pink-700'
-                              : isGlobalDragOver
-                                ? 'border-pink-400 bg-pink-50 text-pink-600 animate-pulse'
-                                : 'border-pink-300 bg-white text-pink-600 hover:border-pink-400 hover:bg-pink-50'
-                        }`}
+                    {/* 拖拽上传区域 */}
+                    <div className="flex gap-3">
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        onChange={handleWallpaperUpload}
+                        className="hidden"
+                        id="wallpaper-upload"
+                        disabled={uploadingWallpaper}
+                      />
+                      <div
+                        className={`flex-1 relative ${uploadingWallpaper ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                        onDrop={handleWallpaperDrop}
+                        onDragOver={handleDragOver}
+                        onDragEnter={handleDragEnter}
+                        onDragLeave={handleDragLeave}
                       >
-                        {uploadingWallpaper ? (
-                          <>
-                            <i className="fa-solid fa-spinner fa-spin"></i>
-                            <span>上传中...</span>
-                          </>
-                        ) : isDragOver ? (
-                          <>
-                            <i className="fa-solid fa-hand-point-down text-lg"></i>
-                            <span>拖动到此处上传</span>
-                          </>
-                        ) : isGlobalDragOver ? (
-                          <>
-                            <i className="fa-solid fa-download text-lg"></i>
-                            <span>拖动到此处上传壁纸</span>
-                          </>
-                        ) : (
-                          <>
-                            <i className="fa-solid fa-cloud-upload-alt"></i>
-                            <span>点击或拖拽上传壁纸</span>
-                          </>
-                        )}
-                      </label>
+                        <label
+                          htmlFor="wallpaper-upload"
+                          className={`flex items-center justify-center gap-2 px-4 py-8 text-sm font-medium rounded-lg border-2 border-dashed transition-all w-full ${
+                            uploadingWallpaper
+                              ? 'border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed'
+                              : isDragOver
+                                ? 'border-pink-500 bg-pink-100 text-pink-700'
+                                : isGlobalDragOver
+                                  ? 'border-pink-400 bg-pink-50 text-pink-600 animate-pulse'
+                                  : 'border-pink-300 bg-white text-pink-600 hover:border-pink-400 hover:bg-pink-50'
+                          }`}
+                        >
+                          <div className="text-center space-y-2">
+                            {uploadingWallpaper ? (
+                              <>
+                                <i className="fa-solid fa-spinner fa-spin text-2xl"></i>
+                                <div>上传中...</div>
+                              </>
+                            ) : isDragOver ? (
+                              <>
+                                <i className="fa-solid fa-hand-point-down text-2xl"></i>
+                                <div>松开鼠标上传</div>
+                              </>
+                            ) : (
+                              <>
+                                <i className="fa-solid fa-cloud-upload-alt text-2xl mb-1"></i>
+                                <div>点击或拖拽上传壁纸</div>
+                                <div className="text-xs text-gray-400 font-normal">支持 JPG, PNG, WebP</div>
+                              </>
+                            )}
+                          </div>
+                        </label>
+                      </div>
                     </div>
-                  </div>
 
-                  {/* 壁纸管理按钮 */}
-                  {wallpapers.length > 0 && (
-                    <button
-                      onClick={() => setShowWallpaperGallery(true)}
-                      className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-[1.02]"
-                    >
-                      <i className="fa-solid fa-images"></i>
-                      <span>管理壁纸库 ({wallpapers.length})</span>
-                    </button>
-                  )}
-                </div>
+                    {/* 壁纸管理按钮 */}
+                    {wallpapers.length > 0 && (
+                      <button
+                        onClick={() => setShowWallpaperGallery(true)}
+                        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-[1.02]"
+                      >
+                        <i className="fa-solid fa-images"></i>
+                        <span>管理壁纸库 ({wallpapers.length})</span>
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>

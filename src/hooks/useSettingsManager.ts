@@ -7,6 +7,22 @@ interface SettingsData {
   parallaxEnabled: boolean;
   wallpaperResolution: WallpaperResolution;
   theme: string;
+  cardColor: string;
+  searchBarColor: string;
+  autoSyncEnabled: boolean;
+  autoSyncInterval: number;
+  searchInNewTab: boolean;
+  autoSortEnabled: boolean;
+  timeComponentEnabled: boolean;
+  showFullDate: boolean;
+  showSeconds: boolean;
+  showWeekday: boolean;
+  showYear: boolean;
+  showMonth: boolean;
+  showDay: boolean;
+  dateDisplayMode: 'yearMonth' | 'yearMonthDay';
+  searchBarBorderRadius: number;
+  animationStyle: 'dynamic' | 'simple';
 }
 
 interface UseSettingsManagerReturn {
@@ -30,6 +46,26 @@ export function useSettingsManager(): UseSettingsManagerReturn {
         wallpaperResolution: (localStorage.getItem('wallpaperResolution') ||
           '1080p') as WallpaperResolution,
         theme: localStorage.getItem('theme') || 'light',
+        cardColor: localStorage.getItem('cardColor') || '255, 255, 255',
+        searchBarColor: localStorage.getItem('searchBarColor') || '255, 255, 255',
+        autoSyncEnabled: localStorage.getItem('autoSyncEnabled') === 'true',
+        autoSyncInterval: parseInt(localStorage.getItem('autoSyncInterval') || '30'),
+        searchInNewTab: localStorage.getItem('searchInNewTab') !== 'false', // 默认为 true
+        autoSortEnabled: localStorage.getItem('autoSortEnabled') === 'true',
+        timeComponentEnabled: localStorage.getItem('timeComponentEnabled') !== 'false', // 默认为 true
+        showFullDate: localStorage.getItem('showFullDate') !== 'false', // 默认为 true
+        showSeconds: localStorage.getItem('showSeconds') !== 'false', // 默认为 true
+        showWeekday: localStorage.getItem('showWeekday') !== 'false', // 默认为 true
+        showYear: localStorage.getItem('showYear') !== 'false', // 默认为 true
+        showMonth: localStorage.getItem('showMonth') !== 'false', // 默认为 true
+        showDay: localStorage.getItem('showDay') !== 'false', // 默认为 true
+        dateDisplayMode: (localStorage.getItem('dateDisplayMode') || 'yearMonthDay') as
+          | 'yearMonth'
+          | 'yearMonthDay',
+        searchBarBorderRadius: parseInt(localStorage.getItem('searchBarBorderRadius') || '9999'),
+        animationStyle: (localStorage.getItem('animationStyle') || 'simple') as
+          | 'dynamic'
+          | 'simple',
       };
     } catch (error) {
       console.warn('导出设置失败，使用默认值:', error);
@@ -39,6 +75,22 @@ export function useSettingsManager(): UseSettingsManagerReturn {
         parallaxEnabled: true,
         wallpaperResolution: '1080p',
         theme: 'light',
+        cardColor: '255, 255, 255',
+        searchBarColor: '255, 255, 255',
+        autoSyncEnabled: true,
+        autoSyncInterval: 30,
+        searchInNewTab: true,
+        autoSortEnabled: false,
+        timeComponentEnabled: true,
+        showFullDate: true,
+        showSeconds: true,
+        showWeekday: true,
+        showYear: true,
+        showMonth: true,
+        showDay: true,
+        dateDisplayMode: 'yearMonthDay',
+        searchBarBorderRadius: 9999,
+        animationStyle: 'simple',
       };
     }
   }, []);
@@ -82,6 +134,92 @@ export function useSettingsManager(): UseSettingsManagerReturn {
     if (settings.theme !== undefined) {
       if (!['light', 'dark'].includes(settings.theme)) {
         errors.push('主题值无效（应为light或dark）');
+      }
+    }
+
+    if (settings.cardColor !== undefined && typeof settings.cardColor !== 'string') {
+      errors.push('卡片颜色值无效');
+    }
+
+    if (settings.searchBarColor !== undefined && typeof settings.searchBarColor !== 'string') {
+      errors.push('搜索框颜色值无效');
+    }
+
+    if (settings.autoSyncEnabled !== undefined && typeof settings.autoSyncEnabled !== 'boolean') {
+      errors.push('自动同步设置无效');
+    }
+
+    if (settings.autoSyncInterval !== undefined) {
+      if (
+        typeof settings.autoSyncInterval !== 'number' ||
+        settings.autoSyncInterval < 3 ||
+        settings.autoSyncInterval > 60
+      ) {
+        errors.push('自动同步间隔无效（应在3-60秒之间）');
+      }
+    }
+
+    if (settings.searchInNewTab !== undefined && typeof settings.searchInNewTab !== 'boolean') {
+      errors.push('搜索新标签页设置无效');
+    }
+
+    if (settings.autoSortEnabled !== undefined && typeof settings.autoSortEnabled !== 'boolean') {
+      errors.push('自动排序设置无效');
+    }
+
+    if (
+      settings.timeComponentEnabled !== undefined &&
+      typeof settings.timeComponentEnabled !== 'boolean'
+    ) {
+      errors.push('时间组件设置无效');
+    }
+
+    if (settings.showFullDate !== undefined && typeof settings.showFullDate !== 'boolean') {
+      errors.push('日期显示设置无效');
+    }
+
+    if (settings.showSeconds !== undefined && typeof settings.showSeconds !== 'boolean') {
+      errors.push('秒数显示设置无效');
+    }
+
+    if (settings.showWeekday !== undefined && typeof settings.showWeekday !== 'boolean') {
+      errors.push('星期显示设置无效');
+    }
+
+    if (settings.showYear !== undefined && typeof settings.showYear !== 'boolean') {
+      errors.push('年份显示设置无效');
+    }
+
+    if (settings.showMonth !== undefined && typeof settings.showMonth !== 'boolean') {
+      errors.push('月份显示设置无效');
+    }
+
+    if (settings.showDay !== undefined && typeof settings.showDay !== 'boolean') {
+      errors.push('日期显示设置无效');
+    }
+
+    if (settings.dateDisplayMode !== undefined) {
+      if (!['yearMonth', 'yearMonthDay'].includes(settings.dateDisplayMode)) {
+        errors.push('日期显示模式无效');
+      }
+    }
+
+    if (settings.searchBarBorderRadius !== undefined) {
+      if (
+        typeof settings.searchBarBorderRadius !== 'number' ||
+        settings.searchBarBorderRadius < 0 ||
+        settings.searchBarBorderRadius > 50
+      ) {
+        // 9999 是特殊值，表示全圆角
+        if (settings.searchBarBorderRadius !== 9999) {
+          errors.push('搜索框圆角设置无效');
+        }
+      }
+    }
+
+    if (settings.animationStyle !== undefined) {
+      if (!['dynamic', 'simple'].includes(settings.animationStyle)) {
+        errors.push('动画样式设置无效');
       }
     }
 
@@ -145,6 +283,134 @@ export function useSettingsManager(): UseSettingsManagerReturn {
           key: 'theme',
           value: settings.theme,
           label: '主题',
+        });
+      }
+
+      if (settings.cardColor) {
+        settingsToApply.push({
+          key: 'cardColor',
+          value: settings.cardColor,
+          label: '卡片颜色',
+        });
+      }
+
+      if (settings.searchBarColor) {
+        settingsToApply.push({
+          key: 'searchBarColor',
+          value: settings.searchBarColor,
+          label: '搜索框颜色',
+        });
+      }
+
+      if (typeof settings.autoSyncEnabled === 'boolean') {
+        settingsToApply.push({
+          key: 'autoSyncEnabled',
+          value: settings.autoSyncEnabled.toString(),
+          label: '自动同步',
+        });
+      }
+
+      if (typeof settings.autoSyncInterval === 'number') {
+        settingsToApply.push({
+          key: 'autoSyncInterval',
+          value: settings.autoSyncInterval.toString(),
+          label: '自动同步间隔',
+        });
+      }
+
+      if (typeof settings.searchInNewTab === 'boolean') {
+        settingsToApply.push({
+          key: 'searchInNewTab',
+          value: settings.searchInNewTab.toString(),
+          label: '新标签页搜索',
+        });
+      }
+
+      if (typeof settings.autoSortEnabled === 'boolean') {
+        settingsToApply.push({
+          key: 'autoSortEnabled',
+          value: settings.autoSortEnabled.toString(),
+          label: '自动排序',
+        });
+      }
+
+      if (typeof settings.timeComponentEnabled === 'boolean') {
+        settingsToApply.push({
+          key: 'timeComponentEnabled',
+          value: settings.timeComponentEnabled.toString(),
+          label: '时间组件',
+        });
+      }
+
+      if (typeof settings.showFullDate === 'boolean') {
+        settingsToApply.push({
+          key: 'showFullDate',
+          value: settings.showFullDate.toString(),
+          label: '完整日期',
+        });
+      }
+
+      if (typeof settings.showSeconds === 'boolean') {
+        settingsToApply.push({
+          key: 'showSeconds',
+          value: settings.showSeconds.toString(),
+          label: '显示秒数',
+        });
+      }
+
+      if (typeof settings.showWeekday === 'boolean') {
+        settingsToApply.push({
+          key: 'showWeekday',
+          value: settings.showWeekday.toString(),
+          label: '显示星期',
+        });
+      }
+
+      if (typeof settings.showYear === 'boolean') {
+        settingsToApply.push({
+          key: 'showYear',
+          value: settings.showYear.toString(),
+          label: '显示年份',
+        });
+      }
+
+      if (typeof settings.showMonth === 'boolean') {
+        settingsToApply.push({
+          key: 'showMonth',
+          value: settings.showMonth.toString(),
+          label: '显示月份',
+        });
+      }
+
+      if (typeof settings.showDay === 'boolean') {
+        settingsToApply.push({
+          key: 'showDay',
+          value: settings.showDay.toString(),
+          label: '显示日期',
+        });
+      }
+
+      if (settings.dateDisplayMode) {
+        settingsToApply.push({
+          key: 'dateDisplayMode',
+          value: settings.dateDisplayMode,
+          label: '日期显示模式',
+        });
+      }
+
+      if (typeof settings.searchBarBorderRadius === 'number') {
+        settingsToApply.push({
+          key: 'searchBarBorderRadius',
+          value: settings.searchBarBorderRadius.toString(),
+          label: '搜索框圆角',
+        });
+      }
+
+      if (settings.animationStyle) {
+        settingsToApply.push({
+          key: 'animationStyle',
+          value: settings.animationStyle,
+          label: '动画样式',
         });
       }
 

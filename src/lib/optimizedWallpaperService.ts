@@ -40,12 +40,12 @@ class OptimizedWallpaperService {
     }
 
     logger.wallpaper.info('启动定时清理任务（每6小时）和每日检查');
-    
+
     // 立即执行一次清理检查
     this.performDailyCheck().catch((error) => {
       logger.wallpaper.warn('初始每日检查失败', error);
     });
-    
+
     this.cleanupTimer = setInterval(
       () => {
         // 执行清理和每日检查
@@ -76,17 +76,25 @@ class OptimizedWallpaperService {
     }
   }
 
-  // 获取今天的缓存键 - 基于UTC时间确保全球一致性
+  // 获取本地日期字符串 (YYYY-MM-DD)
+  private getLocalDateString(date: Date = new Date()): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  // 获取今天的缓存键 - 基于本地时间
   private getTodayCacheKey(resolution: string): string {
-    const today = new Date().toISOString().split('T')[0];
+    const today = this.getLocalDateString();
     return `wallpaper-optimized:${resolution}-${today}`;
   }
 
   // 检查是否需要强制刷新（跨天检查）
   private shouldForceRefresh(lastUpdateKey: string): boolean {
     const storedDate = localStorage.getItem(lastUpdateKey);
-    const today = new Date().toISOString().split('T')[0];
-    
+    const today = this.getLocalDateString();
+
     if (!storedDate || storedDate !== today) {
       localStorage.setItem(lastUpdateKey, today);
       return true;
@@ -97,26 +105,26 @@ class OptimizedWallpaperService {
   // 执行每日检查 - 确保壁纸是最新的
   private async performDailyCheck(): Promise<void> {
     try {
-      const today = new Date().toISOString().split('T')[0];
+      const today = this.getLocalDateString();
       const lastCheckKey = 'wallpaper-daily-check';
       const lastCheck = localStorage.getItem(lastCheckKey);
-      
+
       if (lastCheck === today) {
         return; // 今天已经检查过了
       }
-      
+
       logger.wallpaper.info('执行每日壁纸检查');
-      
+
       // 标记今天已检查
       localStorage.setItem(lastCheckKey, today);
-      
+
       // 检查所有分辨率是否需要更新
       const resolutions = ['1080p', '720p', '4k', 'mobile'];
-      
+
       for (const resolution of resolutions) {
         const todayKey = this.getTodayCacheKey(resolution);
         const todayCache = await indexedDBCache.get(todayKey);
-        
+
         if (!todayCache) {
           // 没有今天的缓存，触发后台下载
           logger.wallpaper.info(`后台预加载 ${resolution} 壁纸`);
@@ -125,10 +133,10 @@ class OptimizedWallpaperService {
           });
         }
       }
-      
+
       // 清理过期缓存
       await this.cleanupExpiredCache();
-      
+
     } catch (error) {
       logger.wallpaper.warn('每日检查失败', error);
     }
@@ -138,7 +146,7 @@ class OptimizedWallpaperService {
   private getYesterdayCacheKey(resolution: string): string {
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
-    return `wallpaper-optimized:${resolution}-${yesterday.toISOString().split('T')[0]}`;
+    return `wallpaper-optimized:${resolution}-${this.getLocalDateString(yesterday)}`;
   }
 
   // 移除未使用的方法
@@ -368,7 +376,7 @@ class OptimizedWallpaperService {
       // 0.1 检查是否需要强制刷新（跨天检查）
       const forceRefreshKey = `wallpaper-last-update-${resolution}`;
       const shouldRefresh = this.shouldForceRefresh(forceRefreshKey);
-      
+
       if (shouldRefresh) {
         logger.wallpaper.info('检测到跨天，强制刷新壁纸缓存');
         // 清理今天的缓存，强制重新下载
@@ -506,7 +514,7 @@ class OptimizedWallpaperService {
 
       const threeDaysAgo = new Date();
       threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
-      const cutoffDate = threeDaysAgo.toISOString().split('T')[0];
+      const cutoffDate = this.getLocalDateString(threeDaysAgo);
 
       let deletedCount = 0;
 
@@ -529,7 +537,7 @@ class OptimizedWallpaperService {
   // 清理特定日期的缓存
   async clearCacheForDate(resolution: string, date?: string): Promise<void> {
     try {
-      const dateStr = date || new Date().toISOString().split('T')[0];
+      const dateStr = date || this.getLocalDateString();
       const cacheKey = `wallpaper-optimized:${resolution}-${dateStr}`;
 
       await indexedDBCache.delete(cacheKey);
@@ -555,7 +563,7 @@ class OptimizedWallpaperService {
       const allKeys = await indexedDBCache.getAllKeys();
       const wallpaperKeys = allKeys.filter((key) => key.startsWith('wallpaper-optimized:'));
 
-      const today = new Date().toISOString().split('T')[0];
+      const today = this.getLocalDateString();
       const todayKeys = wallpaperKeys.filter((key) => key.includes(today));
 
       let totalSize = 0;

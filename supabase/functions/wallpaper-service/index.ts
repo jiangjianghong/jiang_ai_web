@@ -18,6 +18,14 @@ const RESOLUTIONS = {
   'mobile': '1080x1920'     // 移动端
 };
 
+// 获取中国时区的时间对象
+function getChinaDate(): Date {
+  const now = new Date();
+  // 转换为UTC+8
+  const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+  return new Date(utc + (3600000 * 8));
+}
+
 // Bing壁纸API源
 const BING_SOURCES = [
   // 直接访问Bing官方API
@@ -30,7 +38,7 @@ const BING_SOURCES = [
 
 // 生成今日的Bing图片ID（基于日期）
 function getTodayId(): string {
-  const today = new Date();
+  const today = getChinaDate();
   const year = today.getFullYear();
   const month = String(today.getMonth() + 1).padStart(2, '0');
   const day = String(today.getDate()).padStart(2, '0');
@@ -40,7 +48,7 @@ function getTodayId(): string {
 // 获取Bing图片ID
 function getBingImageId(): string {
   // 使用当前日期生成一个合理的图片ID
-  const today = new Date();
+  const today = getChinaDate();
   const dateStr = today.toISOString().split('T')[0].replace(/-/g, '');
   return `BingDaily_${dateStr}`;
 }
@@ -113,8 +121,8 @@ Deno.serve(async (req) => {
 
     console.log(`壁纸请求: ${resolution} (${targetResolution})`);
 
-    // 生成缓存键 - 基于日期和分辨率
-    const today = new Date().toISOString().split('T')[0];
+    // 生成缓存键 - 基于日期和分辨率 (使用UTC+8)
+    const today = getChinaDate().toISOString().split('T')[0];
     const cacheKey = `wallpaper-${today}-${resolution}.jpg`;
 
     // 获取Supabase环境变量

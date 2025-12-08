@@ -166,37 +166,15 @@ Vercel 对 Vite 应用提供零配置支持。
 即使是静态部署，也需要配置 Supabase 以支持云端同步。
 
 <details>
-<summary><b>1️⃣ SQL 数据库初始化</b> (点击展开)</summary>
+<summary><b>1️⃣ SQL 数据库初始化 (一键配置)</b></summary>
 
-请在 **Supabase SQL Editor** 中运行以下命令以建立表结构和安全策略：
+我们提供了一个**统一部署脚本**，可以自动创建所有数据表（资料、设置、网站、统计）、安全策略以及存储桶。
 
-```sql
--- 创建用户资料表
-create table user_profiles (
-  id uuid references auth.users not null primary key,
-  display_name text,
-  email text
-);
+1. 复制 **[supabase_deploy.sql](supabase_deploy.sql)** 文件的全部内容。
+2. 粘贴到你的 **Supabase SQL Editor** 中。
+3. 点击 **Run** 运行。
 
--- 开启行级安全 (RLS)
-alter table user_profiles enable row level security;
-
--- 允许用户查看自己的资料
-create policy "Users can view own profile" on user_profiles
-  for select using (auth.uid() = id);
-
--- (完整脚本请见仓库内的 'supabase_schema.sql')
-```
-
-> **注意**: 完整的最新 Schema 脚本请直接查看根目录下的 [supabase_schema.sql](supabase_schema.sql)。
-</details>
-
-<details>
-<summary><b>2️⃣ 存储桶 (Storage Buckets)</b></summary>
-
-在 Supabase Storage 中创建两个 **Public** 权限的 Bucket：
-- `favicons`
-- `wallpapers`
+搞定！你的数据库已经完全配置好了。
 
 </details>
 

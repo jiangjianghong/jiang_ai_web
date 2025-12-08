@@ -166,37 +166,15 @@ Vercel provides zero-configuration deployment for Vite apps.
 This project relies on Supabase for Auth & Database.
 
 <details>
-<summary><b>1️⃣ SQL Schema Setup</b> (Click to Expand)</summary>
+<summary><b>1️⃣ SQL Schema Setup (One-Click)</b></summary>
 
-Run this in your **Supabase SQL Editor** to set up tables and security policies:
+We provide a **unified deployment script** that sets up all tables (`profiles`, `settings`, `websites`, `stats`), security policies, and storage buckets automatically.
 
-```sql
--- Create profile table
-create table user_profiles (
-  id uuid references auth.users not null primary key,
-  display_name text,
-  email text
-);
+1. Copy the content of **[supabase_deploy.sql](supabase_deploy.sql)**.
+2. Paste it into your **Supabase SQL Editor**.
+3. Click **Run**.
 
--- Turn on Row Level Security
-alter table user_profiles enable row level security;
-
--- Allow users to view their own profile
-create policy "Users can view own profile" on user_profiles
-  for select using (auth.uid() = id);
-
--- (Refer to 'supabase_schema.sql' in repo for full script)
-```
-
-> **Note**: For the complete, up-to-date schema, please check [supabase_schema.sql](supabase_schema.sql) in the root directory.
-</details>
-
-<details>
-<summary><b>2️⃣ Storage Buckets</b></summary>
-
-Create two public buckets in Supabase Storage:
-- `favicons`
-- `wallpapers`
+That's it! Your database is fully configured.
 
 </details>
 

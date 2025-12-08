@@ -70,7 +70,7 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [loadingPreview, setLoadingPreview] = useState(false);
   const [showUserStatsModal, setShowUserStatsModal] = useState(false);
-  
+
   // 记录上一次选择的必应壁纸分辨率，用于切换回必应模式时恢复
   const [lastBingResolution, setLastBingResolution] = useState<WallpaperResolution>('1080p');
 
@@ -119,6 +119,12 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
     setShowDay,
     setSearchBarBorderRadius,
     setAnimationStyle,
+    workCountdownEnabled,
+    lunchTime,
+    offWorkTime,
+    setWorkCountdownEnabled,
+    setLunchTime,
+    setOffWorkTime,
   } = useTransparency();
   const { currentUser, logout, updatePassword } = useAuth();
   const { updateSyncStatus } = useSyncStatus();
@@ -766,16 +772,14 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                           <i className="fa-solid fa-cat text-white text-2xl"></i>
                         </div>
                         <div
-                          className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-white shadow-sm ${
-                            currentUser.email_confirmed_at ? 'bg-white' : 'bg-white'
-                          }`}
+                          className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-white shadow-sm ${currentUser.email_confirmed_at ? 'bg-white' : 'bg-white'
+                            }`}
                         >
                           <i
-                            className={`fa-solid ${
-                              currentUser.email_confirmed_at
-                                ? 'fa-envelope-circle-check text-emerald-500'
-                                : 'fa-envelope-open text-amber-500'
-                            } text-xs flex items-center justify-center w-full h-full`}
+                            className={`fa-solid ${currentUser.email_confirmed_at
+                              ? 'fa-envelope-circle-check text-emerald-500'
+                              : 'fa-envelope-open text-amber-500'
+                              } text-xs flex items-center justify-center w-full h-full`}
                           ></i>
                         </div>
                       </div>
@@ -842,20 +846,17 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                         )}
                         <div className="flex items-center gap-2 mt-2 select-none">
                           <div
-                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium select-none ${
-                              currentUser.email_confirmed_at
-                                ? 'bg-gradient-to-r from-emerald-100 to-green-100 text-emerald-700 border border-emerald-300'
-                                : 'bg-gradient-to-r from-amber-100 to-orange-100 text-amber-700 border border-amber-300'
-                            }`}
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium select-none ${currentUser.email_confirmed_at
+                              ? 'bg-gradient-to-r from-emerald-100 to-green-100 text-emerald-700 border border-emerald-300'
+                              : 'bg-gradient-to-r from-amber-100 to-orange-100 text-amber-700 border border-amber-300'
+                              }`}
                           >
                             <i
-                              className={`fa-solid ${
-                                currentUser.email_confirmed_at ? 'fa-shield-check' : 'fa-envelope'
-                              } text-xs ${
-                                currentUser.email_confirmed_at
+                              className={`fa-solid ${currentUser.email_confirmed_at ? 'fa-shield-check' : 'fa-envelope'
+                                } text-xs ${currentUser.email_confirmed_at
                                   ? 'text-emerald-500'
                                   : 'text-amber-500'
-                              } select-none`}
+                                } select-none`}
                             ></i>
                             <span className="select-none">
                               {currentUser.email_confirmed_at ? '邮箱已验证' : '待验证邮箱'}
@@ -1053,18 +1054,16 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                 </div>
                 <button
                   onClick={() => setAutoSyncEnabled(!autoSyncEnabled)}
-                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${
-                    autoSyncEnabled
-                      ? 'bg-gradient-to-r from-blue-400 to-cyan-500 shadow-lg shadow-cyan-300/50'
-                      : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
-                  }`}
+                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${autoSyncEnabled
+                    ? 'bg-gradient-to-r from-blue-400 to-cyan-500 shadow-lg shadow-cyan-300/50'
+                    : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
+                    }`}
                 >
                   <span
-                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${
-                      autoSyncEnabled
-                        ? 'translate-x-6 shadow-cyan-200'
-                        : 'translate-x-1 shadow-gray-200'
-                    }`}
+                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${autoSyncEnabled
+                      ? 'translate-x-6 shadow-cyan-200'
+                      : 'translate-x-1 shadow-gray-200'
+                      }`}
                   />
                 </button>
               </div>
@@ -1136,13 +1135,12 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                   </div>
                   {syncMessage && (
                     <div
-                      className={`text-xs text-center px-3 py-2 rounded-lg ${
-                        syncMessage.includes('✅')
-                          ? 'text-green-700 bg-green-50 border border-green-200'
-                          : syncMessage.includes('❌')
-                            ? 'text-red-700 bg-red-50 border border-red-200'
-                            : 'text-blue-700 bg-blue-50 border border-blue-200'
-                      }`}
+                      className={`text-xs text-center px-3 py-2 rounded-lg ${syncMessage.includes('✅')
+                        ? 'text-green-700 bg-green-50 border border-green-200'
+                        : syncMessage.includes('❌')
+                          ? 'text-red-700 bg-red-50 border border-red-200'
+                          : 'text-blue-700 bg-blue-50 border border-blue-200'
+                        }`}
                     >
                       {syncMessage}
                     </div>
@@ -1306,18 +1304,16 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                 </div>
                 <button
                   onClick={() => setParallaxEnabled(!parallaxEnabled)}
-                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${
-                    parallaxEnabled
-                      ? 'bg-gradient-to-r from-indigo-500 to-purple-600 shadow-lg shadow-purple-300/50'
-                      : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
-                  }`}
+                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${parallaxEnabled
+                    ? 'bg-gradient-to-r from-indigo-500 to-purple-600 shadow-lg shadow-purple-300/50'
+                    : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
+                    }`}
                 >
                   <span
-                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${
-                      parallaxEnabled
-                        ? 'translate-x-6 shadow-purple-200'
-                        : 'translate-x-1 shadow-gray-200'
-                    }`}
+                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${parallaxEnabled
+                      ? 'translate-x-6 shadow-purple-200'
+                      : 'translate-x-1 shadow-gray-200'
+                      }`}
                   />
                 </button>
               </div>
@@ -1341,18 +1337,16 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                 </div>
                 <button
                   onClick={() => setSearchInNewTab(!searchInNewTab)}
-                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${
-                    searchInNewTab
-                      ? 'bg-gradient-to-r from-indigo-500 to-purple-600 shadow-lg shadow-purple-300/50'
-                      : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
-                  }`}
+                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${searchInNewTab
+                    ? 'bg-gradient-to-r from-indigo-500 to-purple-600 shadow-lg shadow-purple-300/50'
+                    : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
+                    }`}
                 >
                   <span
-                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${
-                      searchInNewTab
-                        ? 'translate-x-6 shadow-purple-200'
-                        : 'translate-x-1 shadow-gray-200'
-                    }`}
+                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${searchInNewTab
+                      ? 'translate-x-6 shadow-purple-200'
+                      : 'translate-x-1 shadow-gray-200'
+                      }`}
                   />
                 </button>
               </div>
@@ -1374,18 +1368,16 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                 </div>
                 <button
                   onClick={() => setAutoSortEnabled(!autoSortEnabled)}
-                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${
-                    autoSortEnabled
-                      ? 'bg-gradient-to-r from-indigo-500 to-purple-600 shadow-lg shadow-purple-300/50'
-                      : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
-                  }`}
+                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${autoSortEnabled
+                    ? 'bg-gradient-to-r from-indigo-500 to-purple-600 shadow-lg shadow-purple-300/50'
+                    : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
+                    }`}
                 >
                   <span
-                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${
-                      autoSortEnabled
-                        ? 'translate-x-6 shadow-purple-200'
-                        : 'translate-x-1 shadow-gray-200'
-                    }`}
+                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${autoSortEnabled
+                      ? 'translate-x-6 shadow-purple-200'
+                      : 'translate-x-1 shadow-gray-200'
+                      }`}
                   />
                 </button>
               </div>
@@ -1407,18 +1399,16 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                 </div>
                 <button
                   onClick={() => setAnimationStyle(animationStyle === 'dynamic' ? 'simple' : 'dynamic')}
-                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${
-                    animationStyle === 'dynamic'
-                      ? 'bg-gradient-to-r from-indigo-500 to-purple-600 shadow-lg shadow-purple-300/50'
-                      : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
-                  }`}
+                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${animationStyle === 'dynamic'
+                    ? 'bg-gradient-to-r from-indigo-500 to-purple-600 shadow-lg shadow-purple-300/50'
+                    : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
+                    }`}
                 >
                   <span
-                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${
-                      animationStyle === 'dynamic'
-                        ? 'translate-x-6 shadow-purple-200'
-                        : 'translate-x-1 shadow-gray-200'
-                    }`}
+                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${animationStyle === 'dynamic'
+                      ? 'translate-x-6 shadow-purple-200'
+                      : 'translate-x-1 shadow-gray-200'
+                      }`}
                   />
                 </button>
               </div>
@@ -1451,18 +1441,16 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                 </div>
                 <button
                   onClick={() => setTimeComponentEnabled(!timeComponentEnabled)}
-                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${
-                    timeComponentEnabled
-                      ? 'bg-gradient-to-r from-orange-400 to-yellow-500 shadow-lg shadow-orange-300/50'
-                      : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
-                  }`}
+                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${timeComponentEnabled
+                    ? 'bg-gradient-to-r from-orange-400 to-yellow-500 shadow-lg shadow-orange-300/50'
+                    : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
+                    }`}
                 >
                   <span
-                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${
-                      timeComponentEnabled
-                        ? 'translate-x-6 shadow-orange-200'
-                        : 'translate-x-1 shadow-gray-200'
-                    }`}
+                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${timeComponentEnabled
+                      ? 'translate-x-6 shadow-orange-200'
+                      : 'translate-x-1 shadow-gray-200'
+                      }`}
                   />
                 </button>
               </div>
@@ -1485,17 +1473,15 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                       <div className="flex flex-col items-center space-y-2">
                         <button
                           onClick={() => setShowYear(!showYear)}
-                          className={`w-full p-3 rounded-lg border-2 transition-all duration-200 text-center select-none cursor-pointer ${
-                            showYear
-                              ? 'border-orange-400 bg-orange-50 text-orange-700'
-                              : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
-                          }`}
+                          className={`w-full p-3 rounded-lg border-2 transition-all duration-200 text-center select-none cursor-pointer ${showYear
+                            ? 'border-orange-400 bg-orange-50 text-orange-700'
+                            : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
+                            }`}
                         >
                           <div className="flex items-center justify-center gap-2 mb-1">
                             <i
-                              className={`fa-solid fa-calendar-alt text-sm transition-colors ${
-                                showYear ? 'text-orange-400' : 'text-gray-400'
-                              } select-none`}
+                              className={`fa-solid fa-calendar-alt text-sm transition-colors ${showYear ? 'text-orange-400' : 'text-gray-400'
+                                } select-none`}
                             ></i>
                             <div className="font-medium text-sm select-none">年份</div>
                           </div>
@@ -1507,17 +1493,15 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                       <div className="flex flex-col items-center space-y-2">
                         <button
                           onClick={() => setShowMonth(!showMonth)}
-                          className={`w-full p-3 rounded-lg border-2 transition-all duration-200 text-center select-none cursor-pointer ${
-                            showMonth
-                              ? 'border-orange-400 bg-orange-50 text-orange-700'
-                              : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
-                          }`}
+                          className={`w-full p-3 rounded-lg border-2 transition-all duration-200 text-center select-none cursor-pointer ${showMonth
+                            ? 'border-orange-400 bg-orange-50 text-orange-700'
+                            : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
+                            }`}
                         >
                           <div className="flex items-center justify-center gap-2 mb-1">
                             <i
-                              className={`fa-solid fa-calendar-check text-sm transition-colors ${
-                                showMonth ? 'text-orange-400' : 'text-gray-400'
-                              } select-none`}
+                              className={`fa-solid fa-calendar-check text-sm transition-colors ${showMonth ? 'text-orange-400' : 'text-gray-400'
+                                } select-none`}
                             ></i>
                             <div className="font-medium text-sm select-none">月份</div>
                           </div>
@@ -1529,17 +1513,15 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                       <div className="flex flex-col items-center space-y-2">
                         <button
                           onClick={() => setShowDay(!showDay)}
-                          className={`w-full p-3 rounded-lg border-2 transition-all duration-200 text-center select-none cursor-pointer ${
-                            showDay
-                              ? 'border-orange-400 bg-orange-50 text-orange-700'
-                              : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
-                          }`}
+                          className={`w-full p-3 rounded-lg border-2 transition-all duration-200 text-center select-none cursor-pointer ${showDay
+                            ? 'border-orange-400 bg-orange-50 text-orange-700'
+                            : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
+                            }`}
                         >
                           <div className="flex items-center justify-center gap-2 mb-1">
                             <i
-                              className={`fa-solid fa-calendar-day text-sm transition-colors ${
-                                showDay ? 'text-orange-400' : 'text-gray-400'
-                              } select-none`}
+                              className={`fa-solid fa-calendar-day text-sm transition-colors ${showDay ? 'text-orange-400' : 'text-gray-400'
+                                } select-none`}
                             ></i>
                             <div className="font-medium text-sm select-none">日期</div>
                           </div>
@@ -1566,18 +1548,16 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                     </div>
                     <button
                       onClick={() => setShowWeekday(!showWeekday)}
-                      className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${
-                        showWeekday
-                          ? 'bg-gradient-to-r from-orange-400 to-yellow-500 shadow-lg shadow-orange-300/50'
-                          : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
-                      }`}
+                      className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${showWeekday
+                        ? 'bg-gradient-to-r from-orange-400 to-yellow-500 shadow-lg shadow-orange-300/50'
+                        : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
+                        }`}
                     >
                       <span
-                        className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${
-                          showWeekday
-                            ? 'translate-x-6 shadow-orange-200'
-                            : 'translate-x-1 shadow-gray-200'
-                        }`}
+                        className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${showWeekday
+                          ? 'translate-x-6 shadow-orange-200'
+                          : 'translate-x-1 shadow-gray-200'
+                          }`}
                       />
                     </button>
                   </div>
@@ -1599,21 +1579,78 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                     </div>
                     <button
                       onClick={() => setShowSeconds(!showSeconds)}
-                      className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${
-                        showSeconds
-                          ? 'bg-gradient-to-r from-orange-400 to-yellow-500 shadow-lg shadow-orange-300/50'
-                          : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
-                      }`}
+                      className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${showSeconds
+                        ? 'bg-gradient-to-r from-orange-400 to-yellow-500 shadow-lg shadow-orange-300/50'
+                        : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
+                        }`}
                     >
                       <span
-                        className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${
-                          showSeconds
-                            ? 'translate-x-6 shadow-orange-200'
-                            : 'translate-x-1 shadow-gray-200'
-                        }`}
+                        className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${showSeconds
+                          ? 'translate-x-6 shadow-orange-200'
+                          : 'translate-x-1 shadow-gray-200'
+                          }`}
                       />
                     </button>
                   </div>
+
+                  <div className="border-t border-gray-100"></div>
+
+                  {/* 下班倒计时设置 */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <i className="fa-solid fa-hourglass-half text-orange-500 text-sm"></i>
+                          <span className="text-sm font-medium text-gray-700 select-none">
+                            下班倒计时
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-500 select-none">
+                          {workCountdownEnabled
+                            ? '鼠标悬停时间显示距离午休/下班时间'
+                            : '禁用倒计时功能'}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setWorkCountdownEnabled(!workCountdownEnabled)}
+                        className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${workCountdownEnabled
+                          ? 'bg-gradient-to-r from-orange-400 to-yellow-500 shadow-lg shadow-orange-300/50'
+                          : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
+                          }`}
+                      >
+                        <span
+                          className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${workCountdownEnabled
+                            ? 'translate-x-6 shadow-orange-200'
+                            : 'translate-x-1 shadow-gray-200'
+                            }`}
+                        />
+                      </button>
+                    </div>
+
+                    {workCountdownEnabled && (
+                      <div className="grid grid-cols-2 gap-4 pt-2">
+                        <div className="space-y-2">
+                          <label className="text-xs text-gray-500 font-medium ml-1">午休时间</label>
+                          <input
+                            type="time"
+                            value={lunchTime}
+                            onChange={(e) => setLunchTime(e.target.value)}
+                            className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs text-gray-500 font-medium ml-1">下班时间</label>
+                          <input
+                            type="time"
+                            value={offWorkTime}
+                            onChange={(e) => setOffWorkTime(e.target.value)}
+                            className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
                 </>
               )}
             </div>
@@ -1634,11 +1671,10 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
               <div className="flex p-1 bg-gray-100 rounded-xl select-none relative">
                 <button
                   onClick={() => setWallpaperResolution(lastBingResolution)}
-                  className={`relative flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200 ${
-                    wallpaperResolution !== 'custom'
-                      ? 'text-pink-600'
-                      : 'text-gray-500 hover:text-gray-700'
-                  }`}
+                  className={`relative flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200 ${wallpaperResolution !== 'custom'
+                    ? 'text-pink-600'
+                    : 'text-gray-500 hover:text-gray-700'
+                    }`}
                 >
                   {wallpaperResolution !== 'custom' && (
                     <motion.div
@@ -1654,11 +1690,10 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                 </button>
                 <button
                   onClick={() => setWallpaperResolution('custom')}
-                  className={`relative flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200 ${
-                    wallpaperResolution === 'custom'
-                      ? 'text-pink-600'
-                      : 'text-gray-500 hover:text-gray-700'
-                  }`}
+                  className={`relative flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200 ${wallpaperResolution === 'custom'
+                    ? 'text-pink-600'
+                    : 'text-gray-500 hover:text-gray-700'
+                    }`}
                 >
                   {wallpaperResolution === 'custom' && (
                     <motion.div
@@ -1705,19 +1740,17 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                         <button
                           key={option.value}
                           onClick={() => setWallpaperResolution(option.value as WallpaperResolution)}
-                          className={`group p-3 rounded-lg border-2 transition-all duration-200 text-left select-none cursor-pointer ${
-                            wallpaperResolution === option.value
-                              ? 'border-pink-500 bg-pink-50 text-pink-700'
-                              : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
-                          }`}
+                          className={`group p-3 rounded-lg border-2 transition-all duration-200 text-left select-none cursor-pointer ${wallpaperResolution === option.value
+                            ? 'border-pink-500 bg-pink-50 text-pink-700'
+                            : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
+                            }`}
                         >
                           <div className="flex items-center gap-2 mb-1">
                             <i
-                              className={`fa-solid ${option.icon} text-sm transition-colors ${
-                                wallpaperResolution === option.value
-                                  ? 'text-pink-500'
-                                  : 'text-gray-400 group-hover:text-gray-500'
-                              } select-none`}
+                              className={`fa-solid ${option.icon} text-sm transition-colors ${wallpaperResolution === option.value
+                                ? 'text-pink-500'
+                                : 'text-gray-400 group-hover:text-gray-500'
+                                } select-none`}
                             ></i>
                             <div className="font-medium text-sm select-none">{option.label}</div>
                           </div>
@@ -1769,15 +1802,14 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                       >
                         <label
                           htmlFor="wallpaper-upload"
-                          className={`flex items-center justify-center gap-2 px-4 py-8 text-sm font-medium rounded-lg border-2 border-dashed transition-all w-full ${
-                            uploadingWallpaper
-                              ? 'border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed'
-                              : isDragOver
-                                ? 'border-pink-500 bg-pink-100 text-pink-700'
-                                : isGlobalDragOver
-                                  ? 'border-pink-400 bg-pink-50 text-pink-600 animate-pulse'
-                                  : 'border-pink-300 bg-white text-pink-600 hover:border-pink-400 hover:bg-pink-50'
-                          }`}
+                          className={`flex items-center justify-center gap-2 px-4 py-8 text-sm font-medium rounded-lg border-2 border-dashed transition-all w-full ${uploadingWallpaper
+                            ? 'border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed'
+                            : isDragOver
+                              ? 'border-pink-500 bg-pink-100 text-pink-700'
+                              : isGlobalDragOver
+                                ? 'border-pink-400 bg-pink-50 text-pink-600 animate-pulse'
+                                : 'border-pink-300 bg-white text-pink-600 hover:border-pink-400 hover:bg-pink-50'
+                            }`}
                         >
                           <div className="text-center space-y-2">
                             {uploadingWallpaper ? (
@@ -1876,11 +1908,10 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                 <button
                   onClick={exportData}
                   disabled={isExporting}
-                  className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 select-none ${
-                    isExporting
-                      ? 'bg-gray-400 cursor-not-allowed text-white shadow-lg shadow-gray-400/30'
-                      : 'bg-gradient-to-b from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:shadow-emerald-600/40 hover:scale-[1.02]'
-                  }`}
+                  className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 select-none ${isExporting
+                    ? 'bg-gray-400 cursor-not-allowed text-white shadow-lg shadow-gray-400/30'
+                    : 'bg-gradient-to-b from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:shadow-emerald-600/40 hover:scale-[1.02]'
+                    }`}
                 >
                   {isExporting ? (
                     <>
@@ -1898,11 +1929,10 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isImporting}
-                  className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 select-none ${
-                    isImporting
-                      ? 'bg-gray-400 cursor-not-allowed text-white shadow-lg shadow-gray-400/30'
-                      : 'bg-gradient-to-b from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:shadow-emerald-600/40 hover:scale-[1.02]'
-                  }`}
+                  className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 select-none ${isImporting
+                    ? 'bg-gray-400 cursor-not-allowed text-white shadow-lg shadow-gray-400/30'
+                    : 'bg-gradient-to-b from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:shadow-emerald-600/40 hover:scale-[1.02]'
+                    }`}
                 >
                   {isImporting ? (
                     <>
@@ -2011,13 +2041,12 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
 
                   {fixIconsMessage && (
                     <div
-                      className={`text-xs px-3 py-2 rounded-lg ${
-                        fixIconsMessage.includes('✅')
-                          ? 'text-green-700 bg-green-50 border border-green-200'
-                          : fixIconsMessage.includes('❌')
-                            ? 'text-red-700 bg-red-50 border border-red-200'
-                            : 'text-blue-700 bg-blue-50 border border-blue-200'
-                      }`}
+                      className={`text-xs px-3 py-2 rounded-lg ${fixIconsMessage.includes('✅')
+                        ? 'text-green-700 bg-green-50 border border-green-200'
+                        : fixIconsMessage.includes('❌')
+                          ? 'text-red-700 bg-red-50 border border-red-200'
+                          : 'text-blue-700 bg-blue-50 border border-blue-200'
+                        }`}
                     >
                       {isFixingIcons &&
                         !fixIconsMessage.includes('✅') &&
@@ -2031,8 +2060,8 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
               </div>
             </div>
           </div>
-        </div>
-      </motion.div>
+        </div >
+      </motion.div >
 
       {showAddCardModal && (
         <CardEditModal
@@ -2045,15 +2074,18 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
           onClose={() => setShowAddCardModal(false)}
           onSave={handleSaveNewCard}
         />
-      )}
+      )
+      }
 
       {/* 隐私设置面板 */}
-      {showPrivacySettings && (
-        <PrivacySettings
-          isOpen={showPrivacySettings}
-          onClose={() => setShowPrivacySettings(false)}
-        />
-      )}
+      {
+        showPrivacySettings && (
+          <PrivacySettings
+            isOpen={showPrivacySettings}
+            onClose={() => setShowPrivacySettings(false)}
+          />
+        )
+      }
 
       {/* 导入确认对话框 */}
       <ConfirmModal
@@ -2077,262 +2109,267 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
       />
 
       {/* 壁纸管理画廊 */}
-      {showWallpaperGallery && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center">
-          <motion.div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setShowWallpaperGallery(false)}
-          />
-          <motion.div
-            className="relative bg-white rounded-2xl shadow-2xl max-w-4xl w-full mx-4 max-h-[80vh] flex flex-col"
-            initial={{ scale: 0.9, opacity: 0, y: 20 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.9, opacity: 0, y: 20 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 400 }}
-          >
-            {/* 标题栏 */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-rose-600 rounded-xl flex items-center justify-center">
-                  <i className="fa-solid fa-images text-white"></i>
+      {
+        showWallpaperGallery && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center">
+            <motion.div
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowWallpaperGallery(false)}
+            />
+            <motion.div
+              className="relative bg-white rounded-2xl shadow-2xl max-w-4xl w-full mx-4 max-h-[80vh] flex flex-col"
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 400 }}
+            >
+              {/* 标题栏 */}
+              <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-rose-600 rounded-xl flex items-center justify-center">
+                    <i className="fa-solid fa-images text-white"></i>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-800">壁纸管理</h3>
+                    <p className="text-sm text-gray-500">共 {wallpapers.length} 张壁纸</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-800">壁纸管理</h3>
-                  <p className="text-sm text-gray-500">共 {wallpapers.length} 张壁纸</p>
-                </div>
+                <button
+                  onClick={() => setShowWallpaperGallery(false)}
+                  className="text-gray-500 hover:text-gray-700 transition-colors"
+                >
+                  <i className="fa-solid fa-xmark text-xl"></i>
+                </button>
               </div>
-              <button
-                onClick={() => setShowWallpaperGallery(false)}
-                className="text-gray-500 hover:text-gray-700 transition-colors"
-              >
-                <i className="fa-solid fa-xmark text-xl"></i>
-              </button>
-            </div>
 
-            {/* 壁纸网格 */}
-            <div className="flex-1 overflow-y-auto p-6">
-              {wallpapers.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-gray-400">
-                  <i className="fa-solid fa-image text-6xl mb-4"></i>
-                  <p className="text-lg">暂无壁纸</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {wallpapers.map((wallpaper) => (
-                    <motion.div
-                      key={wallpaper.metadata.id}
-                      className={`relative group rounded-xl overflow-hidden border-2 transition-all duration-200 ${
-                        wallpaper.isActive
+              {/* 壁纸网格 */}
+              <div className="flex-1 overflow-y-auto p-6">
+                {wallpapers.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-full text-gray-400">
+                    <i className="fa-solid fa-image text-6xl mb-4"></i>
+                    <p className="text-lg">暂无壁纸</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {wallpapers.map((wallpaper) => (
+                      <motion.div
+                        key={wallpaper.metadata.id}
+                        className={`relative group rounded-xl overflow-hidden border-2 transition-all duration-200 ${wallpaper.isActive
                           ? 'border-pink-500 shadow-lg shadow-pink-200'
                           : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      {/* 壁纸缩略图 */}
-                      <div className="aspect-video bg-gray-100 relative">
-                        <img
-                          src={wallpaper.thumbnailUrl}
-                          alt={wallpaper.metadata.name}
-                          className="w-full h-full object-cover"
-                        />
+                          }`}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        {/* 壁纸缩略图 */}
+                        <div className="aspect-video bg-gray-100 relative">
+                          <img
+                            src={wallpaper.thumbnailUrl}
+                            alt={wallpaper.metadata.name}
+                            className="w-full h-full object-cover"
+                          />
 
-                        {/* 当前使用指示器 */}
-                        {wallpaper.isActive && (
-                          <div className="absolute top-2 right-2 bg-pink-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
-                            <i className="fa-solid fa-check"></i>
-                            <span>使用中</span>
-                          </div>
-                        )}
-
-                        {/* 悬浮操作按钮 */}
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-200 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
-                          {/* 预览 */}
-                          <button
-                            onClick={() => handlePreviewWallpaper(wallpaper)}
-                            className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 transition-colors"
-                            title="预览"
-                          >
-                            <i className="fa-solid fa-eye"></i>
-                          </button>
-
-                          {/* 使用 */}
-                          {!wallpaper.isActive && (
-                            <button
-                              onClick={() => handleSelectWallpaper(wallpaper.metadata.id)}
-                              className="w-10 h-10 bg-pink-500 rounded-full flex items-center justify-center text-white hover:bg-pink-600 transition-colors"
-                              title="使用此壁纸"
-                            >
+                          {/* 当前使用指示器 */}
+                          {wallpaper.isActive && (
+                            <div className="absolute top-2 right-2 bg-pink-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
                               <i className="fa-solid fa-check"></i>
-                            </button>
+                              <span>使用中</span>
+                            </div>
                           )}
 
-                          {/* 下载 */}
-                          <button
-                            onClick={() => handleDownloadWallpaper(wallpaper.metadata.id)}
-                            className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white hover:bg-blue-600 transition-colors"
-                            title="下载"
-                          >
-                            <i className="fa-solid fa-download"></i>
-                          </button>
+                          {/* 悬浮操作按钮 */}
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-200 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
+                            {/* 预览 */}
+                            <button
+                              onClick={() => handlePreviewWallpaper(wallpaper)}
+                              className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 transition-colors"
+                              title="预览"
+                            >
+                              <i className="fa-solid fa-eye"></i>
+                            </button>
 
-                          {/* 删除 */}
-                          <button
-                            onClick={() => handleDeleteWallpaper(wallpaper.metadata.id)}
-                            className="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center text-white hover:bg-red-600 transition-colors"
-                            title="删除"
-                          >
-                            <i className="fa-solid fa-trash"></i>
-                          </button>
-                        </div>
-                      </div>
+                            {/* 使用 */}
+                            {!wallpaper.isActive && (
+                              <button
+                                onClick={() => handleSelectWallpaper(wallpaper.metadata.id)}
+                                className="w-10 h-10 bg-pink-500 rounded-full flex items-center justify-center text-white hover:bg-pink-600 transition-colors"
+                                title="使用此壁纸"
+                              >
+                                <i className="fa-solid fa-check"></i>
+                              </button>
+                            )}
 
-                      {/* 壁纸信息 */}
-                      <div className="p-3 bg-white">
-                        <div className="text-sm font-medium text-gray-800 truncate">
-                          {wallpaper.metadata.name}
+                            {/* 下载 */}
+                            <button
+                              onClick={() => handleDownloadWallpaper(wallpaper.metadata.id)}
+                              className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white hover:bg-blue-600 transition-colors"
+                              title="下载"
+                            >
+                              <i className="fa-solid fa-download"></i>
+                            </button>
+
+                            {/* 删除 */}
+                            <button
+                              onClick={() => handleDeleteWallpaper(wallpaper.metadata.id)}
+                              className="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center text-white hover:bg-red-600 transition-colors"
+                              title="删除"
+                            >
+                              <i className="fa-solid fa-trash"></i>
+                            </button>
+                          </div>
                         </div>
-                        <div className="text-xs text-gray-500 mt-1">
-                          {wallpaper.metadata.width} × {wallpaper.metadata.height}
+
+                        {/* 壁纸信息 */}
+                        <div className="p-3 bg-white">
+                          <div className="text-sm font-medium text-gray-800 truncate">
+                            {wallpaper.metadata.name}
+                          </div>
+                          <div className="text-xs text-gray-500 mt-1">
+                            {wallpaper.metadata.width} × {wallpaper.metadata.height}
+                          </div>
+                          <div className="text-xs text-gray-400">
+                            {(wallpaper.metadata.size / 1024 / 1024).toFixed(2)} MB
+                          </div>
                         </div>
-                        <div className="text-xs text-gray-400">
-                          {(wallpaper.metadata.size / 1024 / 1024).toFixed(2)} MB
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </motion.div>
-        </div>
-      )}
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </div>
+        )
+      }
 
       {/* 壁纸预览模态框 */}
-      {showPreviewModal && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center">
-          <motion.div
-            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => {
-              setShowPreviewModal(false);
-              setPreviewWallpaper(null);
-            }}
-          />
-          <motion.div
-            className="relative max-w-6xl max-h-[90vh] mx-4"
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.8, opacity: 0 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 400 }}
-          >
-            {/* 关闭按钮 */}
-            <button
+      {
+        showPreviewModal && (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center">
+            <motion.div
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               onClick={() => {
                 setShowPreviewModal(false);
                 setPreviewWallpaper(null);
               }}
-              className="absolute -top-12 right-0 text-white hover:text-gray-300 transition-colors"
+            />
+            <motion.div
+              className="relative max-w-6xl max-h-[90vh] mx-4"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 400 }}
             >
-              <i className="fa-solid fa-xmark text-3xl"></i>
-            </button>
+              {/* 关闭按钮 */}
+              <button
+                onClick={() => {
+                  setShowPreviewModal(false);
+                  setPreviewWallpaper(null);
+                }}
+                className="absolute -top-12 right-0 text-white hover:text-gray-300 transition-colors"
+              >
+                <i className="fa-solid fa-xmark text-3xl"></i>
+              </button>
 
-            {/* 预览图片 */}
-            {loadingPreview ? (
-              <div className="flex items-center justify-center w-96 h-64 bg-gray-800 rounded-xl">
-                <div className="text-center text-white">
-                  <i className="fa-solid fa-spinner fa-spin text-4xl mb-4"></i>
-                  <p className="text-lg">正在加载原图...</p>
-                </div>
-              </div>
-            ) : previewWallpaper ? (
-              <>
-                <img
-                  src={previewWallpaper.fullImageUrl}
-                  alt={previewWallpaper.metadata.name}
-                  className="max-w-full max-h-[80vh] rounded-xl shadow-2xl"
-                />
-
-                {/* 图片信息 */}
-                <div className="mt-4 bg-white/90 backdrop-blur-sm rounded-lg p-4 flex items-center justify-between">
-                  <div>
-                    <div className="text-sm font-medium text-gray-800">
-                      {previewWallpaper.metadata.name}
-                    </div>
-                    <div className="text-xs text-gray-600 mt-1">
-                      {previewWallpaper.metadata.width} × {previewWallpaper.metadata.height} •{' '}
-                      {(previewWallpaper.metadata.size / 1024 / 1024).toFixed(2)} MB
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => handleSelectWallpaper(previewWallpaper.metadata.id)}
-                      className="px-4 py-2 bg-pink-500 hover:bg-pink-600 text-white text-sm rounded-lg transition-colors flex items-center gap-2"
-                    >
-                      <i className="fa-solid fa-check"></i>
-                      <span>使用此壁纸</span>
-                    </button>
-                    <button
-                      onClick={() => handleDownloadWallpaper(previewWallpaper.metadata.id)}
-                      className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-lg transition-colors flex items-center gap-2"
-                    >
-                      <i className="fa-solid fa-download"></i>
-                      <span>下载</span>
-                    </button>
+              {/* 预览图片 */}
+              {loadingPreview ? (
+                <div className="flex items-center justify-center w-96 h-64 bg-gray-800 rounded-xl">
+                  <div className="text-center text-white">
+                    <i className="fa-solid fa-spinner fa-spin text-4xl mb-4"></i>
+                    <p className="text-lg">正在加载原图...</p>
                   </div>
                 </div>
-              </>
-            ) : null}
-          </motion.div>
-        </div>
-      )}
+              ) : previewWallpaper ? (
+                <>
+                  <img
+                    src={previewWallpaper.fullImageUrl}
+                    alt={previewWallpaper.metadata.name}
+                    className="max-w-full max-h-[80vh] rounded-xl shadow-2xl"
+                  />
+
+                  {/* 图片信息 */}
+                  <div className="mt-4 bg-white/90 backdrop-blur-sm rounded-lg p-4 flex items-center justify-between">
+                    <div>
+                      <div className="text-sm font-medium text-gray-800">
+                        {previewWallpaper.metadata.name}
+                      </div>
+                      <div className="text-xs text-gray-600 mt-1">
+                        {previewWallpaper.metadata.width} × {previewWallpaper.metadata.height} •{' '}
+                        {(previewWallpaper.metadata.size / 1024 / 1024).toFixed(2)} MB
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleSelectWallpaper(previewWallpaper.metadata.id)}
+                        className="px-4 py-2 bg-pink-500 hover:bg-pink-600 text-white text-sm rounded-lg transition-colors flex items-center gap-2"
+                      >
+                        <i className="fa-solid fa-check"></i>
+                        <span>使用此壁纸</span>
+                      </button>
+                      <button
+                        onClick={() => handleDownloadWallpaper(previewWallpaper.metadata.id)}
+                        className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-lg transition-colors flex items-center gap-2"
+                      >
+                        <i className="fa-solid fa-download"></i>
+                        <span>下载</span>
+                      </button>
+                    </div>
+                  </div>
+                </>
+              ) : null}
+            </motion.div>
+          </div>
+        )
+      }
 
       {/* 使用统计模态框 */}
-      {showUserStatsModal && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center">
-          <motion.div
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setShowUserStatsModal(false)}
-          />
-          <motion.div
-            className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 overflow-hidden"
-            initial={{ scale: 0.9, opacity: 0, y: 20 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.9, opacity: 0, y: 20 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          >
-            {/* 标题栏 */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-gray-50/50">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-lg flex items-center justify-center shadow-sm">
-                  <i className="fa-solid fa-chart-pie text-white text-sm"></i>
+      {
+        showUserStatsModal && (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center">
+            <motion.div
+              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowUserStatsModal(false)}
+            />
+            <motion.div
+              className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 overflow-hidden"
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            >
+              {/* 标题栏 */}
+              <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-gray-50/50">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-lg flex items-center justify-center shadow-sm">
+                    <i className="fa-solid fa-chart-pie text-white text-sm"></i>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-800">使用统计</h3>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-800">使用统计</h3>
+                <button
+                  onClick={() => setShowUserStatsModal(false)}
+                  className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200/80 text-gray-500 transition-colors"
+                >
+                  <i className="fa-solid fa-xmark text-lg"></i>
+                </button>
               </div>
-              <button
-                onClick={() => setShowUserStatsModal(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200/80 text-gray-500 transition-colors"
-              >
-                <i className="fa-solid fa-xmark text-lg"></i>
-              </button>
-            </div>
 
-            {/* 内容区域 */}
-            <div className="p-6 max-h-[80vh] overflow-y-auto custom-scrollbar">
-              <UserStatsDisplay websites={websites} />
-            </div>
-          </motion.div>
-        </div>
-      )}
-    </div>
+              {/* 内容区域 */}
+              <div className="p-6 max-h-[80vh] overflow-y-auto custom-scrollbar">
+                <UserStatsDisplay websites={websites} />
+              </div>
+            </motion.div>
+          </div>
+        )
+      }
+    </div >
   );
 }
 

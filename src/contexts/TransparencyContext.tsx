@@ -42,6 +42,9 @@ interface TransparencyContextType {
   dateDisplayMode: 'yearMonth' | 'yearMonthDay'; // 日期显示模式
   searchBarBorderRadius: number; // 搜索框圆角大小（像素）
   animationStyle: 'dynamic' | 'simple'; // 动画样式：灵动或简约
+  workCountdownEnabled: boolean; // 下班倒计时开关
+  lunchTime: string; // 午休时间 HH:mm
+  offWorkTime: string; // 下班时间 HH:mm
   setCardOpacity: (opacity: number) => void;
   setSearchBarOpacity: (opacity: number) => void;
   setParallaxEnabled: (enabled: boolean) => void;
@@ -64,6 +67,9 @@ interface TransparencyContextType {
   setDateDisplayMode: (mode: 'yearMonth' | 'yearMonthDay') => void;
   setSearchBarBorderRadius: (radius: number) => void;
   setAnimationStyle: (style: 'dynamic' | 'simple') => void;
+  setWorkCountdownEnabled: (enabled: boolean) => void;
+  setLunchTime: (time: string) => void;
+  setOffWorkTime: (time: string) => void;
 }
 
 const TransparencyContext = createContext<TransparencyContextType | undefined>(undefined);
@@ -194,6 +200,22 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
     return saved || 'simple'; // 默认简约
   });
 
+  // 下班倒计时设置
+  const [workCountdownEnabled, setWorkCountdownEnabled] = useState(() => {
+    const saved = localStorage.getItem('workCountdownEnabled');
+    return saved ? saved === 'true' : false; // 默认关闭
+  });
+
+  const [lunchTime, setLunchTime] = useState(() => {
+    const saved = localStorage.getItem('lunchTime');
+    return saved || '12:00'; // 默认午休时间
+  });
+
+  const [offWorkTime, setOffWorkTime] = useState(() => {
+    const saved = localStorage.getItem('offWorkTime');
+    return saved || '18:00'; // 默认下班时间
+  });
+
   // 初始化autoSortEnabled从localStorage
   useEffect(() => {
     try {
@@ -286,6 +308,18 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('animationStyle', animationStyle);
   }, [animationStyle]);
 
+  useEffect(() => {
+    localStorage.setItem('workCountdownEnabled', workCountdownEnabled.toString());
+  }, [workCountdownEnabled]);
+
+  useEffect(() => {
+    localStorage.setItem('lunchTime', lunchTime);
+  }, [lunchTime]);
+
+  useEffect(() => {
+    localStorage.setItem('offWorkTime', offWorkTime);
+  }, [offWorkTime]);
+
   return (
     <TransparencyContext.Provider
       value={{
@@ -311,6 +345,9 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
         dateDisplayMode,
         searchBarBorderRadius,
         animationStyle,
+        workCountdownEnabled,
+        lunchTime,
+        offWorkTime,
         setCardOpacity,
         setSearchBarOpacity,
         setParallaxEnabled,
@@ -333,6 +370,9 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
         setDateDisplayMode,
         setSearchBarBorderRadius,
         setAnimationStyle,
+        setWorkCountdownEnabled,
+        setLunchTime,
+        setOffWorkTime,
       }}
     >
       {children}

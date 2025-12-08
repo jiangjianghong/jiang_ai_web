@@ -563,8 +563,13 @@ export const getUserProfile = async (user: User): Promise<UserProfile | null> =>
       .eq('id', user.id)
       .single();
 
-    if (error && error.code !== 'PGRST116') {
-      // PGRST116 表示没有找到记录
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // PGRST116 表示没有找到记录 - 这是唯一返回 null 的情况
+        logger.sync.debug('用户资料不存在');
+        return null;
+      }
+      // 其他错误直接抛出，由调用者处理（避免被误判为不存在而覆盖）
       throw error;
     }
 
@@ -577,13 +582,13 @@ export const getUserProfile = async (user: User): Promise<UserProfile | null> =>
         createdAt: data.created_at,
         updatedAt: data.updated_at,
       };
-    } else {
-      logger.sync.debug('用户资料不存在');
-      return null;
     }
+
+    return null;
   } catch (error) {
     logger.sync.error('获取用户资料失败', error);
-    return null;
+    // 抛出错误，防止上层误判
+    throw error;
   }
 };
 

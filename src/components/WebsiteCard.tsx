@@ -313,7 +313,7 @@ export const WebsiteCard = memo(function WebsiteCardComponent({
                 )}
               </div>
               <h3
-                className={`${isMobile ? 'text-[0.65rem]' : 'text-xs'} font-medium text-white text-center line-clamp-2 px-2 mt-1 select-none`}
+                className={`${isMobile ? 'text-xs' : 'text-xs'} font-medium text-white text-center line-clamp-2 px-2 mt-1 select-none`}
               >
                 {name}
               </h3>
@@ -334,7 +334,7 @@ export const WebsiteCard = memo(function WebsiteCardComponent({
                 {tags.slice(0, isMobile ? 2 : 6).map((tag) => (
                   <span
                     key={tag}
-                    className={`px-1.5 py-0.5 bg-white/20 rounded-full ${isMobile ? 'text-[0.55rem]' : 'text-[0.65rem]'} text-white ${isMobile ? 'max-w-[45px]' : 'max-w-[60px]'} truncate select-none`}
+                    className={`px-1.5 py-0.5 bg-white/20 rounded-full ${isMobile ? 'text-[10px]' : 'text-[0.65rem]'} text-white ${isMobile ? 'max-w-[50px]' : 'max-w-[60px]'} truncate select-none`}
                   >
                     {tag}
                   </span>
@@ -347,7 +347,7 @@ export const WebsiteCard = memo(function WebsiteCardComponent({
               <div className={`px-2 pb-2 select-none`}>
                 <div className="text-center">
                   <span
-                    className={`px-2 py-1 bg-blue-500/20 text-blue-200 rounded-full ${isMobile ? 'text-[0.55rem]' : 'text-[0.65rem]'} border border-blue-300/30 select-none`}
+                    className={`px-2 py-1 bg-blue-500/20 text-blue-200 rounded-full ${isMobile ? 'text-[10px]' : 'text-[0.65rem]'} border border-blue-300/30 select-none`}
                   >
                     <i className="fa-solid fa-eye mr-1 select-none"></i>
                     <span className="select-none">{visitCount}次访问</span>
@@ -404,7 +404,7 @@ export const WebsiteCard = memo(function WebsiteCardComponent({
             />
           )}
         </motion.div>
-      </Tilt>
+      </Tilt >
 
       {showEditModal && (
         <CardEditModal
@@ -423,7 +423,8 @@ export const WebsiteCard = memo(function WebsiteCardComponent({
           }}
           onDelete={onDelete}
         />
-      )}
+      )
+      }
     </>
   );
 });

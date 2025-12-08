@@ -300,9 +300,9 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
     const gridClasses = getGridClasses();
 
     return {
-      container: `relative min-h-screen ${isMobile ? 'pt-[25vh]' : 'pt-[33vh]'}`,
+      container: `relative min-h-screen ${isMobile ? 'pt-[18vh]' : 'pt-[33vh]'}`,
       searchContainer: searchBarLayout.containerClass,
-      cardContainer: `${isMobile ? 'pt-8 pb-4' : 'pt-16 pb-8'} px-4 max-w-6xl mx-auto`,
+      cardContainer: `${isMobile ? 'pt-4 pb-4' : 'pt-16 pb-8'} px-4 max-w-6xl mx-auto`,
       gridLayout: gridClasses,
       userInfo: isMobile ? 'fixed top-2 right-2 z-40 scale-90' : 'fixed top-4 right-4 z-40',
       workspaceButton: isMobile ? 'fixed top-2 left-2 z-40 scale-90' : 'fixed top-4 left-4 z-40',
@@ -487,8 +487,8 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
                 ) : (
                   <i
                     className={`fa-${isAlreadyFavorited || isFavorited ? 'solid' : 'regular'} fa-heart transition-all duration-300 drop-shadow-lg ${isAlreadyFavorited || isFavorited
-                        ? 'text-red-500 text-xl'
-                        : 'text-white/70 hover:text-white text-lg'
+                      ? 'text-red-500 text-xl'
+                      : 'text-white/70 hover:text-white text-lg'
                       }`}
                   ></i>
                 )}

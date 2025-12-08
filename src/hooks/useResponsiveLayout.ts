@@ -48,7 +48,7 @@ const DEFAULT_LAYOUT: ResponsiveLayoutConfig = {
     desktop: 'gap-x-4 gap-y-10',
   },
   cardSizes: {
-    mobile: 'w-full max-w-[160px]',
+    mobile: 'w-full',
     tablet: 'w-full max-w-[180px]',
     desktop: 'w-full max-w-[200px]',
   },

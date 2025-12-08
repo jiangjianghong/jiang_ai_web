@@ -8,6 +8,7 @@
 /* 标记Tailwind CSS已加载 */
 html {
   --tailwind-loaded: true;
+  touch-action: manipulation;
 }
 
 :root {

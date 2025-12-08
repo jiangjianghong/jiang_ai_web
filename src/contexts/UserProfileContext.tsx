@@ -28,7 +28,7 @@ interface UserProfileProviderProps {
 }
 
 export function UserProfileProvider({ children }: UserProfileProviderProps) {
-  const { currentUser } = useAuth();
+  const { currentUser, loading: authLoading } = useAuth();
   const { getItem, setItem, removeItem } = useStorage();
 
   // 初始化状态时尝试从缓存读取
@@ -87,6 +87,7 @@ export function UserProfileProvider({ children }: UserProfileProviderProps) {
   // 当用户登录状态变化时，加载用户资料
   useEffect(() => {
     const loadUserProfile = async () => {
+      // 只有当 currentUser 存在且邮箱已验证时才加载资料
       if (currentUser && currentUser.email_confirmed_at) {
         // 即便有缓存，也静默刷新数据
         if (!userProfile) {
@@ -96,17 +97,13 @@ export function UserProfileProvider({ children }: UserProfileProviderProps) {
         try {
           const profile = await getUserProfile(currentUser);
           if (profile) {
-            // 只有当服务器数据与本地不一致时才更新，避免不必要的重渲染
-            // 但为了简单起见，这里总是更新以确保最新，React会自动合并状态
             updateUserProfileState(profile);
           } else {
             // 云端没有数据，可能是新注册用户
-            // 如果本地也没有缓存，则创建默认值
+            // 只有当本地也没有 userProfile 时才创建默认资料
             if (!userProfile) {
               const defaultName = currentUser.email?.split('@')[0] || '用户';
-              // 先尝试保存默认值到云端
               await saveUserProfile(currentUser, defaultName);
-              // 再重新获取
               const newProfile = await getUserProfile(currentUser);
               if (newProfile) {
                 updateUserProfileState(newProfile);
@@ -118,15 +115,18 @@ export function UserProfileProvider({ children }: UserProfileProviderProps) {
         } finally {
           setLoading(false);
         }
-      } else if (!currentUser) {
-        // 用户未登录，清除资料
-        updateUserProfileState(null);
+      } else {
+        // 仅当确定用户已登出（authLoading 为 false 且 currentUser 为 null）时才清除缓存
+        // 这样可以防止在 initial session loading 期间清除缓存
+        if (!authLoading && !currentUser) {
+          updateUserProfileState(null);
+        }
       }
     };
 
     loadUserProfile();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentUser]);
+  }, [currentUser, authLoading]);
 
   const value: UserProfileContextType = {
     userProfile,

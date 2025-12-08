@@ -1,730 +1,315 @@
 <div align="center">
 
 # Jiang's Tab
+### Your Personal Web Gateway
 
-```
- /\_/\
-( o.o )
- > ^ <
-```
+<p align="center">
+  <img src="image.png" alt="Jiang's Tab Screenshot" width="800px" style="border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+</p>
 
-**A modern, highly customizable personal website navigation application**
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg?style=for-the-badge&color=2563EB)](https://opensource.org/licenses/Apache-2.0)
+[![React](https://img.shields.io/badge/React-18.3-61DAFB?style=for-the-badge&logo=react&logoColor=white&color=087EA4)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?style=for-the-badge&logo=typescript&logoColor=white&color=3178C6)](https://www.typescriptlang.org/)
+[![Vite](https://img.shields.io/badge/Vite-6.0-646CFF?style=for-the-badge&logo=vite&logoColor=white&color=646CFF)](https://vitejs.dev/)
+[![Supabase](https://img.shields.io/badge/Supabase-Enabled-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white&color=3ECF8E)](https://supabase.com/)
 
-[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg?style=for-the-badge)](https://opensource.org/licenses/Apache-2.0)
-[![React](https://img.shields.io/badge/React-18.3.1-61DAFB?style=for-the-badge&logo=react&logoColor=white)](https://reactjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.7.2-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Vite](https://img.shields.io/badge/Vite-6.2.0-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
-[![Supabase](https://img.shields.io/badge/Supabase-Enabled-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com/)
-
-[🌐 Live Demo](https://jiangjiang.cc) | [🐛 Report Bug](https://github.com/jiangjianghong/jiang_ai_web/issues) | [✨ Request Feature](https://github.com/jiangjianghong/jiang_ai_web/issues)
+[🌐 Live Demo](https://jiangjiang.cc) · [🐛 Report Bug](https://github.com/jiangjianghong/jiang_ai_web/issues) · [✨ Request Feature](https://github.com/jiangjianghong/jiang_ai_web/issues)
 
 **[ English | [简体中文](README.zh-CN.md) ]**
 
-![Screenshot](image.png)
-
 </div>
-
----
 
 ## 📚 Table of Contents
 
-- [Features](#-features)
+- [Introduction](#-introduction)
+- [Key Features](#-key-features)
 - [Tech Stack](#-tech-stack)
-- [Quick Start](#-quick-start)
-- [Architecture](#-architecture)
+- [Getting Started](#-getting-started)
+- [Architecture](#-architecture-overview)
 - [Deployment](#-deployment)
-- [Database Setup](#-database-setup)
-- [Security Features](#-security-features)
+- [Database Setup](#-database-setup-supabase)
+- [Roadmap](#-roadmap)
 - [Contributing](#-contributing)
-- [Changelog](#-changelog)
-- [Troubleshooting](#-troubleshooting)
 - [License](#-license)
-- [Acknowledgments](#-acknowledgments)
-- [Contact](#-contact)
 
 ---
 
-## ✨ Features
+## 📖 Introduction
 
-<table>
-<tr>
-<td width="50%">
+**Jiang's Tab** is not just another browser start page. It is a **modern, highly customizable, and visually stunning** personal dashboard designed to make your daily web navigation a delight.
 
-### 🎨 User Interface
-- ✅ **Responsive Design** - Perfect for desktop and mobile
-- 🌄 **Dynamic Wallpapers** - Auto-refresh daily, multi-resolution support
-- 🎭 **Parallax Effects** - Mouse-following parallax animations
-- 🎚️ **Opacity Control** - Customizable card and search bar transparency
-- 🌗 **Theme Switching** - Seamless light/dark mode toggle
-- ⏰ **Time Display** - Real-time clock and date display
-- 🎨 **Color Customization** - Custom colors for cards and search bar
+Built with performance and aesthetics in mind, it combines robust bookmark management with a beautiful interface that adapts to your style. Whether you need a productivity hub with Notion integration or a serene space with daily changing wallpapers and poetry, Jiang's Tab adapts to *you*.
 
-### 🔧 Functionality
-- 📝 **Website Card Management** - Add, edit, delete website cards
-- 🔍 **Smart Search** - Real-time search by name, URL, and tags
-- 🎯 **Drag & Drop** - Reorder cards with drag and drop
-- 📊 **Visit Statistics** - Auto-track visit counts and timestamps
-- 🏷️ **Tag System** - Organize websites with tags
-- 📝 **Notes Feature** - Add personal notes to each website
-- ✅ **TODO Management** - Built-in todo list functionality
-- 📖 **Poetry Display** - Random Chinese poetry display
+## ✨ Key Features
 
-</td>
-<td width="50%">
+### 🎨 Visual & UI
+> **Experience a workspace that breathes.**
+- **Dynamic Wallpapers** - Starts your day with a fresh, high-res background from Bing.
+- **Parallax Effects** - Interactive depth that responds to your mouse movement.
+- **Glassmorphism** - Modern frosted glass aesthetics with customizable transparency.
+- **Theme Engine** - Seamless toggling between Light and Dark modes.
+- **Responsive** - Flawless experience on desktop, tablet, and mobile.
 
-### ☁️ Cloud Services
-- 🔐 **User Authentication** - Secure Supabase-based auth system
-- 🔄 **Smart Data Sync** - Auto-sync data and settings to cloud
-- 🛡️ **Data Validation** - Validate data before sync, prevent empty overwrites
-- 📱 **Multi-device Sync** - Seamless sync across devices
-- 🔌 **Offline Support** - Full functionality when offline
-- 📧 **Email Verification** - Email verification and password reset
-- 👤 **User Profiles** - Customize display name and avatar
+### 🛠️ Core Functionality
+> **Everything you need, right where you need it.**
+- **Smart Bookmarks** - Drag & drop organization with auto-fetched icons.
+- **Cloud Sync** - Never lose your setup. Syncs across devices via Supabase.
+- **Efficiency** - Global search bar to find bookmarks or search the web instantly.
+- **Offline Ready** - Full PWA support—install it as a native app.
+- **Privacy First** - Your data is yours. Secure authentication and storage.
 
-### 🚀 Performance
-- 💾 **Smart Caching** - Multi-layer cache strategy (Memory + IndexedDB)
-- 🖼️ **Icon Caching** - Auto-cache website icons for faster loading
-- ⚡ **Code Splitting** - Load on demand, reduce initial bundle size
-- 🎯 **Resource Preloading** - Smart preload frequently used resources
-- 📱 **PWA Support** - Offline access and install to desktop
-- 🧹 **Memory Management** - Auto cleanup and memory optimization
+### 🧩 Integrations & Widgets
+> **More than just links.**
+- **Notion Workspace** - Connect your Notion databases for a seamless workflow.
+- **Daily Poetry** - A touch of culture with random Chinese poetry generation.
+- **Time & Date** - Elegant clock widget to keep you on track.
+- **Todo List** - Built-in task management to capture ideas quickly.
 
-</td>
-</tr>
-</table>
-
-### 🔌 Notion Integration
-
-- 📊 **Workspace** - Integrate with Notion databases
-- 📑 **Multiple Views** - Card view and list view support
-- 🔍 **Search & Filter** - Filter by category and tags
-- ⌨️ **Keyboard Navigation** - Full keyboard shortcuts support
-- 🎨 **Rich Text Rendering** - Support Notion rich text format
+### ⚡ Performance
+> **Speed as a feature.**
+- **Blazing Fast** - Powered by Vite and React for instant load times.
+- **Smart Caching** - Multi-layer caching strategy (Memory + IndexedDB).
+- **Edge Computing** - Supabase Edge Functions for low-latency backend operations.
 
 ---
 
 ## 🛠️ Tech Stack
 
-<table>
-<tr>
-<td width="33%">
+This project leverages the latest web technologies to ensure scalability, maintainability, and top-tier performance.
 
-### Frontend
-![React](https://img.shields.io/badge/React-18.3.1-61DAFB?style=flat-square&logo=react&logoColor=white)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.7.2-3178C6?style=flat-square&logo=typescript&logoColor=white)
-![Vite](https://img.shields.io/badge/Vite-6.2.0-646CFF?style=flat-square&logo=vite&logoColor=white)
-![TailwindCSS](https://img.shields.io/badge/Tailwind-3.4.17-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white)
-
-</td>
-<td width="33%">
-
-### State & Data
-![React Context](https://img.shields.io/badge/React_Context-API-61DAFB?style=flat-square&logo=react)
-![IndexedDB](https://img.shields.io/badge/IndexedDB-Storage-orange?style=flat-square)
-![LocalStorage](https://img.shields.io/badge/LocalStorage-API-yellow?style=flat-square)
-![Zod](https://img.shields.io/badge/Zod-Validation-3E67B1?style=flat-square)
-
-</td>
-<td width="33%">
-
-### Backend
-![Supabase](https://img.shields.io/badge/Supabase-Auth_&_DB-3ECF8E?style=flat-square&logo=supabase&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-336791?style=flat-square&logo=postgresql&logoColor=white)
-![Edge Functions](https://img.shields.io/badge/Edge_Functions-Serverless-black?style=flat-square)
-
-</td>
-</tr>
-<tr>
-<td width="33%">
-
-### Animation
-![Framer Motion](https://img.shields.io/badge/Framer_Motion-12.9.2-BB4E9D?style=flat-square&logo=framer)
-![React DnD](https://img.shields.io/badge/React_DnD-16.0.1-orange?style=flat-square)
-![Particles](https://img.shields.io/badge/TSParticles-3.0.0-blueviolet?style=flat-square)
-
-</td>
-<td width="33%">
-
-### Visualization
-![Recharts](https://img.shields.io/badge/Recharts-2.15.1-8884d8?style=flat-square)
-![HTML2Canvas](https://img.shields.io/badge/HTML2Canvas-1.4.1-green?style=flat-square)
-
-</td>
-<td width="33%">
-
-### Deployment
-![GitHub Pages](https://img.shields.io/badge/GitHub_Pages-Hosting-222?style=flat-square&logo=github)
-![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-CI/CD-2088FF?style=flat-square&logo=github-actions&logoColor=white)
-![Prettier](https://img.shields.io/badge/Prettier-Code_Style-F7B93E?style=flat-square&logo=prettier&logoColor=white)
-
-</td>
-</tr>
-</table>
+| Category | Technologies |
+|----------|--------------|
+| **Frontend** | ![React](https://img.shields.io/badge/-React_18-61DAFB?logo=react&logoColor=white) ![TypeScript](https://img.shields.io/badge/-TypeScript-3178C6?logo=typescript&logoColor=white) ![Vite](https://img.shields.io/badge/-Vite-646CFF?logo=vite&logoColor=white) ![TailwindCSS](https://img.shields.io/badge/-TailwindCSS-38B2AC?logo=tailwindcss&logoColor=white) |
+| **State** | ![Context API](https://img.shields.io/badge/-Context_API-61DAFB?logo=react&logoColor=white) ![Zod](https://img.shields.io/badge/-Zod-3E67B1?logo=zod&logoColor=white) ![React Query](https://img.shields.io/badge/-TanStack_Query-FF4154?logo=react-query&logoColor=white) |
+| **Backend** | ![Supabase](https://img.shields.io/badge/-Supabase-3ECF8E?logo=supabase&logoColor=white) ![PostgreSQL](https://img.shields.io/badge/-PostgreSQL-336791?logo=postgresql&logoColor=white) ![Edge Functions](https://img.shields.io/badge/-Edge_Functions-000000?logo=deno&logoColor=white) |
+| **UX & Motion** | ![Framer Motion](https://img.shields.io/badge/-Framer_Motion-0055FF?logo=framer&logoColor=white) ![React DnD](https://img.shields.io/badge/-React_DnD-orange) ![Recharts](https://img.shields.io/badge/-Recharts-22b5bf) |
+| **Tools** | ![ESLint](https://img.shields.io/badge/-ESLint-4B32C3?logo=eslint&logoColor=white) ![Prettier](https://img.shields.io/badge/-Prettier-F7B93E?logo=prettier&logoColor=white) ![GitHub Actions](https://img.shields.io/badge/-GitHub_Actions-2088FF?logo=github-actions&logoColor=white) |
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Getting Started
+
+Ready to build your own gateway? Follow these simple steps.
 
 ### Prerequisites
-
-```bash
-Node.js >= 18.0.0
-pnpm >= 8.0.0 (recommended) or npm >= 9.0.0
-```
+- **Node.js** >= 18.0.0
+- **pnpm** >= 8.0.0 (Recommended) or npm
 
 ### Installation
 
 1. **Clone the repository**
-
-```bash
-git clone https://github.com/jiangjianghong/jiang_ai_web.git
-cd jiang_ai_web
-```
+   ```bash
+   git clone https://github.com/jiangjianghong/jiang_ai_web.git
+   cd jiang_ai_web
+   ```
 
 2. **Install dependencies**
+   ```bash
+   pnpm install
+   ```
 
-```bash
-# Using pnpm (recommended)
-pnpm install
+3. **Configure Environment**
+   Copy the example env file and fill in your Supabase credentials.
+   ```bash
+   cp .env.example .env
+   ```
 
-# Or using npm
-npm install
-```
-
-3. **Configure environment variables**
-
-```bash
-# Copy environment template
-cp .env.example .env
-```
-
-Edit `.env` file:
-
-```env
-# Supabase Configuration
-VITE_SUPABASE_URL=your_supabase_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-
-# App Configuration
-VITE_APP_NAME=Jiang's Tab
-VITE_APP_VERSION=1.0.0
-```
-
-4. **Start development server**
-
-```bash
-pnpm run dev
-```
-
-Visit http://localhost:3000 to see the app 🎉
-
-5. **Build for production**
-
-```bash
-pnpm run build
-pnpm run preview
-```
-
----
-
-## 🏗️ Architecture
-
-```
-jiang_ai_web/
-├── 📁 public/                    # Static assets
-│   ├── icon/                     # App icons
-│   ├── manifest.json             # PWA config
-│   └── sw.js                     # Service Worker
-│
-├── 📁 src/
-│   ├── 📁 components/            # React components
-│   │   ├── AnimatedCat.tsx       # Animated cat component
-│   │   ├── AuthForm.tsx          # Authentication form
-│   │   ├── CardEditModal.tsx     # Card edit modal
-│   │   ├── SearchBar.tsx         # Search bar component
-│   │   ├── TodoModal.tsx         # TODO modal
-│   │   ├── TimeDisplay.tsx       # Time display
-│   │   ├── PoemDisplay.tsx       # Poetry display
-│   │   └── Workspace/            # Workspace components
-│   │       ├── WorkspaceModal.tsx
-│   │       ├── WorkspaceCard.tsx
-│   │       └── NotionGuide.tsx
-│   │
-│   ├── 📁 contexts/              # React contexts
-│   │   ├── SupabaseAuthContext.tsx     # Auth context
-│   │   ├── SyncContext.tsx             # Sync state
-│   │   ├── TransparencyContext.tsx     # Transparency settings
-│   │   ├── UserProfileContext.tsx      # User profile
-│   │   └── WorkspaceContext.tsx        # Workspace state
-│   │
-│   ├── 📁 hooks/                 # Custom hooks
-│   │   ├── useAutoSync.ts        # Auto sync
-│   │   ├── useCloudData.ts       # Cloud data management
-│   │   ├── useDataManager.ts     # Data import/export
-│   │   ├── useDragAndDrop.ts     # Drag & drop
-│   │   ├── useFavicon.ts         # Icon handling
-│   │   ├── useTheme.ts           # Theme management
-│   │   └── useWebsiteData.ts     # Website data
-│   │
-│   ├── 📁 lib/                   # Utilities and services
-│   │   ├── api/                  # API clients
-│   │   │   ├── ApiClient.ts
-│   │   │   ├── NotionApiClient.ts
-│   │   │   └── WorkspaceManager.ts
-│   │   ├── proxy/                # Proxy services
-│   │   │   ├── CorsProxyService.ts
-│   │   │   └── smartProxy.ts
-│   │   ├── faviconCache.ts       # Icon cache
-│   │   ├── indexedDBCache.ts     # IndexedDB cache
-│   │   ├── storageManager.ts     # Storage manager
-│   │   ├── supabase.ts           # Supabase config
-│   │   └── supabaseSync.ts       # Supabase sync
-│   │
-│   ├── 📁 pages/                 # Page components
-│   │   ├── Home.tsx              # Home page
-│   │   ├── Settings.tsx          # Settings page
-│   │   └── ResetPassword.tsx     # Password reset
-│   │
-│   ├── MainApp.tsx               # Main app component
-│   ├── main.tsx                  # App entry
-│   └── index.css                 # Global styles
-│
-├── 📁 supabase/                  # Supabase config
-│   ├── functions/                # Edge Functions
-│   │   ├── cors-proxy/           # CORS proxy service
-│   │   ├── favicon-service/      # Favicon service
-│   │   ├── notion-proxy/         # Notion proxy
-│   │   └── wallpaper-service/    # Wallpaper service
-│   └── config.toml               # Supabase config
-│
-├── package.json                  # Dependencies
-├── vite.config.ts                # Vite config
-├── tailwind.config.js            # Tailwind config
-└── tsconfig.json                 # TypeScript config
-```
+4. **Start Development**
+   ```bash
+   pnpm dev
+   ```
+   Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
 ---
 
 ## 📦 Deployment
 
-### GitHub Pages Auto Deploy
+### Option A: GitHub Pages (Automated & Free)
 
-```bash
-pnpm run deploy
-```
+This project includes a built-in [GitHub Action](.github/workflows/deploy.yml) that automatically builds and deploys to GitHub Pages when you push to the `main` branch.
 
-GitHub Actions is configured to auto-deploy when pushing to main branch.
+**1. Fork & Settings**
+   - Fork this repository.
+   - Go to **Settings** > **Pages**.
+   - Under **Build and deployment** > **Source**, select **GitHub Actions**.
 
-### Vercel Deploy
+**2. Configure Secrets (Critical!)**
+   To ensure the build can access your Supabase project, you must set up Repository Secrets.
+   - Go to **Settings** > **Secrets and variables** > **Actions**.
+   - Click **New repository secret**.
+   - Add the following two secrets (values from your Supabase Project Settings):
+     - `VITE_SUPABASE_URL`
+     - `VITE_SUPABASE_ANON_KEY`
 
-1. Connect GitHub repo to Vercel
-2. Configure environment variables
-3. Auto deploy ✨
+**3. Trigger Deployment**
+   - Push a commit to `main`, or manually run the workflow via the **Actions** tab.
+
+> **⚠️ Note on Base Path**: The default configuration assumes a **Custom Domain** (e.g., `your-site.com`) or Root Domain. If you are deploying to a sub-path (e.g., `username.github.io/repo-name`), you must:
+> 1. Open `vite.config.ts`.
+> 2. Change `base: '/'` to `base: '/repo-name/'`.
+
+### Option B: Vercel (Recommended for Speed)
+
+Vercel provides zero-configuration deployment for Vite apps.
+
+1. **Import Project**: Go to Vercel Dashboard and "Add New > Project".
+2. **Select Repo**: Choose your forked repository.
+3. **Environment Variables**: Add the Supabase keys:
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_ANON_KEY`
+4. **Deploy**: Click Deploy. Vercel handles the rest (rewrites, HTTPS, etc.).
 
 ---
 
-## 🗄️ Supabase Configuration
+## 🗄️ Database Setup (Supabase)
 
-### Database Setup
-
-If you need to set up your own Supabase instance, follow these steps:
+This project relies on Supabase for Auth & Database.
 
 <details>
-<summary>1️⃣ Complete Database Schema (First Time Setup)</summary>
+<summary><b>1️⃣ SQL Schema Setup</b> (Click to Expand)</summary>
 
-Execute the following script in Supabase SQL Editor:
+Run this in your **Supabase SQL Editor** to set up tables and security policies:
 
 ```sql
--- ====================================
--- 1. Create Tables
--- ====================================
-
--- User profiles table
-CREATE TABLE IF NOT EXISTS user_profiles (
-  id UUID REFERENCES auth.users(id) PRIMARY KEY,
-  email TEXT,
-  display_name TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+-- Create profile table
+create table user_profiles (
+  id uuid references auth.users not null primary key,
+  display_name text,
+  email text
 );
 
--- User settings table
-CREATE TABLE IF NOT EXISTS user_settings (
-  id UUID REFERENCES auth.users(id) PRIMARY KEY,
-  -- Basic settings
-  card_opacity NUMERIC DEFAULT 0.8,
-  search_bar_opacity NUMERIC DEFAULT 0.9,
-  parallax_enabled BOOLEAN DEFAULT true,
-  wallpaper_resolution TEXT DEFAULT 'high',
-  theme TEXT DEFAULT 'dark',
-  -- Color settings
-  card_color TEXT DEFAULT '255, 255, 255',
-  search_bar_color TEXT DEFAULT '255, 255, 255',
-  -- Sync settings
-  auto_sync_enabled BOOLEAN DEFAULT true,
-  auto_sync_interval INTEGER DEFAULT 30,
-  -- Search and sort
-  search_in_new_tab BOOLEAN DEFAULT true,
-  auto_sort_enabled BOOLEAN DEFAULT false,
-  -- Time component settings
-  time_component_enabled BOOLEAN DEFAULT true,
-  show_full_date BOOLEAN DEFAULT true,
-  show_seconds BOOLEAN DEFAULT true,
-  show_weekday BOOLEAN DEFAULT true,
-  show_year BOOLEAN DEFAULT true,
-  show_month BOOLEAN DEFAULT true,
-  show_day BOOLEAN DEFAULT true,
-  -- Style settings
-  search_bar_border_radius INTEGER DEFAULT 12,
-  -- Timestamps
-  last_sync TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
+-- Turn on Row Level Security
+alter table user_profiles enable row level security;
 
--- User websites table
-CREATE TABLE IF NOT EXISTS user_websites (
-  id UUID REFERENCES auth.users(id) PRIMARY KEY,
-  websites JSONB DEFAULT '[]'::jsonb,
-  last_sync TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
+-- Allow users to view their own profile
+create policy "Users can view own profile" on user_profiles
+  for select using (auth.uid() = id);
 
--- ====================================
--- 2. Enable Row Level Security (RLS)
--- ====================================
-
-ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE user_settings ENABLE ROW LEVEL SECURITY;
-ALTER TABLE user_websites ENABLE ROW LEVEL SECURITY;
-
--- ====================================
--- 3. Create Security Policies
--- ====================================
-
--- user_profiles policies
-CREATE POLICY "Users can read own profile" ON user_profiles
-  FOR SELECT USING (auth.uid() = id);
-CREATE POLICY "Users can update own profile" ON user_profiles
-  FOR UPDATE USING (auth.uid() = id);
-CREATE POLICY "Users can insert own profile" ON user_profiles
-  FOR INSERT WITH CHECK (auth.uid() = id);
-
--- user_settings policies
-CREATE POLICY "Users can read own settings" ON user_settings
-  FOR SELECT USING (auth.uid() = id);
-CREATE POLICY "Users can update own settings" ON user_settings
-  FOR UPDATE USING (auth.uid() = id);
-CREATE POLICY "Users can insert own settings" ON user_settings
-  FOR INSERT WITH CHECK (auth.uid() = id);
-
--- user_websites policies
-CREATE POLICY "Users can read own websites" ON user_websites
-  FOR SELECT USING (auth.uid() = id);
-CREATE POLICY "Users can update own websites" ON user_websites
-  FOR UPDATE USING (auth.uid() = id);
-CREATE POLICY "Users can insert own websites" ON user_websites
-  FOR INSERT WITH CHECK (auth.uid() = id);
-
--- ====================================
--- 4. Create Functions and Triggers
--- ====================================
-
-CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = NOW();
-    RETURN NEW;
-END;
-$$ language 'plpgsql';
-
-CREATE TRIGGER update_user_profiles_updated_at
-  BEFORE UPDATE ON user_profiles
-  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER update_user_settings_updated_at
-  BEFORE UPDATE ON user_settings
-  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER update_user_websites_updated_at
-  BEFORE UPDATE ON user_websites
-  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
--- ====================================
--- 5. Create Indexes
--- ====================================
-
-CREATE INDEX IF NOT EXISTS idx_user_settings_id ON user_settings(id);
-CREATE INDEX IF NOT EXISTS idx_user_websites_id ON user_websites(id);
-CREATE INDEX IF NOT EXISTS idx_user_profiles_id ON user_profiles(id);
+-- (Refer to 'supabase_schema.sql' in repo for full script)
 ```
+
+> **Note**: For the complete, up-to-date schema, please check [supabase_schema.sql](supabase_schema.sql) in the root directory.
+</details>
+
+<details>
+<summary><b>2️⃣ Storage Buckets</b></summary>
+
+Create two public buckets in Supabase Storage:
+- `favicons`
+- `wallpapers`
 
 </details>
 
 <details>
-<summary>2️⃣ Incremental Migration (Existing Database)</summary>
+<summary><b>3️⃣ Edge Functions</b></summary>
 
-If you already have a database, just add the new fields:
-
-```sql
--- Add color settings fields
-ALTER TABLE user_settings
-ADD COLUMN IF NOT EXISTS card_color TEXT DEFAULT '255, 255, 255',
-ADD COLUMN IF NOT EXISTS search_bar_color TEXT DEFAULT '255, 255, 255';
-
--- Add sync settings fields
-ALTER TABLE user_settings
-ADD COLUMN IF NOT EXISTS auto_sync_enabled BOOLEAN DEFAULT true,
-ADD COLUMN IF NOT EXISTS auto_sync_interval INTEGER DEFAULT 30;
-
--- Add search and sort settings fields
-ALTER TABLE user_settings
-ADD COLUMN IF NOT EXISTS search_in_new_tab BOOLEAN DEFAULT true,
-ADD COLUMN IF NOT EXISTS auto_sort_enabled BOOLEAN DEFAULT false;
-
--- Add time component settings fields
-ALTER TABLE user_settings
-ADD COLUMN IF NOT EXISTS time_component_enabled BOOLEAN DEFAULT true,
-ADD COLUMN IF NOT EXISTS show_full_date BOOLEAN DEFAULT true,
-ADD COLUMN IF NOT EXISTS show_seconds BOOLEAN DEFAULT true,
-ADD COLUMN IF NOT EXISTS show_weekday BOOLEAN DEFAULT true,
-ADD COLUMN IF NOT EXISTS show_year BOOLEAN DEFAULT true,
-ADD COLUMN IF NOT EXISTS show_month BOOLEAN DEFAULT true,
-ADD COLUMN IF NOT EXISTS show_day BOOLEAN DEFAULT true;
-
--- Add search bar style settings field
-ALTER TABLE user_settings
-ADD COLUMN IF NOT EXISTS search_bar_border_radius INTEGER DEFAULT 12;
-```
-
-</details>
-
-<details>
-<summary>3️⃣ Storage Buckets Configuration</summary>
-
-Create Storage buckets for Favicon and Wallpaper services:
-
-```sql
--- Create favicons bucket
-INSERT INTO storage.buckets (id, name, public)
-VALUES ('favicons', 'favicons', true)
-ON CONFLICT (id) DO NOTHING;
-
--- Create wallpapers bucket
-INSERT INTO storage.buckets (id, name, public)
-VALUES ('wallpapers', 'wallpapers', true)
-ON CONFLICT (id) DO NOTHING;
-
--- favicons bucket policies
-CREATE POLICY "Public favicon access" ON storage.objects
-FOR SELECT USING (bucket_id = 'favicons');
-
-CREATE POLICY "Service role favicon upload" ON storage.objects
-FOR INSERT WITH CHECK (bucket_id = 'favicons');
-
-CREATE POLICY "Service role favicon update" ON storage.objects
-FOR UPDATE USING (bucket_id = 'favicons');
-
--- wallpapers bucket policies
-CREATE POLICY "Public wallpaper access" ON storage.objects
-FOR SELECT USING (bucket_id = 'wallpapers');
-
-CREATE POLICY "Service role wallpaper upload" ON storage.objects
-FOR INSERT WITH CHECK (bucket_id = 'wallpapers');
-
-CREATE POLICY "Service role wallpaper update" ON storage.objects
-FOR UPDATE USING (bucket_id = 'wallpapers');
-```
-
-</details>
-
-### Edge Functions Deployment
-
-<details>
-<summary>📦 Favicon Service</summary>
-
-Unified favicon fetching and caching service.
-
-**Deploy Command:**
+Deploy the provided Edge Functions for advanced features:
 ```bash
 supabase functions deploy favicon-service
-```
-
-**API Usage:**
-```bash
-GET https://your-project.supabase.co/functions/v1/favicon-service?domain=github.com&size=64
-```
-
-**Features:**
-- 🚀 Unified API for website favicons
-- 💾 Auto-cache to Supabase Storage
-- 🔄 Multi-source support with automatic failover
-- ⚡ Edge computing, global low latency
-
-See: `supabase/functions/favicon-service/README.md`
-
-</details>
-
-<details>
-<summary>🖼️ Wallpaper Service</summary>
-
-Daily wallpaper fetching and caching service (Bing daily wallpaper).
-
-**Deploy Command:**
-```bash
 supabase functions deploy wallpaper-service
 ```
-
-**API Usage:**
-```bash
-GET https://your-project.supabase.co/functions/v1/wallpaper-service?resolution=uhd
-```
-
-**Supported Resolutions:**
-- `uhd` - 3840x2160 (4K)
-- `1920x1080` - Full HD
-- `1366x768` - HD
-- `mobile` - 1080x1920 (Mobile)
-
-See: `supabase/functions/wallpaper-service/README.md`
-
-</details>
-
-<details>
-<summary>🔗 Notion Proxy</summary>
-
-Notion API proxy service for workspace integration.
-
-**Deploy Command:**
-```bash
-supabase functions deploy notion-proxy
-```
-
-**Configuration Required:**
-Set environment variables in Supabase Dashboard:
-- `NOTION_API_KEY` - Notion Integration Token
-
 </details>
 
 ---
 
-## 🔐 Security Features
+## 🏗️ Architecture Overview
 
-- 🛡️ **Row Level Security** - Supabase RLS policies
-- 🔒 **Data Encryption** - Encrypted storage for sensitive data
-- ✅ **Input Validation** - Strict data validation (Zod)
-- 🚫 **XSS Protection** - Content Security Policy
-- 🍪 **Cookie Management** - GDPR compliant
+The project follows a clean, modular structure designed for scalability.
+
+```mermaid
+graph TD
+    User([User]) -->|HTTPS| CDN[CDN / Edge]
+    CDN -->|Load| UI[React SPA]
+    
+    subgraph Client [Client Side]
+        UI -->|State Management| Context[React Context]
+        UI -->|Interactivity| Hooks[Custom Hooks]
+        UI -->|Persistence| IDB[(IndexedDB / LocalStorage)]
+    end
+
+    subgraph Server [Server Side]
+        UI -->|API Requests| Supabase[Supabase Client]
+        Supabase -->|Auth| Auth[Authentication]
+        Supabase -->|Data| DB[(PostgreSQL)]
+        Supabase -->|Logic| EdgeFunc[Edge Functions]
+    end
+```
+
+### Project Structure
+
+```bash
+src/
+├── 🧩 components/      # Reusable UI bricks (Atoms, Molecules)
+│   ├── 🧱 common/      # Generic components (Buttons, Inputs)
+│   └── ⚙️ widget/      # Complex widgets (Calendar, Weather)
+├── 📦 contexts/        # Global state management (Auth, Theme)
+├── 🪝 hooks/           # Custom React hooks (Logic extraction)
+├── 🛠️ lib/             # Utilities & API clients
+│   ├── 🔄 api/         # External API integrations
+│   └── 💾 storage/     # Local storage adapters
+├── 📄 pages/           # Route views (Lazy loaded)
+└── 🎨 index.css        # Global styles & Tailwind
+```
+
+For a deep dive into the backend setup, check out the [Database Setup Guide](#-database-setup) in the expanded documentation.
+
+---
+
+## 🗺️ Roadmap
+
+- [x] **v1.0**: Initial Release with Dynamic Wallpapers & Bookmarks
+- [x] **v1.1**: User Auth & Cloud Sync Support
+- [x] **v1.2**: Notion Integration & SEO Optimization
+- [ ] **v2.0**: Mobile Native App (React Native)
+- [ ] **Future**: AI-powered Bookmark Categorization
+- [ ] **Future**: Public Shareable Dashboards
+
+See the [open issues](https://github.com/jiangjianghong/jiang_ai_web/issues) for a full list of proposed features (and known issues).
 
 ---
 
 ## 🤝 Contributing
 
-We welcome all forms of contributions!
+Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
 
-1. Fork the project
-2. Create feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit changes (`git commit -m 'feat: Add some AmazingFeature'`)
-4. Push to branch (`git push origin feature/AmazingFeature`)
-5. Open Pull Request
+Please read our [Contributing Guidelines](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
 
-### Code Standards
-
-- ✅ TypeScript strict mode
-- ✅ ESLint code linting
-- ✅ Prettier code formatting
-- ✅ Conventional Commits
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'feat: Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
 ---
 
-## 📝 Changelog
+## 📈 Star History
 
-### v1.2.1 (2025-12-08)
+<a href="https://star-history.com/#jiangjianghong/jiang_ai_web&Date">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=jiangjianghong/jiang_ai_web&type=Date&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=jiangjianghong/jiang_ai_web&type=Date" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=jiangjianghong/jiang_ai_web&type=Date" />
+ </picture>
+</a>
 
-**🔧 Fixes**
-- Fixed wallpaper update issue where new wallpapers were not fetched until 8:00 AM (UTC+8)
-- Updated wallpaper service to use local time (UTC+8) for consistent daily updates
-- Optimized client-side caching logic to respect local timezone
+## 👥 Contributors
 
-### v1.2.0 (2024-12-19)
-
-**🔧 Fixes**
-- Fixed data sync issue that could overwrite cloud data with empty data
-- Added data validation to ensure only valid website data is synced
-
-**✨ Improvements**
-- Optimized sync status display for clearer feedback
-- Enhanced error handling for better system stability
-- Refactored core code for better performance and maintainability
-
-**🛡️ Security**
-- Implemented multi-layer data protection to prevent data loss
-- Strengthened data validation rules for data integrity
-
----
-
-## 🛠️ Troubleshooting
-
-<details>
-<summary>Common Issues & Solutions</summary>
-
-### Domain Not Accessible
-- Check DNS configuration
-- Wait for DNS propagation (up to 24 hours)
-- Clear browser cache
-
-### Functionality Issues
-- Check browser console for errors
-- Verify network connection
-- Validate Supabase configuration
-
-### Sync Issues
-- Check if user is logged in
-- Verify stable network connection
-- Check sync status indicator
-
-### Icon Loading Failed
-- Check network connection
-- Try refreshing page
-- Clear browser cache
-
-</details>
+<a href="https://github.com/jiangjianghong/jiang_ai_web/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=jiangjianghong/jiang_ai_web" />
+</a>
 
 ---
 
 ## 📄 License
 
-This project is licensed under Apache License 2.0 - see [LICENSE](LICENSE) file for details.
-
----
-
-## 🙏 Acknowledgments
-
-Thanks to the following open source projects and services:
-
-- [React](https://reactjs.org/) - UI library
-- [Vite](https://vitejs.dev/) - Build tool
-- [Tailwind CSS](https://tailwindcss.com/) - CSS framework
-- [Supabase](https://supabase.com/) - Backend service
-- [Framer Motion](https://www.framer.com/motion/) - Animation library
-
----
-
-## 📞 Contact
-
-- **Repository**: [GitHub](https://github.com/jiangjianghong/jiang_ai_web)
-- **Issue Tracker**: [Issues](https://github.com/jiangjianghong/jiang_ai_web/issues)
-- **Live Demo**: [jiangjiang.cc](https://jiangjiang.cc)
+Distributed under the Apache 2.0 License. See `LICENSE` for more information.
 
 ---
 
 <div align="center">
-
-**Jiang's Tab** - Make website management simpler and smarter 🚀
-
-Made with ❤️ by [Jiang](https://github.com/jiangjianghong)
-
-⭐ Star this repo if you like it!
+  
+  Created with ❤️ by **[Jiang](https://github.com/jiangjianghong)**
+  
+  [Twiter/X](https://twitter.com) · [Blog](https://jiangjiang.cc/blog) · [Email](mailto:contact@jiangjiang.cc)
 
 </div>

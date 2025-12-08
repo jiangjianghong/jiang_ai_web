@@ -183,8 +183,9 @@ Vercel 对 Vite 应用提供零配置支持。
 
 如需高级功能，请部署提供的边缘函数：
 ```bash
-supabase functions deploy favicon-service
-supabase functions deploy wallpaper-service
+supabase functions deploy favicon-service --no-verify-jwt
+supabase functions deploy wallpaper-service --no-verify-jwt
+supabase functions deploy notion-proxy --no-verify-jwt
 ```
 </details>
 

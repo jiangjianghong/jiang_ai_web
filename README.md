@@ -183,8 +183,9 @@ That's it! Your database is fully configured.
 
 Deploy the provided Edge Functions for advanced features:
 ```bash
-supabase functions deploy favicon-service
-supabase functions deploy wallpaper-service
+supabase functions deploy favicon-service --no-verify-jwt
+supabase functions deploy wallpaper-service --no-verify-jwt
+supabase functions deploy notion-proxy --no-verify-jwt
 ```
 </details>
 

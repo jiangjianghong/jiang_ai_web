@@ -1,14 +1,9 @@
 // Wallpaper Service - Supabase Edge Function
 // 获取Bing每日壁纸，避免外部服务被墙问题
 
-console.log("Wallpaper Service started");
+import { corsHeaders } from '../_shared/cors.ts'
 
-// CORS headers
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-};
+console.log("Wallpaper Service started");
 
 // 支持的壁纸分辨率
 const RESOLUTIONS = {

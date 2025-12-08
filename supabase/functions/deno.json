@@ -1,17 +1,28 @@
 {
   "compilerOptions": {
     "allowJs": true,
-    "lib": ["deno.window"],
+    "lib": [
+      "deno.window"
+    ],
     "strict": true
+  },
+  "imports": {
+    "std/": "https://deno.land/std@0.224.0/",
+    "supabase": "https://esm.sh/@supabase/supabase-js@2"
   },
   "lint": {
     "rules": {
-      "tags": ["recommended"]
+      "tags": [
+        "recommended"
+      ]
     }
   },
   "fmt": {
     "files": {
-      "include": ["**/*.ts", "**/*.js"]
+      "include": [
+        "**/*.ts",
+        "**/*.js"
+      ]
     }
   }
 }

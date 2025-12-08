@@ -67,10 +67,29 @@ serve(async (req) => {
 
         if (existingFile) {
           console.log(`使用缓存的favicon: ${cacheKey}`)
-          return new Response(existingFile, {
+          // 检测文件类型
+          const arrayBuffer = await existingFile.arrayBuffer()
+          const uint8Array = new Uint8Array(arrayBuffer)
+          let detectedContentType = 'image/x-icon'
+
+          // PNG文件签名检测
+          if (uint8Array.length >= 8 &&
+            uint8Array[0] === 0x89 && uint8Array[1] === 0x50 &&
+            uint8Array[2] === 0x4E && uint8Array[3] === 0x47) {
+            detectedContentType = 'image/png'
+          }
+          // SVG文件检测
+          else if (uint8Array.length > 0) {
+            const text = new TextDecoder().decode(uint8Array.slice(0, 100))
+            if (text.includes('<svg')) {
+              detectedContentType = 'image/svg+xml'
+            }
+          }
+
+          return new Response(arrayBuffer, {
             headers: {
               ...corsHeaders,
-              'Content-Type': 'image/x-icon',
+              'Content-Type': detectedContentType,
               'Cache-Control': 'public, max-age=86400', // 1天缓存
             },
           })

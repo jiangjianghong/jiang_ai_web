@@ -185,15 +185,15 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
   // 根据设置决定是否自动排序卡片
   const displayWebsites = autoSortEnabled
     ? [...websites].sort((a, b) => {
-        // 首先按访问次数降序排序
-        const visitDiff = (b.visitCount || 0) - (a.visitCount || 0);
-        if (visitDiff !== 0) return visitDiff;
+      // 首先按访问次数降序排序
+      const visitDiff = (b.visitCount || 0) - (a.visitCount || 0);
+      if (visitDiff !== 0) return visitDiff;
 
-        // 如果访问次数相同，按最后访问时间降序排序
-        const dateA = new Date(a.lastVisit || '2000-01-01').getTime();
-        const dateB = new Date(b.lastVisit || '2000-01-01').getTime();
-        return dateB - dateA;
-      })
+      // 如果访问次数相同，按最后访问时间降序排序
+      const dateA = new Date(a.lastVisit || '2000-01-01').getTime();
+      const dateB = new Date(b.lastVisit || '2000-01-01').getTime();
+      return dateB - dateA;
+    })
     : websites;
 
   const handleSaveCard = (updatedCard: {
@@ -442,6 +442,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
             opacity: isSearchFocused ? 0 : 1,
             scale: isSearchFocused ? 0.8 : 1
           }}
+          whileTap={{ scale: 0.9 }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
           onMouseEnter={preloadWorkspaceModal} // 鼠标悬停时预加载工作空间组件
         >
@@ -472,6 +473,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
               opacity: isSearchFocused ? 1 : 0,
               scale: isSearchFocused ? 1 : 0.8
             }}
+            whileTap={{ scale: 0.9 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
           >
             <div className="relative group">
@@ -484,11 +486,10 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
                   <i className="fa-solid fa-spinner fa-spin text-white/80 text-lg drop-shadow-lg"></i>
                 ) : (
                   <i
-                    className={`fa-${isAlreadyFavorited || isFavorited ? 'solid' : 'regular'} fa-heart transition-all duration-300 drop-shadow-lg ${
-                      isAlreadyFavorited || isFavorited
+                    className={`fa-${isAlreadyFavorited || isFavorited ? 'solid' : 'regular'} fa-heart transition-all duration-300 drop-shadow-lg ${isAlreadyFavorited || isFavorited
                         ? 'text-red-500 text-xl'
                         : 'text-white/70 hover:text-white text-lg'
-                    }`}
+                      }`}
                   ></i>
                 )}
               </button>
@@ -523,10 +524,11 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
         {/* 设置触发按钮 - 右下角 */}
         <motion.div
           className={classes.settingsButton}
-          animate={{ 
+          animate={{
             opacity: isSearchFocused ? 0 : 1,
             scale: isSearchFocused ? 0.8 : 1
           }}
+          whileTap={{ scale: 0.9 }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
           onMouseEnter={preloadSettings} // 鼠标悬停时预加载设置组件
         >

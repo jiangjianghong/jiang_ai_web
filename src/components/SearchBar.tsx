@@ -1533,8 +1533,9 @@ function SearchBarComponent(props: SearchBarProps = {}) {
             >
               {/* 搜索引擎切换按钮和“搜索”字样 */}
               <div className="relative flex items-center">
-                <button
+                <motion.button
                   type="button"
+                  whileTap={{ scale: 0.9, filter: 'brightness(0.8)' }}
                   className="flex items-center gap-2 px-1.5 py-1 text-white/80 hover:text-white bg-transparent border-none outline-none text-lg select-none relative z-20"
                   style={{
                     pointerEvents: 'auto',
@@ -1556,7 +1557,7 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                   <span className="hidden sm:inline text-base font-semibold select-none">
                     {engineList.find((e) => e.key === engine)?.label}
                   </span>
-                </button>
+                </motion.button>
 
                 {/* 自定义美观的 tooltip */}
                 {showEngineTooltip && (
@@ -1697,8 +1698,8 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                               <div
                                 key={website.id}
                                 className={`${isMobile ? 'px-3 py-2' : 'px-4 py-3'} cursor-pointer transition-all duration-200 border-b border-gray-100/50 last:border-b-0 select-none ${isSelected
-                                    ? 'bg-gradient-to-r from-purple-500/10 to-violet-500/10 border-purple-200'
-                                    : 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-purple-50'
+                                  ? 'bg-gradient-to-r from-purple-500/10 to-violet-500/10 border-purple-200'
+                                  : 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-purple-50'
                                   }`}
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -1830,8 +1831,8 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                               <div
                                 key={workspace.id}
                                 className={`${isMobile ? 'px-3 py-2' : 'px-4 py-3'} cursor-pointer transition-all duration-200 border-b border-gray-100/50 last:border-b-0 select-none ${isSelected
-                                    ? 'bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border-blue-200'
-                                    : 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50'
+                                  ? 'bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border-blue-200'
+                                  : 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50'
                                   }`}
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -1954,40 +1955,40 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                               <div
                                 key={suggestion.id}
                                 className={`${isMobile ? 'px-3 py-2' : 'px-4 py-3'} ${isHint ? 'cursor-default' : 'cursor-pointer'} transition-all duration-200 border-b border-gray-100/50 last:border-b-0 select-none ${isSelected
-                                    ? isTodoAction && !isHint
-                                      ? isAdd
-                                        ? 'bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-green-200'
-                                        : 'bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border-blue-200'
-                                      : isSettingsAction
-                                        ? 'bg-gradient-to-r from-purple-500/10 to-violet-500/10 border-purple-200'
-                                        : (suggestion as any).isHelpAction
-                                          ? 'bg-gradient-to-r from-teal-500/10 to-cyan-500/10 border-teal-200'
-                                          : (suggestion as any).isDeveloperAction
-                                            ? 'bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border-indigo-200'
-                                            : (suggestion as any).isWorkspaceAction
-                                              ? 'bg-gradient-to-r from-orange-500/10 to-amber-500/10 border-orange-200'
-                                              : isHint
-                                                ? 'bg-gray-100/50 text-gray-600'
-                                                : isDirectVisit
-                                                  ? 'bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-green-200'
-                                                  : 'bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border-emerald-200'
-                                    : isTodoAction && !isHint
-                                      ? isAdd
-                                        ? 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-green-50'
-                                        : 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50'
-                                      : isSettingsAction
-                                        ? 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-purple-50'
-                                        : (suggestion as any).isHelpAction
-                                          ? 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-teal-50'
-                                          : (suggestion as any).isDeveloperAction
-                                            ? 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-indigo-50'
-                                            : (suggestion as any).isWorkspaceAction
-                                              ? 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-orange-50'
-                                              : isHint
-                                                ? 'bg-gray-50/50 text-gray-600'
-                                                : isDirectVisit
-                                                  ? 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-green-50'
-                                                  : 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-emerald-50'
+                                  ? isTodoAction && !isHint
+                                    ? isAdd
+                                      ? 'bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-green-200'
+                                      : 'bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border-blue-200'
+                                    : isSettingsAction
+                                      ? 'bg-gradient-to-r from-purple-500/10 to-violet-500/10 border-purple-200'
+                                      : (suggestion as any).isHelpAction
+                                        ? 'bg-gradient-to-r from-teal-500/10 to-cyan-500/10 border-teal-200'
+                                        : (suggestion as any).isDeveloperAction
+                                          ? 'bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border-indigo-200'
+                                          : (suggestion as any).isWorkspaceAction
+                                            ? 'bg-gradient-to-r from-orange-500/10 to-amber-500/10 border-orange-200'
+                                            : isHint
+                                              ? 'bg-gray-100/50 text-gray-600'
+                                              : isDirectVisit
+                                                ? 'bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-green-200'
+                                                : 'bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border-emerald-200'
+                                  : isTodoAction && !isHint
+                                    ? isAdd
+                                      ? 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-green-50'
+                                      : 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50'
+                                    : isSettingsAction
+                                      ? 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-purple-50'
+                                      : (suggestion as any).isHelpAction
+                                        ? 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-teal-50'
+                                        : (suggestion as any).isDeveloperAction
+                                          ? 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-indigo-50'
+                                          : (suggestion as any).isWorkspaceAction
+                                            ? 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-orange-50'
+                                            : isHint
+                                              ? 'bg-gray-50/50 text-gray-600'
+                                              : isDirectVisit
+                                                ? 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-green-50'
+                                                : 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-emerald-50'
                                   }`}
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -2125,20 +2126,20 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                                   </div>
                                   <div
                                     className={`text-xs px-2 py-1 rounded ${(suggestion as any).isTodoAction && !isHint
-                                        ? isAdd
-                                          ? 'text-green-600 bg-green-100'
-                                          : 'text-blue-600 bg-blue-100'
-                                        : (suggestion as any).isSettingsAction
-                                          ? 'text-purple-600 bg-purple-100'
-                                          : (suggestion as any).isHelpAction
-                                            ? 'text-teal-600 bg-teal-100'
-                                            : (suggestion as any).isDeveloperAction
-                                              ? 'text-indigo-600 bg-indigo-100'
-                                              : isHint
-                                                ? 'text-gray-500 bg-gray-200'
-                                                : isDirectVisit
-                                                  ? 'text-green-600 bg-green-100'
-                                                  : 'text-gray-400 bg-gray-100'
+                                      ? isAdd
+                                        ? 'text-green-600 bg-green-100'
+                                        : 'text-blue-600 bg-blue-100'
+                                      : (suggestion as any).isSettingsAction
+                                        ? 'text-purple-600 bg-purple-100'
+                                        : (suggestion as any).isHelpAction
+                                          ? 'text-teal-600 bg-teal-100'
+                                          : (suggestion as any).isDeveloperAction
+                                            ? 'text-indigo-600 bg-indigo-100'
+                                            : isHint
+                                              ? 'text-gray-500 bg-gray-200'
+                                              : isDirectVisit
+                                                ? 'text-green-600 bg-green-100'
+                                                : 'text-gray-400 bg-gray-100'
                                       }`}
                                   >
                                     {isHint ? '输入...' : 'Enter'}
@@ -2153,9 +2154,10 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                   )}
                 </AnimatePresence>
               </div>
-              <button
+              <motion.button
                 ref={searchBtnRef}
                 type="submit"
+                whileTap={{ scale: 0.9, filter: 'brightness(0.8)' }}
                 className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-white/70 hover:text-white transition-colors bg-transparent border-none outline-none group select-none"
                 style={{ pointerEvents: 'auto' }}
               >
@@ -2283,7 +2285,7 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                     </div>
                   </div>
                 )}
-              </button>
+              </motion.button>
             </motion.div>
           </form>
         </motion.div>

@@ -253,14 +253,11 @@ export const WebsiteCard = memo(function WebsiteCardComponent({
           onTouchMove={clearLongPress}
           onTouchCancel={clearLongPress}
           onClick={handleCardClick}
-          whileTap={
-            isMobile
-              ? {
-                scale: 0.95,
-                transition: { duration: 0.1, ease: 'easeInOut' },
-              }
-              : {}
-          }
+          whileTap={{
+            scale: 0.95,
+            filter: 'brightness(0.85)',
+            transition: { duration: 0.1, ease: 'easeInOut' },
+          }}
           initial={{ opacity: 0, y: 20 }}
           whileInView={{
             opacity: 1,

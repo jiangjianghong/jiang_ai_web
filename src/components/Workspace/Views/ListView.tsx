@@ -1,4 +1,4 @@
-import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useWorkspace } from '@/contexts/WorkspaceContext';
 import { useRef, useEffect, useState } from 'react';
 import ListItem from './ListItem';
@@ -9,13 +9,13 @@ interface ListViewProps {
 }
 
 export default function ListView({ className = '' }: ListViewProps) {
-  const { 
-    filteredItems, 
-    isLoading, 
+  const {
+    filteredItems,
+    isLoading,
     error,
     focusedItemIndex,
     searchQuery,
-    setSearchQuery 
+    setSearchQuery
   } = useWorkspace();
 
   const [focusPosition, setFocusPosition] = useState({ y: 0, height: 0 });
@@ -32,7 +32,7 @@ export default function ListView({ className = '' }: ListViewProps) {
           // 使用元素相对于父容器的实际位置
           const rect = element.getBoundingClientRect();
           const containerRect = listContainer.getBoundingClientRect();
-          
+
           setFocusPosition({
             y: rect.top - containerRect.top,
             height: element.offsetHeight
@@ -79,7 +79,7 @@ export default function ListView({ className = '' }: ListViewProps) {
             {searchQuery ? '没有找到匹配的项目' : '工作空间为空'}
           </h3>
           <p className="text-gray-500 text-sm text-center max-w-md">
-            {searchQuery 
+            {searchQuery
               ? `没有找到包含 "${searchQuery}" 的项目，尝试使用其他关键词搜索`
               : '还没有任何工作空间项目，请先从 Notion 同步数据'
             }
@@ -102,9 +102,9 @@ export default function ListView({ className = '' }: ListViewProps) {
   return (
     <div className={`list-view h-full select-none ${className}`} style={{ userSelect: 'none' }}>
       {/* 滚动容器 - 明确设置滚动行为 */}
-      <div 
+      <div
         className="h-full overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400 list-container"
-        style={{ 
+        style={{
           scrollBehavior: 'smooth',
           WebkitOverflowScrolling: 'touch' // iOS 滚动优化
         }}
@@ -136,30 +136,29 @@ export default function ListView({ className = '' }: ListViewProps) {
                   damping: 25,
                   mass: 1
                 }}
-                style={{ 
+                style={{
                   zIndex: 1
                 }}
               />
             )}
-            
-            <LayoutGroup>
-              <div className="space-y-2">
-                {filteredItems.map((item, index) => (
-                  <div
-                    key={item.id}
-                    ref={el => itemRefs.current[index] = el}
-                    className="relative"
-                  >
-                    <ListItem
-                      item={item}
-                      index={index}
-                      isFocused={focusedItemIndex === index}
-                      searchQuery={searchQuery}
-                    />
-                  </div>
-                ))}
-              </div>
-            </LayoutGroup>
+
+            {/* LayoutGroup might be causing issues if types are not perfect, removing for stability since we only have list items */}
+            <div className="space-y-2">
+              {filteredItems.map((item, index) => (
+                <div
+                  key={item.id}
+                  ref={el => itemRefs.current[index] = el}
+                  className="relative"
+                >
+                  <ListItem
+                    item={item}
+                    index={index}
+                    isFocused={focusedItemIndex === index}
+                    searchQuery={searchQuery}
+                  />
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* 加载更多指示器（如果需要分页） */}

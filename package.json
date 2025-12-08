@@ -8,7 +8,8 @@
     "dev": "pnpm dev:client",
     "build:client": "vite build",
     "build": "rimraf dist && pnpm build:client && shx cp package.json dist/ && shx touch dist/build.flag",
-    "deploy": "pnpm run build && gh-pages -d dist"
+    "deploy": "pnpm run build && gh-pages -d dist",
+    "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.52.0",
@@ -39,8 +40,13 @@
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@types/validator": "^13.15.3",
+    "@typescript-eslint/eslint-plugin": "^8.48.1",
+    "@typescript-eslint/parser": "^8.48.1",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.21",
+    "eslint": "^9.39.1",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.0.1",
     "gh-pages": "^6.3.0",
     "postcss": "^8.5.3",
     "prettier": "^3.6.2",

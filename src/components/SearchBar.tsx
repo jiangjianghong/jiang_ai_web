@@ -56,7 +56,7 @@ function SearchBarComponent(props: SearchBarProps = {}) {
   const [hoveredEmojiIdx, setHoveredEmojiIdx] = useState<number | null>(null);
   const [showEngineTooltip, setShowEngineTooltip] = useState(false);
   const searchBarRef = useRef<HTMLFormElement>(null);
-  
+
   // TODO功能相关状态
   const [showTodoModal, setShowTodoModal] = useState(false);
   const [todoFeedback, setTodoFeedback] = useState<string | null>(null);
@@ -66,7 +66,7 @@ function SearchBarComponent(props: SearchBarProps = {}) {
     const STORAGE_KEY = 'time-display-todos';
     const stored = localStorage.getItem(STORAGE_KEY);
     let todos = [];
-    
+
     if (stored) {
       try {
         todos = JSON.parse(stored);
@@ -85,7 +85,7 @@ function SearchBarComponent(props: SearchBarProps = {}) {
 
     todos = [newTodo, ...todos].slice(0, 1000); // 限制为1000条
     localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
-    
+
     // 显示反馈
     setTodoFeedback(`已添加到TODO：${todoText}`);
     setTimeout(() => setTodoFeedback(null), 3000);
@@ -204,7 +204,7 @@ function SearchBarComponent(props: SearchBarProps = {}) {
       // 检查是否有阻止全局快捷键的模态框打开
       // 工作空间模态框不应该阻止空格键，因为它有自己的搜索框
       const shouldBlockGlobalShortcuts = isSettingsOpen || showTodoModal;
-      
+
       // 更精确地检查DOM中是否有其他需要阻止快捷键的模态框
       // 检查是否存在模态框背景遮罩（通常使用fixed定位和高z-index）
       const modalBackdrops = document.querySelectorAll('.fixed.inset-0');
@@ -213,13 +213,13 @@ function SearchBarComponent(props: SearchBarProps = {}) {
         const zIndex = parseInt(styles.zIndex) || 0;
         // 检查是否是需要阻止快捷键的模态框背景
         // 排除工作空间和壁纸背景
-        return zIndex >= 40 && 
-               !el.classList.contains('wallpaper') && 
-               !el.querySelector('img') && // 不包含图片（排除壁纸）
-               styles.display !== 'none' &&
-               !el.closest('[data-workspace-modal]'); // 排除工作空间模态框
+        return zIndex >= 40 &&
+          !el.classList.contains('wallpaper') &&
+          !el.querySelector('img') && // 不包含图片（排除壁纸）
+          styles.display !== 'none' &&
+          !el.closest('[data-workspace-modal]'); // 排除工作空间模态框
       });
-      
+
       if (shouldBlockGlobalShortcuts || hasBlockingModalBackdrop) {
         return; // 有阻止性模态框打开时，不处理快捷键
       }
@@ -715,10 +715,10 @@ function SearchBarComponent(props: SearchBarProps = {}) {
   // 拼音索引缓存 - 为每个网站生成拼音索引
   const pinyinIndexCache = useMemo(() => {
     const cache = new Map<string, { full: string; first: string; original: string }>();
-    
+
     const getPinyinIndex = (text: string) => {
       if (cache.has(text)) return cache.get(text)!;
-      
+
       const result = {
         full: pinyin(text, { toneType: 'none', type: 'array' }).join('').toLowerCase(),
         first: pinyin(text, { pattern: 'first', type: 'array' }).join('').toLowerCase(),
@@ -727,7 +727,7 @@ function SearchBarComponent(props: SearchBarProps = {}) {
       cache.set(text, result);
       return result;
     };
-    
+
     return { getPinyinIndex, cache };
   }, []);
 
@@ -736,53 +736,53 @@ function SearchBarComponent(props: SearchBarProps = {}) {
     const queryLower = query.toLowerCase();
     const { getPinyinIndex } = pinyinIndexCache;
     const index = getPinyinIndex(text);
-    
+
     // 1. 原文完全匹配 (最高分)
     if (index.original === queryLower) {
       return { matched: true, score: 150, matchType: '完全匹配' };
     }
-    
+
     // 2. 原文开头匹配
     if (index.original.startsWith(queryLower)) {
       return { matched: true, score: 130, matchType: '开头匹配' };
     }
-    
+
     // 3. 原文包含匹配
     if (index.original.includes(queryLower)) {
       return { matched: true, score: 100, matchType: '包含匹配' };
     }
-    
+
     // 4. 拼音首字母完全匹配 (如: bd -> 百度)
     if (index.first === queryLower) {
       return { matched: true, score: 120, matchType: '首字母' };
     }
-    
+
     // 5. 拼音首字母开头匹配
     if (index.first.startsWith(queryLower)) {
       return { matched: true, score: 95, matchType: '首字母' };
     }
-    
+
     // 6. 全拼完全匹配 (如: baidu -> 百度)
     if (index.full === queryLower) {
       return { matched: true, score: 110, matchType: '全拼' };
     }
-    
+
     // 7. 全拼开头匹配
     if (index.full.startsWith(queryLower)) {
       return { matched: true, score: 90, matchType: '全拼' };
     }
-    
+
     // 8. 全拼包含匹配
     if (index.full.includes(queryLower) && queryLower.length >= 2) {
       return { matched: true, score: 70, matchType: '全拼' };
     }
-    
+
     // 9. 智能拼音匹配 (支持部分匹配，如: baid -> 百度)
     const smartMatch = pinyinMatch(text, query, { continuous: true });
     if (smartMatch !== null) {
       return { matched: true, score: 85, matchType: '智能拼音' };
     }
-    
+
     return { matched: false, score: 0, matchType: '' };
   }, [pinyinIndexCache]);
 
@@ -988,17 +988,17 @@ function SearchBarComponent(props: SearchBarProps = {}) {
     const debounceTimer = setTimeout(() => {
       if (searchQuery.trim()) {
         const queryLower = searchQuery.toLowerCase();
-        
+
         // 检测TODO相关输入（支持中英文）
-        if (queryLower === 'todo' || queryLower.startsWith('todo ') || 
-            queryLower === '待办' || queryLower === '待办事项' || 
-            queryLower.startsWith('待办 ') || queryLower.startsWith('待办事项 ') ||
-            queryLower.startsWith('todo:') || queryLower.startsWith('todo：') ||
-            queryLower.startsWith('待办:') || queryLower.startsWith('待办：') ||
-            queryLower.startsWith('待办事项:') || queryLower.startsWith('待办事项：')) {
+        if (queryLower === 'todo' || queryLower.startsWith('todo ') ||
+          queryLower === '待办' || queryLower === '待办事项' ||
+          queryLower.startsWith('待办 ') || queryLower.startsWith('待办事项 ') ||
+          queryLower.startsWith('todo:') || queryLower.startsWith('todo：') ||
+          queryLower.startsWith('待办:') || queryLower.startsWith('待办：') ||
+          queryLower.startsWith('待办事项:') || queryLower.startsWith('待办事项：')) {
           // 生成TODO相关建议
           const todoSuggestions = [];
-          
+
           if (queryLower === 'todo' || queryLower === '待办' || queryLower === '待办事项') {
             todoSuggestions.push({
               id: 'open-todo',
@@ -1008,8 +1008,8 @@ function SearchBarComponent(props: SearchBarProps = {}) {
               action: 'open'
             });
           } else if (queryLower === 'todo:' || queryLower === 'todo：' ||
-                     queryLower === '待办:' || queryLower === '待办：' ||
-                     queryLower === '待办事项:' || queryLower === '待办事项：') {
+            queryLower === '待办:' || queryLower === '待办：' ||
+            queryLower === '待办事项:' || queryLower === '待办事项：') {
             todoSuggestions.push({
               id: 'todo-input-hint',
               text: '继续输入来添加待办事项...',
@@ -1018,16 +1018,16 @@ function SearchBarComponent(props: SearchBarProps = {}) {
               action: 'hint'
             });
           } else if (queryLower.startsWith('todo:') || queryLower.startsWith('todo：') ||
-                     queryLower.startsWith('待办:') || queryLower.startsWith('待办：') ||
-                     queryLower.startsWith('待办事项:') || queryLower.startsWith('待办事项：')) {
+            queryLower.startsWith('待办:') || queryLower.startsWith('待办：') ||
+            queryLower.startsWith('待办事项:') || queryLower.startsWith('待办事项：')) {
             // 用户正在输入待办内容
             let separator = ':';
             let todoText = '';
-            
+
             if (searchQuery.includes('：')) {
               separator = '：';
             }
-            
+
             if (queryLower.startsWith('todo')) {
               todoText = searchQuery.split(separator)[1]?.trim();
             } else if (queryLower.startsWith('待办事项')) {
@@ -1035,7 +1035,7 @@ function SearchBarComponent(props: SearchBarProps = {}) {
             } else if (queryLower.startsWith('待办')) {
               todoText = searchQuery.split(separator)[1]?.trim();
             }
-            
+
             if (todoText) {
               todoSuggestions.push({
                 id: 'todo-ready-to-add',
@@ -1055,17 +1055,17 @@ function SearchBarComponent(props: SearchBarProps = {}) {
               });
             }
           }
-          
+
           setSuggestions(todoSuggestions);
           setWebsiteSuggestions([]);
           setShowSuggestions(todoSuggestions.length > 0);
           setSelectedSuggestionIndex(-1);
           return;
         }
-        
+
         // 检测工作空间相关输入（支持中英文）
         if (queryLower === 'workspace' || queryLower === 'work' || queryLower === 'job' ||
-            queryLower === '工作空间' || queryLower === '工作' || queryLower === '办公') {
+          queryLower === '工作空间' || queryLower === '工作' || queryLower === '办公') {
           // 生成工作空间相关建议
           const workspaceSuggestions = [{
             id: 'open-workspace',
@@ -1074,17 +1074,17 @@ function SearchBarComponent(props: SearchBarProps = {}) {
             isWorkspaceAction: true,
             action: 'open'
           }];
-          
+
           setSuggestions(workspaceSuggestions);
           setWebsiteSuggestions([]);
           setShowSuggestions(workspaceSuggestions.length > 0);
           setSelectedSuggestionIndex(-1);
           return;
         }
-        
+
         // 检测Settings相关输入（支持中英文）
         if (queryLower === 'settings' || queryLower === 'setting' ||
-            queryLower === '设置' || queryLower === 'config' || queryLower === '配置') {
+          queryLower === '设置' || queryLower === 'config' || queryLower === '配置') {
           // 生成设置相关建议
           const settingsSuggestions = [];
 
@@ -1124,9 +1124,9 @@ function SearchBarComponent(props: SearchBarProps = {}) {
 
         // 检测开发者/作者相关输入（支持中英文）
         if (queryLower === 'author' || queryLower === 'developer' ||
-            queryLower === 'coder' || queryLower === '作者' ||
-            queryLower === '开发者' || queryLower === '开发' ||
-            queryLower === 'about me' || queryLower === 'me') {
+          queryLower === 'coder' || queryLower === '作者' ||
+          queryLower === '开发者' || queryLower === '开发' ||
+          queryLower === 'about me' || queryLower === 'me') {
           // 生成开发者相关建议
           const developerSuggestions = [{
             id: 'open-developer',
@@ -1142,7 +1142,7 @@ function SearchBarComponent(props: SearchBarProps = {}) {
           setSelectedSuggestionIndex(-1);
           return;
         }
-        
+
         // 同时搜索网站、工作空间和生成搜索建议
         const matchedWebsites = searchWebsites(searchQuery);
         const matchedWorkspace = searchWorkspace(searchQuery);
@@ -1338,7 +1338,7 @@ function SearchBarComponent(props: SearchBarProps = {}) {
     const queryToSearch = suggestionQuery || searchQuery;
     if (queryToSearch.trim()) {
       const queryLower = queryToSearch.toLowerCase();
-      
+
       // 检测TODO相关输入（支持中英文）
       if (queryLower === 'todo' || queryLower === '待办' || queryLower === '待办事项') {
         // 打开TODO弹窗
@@ -1348,18 +1348,18 @@ function SearchBarComponent(props: SearchBarProps = {}) {
         setWebsiteSuggestions([]);
         return;
       }
-      
+
       // 检测TODO:xxx格式，直接添加TODO（支持中英文）
       if (queryLower.startsWith('todo:') || queryLower.startsWith('todo：') ||
-          queryLower.startsWith('待办:') || queryLower.startsWith('待办：') ||
-          queryLower.startsWith('待办事项:') || queryLower.startsWith('待办事项：')) {
+        queryLower.startsWith('待办:') || queryLower.startsWith('待办：') ||
+        queryLower.startsWith('待办事项:') || queryLower.startsWith('待办事项：')) {
         let separator = ':';
         let todoText = '';
-        
+
         if (queryToSearch.includes('：')) {
           separator = '：';
         }
-        
+
         if (queryLower.startsWith('todo')) {
           todoText = queryToSearch.split(separator)[1]?.trim();
         } else if (queryLower.startsWith('待办事项')) {
@@ -1367,7 +1367,7 @@ function SearchBarComponent(props: SearchBarProps = {}) {
         } else if (queryLower.startsWith('待办')) {
           todoText = queryToSearch.split(separator)[1]?.trim();
         }
-        
+
         if (todoText) {
           addTodoToStorage(todoText);
           setSearchQuery('');
@@ -1376,10 +1376,10 @@ function SearchBarComponent(props: SearchBarProps = {}) {
           return;
         }
       }
-      
+
       // 检测工作空间相关输入（支持中英文）
       if (queryLower === 'workspace' || queryLower === 'work' || queryLower === 'job' ||
-          queryLower === '工作空间' || queryLower === '工作' || queryLower === '办公') {
+        queryLower === '工作空间' || queryLower === '工作' || queryLower === '办公') {
         // 打开工作空间
         setIsWorkspaceOpen(true);
         setSearchQuery('');
@@ -1387,10 +1387,10 @@ function SearchBarComponent(props: SearchBarProps = {}) {
         setWebsiteSuggestions([]);
         return;
       }
-      
+
       // 检测Settings相关输入（支持中英文）
       if (queryLower === 'settings' || queryLower === 'setting' ||
-          queryLower === '设置' || queryLower === 'config' || queryLower === '配置') {
+        queryLower === '设置' || queryLower === 'config' || queryLower === '配置') {
         // 打开设置页面
         if (onOpenSettings) {
           onOpenSettings();
@@ -1403,7 +1403,7 @@ function SearchBarComponent(props: SearchBarProps = {}) {
 
       // 检测Help相关输入（支持中英文）
       if (queryLower === 'help' || queryLower === '帮助' ||
-          queryLower === '帮助页面' || queryLower === '帮助界面') {
+        queryLower === '帮助页面' || queryLower === '帮助界面') {
         // 打开帮助页面
         openUrl('/help/');
         setSearchQuery('');
@@ -1414,9 +1414,9 @@ function SearchBarComponent(props: SearchBarProps = {}) {
 
       // 检测开发者/作者相关输入（支持中英文）
       if (queryLower === 'author' || queryLower === 'developer' ||
-          queryLower === 'coder' || queryLower === '作者' ||
-          queryLower === '开发者' || queryLower === '开发' ||
-          queryLower === 'about me' || queryLower === 'me') {
+        queryLower === 'coder' || queryLower === '作者' ||
+        queryLower === '开发者' || queryLower === '开发' ||
+        queryLower === 'about me' || queryLower === 'me') {
         // 打开开发者页面
         openUrl('/me/');
         setSearchQuery('');
@@ -1647,9 +1647,8 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                 <AnimatePresence>
                   {showSuggestions && (websiteSuggestions.length > 0 || workspaceSuggestions.length > 0 || suggestions.length > 0) && (
                     <motion.div
-                      className={`absolute top-full left-3 right-0 mt-2 backdrop-blur-md rounded-lg shadow-lg border border-white/20 z-30 overflow-y-auto custom-scrollbar ${
-                        isMobile ? 'max-h-72' : 'max-h-96'
-                      }`}
+                      className={`absolute top-full left-3 right-0 mt-2 backdrop-blur-md rounded-lg shadow-lg border border-white/20 z-30 overflow-y-auto custom-scrollbar ${isMobile ? 'max-h-72' : 'max-h-96'
+                        }`}
                       initial={{ opacity: 0, y: -10, scaleY: 0.8 }}
                       animate={{ opacity: 1, y: 0, scaleY: 1 }}
                       exit={{
@@ -1697,11 +1696,10 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                             return (
                               <div
                                 key={website.id}
-                                className={`${isMobile ? 'px-3 py-2' : 'px-4 py-3'} cursor-pointer transition-all duration-200 border-b border-gray-100/50 last:border-b-0 select-none ${
-                                  isSelected
+                                className={`${isMobile ? 'px-3 py-2' : 'px-4 py-3'} cursor-pointer transition-all duration-200 border-b border-gray-100/50 last:border-b-0 select-none ${isSelected
                                     ? 'bg-gradient-to-r from-purple-500/10 to-violet-500/10 border-purple-200'
                                     : 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-purple-50'
-                                }`}
+                                  }`}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleSearch(e as any, undefined, website);
@@ -1831,11 +1829,10 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                             return (
                               <div
                                 key={workspace.id}
-                                className={`${isMobile ? 'px-3 py-2' : 'px-4 py-3'} cursor-pointer transition-all duration-200 border-b border-gray-100/50 last:border-b-0 select-none ${
-                                  isSelected
+                                className={`${isMobile ? 'px-3 py-2' : 'px-4 py-3'} cursor-pointer transition-all duration-200 border-b border-gray-100/50 last:border-b-0 select-none ${isSelected
                                     ? 'bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border-blue-200'
                                     : 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50'
-                                }`}
+                                  }`}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   openUrl(workspace.url);
@@ -1956,43 +1953,42 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                             return (
                               <div
                                 key={suggestion.id}
-                                className={`${isMobile ? 'px-3 py-2' : 'px-4 py-3'} ${isHint ? 'cursor-default' : 'cursor-pointer'} transition-all duration-200 border-b border-gray-100/50 last:border-b-0 select-none ${
-                                  isSelected
+                                className={`${isMobile ? 'px-3 py-2' : 'px-4 py-3'} ${isHint ? 'cursor-default' : 'cursor-pointer'} transition-all duration-200 border-b border-gray-100/50 last:border-b-0 select-none ${isSelected
                                     ? isTodoAction && !isHint
                                       ? isAdd
                                         ? 'bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-green-200'
                                         : 'bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border-blue-200'
                                       : isSettingsAction
-                                      ? 'bg-gradient-to-r from-purple-500/10 to-violet-500/10 border-purple-200'
-                                      : (suggestion as any).isHelpAction
-                                      ? 'bg-gradient-to-r from-teal-500/10 to-cyan-500/10 border-teal-200'
-                                      : (suggestion as any).isDeveloperAction
-                                      ? 'bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border-indigo-200'
-                                      : (suggestion as any).isWorkspaceAction
-                                      ? 'bg-gradient-to-r from-orange-500/10 to-amber-500/10 border-orange-200'
-                                      : isHint
-                                      ? 'bg-gray-100/50 text-gray-600'
-                                      : isDirectVisit
-                                      ? 'bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-green-200'
-                                      : 'bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border-emerald-200'
+                                        ? 'bg-gradient-to-r from-purple-500/10 to-violet-500/10 border-purple-200'
+                                        : (suggestion as any).isHelpAction
+                                          ? 'bg-gradient-to-r from-teal-500/10 to-cyan-500/10 border-teal-200'
+                                          : (suggestion as any).isDeveloperAction
+                                            ? 'bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border-indigo-200'
+                                            : (suggestion as any).isWorkspaceAction
+                                              ? 'bg-gradient-to-r from-orange-500/10 to-amber-500/10 border-orange-200'
+                                              : isHint
+                                                ? 'bg-gray-100/50 text-gray-600'
+                                                : isDirectVisit
+                                                  ? 'bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-green-200'
+                                                  : 'bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border-emerald-200'
                                     : isTodoAction && !isHint
                                       ? isAdd
                                         ? 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-green-50'
                                         : 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50'
                                       : isSettingsAction
-                                      ? 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-purple-50'
-                                      : (suggestion as any).isHelpAction
-                                      ? 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-teal-50'
-                                      : (suggestion as any).isDeveloperAction
-                                      ? 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-indigo-50'
-                                      : (suggestion as any).isWorkspaceAction
-                                      ? 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-orange-50'
-                                      : isHint
-                                      ? 'bg-gray-50/50 text-gray-600'
-                                      : isDirectVisit
-                                      ? 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-green-50'
-                                      : 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-emerald-50'
-                                }`}
+                                        ? 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-purple-50'
+                                        : (suggestion as any).isHelpAction
+                                          ? 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-teal-50'
+                                          : (suggestion as any).isDeveloperAction
+                                            ? 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-indigo-50'
+                                            : (suggestion as any).isWorkspaceAction
+                                              ? 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-orange-50'
+                                              : isHint
+                                                ? 'bg-gray-50/50 text-gray-600'
+                                                : isDirectVisit
+                                                  ? 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-green-50'
+                                                  : 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-emerald-50'
+                                  }`}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   if ((suggestion as any).isTodoAction) {
@@ -2128,23 +2124,22 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                                     )}
                                   </div>
                                   <div
-                                    className={`text-xs px-2 py-1 rounded ${
-                                      (suggestion as any).isTodoAction && !isHint
+                                    className={`text-xs px-2 py-1 rounded ${(suggestion as any).isTodoAction && !isHint
                                         ? isAdd
                                           ? 'text-green-600 bg-green-100'
                                           : 'text-blue-600 bg-blue-100'
                                         : (suggestion as any).isSettingsAction
-                                        ? 'text-purple-600 bg-purple-100'
-                                        : (suggestion as any).isHelpAction
-                                        ? 'text-teal-600 bg-teal-100'
-                                        : (suggestion as any).isDeveloperAction
-                                        ? 'text-indigo-600 bg-indigo-100'
-                                        : isHint
-                                        ? 'text-gray-500 bg-gray-200'
-                                        : isDirectVisit
-                                        ? 'text-green-600 bg-green-100'
-                                        : 'text-gray-400 bg-gray-100'
-                                    }`}
+                                          ? 'text-purple-600 bg-purple-100'
+                                          : (suggestion as any).isHelpAction
+                                            ? 'text-teal-600 bg-teal-100'
+                                            : (suggestion as any).isDeveloperAction
+                                              ? 'text-indigo-600 bg-indigo-100'
+                                              : isHint
+                                                ? 'text-gray-500 bg-gray-200'
+                                                : isDirectVisit
+                                                  ? 'text-green-600 bg-green-100'
+                                                  : 'text-gray-400 bg-gray-100'
+                                      }`}
                                   >
                                     {isHint ? '输入...' : 'Enter'}
                                   </div>
@@ -2187,7 +2182,7 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                     }}
                   >
                     <div style={{ position: 'absolute', left: 0, top: 0 }}>
-                      {emojiList.map((emoji, i, arr) => {
+                      {emojiList.map((emoji, i) => {
                         // 双层布局：前4个为内圈，后4个为外圈
                         const isInnerCircle = i < 4; // 前4个是内圈
                         const N = isInnerCircle ? 4 : 4; // 每层4个图标

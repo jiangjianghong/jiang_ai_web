@@ -93,15 +93,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const login = async (email: string, password: string) => {
     try {
       clearError();
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) throw error;
-
-      console.log('登录成功:', data.user?.email);
-    } catch (err) {
+    } catch (err: any) {
       const message = getLocalizedErrorMessage(err);
       setError(message);
       throw new Error(message);
@@ -112,7 +110,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const register = async (email: string, password: string) => {
     try {
       clearError();
-      const { data, error } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -127,9 +125,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       });
 
       if (error) throw error;
-
-      console.log('注册成功，请检查邮箱验证:', data.user?.email);
-    } catch (err) {
+    } catch (err: any) {
       const message = getLocalizedErrorMessage(err);
       setError(message);
       throw new Error(message);
@@ -150,9 +146,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
         });
 
         if (error) throw error;
-        console.log('验证邮件已发送');
       }
-    } catch (err) {
+    } catch (err: any) {
       const message = getLocalizedErrorMessage(err);
       setError(message);
       throw new Error(message);
@@ -171,7 +166,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (error) throw error;
 
       setCurrentUser(user);
-    } catch (err) {
+    } catch (err: any) {
       const message = getLocalizedErrorMessage(err);
       setError(message);
       throw new Error(message);
@@ -190,7 +185,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       });
 
       if (error) throw error;
-    } catch (err) {
+    } catch (err: any) {
       const message = getLocalizedErrorMessage(err);
       setError(message);
       throw new Error(message);
@@ -233,10 +228,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       if (error) throw error;
 
-      console.log('密码更新成功');
+
       setSuccessMessage('✅ 密码已更新成功！');
       setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err) {
+    } catch (err: any) {
       const message = getLocalizedErrorMessage(err);
       setError(message);
       throw new Error(message);
@@ -258,10 +253,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       if (error) throw error;
 
-      console.log('密码重置邮件已发送');
+      if (error) throw error;
+
       setSuccessMessage('✅ 密码重置邮件已发送，请检查您的邮箱');
       setTimeout(() => setSuccessMessage(null), 5000);
-    } catch (err) {
+    } catch (err: any) {
       const message = getLocalizedErrorMessage(err);
       setError(message);
       throw new Error(message);
@@ -284,18 +280,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       // 更新用户状态
       const newUser = session?.user ?? null;
-
-      // 添加详细的用户状态日志
-      console.log('🔍 认证状态详情:', {
-        event,
-        hasUser: !!newUser,
-        userId: newUser?.id,
-        email: newUser?.email,
-        emailConfirmed: !!newUser?.email_confirmed_at,
-        emailConfirmedAt: newUser?.email_confirmed_at,
-        currentUserId: currentUser?.id,
-        currentEmailConfirmed: !!currentUser?.email_confirmed_at,
-      });
 
       // 总是更新状态，确保数据一致性
       setSession(session);
@@ -320,11 +304,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
           setError(null);
           break;
         case 'TOKEN_REFRESHED':
-          console.log('Token refreshed');
           // Token 刷新不需要重新加载数据
           break;
         case 'USER_UPDATED':
-          console.log('User updated');
           break;
       }
     });
@@ -340,7 +322,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       if (params.get('type') === 'signup' && params.get('access_token')) {
         // 邮箱确认成功
-        console.log('✅ 邮箱确认成功！');
         // 清除URL中的hash参数
         window.history.replaceState({}, document.title, window.location.pathname);
         // 显示成功消息

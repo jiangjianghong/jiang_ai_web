@@ -6,9 +6,9 @@ interface UseKeyboardNavigationOptions {
   onEscape?: () => void;
 }
 
-export function useKeyboardNavigation({ 
-  isEnabled = true, 
-  onEscape 
+export function useKeyboardNavigation({
+  isEnabled = true,
+  onEscape
 }: UseKeyboardNavigationOptions = {}) {
   const {
     filteredItems,
@@ -19,14 +19,13 @@ export function useKeyboardNavigation({
     setSelectedCategory,
     categories,
     searchQuery,
-    setSearchQuery,
-    clearFilters
+    setSearchQuery
   } = useWorkspace();
 
   // 焦点状态枚举
   const FOCUS_STATES = {
     CATEGORIES: 'categories',
-    SEARCH: 'search', 
+    SEARCH: 'search',
     VIEW_SWITCHER: 'view-switcher',
     ITEMS: 'items'
   };
@@ -34,7 +33,7 @@ export function useKeyboardNavigation({
   // 获取当前焦点状态
   const getCurrentFocusState = () => {
     const activeElement = document.activeElement;
-    
+
     if (activeElement?.closest('.category-tabs')) {
       return FOCUS_STATES.CATEGORIES;
     }
@@ -47,7 +46,7 @@ export function useKeyboardNavigation({
     if (focusedItemIndex >= 0) {
       return FOCUS_STATES.ITEMS;
     }
-    
+
     return null;
   };
 
@@ -69,13 +68,13 @@ export function useKeyboardNavigation({
   const getGridDimensions = () => {
     const width = window.innerWidth;
     let cols = 2;
-    
+
     if (width >= 1536) cols = 6;
     else if (width >= 1280) cols = 5;
     else if (width >= 1024) cols = 4;
     else if (width >= 768) cols = 3;
     else cols = 2;
-    
+
     const rows = Math.ceil(filteredItems.length / cols);
     return { cols, rows };
   };
@@ -104,33 +103,33 @@ export function useKeyboardNavigation({
     const { cols } = getGridDimensions();
     const row = Math.floor(currentIndex / cols);
     const col = currentIndex % cols;
-    
+
     switch (direction) {
       case 'up':
         if (row > 0) {
           return (row - 1) * cols + col;
         }
         return -1;
-      
+
       case 'down':
         const nextRowIndex = (row + 1) * cols + col;
         if (nextRowIndex < filteredItems.length) {
           return nextRowIndex;
         }
         return currentIndex;
-      
+
       case 'left':
         if (col > 0) {
           return currentIndex - 1;
         }
         return currentIndex;
-      
+
       case 'right':
         if (col < cols - 1 && currentIndex + 1 < filteredItems.length) {
           return currentIndex + 1;
         }
         return currentIndex;
-      
+
       default:
         return currentIndex;
     }
@@ -142,21 +141,21 @@ export function useKeyboardNavigation({
 
     const currentFocusState = getCurrentFocusState();
     const activeElement = document.activeElement;
-    
+
     // 特殊组件自己处理左右键，这里不干预
     if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
       // 搜索框、分类标签、视图切换器自己处理左右键
-      if (currentFocusState === FOCUS_STATES.SEARCH || 
-          currentFocusState === FOCUS_STATES.CATEGORIES ||
-          currentFocusState === FOCUS_STATES.VIEW_SWITCHER) {
+      if (currentFocusState === FOCUS_STATES.SEARCH ||
+        currentFocusState === FOCUS_STATES.CATEGORIES ||
+        currentFocusState === FOCUS_STATES.VIEW_SWITCHER) {
         return; // 让组件自己处理
       }
-      
+
       // 只处理内容区域的左右键
       if (currentFocusState === FOCUS_STATES.ITEMS) {
         e.preventDefault();
         const viewType = getCurrentView();
-        
+
         if (viewType === 'card') {
           // 卡片视图中的网格导航
           if (e.key === 'ArrowLeft') {
@@ -179,8 +178,8 @@ export function useKeyboardNavigation({
           // 从分类标签下移到搜索框
           e.preventDefault();
           focusToSearch();
-        } else if (currentFocusState === FOCUS_STATES.SEARCH || 
-                   currentFocusState === FOCUS_STATES.VIEW_SWITCHER) {
+        } else if (currentFocusState === FOCUS_STATES.SEARCH ||
+          currentFocusState === FOCUS_STATES.VIEW_SWITCHER) {
           // 从搜索框或视图切换器下移到内容区域
           e.preventDefault();
           // 先让搜索框失去焦点
@@ -194,7 +193,7 @@ export function useKeyboardNavigation({
         } else if (currentFocusState === FOCUS_STATES.ITEMS) {
           e.preventDefault();
           const viewType = getCurrentView();
-          
+
           if (viewType === 'list') {
             const newIndex = getListNavigationIndex(focusedItemIndex, 'down');
             setFocusedItemIndex(newIndex);
@@ -214,7 +213,7 @@ export function useKeyboardNavigation({
         } else if (currentFocusState === FOCUS_STATES.ITEMS) {
           e.preventDefault();
           const viewType = getCurrentView();
-          
+
           if (viewType === 'list') {
             const newIndex = getListNavigationIndex(focusedItemIndex, 'up');
             if (focusedItemIndex === 0) {
@@ -266,7 +265,7 @@ export function useKeyboardNavigation({
           e.preventDefault();
           const num = parseInt(e.key);
           const targetIndex = num === 0 ? 0 : num;
-          
+
           if (targetIndex < categories.length) {
             setSelectedCategory(categories[targetIndex].name);
             // 聚焦到对应的分类按钮

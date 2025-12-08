@@ -8,6 +8,17 @@ import { useLazyFavicon } from '@/hooks/useLazyFavicon';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import { userStatsManager } from '@/hooks/useUserStats';
 
+interface WebsiteCardData {
+  id: string;
+  name: string;
+  url: string;
+  favicon: string;
+  tags: string[];
+  note?: string;
+  visitCount?: number;
+  lastVisit?: string;
+}
+
 interface WebsiteCardProps {
   id: string;
   name: string;
@@ -18,7 +29,7 @@ interface WebsiteCardProps {
   note?: string;
   index: number;
   moveCard: (dragIndex: number, hoverIndex: number) => void;
-  onSave: (data: any) => void;
+  onSave: (data: WebsiteCardData) => void;
   onDelete?: (id: string) => void;
   onCardSave?: () => void; // 可选的保存回调，用于触发同步
 }
@@ -245,9 +256,9 @@ export const WebsiteCard = memo(function WebsiteCardComponent({
           whileTap={
             isMobile
               ? {
-                  scale: 0.95,
-                  transition: { duration: 0.1, ease: 'easeInOut' },
-                }
+                scale: 0.95,
+                transition: { duration: 0.1, ease: 'easeInOut' },
+              }
               : {}
           }
           initial={{ opacity: 0, y: 20 }}
@@ -270,9 +281,8 @@ export const WebsiteCard = memo(function WebsiteCardComponent({
                 e.stopPropagation();
                 setShowEditModal(true);
               }}
-              className={`p-1 text-white/50 hover:text-white select-none transition-all duration-500 ease-out ${
-                isMobile ? 'text-xs bg-black/20 rounded-full' : ''
-              } ${isHovered && !isMobile ? 'opacity-100' : isMobile ? 'opacity-70' : 'opacity-0'}`}
+              className={`p-1 text-white/50 hover:text-white select-none transition-all duration-500 ease-out ${isMobile ? 'text-xs bg-black/20 rounded-full' : ''
+                } ${isHovered && !isMobile ? 'opacity-100' : isMobile ? 'opacity-70' : 'opacity-0'}`}
             >
               <i className="fa-solid fa-gear text-xs select-none"></i>
             </button>

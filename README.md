@@ -640,6 +640,13 @@ We welcome all forms of contributions!
 
 ## 📝 Changelog
 
+### v1.2.1 (2025-12-08)
+
+**🔧 Fixes**
+- Fixed wallpaper update issue where new wallpapers were not fetched until 8:00 AM (UTC+8)
+- Updated wallpaper service to use local time (UTC+8) for consistent daily updates
+- Optimized client-side caching logic to respect local timezone
+
 ### v1.2.0 (2024-12-19)
 
 **🔧 Fixes**

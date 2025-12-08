@@ -69,8 +69,8 @@ async function getBingWallpaperMetadata(): Promise<any> {
         return data.images[0];
       }
     }
-  } catch (error) {
-    console.log('获取Bing元数据失败:', error.message);
+  } catch (error: any) {
+    console.log('获取Bing元数据失败:', error.message || error);
   }
   return null;
 }
@@ -94,8 +94,8 @@ async function fetchWallpaperImage(imageUrl: string): Promise<ArrayBuffer | null
       console.log(`成功获取壁纸: ${imageUrl} (${imageData.byteLength} bytes)`);
       return imageData;
     }
-  } catch (error) {
-    console.log(`获取壁纸失败: ${imageUrl} - ${error.message}`);
+  } catch (error: any) {
+    console.log(`获取壁纸失败: ${imageUrl} - ${error.message || error}`);
   }
   return null;
 }
@@ -117,7 +117,7 @@ Deno.serve(async (req) => {
     const forceRefresh = requestUrl.searchParams.get('refresh') === 'true';
 
     // 验证分辨率参数
-    const targetResolution = RESOLUTIONS[resolution] || RESOLUTIONS['uhd'];
+    const targetResolution = RESOLUTIONS[resolution as keyof typeof RESOLUTIONS] || RESOLUTIONS['uhd'];
 
     console.log(`壁纸请求: ${resolution} (${targetResolution})`);
 
@@ -215,8 +215,8 @@ Deno.serve(async (req) => {
           body: wallpaperData,
         });
         console.log(`成功缓存壁纸: ${cacheKey}`);
-      } catch (error) {
-        console.log('缓存壁纸失败:', error.message);
+      } catch (error: any) {
+        console.log('缓存壁纸失败:', error.message || error);
       }
     }
 
@@ -233,13 +233,13 @@ Deno.serve(async (req) => {
       },
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('壁纸服务错误:', error);
 
     return new Response(
       JSON.stringify({
         error: '壁纸服务内部错误',
-        message: error.message
+        message: error.message || String(error)
       }),
       {
         status: 500,

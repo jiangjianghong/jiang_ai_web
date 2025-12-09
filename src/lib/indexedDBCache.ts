@@ -50,6 +50,13 @@ class IndexedDBCache {
     return this.db!;
   }
 
+  // 格式化文件大小
+  private formatSize(bytes: number): string {
+    if (bytes < 1024) return `${bytes}B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(2)}KB`;
+    return `${(bytes / 1024 / 1024).toFixed(2)}MB`;
+  }
+
   // 保存 Blob 到 IndexedDB
   async set(key: string, blob: Blob, ttl: number = 2 * 60 * 60 * 1000): Promise<void> {
     try {
@@ -70,7 +77,7 @@ class IndexedDBCache {
 
       return new Promise((resolve, reject) => {
         request.onsuccess = () => {
-          console.log(`💾 IndexedDB 保存成功: ${key} (${(blob.size / 1024 / 1024).toFixed(2)}MB)`);
+          console.log(`💾 IndexedDB 保存成功: ${key} (${this.formatSize(blob.size)})`);
           resolve();
         };
         request.onerror = () => {
@@ -113,7 +120,7 @@ class IndexedDBCache {
           }
 
           console.log(
-            `✅ IndexedDB 缓存命中: ${key} (${(result.size / 1024 / 1024).toFixed(2)}MB)`
+            `✅ IndexedDB 缓存命中: ${key} (${this.formatSize(result.size)})`
           );
           resolve(result.blob);
         };

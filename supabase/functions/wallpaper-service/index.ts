@@ -159,9 +159,25 @@ Deno.serve(async (req) => {
     let wallpaperData: ArrayBuffer | null = null;
 
     if (metadata && metadata.urlbase) {
-      // 使用官方API获取的URL
-      imageUrl = `https://www.bing.com${metadata.urlbase}_${targetResolution}.jpg`;
-      wallpaperData = await fetchWallpaperImage(imageUrl);
+      // 确定尝试的分辨率列表
+      let resolutionCandidates = [targetResolution];
+
+      // 如果请求的是4K，优先尝试 UHD，失败后尝试 3840x2160
+      if (targetResolution === '3840x2160') {
+        resolutionCandidates = ['UHD', '3840x2160'];
+      }
+
+      // 尝试获取壁纸（按优先级）
+      for (const res of resolutionCandidates) {
+        const url = `https://www.bing.com${metadata.urlbase}_${res}.jpg`;
+        wallpaperData = await fetchWallpaperImage(url);
+
+        if (wallpaperData) {
+          imageUrl = url;
+          console.log(`成功获取分辨率 ${res} 的壁纸`);
+          break;
+        }
+      }
     }
 
     // 如果官方API失败，尝试备用方法

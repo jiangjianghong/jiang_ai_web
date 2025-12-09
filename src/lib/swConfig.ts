@@ -1,7 +1,7 @@
 // Service Worker 配置常量
 // 更新版本时只需修改这里，sw.js 和 usePWA.ts 会自动同步
 
-export const SW_VERSION = 'v12';
+export const SW_VERSION = 'v15';
 export const CACHE_PREFIX = 'jiang-ai-web';
 
 // 缓存名称

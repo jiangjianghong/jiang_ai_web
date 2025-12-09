@@ -1,6 +1,6 @@
 // 离线优先的Service Worker
 // ⚠️ 更新版本时，请同步更新 src/lib/swConfig.ts 中的 SW_VERSION
-const SW_VERSION = 'v14';
+const SW_VERSION = 'v15';
 const CACHE_NAME = `jiang-ai-web-${SW_VERSION}-offline`;
 const STATIC_CACHE_NAME = `static-${SW_VERSION}`;
 const DYNAMIC_CACHE_NAME = `dynamic-${SW_VERSION}`;
@@ -68,7 +68,7 @@ const isWallpaperRequest = (url) => {
 const fetchWithTimeout = (request, timeout = 10000) => {
   return Promise.race([
     fetch(request),
-    new Promise((_, reject) => 
+    new Promise((_, reject) =>
       setTimeout(() => reject(new Error('Timeout')), timeout)
     )
   ]);
@@ -81,7 +81,7 @@ self.addEventListener('install', (event) => {
     caches.open(STATIC_CACHE_NAME)
       .then(async (cache) => {
         console.log('Service Worker: 缓存核心资源');
-        
+
         // 先缓存核心资源（必须成功）
         try {
           await cache.addAll(STATIC_CACHE_URLS);
@@ -90,20 +90,20 @@ self.addEventListener('install', (event) => {
           console.error('Service Worker: 核心资源缓存失败', error);
           throw error;
         }
-        
+
         // 再尝试缓存可选资源（允许失败）
         const optionalResults = await Promise.allSettled(
-          OPTIONAL_CACHE_URLS.map(url => 
+          OPTIONAL_CACHE_URLS.map(url =>
             cache.add(url).catch(error => {
               console.warn(`可选资源缓存失败: ${url}`, error);
               return null;
             })
           )
         );
-        
+
         const successCount = optionalResults.filter(r => r.status === 'fulfilled').length;
         console.log(`Service Worker: 可选资源缓存完成 (${successCount}/${OPTIONAL_CACHE_URLS.length})`);
-        
+
         return cache;
       })
       .then(() => {
@@ -125,8 +125,8 @@ self.addEventListener('activate', (event) => {
         cacheNames.map((cacheName) => {
           // 保留当前版本的缓存
           const currentCaches = [STATIC_CACHE_NAME, DYNAMIC_CACHE_NAME, WALLPAPER_CACHE_NAME, CACHE_NAME];
-          if (!currentCaches.includes(cacheName) && cacheName.startsWith('jiang-ai-web') || 
-              cacheName.startsWith('static-') || cacheName.startsWith('dynamic-') || cacheName.startsWith('wallpaper-')) {
+          if (!currentCaches.includes(cacheName) && cacheName.startsWith('jiang-ai-web') ||
+            cacheName.startsWith('static-') || cacheName.startsWith('dynamic-') || cacheName.startsWith('wallpaper-')) {
             // 只删除旧版本的缓存
             if (!currentCaches.includes(cacheName)) {
               console.log('Service Worker: 删除旧缓存', cacheName);
@@ -143,7 +143,7 @@ self.addEventListener('activate', (event) => {
 // 拦截网络请求 - 实现缓存优先策略
 self.addEventListener('fetch', (event) => {
   const url = event.request.url;
-  
+
   // 跳过不应该缓存的URL
   if (SKIP_CACHE_PATTERNS.some(pattern => pattern.test(url))) {
     return;
@@ -203,9 +203,9 @@ self.addEventListener('fetch', (event) => {
   }
 
   // 对于静态资源，使用缓存优先策略
-  if (event.request.destination === 'script' || 
-      event.request.destination === 'style' || 
-      event.request.destination === 'image') {
+  if (event.request.destination === 'script' ||
+    event.request.destination === 'style' ||
+    event.request.destination === 'image') {
     event.respondWith(
       caches.match(event.request)
         .then((cachedResponse) => {
@@ -222,7 +222,7 @@ self.addEventListener('fetch', (event) => {
             });
             return cachedResponse;
           }
-          
+
           // 无缓存，网络请求并缓存
           return fetch(event.request).then((response) => {
             if (response.status === 200) {
@@ -246,31 +246,31 @@ self.addEventListener('fetch', (event) => {
 async function wallpaperStrategy(request) {
   const cache = await caches.open(WALLPAPER_CACHE_NAME);
   const cachedResponse = await cache.match(request);
-  
+
   // 获取今天的日期字符串（UTC）
   const today = new Date().toISOString().split('T')[0];
-  
+
   // 检查缓存时间是否为今天
   if (cachedResponse) {
     // 优先使用自定义头，其次使用 HTTP date 头
     let cacheDay = cachedResponse.headers.get('x-cache-date');
-    
+
     if (!cacheDay) {
       const httpDate = cachedResponse.headers.get('date');
       if (httpDate) {
         cacheDay = new Date(httpDate).toISOString().split('T')[0];
       }
     }
-    
+
     // 如果缓存是今天的，直接返回
     if (cacheDay === today) {
       console.log('[SW] 使用今日壁纸缓存');
       return cachedResponse;
     }
-    
+
     // 如果缓存过期或无法判断日期，先返回缓存，后台更新
     console.log('[SW] 壁纸缓存过期或日期未知，后台更新中...');
-    
+
     // 后台更新（不阻塞返回）
     fetchWithTimeout(request, 15000)
       .then(async networkResponse => {
@@ -278,13 +278,13 @@ async function wallpaperStrategy(request) {
           // 添加自定义缓存日期头
           const headers = new Headers(networkResponse.headers);
           headers.set('x-cache-date', today);
-          
+
           const responseWithDate = new Response(await networkResponse.blob(), {
             status: networkResponse.status,
             statusText: networkResponse.statusText,
             headers: headers
           });
-          
+
           cache.put(request, responseWithDate);
           console.log('[SW] 壁纸后台更新成功');
         }
@@ -292,26 +292,26 @@ async function wallpaperStrategy(request) {
       .catch(error => {
         console.warn('[SW] 壁纸后台更新失败:', error);
       });
-    
+
     return cachedResponse;
   }
-  
+
   // 没有缓存，尝试网络请求
   try {
     console.log('[SW] 下载新壁纸...');
     const networkResponse = await fetchWithTimeout(request, 20000); // 壁纸需要更长超时
-    
+
     if (networkResponse && networkResponse.ok) {
       // 添加自定义缓存日期头
       const headers = new Headers(networkResponse.headers);
       headers.set('x-cache-date', today);
-      
+
       const responseWithDate = new Response(await networkResponse.clone().blob(), {
         status: networkResponse.status,
         statusText: networkResponse.statusText,
         headers: headers
       });
-      
+
       cache.put(request, responseWithDate);
       console.log('[SW] 壁纸下载并缓存成功');
       return networkResponse;
@@ -319,22 +319,22 @@ async function wallpaperStrategy(request) {
   } catch (error) {
     console.warn('[SW] 壁纸网络请求失败:', error);
   }
-  
+
   // 网络失败，返回过期缓存（如果有）
   if (cachedResponse) {
     console.log('[SW] 网络失败，使用过期壁纸缓存');
     return cachedResponse;
   }
-  
+
   // 没有缓存也没有网络，尝试返回本地默认图片
   console.log('[SW] 壁纸不可用，尝试返回默认图片');
   const defaultImageResponse = await caches.match(`${basePath}/icon/favicon.png`);
   if (defaultImageResponse) {
     return defaultImageResponse;
   }
-  
+
   // 最后回退：返回透明1x1像素图片
-  const transparentPixel = new Uint8Array([137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,1,0,0,0,1,8,6,0,0,0,31,21,196,137,0,0,0,10,73,68,65,84,120,156,99,0,1,0,0,5,0,1,13,10,45,180,0,0,0,0,73,69,78,68,174,66,96,130]);
+  const transparentPixel = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 13, 73, 72, 68, 82, 0, 0, 0, 1, 0, 0, 0, 1, 8, 6, 0, 0, 0, 31, 21, 196, 137, 0, 0, 0, 10, 73, 68, 65, 84, 120, 156, 99, 0, 1, 0, 0, 5, 0, 1, 13, 10, 45, 180, 0, 0, 0, 0, 73, 69, 78, 68, 174, 66, 96, 130]);
   return new Response(transparentPixel, {
     status: 200,
     headers: {
@@ -349,14 +349,14 @@ self.addEventListener('message', event => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }
-  
+
   if (event.data && event.data.type === 'CACHE_URLS') {
     event.waitUntil(
       caches.open(STATIC_CACHE_NAME)
         .then(cache => cache.addAll(event.data.urls))
     );
   }
-  
+
   if (event.data && event.data.type === 'CLEAR_WALLPAPER_CACHE') {
     event.waitUntil(
       caches.delete(WALLPAPER_CACHE_NAME)

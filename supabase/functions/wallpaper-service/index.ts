@@ -165,17 +165,23 @@ Deno.serve(async (req) => {
     }
 
     // 如果官方API失败，尝试备用方法
+    // 如果官方API失败，尝试备用方法
     if (!wallpaperData) {
+      console.log('官方API失败，尝试备用源');
+
       const fallbackUrls = [
-        `https://www.bing.com/th?id=OHR.${getTodayId()}_${targetResolution}.jpg`,
-        `https://bing.com/az/hprichbg/rb/Dongdaemun_${targetResolution}_zh-CN.jpg`,
-        `https://www.bing.com/az/hprichbg/rb/BingDaily_${targetResolution}.jpg`
+        // 稳定的风景图 (Unsplash Source)
+        `https://images.unsplash.com/photo-1472214103451-9374bd1c798e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w1NjUyNzR8MHwxfHNlYXJjaHwxfHxuYXR1cmV8ZW58MHx8fHwxNjg0MjQ4NDYyfDA&ixlib=rb-4.0.3&q=80&w=${targetResolution.split('x')[0]}`,
+        // 必应的几个经典壁纸作为硬编码后备
+        `https://bing.com/th?id=OHR.Snowleopard_ZH-CN9377461665_${targetResolution}.jpg`,
+        `https://bing.com/th?id=OHR.GrandPrismatic_ZH-CN8398188251_${targetResolution}.jpg`
       ];
 
       for (const fallbackUrl of fallbackUrls) {
         wallpaperData = await fetchWallpaperImage(fallbackUrl);
         if (wallpaperData) {
           imageUrl = fallbackUrl;
+          console.log(`使用备用壁纸成功: ${fallbackUrl}`);
           break;
         }
       }

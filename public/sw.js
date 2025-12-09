@@ -1,6 +1,6 @@
 // 离线优先的Service Worker
 // ⚠️ 更新版本时，请同步更新 src/lib/swConfig.ts 中的 SW_VERSION
-const SW_VERSION = 'v15';
+const SW_VERSION = 'v17';
 const CACHE_NAME = `jiang-ai-web-${SW_VERSION}-offline`;
 const STATIC_CACHE_NAME = `static-${SW_VERSION}`;
 const DYNAMIC_CACHE_NAME = `dynamic-${SW_VERSION}`;
@@ -242,13 +242,29 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(fetch(event.request));
 });
 
+// 获取本地日期字符串 (YYYY-MM-DD)
+// 获取中国时间的日期字符串 (YYYY-MM-DD)
+const getChinaDateString = () => {
+  const now = new Date();
+  // 1. 获取UTC时间戳
+  const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+  // 2. 加上8小时得到北京时间戳
+  const chinaTime = new Date(utc + (3600000 * 8));
+
+  // 3. 使用UTC方法获取日期（因为我们已经手动偏移了时间戳）
+  const year = chinaTime.getUTCFullYear();
+  const month = String(chinaTime.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(chinaTime.getUTCDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 // 壁纸缓存策略 - 支持每日更新
 async function wallpaperStrategy(request) {
   const cache = await caches.open(WALLPAPER_CACHE_NAME);
   const cachedResponse = await cache.match(request);
 
-  // 获取今天的日期字符串（UTC）
-  const today = new Date().toISOString().split('T')[0];
+  // 获取今天的日期字符串（北京时间）
+  const today = getChinaDateString();
 
   // 检查缓存时间是否为今天
   if (cachedResponse) {

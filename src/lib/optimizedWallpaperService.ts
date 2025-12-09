@@ -76,11 +76,16 @@ class OptimizedWallpaperService {
     }
   }
 
-  // 获取本地日期字符串 (YYYY-MM-DD)
+  // 获取中国时间的日期字符串 (YYYY-MM-DD)
   private getLocalDateString(date: Date = new Date()): string {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
+    // 转换为UTC+8的时间戳
+    const utc = date.getTime() + (date.getTimezoneOffset() * 60000);
+    const chinaTime = new Date(utc + (3600000 * 8));
+
+    // 使用UTC相关方法获取正确的日期（因为我们已经手动加上了8小时偏移）
+    const year = chinaTime.getUTCFullYear();
+    const month = String(chinaTime.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(chinaTime.getUTCDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
   }
 

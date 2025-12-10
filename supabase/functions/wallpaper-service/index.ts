@@ -14,11 +14,11 @@ const RESOLUTIONS = {
 };
 
 // 获取中国时区的时间对象
+// 获取中国时区的时间对象
 function getChinaDate(): Date {
   const now = new Date();
-  // 转换为UTC+8
-  const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-  return new Date(utc + (3600000 * 8));
+  // 直接使用 UTC 时间戳 + 8小时
+  return new Date(now.getTime() + (8 * 60 * 60 * 1000));
 }
 
 // Bing壁纸API源

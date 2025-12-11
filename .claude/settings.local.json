@@ -28,7 +28,8 @@
       "Read(//c/Users/19404/jiangjiang_page/**)",
       "WebFetch(domain:wxheqargopbsrruootyr.supabase.co)",
       "Bash(supabase --version:*)",
-      "Bash(supabase functions deploy:*)"
+      "Bash(supabase functions deploy:*)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"

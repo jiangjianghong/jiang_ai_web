@@ -274,10 +274,22 @@ class OptimizedWallpaperService {
           ? `https://corsproxy.io/?${encodeURIComponent(url)}`
           : url;
 
+      // 准备请求头
+      const headers: Record<string, string> = { Accept: 'image/*' };
+
+      // 如果是Supabase边缘函数，添加Authorization头
+      if (url.includes('supabase.co/functions')) {
+        const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+        if (anonKey) {
+          headers['Authorization'] = `Bearer ${anonKey}`;
+          logger.wallpaper.debug('添加Supabase认证头');
+        }
+      }
+
       // 使用请求管理器下载
       const response = await createWallpaperRequest(proxyUrl, {
         mode: 'cors',
-        headers: { Accept: 'image/*' },
+        headers,
         signal: createTimeoutSignal(12000), // 12秒超时
       });
 

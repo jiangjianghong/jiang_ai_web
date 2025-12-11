@@ -81,7 +81,7 @@ async function fetchWallpaperImage(imageUrl: string): Promise<ArrayBuffer | null
         'Accept': 'image/*,*/*;q=0.8',
         'Referer': 'https://www.bing.com/',
       },
-      signal: AbortSignal.timeout(15000), // 15秒超时
+      signal: AbortSignal.timeout(45000), // 45秒超时
     });
 
     if (response.ok) {

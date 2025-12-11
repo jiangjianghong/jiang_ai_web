@@ -1,10 +1,10 @@
 <div align="center">
 
-# Jiang's Tab (江的标签页)
+# 西红柿标签页 (Tomato Tabs)
 ### 你的个人网络门户
 
 <p align="center">
-  <img src="image.png" alt="Jiang's Tab Screenshot" width="800px" style="border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+  <img src="image.png" alt="Tomato Tabs Screenshot" width="800px" style="border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
 </p>
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg?style=for-the-badge&color=2563EB)](https://opensource.org/licenses/Apache-2.0)
@@ -36,9 +36,9 @@
 
 ## 📖 简介
 
-**Jiang's Tab** 不仅仅是另一个浏览器起始页。它是一个**现代化、高度可定制且视觉惊艳**的个人仪表盘，旨在让你的每日网络浏览体验令人愉悦。
+**西红柿标签页** 不仅仅是另一个浏览器起始页。它是一个**现代化、高度可定制且视觉惊艳**的个人仪表盘，旨在让你的每日网络浏览体验令人愉悦。
 
-我们在构建时兼顾了性能与美学，将强大的书签管理与随你风格而变的精美界面相结合。无论你需要一个集成了 Notion 的高效工作中心，还是一个伴随每日壁纸和诗词的宁静空间，Jiang's Tab 都能完美适配**你**的需求。
+我们在构建时兼顾了性能与美学，将强大的书签管理与随你风格而变的精美界面相结合。无论你需要一个集成了 Notion 的高效工作中心，还是一个伴随每日壁纸和诗词的宁静空间，西红柿标签页 都能完美适配**你**的需求。
 
 ## ✨ 核心特性
 

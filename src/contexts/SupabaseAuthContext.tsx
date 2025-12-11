@@ -117,8 +117,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
           emailRedirectTo: window.location.origin,
           data: {
             // 用户元数据，会传递到邮件模板
-            app_name: '江江的网站',
-            welcome_message: '你好呀！欢迎使用江江的网站，点击下面的链接确认注册哦。祝您使用愉快！',
+            app_name: '西红柿标签页',
+            welcome_message: '你好呀！欢迎使用西红柿标签页，点击下面的链接确认注册哦。祝您使用愉快！',
             site_url: window.location.origin,
           },
         },
@@ -326,7 +326,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         window.history.replaceState({}, document.title, window.location.pathname);
         // 显示成功消息
         setTimeout(() => {
-          setSuccessMessage('🎉 邮箱确认成功！欢迎使用江江的网站！');
+          setSuccessMessage('🎉 邮箱确认成功！欢迎使用西红柿标签页！');
           // 3秒后清除消息
           setTimeout(() => setSuccessMessage(null), 3000);
         }, 1000);

@@ -1,4 +1,4 @@
-# Contributing to Jiang's Tab
+# Contributing to Tomato Tabs
 
 First off, thanks for taking the time to contribute! ❤️
 
@@ -39,11 +39,11 @@ An effective bug report goes a long way. Use the template provided when opening 
 
 ### Suggesting Enhancements
 
-This section guides you through submitting an enhancement suggestion for Jiang's Tab, **including completely new features and minor improvements to existing functionality**. Following these guidelines will help maintainers and the community to understand your suggestion and find related suggestions.
+This section guides you through submitting an enhancement suggestion for Tomato Tabs, **including completely new features and minor improvements to existing functionality**. Following these guidelines will help maintainers and the community to understand your suggestion and find related suggestions.
 
 - **Use a clear and descriptive title** for the issue to identify the suggestion.
 - **Provide a step-by-step description of the suggested enhancement** in as much detail as possible.
-- **Explain why this enhancement would be useful** to most Jiang's Tab users.
+- **Explain why this enhancement would be useful** to most Tomato Tabs users.
 
 ### Your First Code Contribution
 

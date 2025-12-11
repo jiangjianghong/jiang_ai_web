@@ -1,10 +1,10 @@
 <div align="center">
 
-# Jiang's Tab
+# Tomato Tabs
 ### Your Personal Web Gateway
 
 <p align="center">
-  <img src="image.png" alt="Jiang's Tab Screenshot" width="800px" style="border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+  <img src="image.png" alt="Tomato Tabs Screenshot" width="800px" style="border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
 </p>
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg?style=for-the-badge&color=2563EB)](https://opensource.org/licenses/Apache-2.0)
@@ -15,7 +15,7 @@
 
 [🌐 Live Demo](https://jiangjiang.cc) · [🐛 Report Bug](https://github.com/jiangjianghong/jiang_ai_web/issues) · [✨ Request Feature](https://github.com/jiangjianghong/jiang_ai_web/issues)
 
-**[ English | [简体中文](README.zh-CN.md) ]**
+**[ [简体中文](README.zh-CN.md) ]**
 
 </div>
 
@@ -36,9 +36,9 @@
 
 ## 📖 Introduction
 
-**Jiang's Tab** is not just another browser start page. It is a **modern, highly customizable, and visually stunning** personal dashboard designed to make your daily web navigation a delight.
+**Tomato Tabs** is not just another browser start page. It is a **modern, highly customizable, and visually stunning** personal dashboard designed to make your daily web navigation a delight.
 
-Built with performance and aesthetics in mind, it combines robust bookmark management with a beautiful interface that adapts to your style. Whether you need a productivity hub with Notion integration or a serene space with daily changing wallpapers and poetry, Jiang's Tab adapts to *you*.
+Built with performance and aesthetics in mind, it combines robust bookmark management with a beautiful interface that adapts to your style. Whether you need a productivity hub with Notion integration or a serene space with daily changing wallpapers and poetry, Tomato Tabs adapts to *you*.
 
 ## ✨ Key Features
 

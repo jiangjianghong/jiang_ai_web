@@ -1,42 +1,43 @@
 <!doctype html>
 <html lang="zh-CN">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>江的标签页 - 个人书签管理工具</title>
-    
-    <!-- SEO 基础元信息 -->
-    <meta name="description" content="一个AI友好的个性化便签页面，创作者：江江 和 claude coze kiro coplit 页面美观好用，有诸多彩蛋" />
-    <meta name="keywords" content="书签管理,标签页,网站收藏,个人工具,江的标签页" />
-    <meta name="author" content="江" />
-    
-    <!-- Open Graph 元信息 -->
-    <meta property="og:title" content="江的标签页 - 个人书签管理工具" />
-    <meta property="og:description" content="一个AI友好的个性化便签页面，创作者：江江 和 claude coze kiro coplit 页面美观好用，有诸多彩蛋" />
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://jiangjiang.cc/" />
-    <meta property="og:site_name" content="江的标签页" />
-    
-    <!-- Twitter Card 元信息 -->
-    <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="江的标签页 - 个人书签管理工具" />
-    <meta name="twitter:description" content="一个AI友好的个性化便签页面，创作者：江江 和 claude coze kiro coplit 页面美观好用，有诸多彩蛋" />
-    
-    <!-- 其他 SEO 元信息 -->
-    <meta name="robots" content="index, follow" />
-    <meta name="language" content="zh-CN" />
-    <link rel="canonical" href="https://jiangjiang.cc/" />
-    
-    <!-- 站点验证 -->
-    <meta name="google-site-verification" content="83b601a8f6d95feb" />
-    
-    <!-- 结构化数据 -->
-    <script type="application/ld+json">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>西红柿标签页 - 个人书签管理工具</title>
+
+  <!-- SEO 基础元信息 -->
+  <meta name="description" content="一个AI友好的超高自定义个性化新标签页，创作者：江江 和 claude gemini coplit 页面美观好用，有诸多彩蛋" />
+  <meta name="keywords" content="书签管理,标签页,网站收藏,个人工具,西红柿标签页" />
+  <meta name="author" content="江" />
+
+  <!-- Open Graph 元信息 -->
+  <meta property="og:title" content="西红柿标签页 - 个人书签管理工具" />
+  <meta property="og:description" content="一个AI友好的超高自定义个性化新标签页，创作者：江江 和 claude gemini coplit 页面美观好用，有诸多彩蛋" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://jiangjiang.cc/" />
+  <meta property="og:site_name" content="西红柿标签页" />
+
+  <!-- Twitter Card 元信息 -->
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="西红柿标签页 - 个人书签管理工具" />
+  <meta name="twitter:description" content="一个AI友好的超高自定义个性化新标签页，创作者：江江 和 claude gemini coplit 页面美观好用，有诸多彩蛋" />
+
+  <!-- 其他 SEO 元信息 -->
+  <meta name="robots" content="index, follow" />
+  <meta name="language" content="zh-CN" />
+  <link rel="canonical" href="https://jiangjiang.cc/" />
+
+  <!-- 站点验证 -->
+  <meta name="google-site-verification" content="83b601a8f6d95feb" />
+
+  <!-- 结构化数据 -->
+  <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "WebApplication",
-      "name": "江的标签页",
-      "description": "一个AI友好的个性化便签页面，创作者：江江 和 claude coze kiro coplit 页面美观好用，有诸多彩蛋",
+      "name": "西红柿标签页",
+      "description": "一个AI友好的超高自定义个性化新标签页，创作者：江江 和 claude gemini coplit 页面美观好用，有诸多彩蛋",
       "url": "https://jiangjiang.cc/",
       "applicationCategory": "UtilityApplication",
       "operatingSystem": "Web Browser",
@@ -51,141 +52,146 @@
       }
     }
     </script>
-    
-    <!-- GitHub Pages SPA 重定向脚本 -->
-    <script>
-      // 处理 GitHub Pages SPA 路由
-      (function(l) {
-        if (l.search[1] === '/' ) {
-          var decoded = l.search.slice(1).split('&').map(function(s) { 
-            return s.replace(/~and~/g, '&')
-          }).join('?');
-          window.history.replaceState(null, null,
-              l.pathname.slice(0, -1) + decoded + l.hash
-          );
-        }
-      }(window.location))
-    </script>
-    
-    <!-- 预连接到重要的第三方域名 -->
-    <link rel="preconnect" href="https://bing.img.run" />
-    <link rel="preconnect" href="https://www.google.com" />
-    <link rel="preconnect" href="https://favicon.yandex.net" />
-    <link rel="preconnect" href="https://icons.duckduckgo.com" />
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
-    <link rel="preconnect" href="https://favicon.im" />
-    
-    <!-- 预加载关键CSS（立即使用） -->
-    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" as="style" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'" />
-    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" crossorigin="anonymous"></noscript>
-    
-    <!-- 字体预加载改为dns-prefetch，避免未使用警告 -->
-    <link rel="dns-prefetch" href="//cdnjs.cloudflare.com" />
-    
-    <!-- DNS预取常用域名 -->
-    <link rel="dns-prefetch" href="//source.unsplash.com" />
-    <link rel="dns-prefetch" href="//github.githubassets.com" />
-    <link rel="dns-prefetch" href="//bing.img.run" />
-    <link rel="dns-prefetch" href="//icons.duckduckgo.com" />
-    
-    <!-- 预连接Supabase -->
-    <link rel="preconnect" href="https://wxheqargopbsrruootyr.supabase.co" />
-    
-    <!-- PWA Manifest -->
-    <link rel="manifest" href="/manifest.json" />
 
-    <!-- 网站图标 - 蜡笔小新 -->
-    <link rel="icon" type="image/png" href="/icon/favicon.png" />
-    <link rel="shortcut icon" type="image/png" href="/icon/favicon.png" />
-    <link rel="apple-touch-icon" href="/icon/favicon.png" />
-
-    <!-- iOS特定的PWA元标签 -->
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="江的标签页" />
-  </head>
-  <body>
-    <!-- React应用根节点 -->
-    <div id="root">
-      
-      <style>
-        /* 关键CSS内联 - 避免FOUC */
-        * {
-          box-sizing: border-box;
-        }
-        
-        body {
-          margin: 0;
-          padding: 0;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          min-height: 100vh;
-          overflow-x: hidden;
-        }
-        
-        #root {
-          width: 100%;
-          min-height: 100vh;
-        }
-
-      </style>
-    </div>
-    
-    <script type="module" src="/src/main.tsx"></script>
-    
-    <!-- Service Worker 注册 -->
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          // 强制使用带时间戳的路径避免缓存问题
-          const timestamp = Date.now();
-          const swPath = './sw.js?v=' + timestamp;
-          
-          console.log('🔧 尝试注册Service Worker:', swPath);
-          console.log('🌐 当前URL:', window.location.href);
-          console.log('📍 当前路径:', window.location.pathname);
-          
-          navigator.serviceWorker.register(swPath)
-            .then((registration) => {
-              console.log('✅ Service Worker 注册成功:', registration.scope);
-            })
-            .catch((error) => {
-              console.log('❌ Service Worker 注册失败:', error);
-              // 尝试不同的路径
-              const fallbackPaths = [
-                'sw.js',
-                '/sw.js',
-                '/jiang_ai_web/sw.js'
-              ];
-              
-              console.log('🔄 尝试备用路径...');
-              
-              const tryNextPath = (index) => {
-                if (index >= fallbackPaths.length) {
-                  console.log('❌ 所有Service Worker路径都失败了');
-                  return;
-                }
-                
-                const path = fallbackPaths[index];
-                console.log(`🧪 尝试路径 ${index + 1}:`, path);
-                
-                navigator.serviceWorker.register(path)
-                  .then((registration) => {
-                    console.log('✅ Service Worker 注册成功 (备用路径):', registration.scope);
-                  })
-                  .catch((err) => {
-                    console.log(`❌ 路径 ${index + 1} 失败:`, err.message);
-                    tryNextPath(index + 1);
-                  });
-              };
-              
-              tryNextPath(0);
-            });
-        });
-      } else {
-        console.log('⚠️ 浏览器不支持Service Worker');
+  <!-- GitHub Pages SPA 重定向脚本 -->
+  <script>
+    // 处理 GitHub Pages SPA 路由
+    (function (l) {
+      if (l.search[1] === '/') {
+        var decoded = l.search.slice(1).split('&').map(function (s) {
+          return s.replace(/~and~/g, '&')
+        }).join('?');
+        window.history.replaceState(null, null,
+          l.pathname.slice(0, -1) + decoded + l.hash
+        );
       }
-    </script>
-  </body>
+    }(window.location))
+  </script>
+
+  <!-- 预连接到重要的第三方域名 -->
+  <link rel="preconnect" href="https://bing.img.run" />
+  <link rel="preconnect" href="https://www.google.com" />
+  <link rel="preconnect" href="https://favicon.yandex.net" />
+  <link rel="preconnect" href="https://icons.duckduckgo.com" />
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
+  <link rel="preconnect" href="https://favicon.im" />
+
+  <!-- 预加载关键CSS（立即使用） -->
+  <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" as="style"
+    crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'" />
+  <noscript>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+      crossorigin="anonymous">
+  </noscript>
+
+  <!-- 字体预加载改为dns-prefetch，避免未使用警告 -->
+  <link rel="dns-prefetch" href="//cdnjs.cloudflare.com" />
+
+  <!-- DNS预取常用域名 -->
+  <link rel="dns-prefetch" href="//source.unsplash.com" />
+  <link rel="dns-prefetch" href="//github.githubassets.com" />
+  <link rel="dns-prefetch" href="//bing.img.run" />
+  <link rel="dns-prefetch" href="//icons.duckduckgo.com" />
+
+  <!-- 预连接Supabase -->
+  <link rel="preconnect" href="https://wxheqargopbsrruootyr.supabase.co" />
+
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="/manifest.json" />
+
+  <!-- 网站图标 - 蜡笔小新 -->
+  <link rel="icon" type="image/png" href="/icon/favicon.png" />
+  <link rel="shortcut icon" type="image/png" href="/icon/favicon.png" />
+  <link rel="apple-touch-icon" href="/icon/favicon.png" />
+
+  <!-- iOS特定的PWA元标签 -->
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="西红柿标签页" />
+</head>
+
+<body>
+  <!-- React应用根节点 -->
+  <div id="root">
+
+    <style>
+      /* 关键CSS内联 - 避免FOUC */
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+
+      #root {
+        width: 100%;
+        min-height: 100vh;
+      }
+    </style>
+  </div>
+
+  <script type="module" src="/src/main.tsx"></script>
+
+  <!-- Service Worker 注册 -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        // 强制使用带时间戳的路径避免缓存问题
+        const timestamp = Date.now();
+        const swPath = './sw.js?v=' + timestamp;
+
+        console.log('🔧 尝试注册Service Worker:', swPath);
+        console.log('🌐 当前URL:', window.location.href);
+        console.log('📍 当前路径:', window.location.pathname);
+
+        navigator.serviceWorker.register(swPath)
+          .then((registration) => {
+            console.log('✅ Service Worker 注册成功:', registration.scope);
+          })
+          .catch((error) => {
+            console.log('❌ Service Worker 注册失败:', error);
+            // 尝试不同的路径
+            const fallbackPaths = [
+              'sw.js',
+              '/sw.js',
+              '/jiang_ai_web/sw.js'
+            ];
+
+            console.log('🔄 尝试备用路径...');
+
+            const tryNextPath = (index) => {
+              if (index >= fallbackPaths.length) {
+                console.log('❌ 所有Service Worker路径都失败了');
+                return;
+              }
+
+              const path = fallbackPaths[index];
+              console.log(`🧪 尝试路径 ${index + 1}:`, path);
+
+              navigator.serviceWorker.register(path)
+                .then((registration) => {
+                  console.log('✅ Service Worker 注册成功 (备用路径):', registration.scope);
+                })
+                .catch((err) => {
+                  console.log(`❌ 路径 ${index + 1} 失败:`, err.message);
+                  tryNextPath(index + 1);
+                });
+            };
+
+            tryNextPath(0);
+          });
+      });
+    } else {
+      console.log('⚠️ 浏览器不支持Service Worker');
+    }
+  </script>
+</body>
+
 </html>

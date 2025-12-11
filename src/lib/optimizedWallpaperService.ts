@@ -281,8 +281,17 @@ class OptimizedWallpaperService {
         signal: createTimeoutSignal(12000), // 12秒超时
       });
 
+      // 检查是否是服务端Fallback
+      const isFallback = response.headers.get('X-Is-Fallback') === 'true';
+
       const blob = await response.blob();
       const blobUrl = await memoryManager.createBlobUrl(blob, 'wallpaper');
+
+      if (isFallback) {
+        logger.wallpaper.warn('检测到服务端返回的是降级壁纸，跳过本地长期缓存');
+        // 不写入 IndexedDB，下次刷新会重新请求
+        return { blobUrl, originalUrl: url };
+      }
 
       // 异步缓存到IndexedDB（保存 Blob）
       const cacheKey = this.getTodayCacheKey(resolution);

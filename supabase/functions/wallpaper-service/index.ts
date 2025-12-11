@@ -181,9 +181,10 @@ Deno.serve(async (req) => {
     }
 
     // 如果官方API失败，尝试备用方法
-    // 如果官方API失败，尝试备用方法
+    let isFallback = false;
     if (!wallpaperData) {
       console.log('官方API失败，尝试备用源');
+      isFallback = true;
 
       const fallbackUrls = [
         // 稳定的风景图 (Unsplash Source)
@@ -220,8 +221,8 @@ Deno.serve(async (req) => {
       );
     }
 
-    // 尝试缓存壁纸到Storage
-    if (supabaseUrl && supabaseKey) {
+    // 尝试缓存壁纸到Storage (仅当不是Fallback时缓存)
+    if (!isFallback && supabaseUrl && supabaseKey) {
       try {
         await fetch(`${supabaseUrl}/storage/v1/object/wallpapers/${cacheKey}`, {
           method: 'POST',
@@ -235,6 +236,8 @@ Deno.serve(async (req) => {
       } catch (error: any) {
         console.log('缓存壁纸失败:', error.message || error);
       }
+    } else if (isFallback) {
+      console.log('使用备用源，跳过服务端缓存');
     }
 
     // 返回壁纸数据
@@ -242,11 +245,12 @@ Deno.serve(async (req) => {
       headers: {
         ...corsHeaders,
         'Content-Type': 'image/jpeg',
-        'Cache-Control': 'public, max-age=43200', // 12小时缓存
+        'Cache-Control': isFallback ? 'no-cache, no-store, must-revalidate' : 'public, max-age=43200',
         'X-Wallpaper-Source': imageUrl,
         'X-Wallpaper-Resolution': targetResolution,
         'X-Wallpaper-Date': today,
         'X-Wallpaper-Size': wallpaperData.byteLength.toString(),
+        'X-Is-Fallback': isFallback ? 'true' : 'false',
       },
     });
 

@@ -274,15 +274,60 @@ class OptimizedWallpaperService {
           ? `https://corsproxy.io/?${encodeURIComponent(url)}`
           : url;
 
+      // 准备请求头
+      const headers: Record<string, string> = { Accept: 'image/*' };
+
+      // 如果是Supabase边缘函数，添加Authorization头
+      if (url.includes('supabase.co/functions')) {
+        const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+        if (anonKey) {
+          headers['Authorization'] = `Bearer ${anonKey}`;
+          logger.wallpaper.debug('添加Supabase认证头');
+        }
+      }
+
       // 使用请求管理器下载
       const response = await createWallpaperRequest(proxyUrl, {
         mode: 'cors',
-        headers: { Accept: 'image/*' },
+        headers,
         signal: createTimeoutSignal(12000), // 12秒超时
       });
 
+      // 检查响应Content-Type
+      const contentType = response.headers.get('Content-Type') || '';
+
+      // 如果响应是JSON（错误响应），记录详细信息
+      if (contentType.includes('application/json')) {
+        try {
+          const errorData = await response.json();
+          logger.wallpaper.error('边缘函数返回错误响应', {
+            status: response.status,
+            error: errorData,
+          });
+          throw new Error(`边缘函数返回错误: ${errorData.error || '未知错误'}`);
+        } catch (parseError) {
+          logger.wallpaper.error('解析错误响应失败', parseError);
+          throw new Error('边缘函数返回了无效的错误响应');
+        }
+      }
+
+      // 检查是否是服务端Fallback
+      const isFallback = response.headers.get('X-Is-Fallback') === 'true';
+
       const blob = await response.blob();
+
+      // 验证blob是否有效
+      if (blob.size === 0) {
+        throw new Error('下载的壁纸数据为空');
+      }
+
       const blobUrl = await memoryManager.createBlobUrl(blob, 'wallpaper');
+
+      if (isFallback) {
+        logger.wallpaper.warn('检测到服务端返回的是降级壁纸，跳过本地长期缓存');
+        // 不写入 IndexedDB，下次刷新会重新请求
+        return { blobUrl, originalUrl: url };
+      }
 
       // 异步缓存到IndexedDB（保存 Blob）
       const cacheKey = this.getTodayCacheKey(resolution);
@@ -305,6 +350,7 @@ class OptimizedWallpaperService {
       logger.wallpaper.info('壁纸下载完成', {
         size: `${(blob.size / 1024 / 1024).toFixed(2)}MB`,
         originalUrl: url,
+        isFallback,
       });
 
       return { blobUrl, originalUrl: url };

@@ -25,7 +25,11 @@
       "Bash(node analyze_database.js)",
       "Bash(node get_complete_data.js)",
       "Bash(dir \"C:\\Users\\19404\\jiangjiang_page\" /B)",
-      "Read(//c/Users/19404/jiangjiang_page/**)"
+      "Read(//c/Users/19404/jiangjiang_page/**)",
+      "WebFetch(domain:wxheqargopbsrruootyr.supabase.co)",
+      "Bash(supabase --version:*)",
+      "Bash(supabase functions deploy:*)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"

@@ -81,7 +81,7 @@ async function fetchWallpaperImage(imageUrl: string): Promise<ArrayBuffer | null
         'Accept': 'image/*,*/*;q=0.8',
         'Referer': 'https://www.bing.com/',
       },
-      signal: AbortSignal.timeout(15000), // 15秒超时
+      signal: AbortSignal.timeout(45000), // 45秒超时
     });
 
     if (response.ok) {
@@ -181,9 +181,10 @@ Deno.serve(async (req) => {
     }
 
     // 如果官方API失败，尝试备用方法
-    // 如果官方API失败，尝试备用方法
+    let isFallback = false;
     if (!wallpaperData) {
       console.log('官方API失败，尝试备用源');
+      isFallback = true;
 
       const fallbackUrls = [
         // 稳定的风景图 (Unsplash Source)
@@ -203,25 +204,48 @@ Deno.serve(async (req) => {
       }
     }
 
-    // 如果所有方法都失败，返回错误
+    // 如果所有方法都失败，使用最后的兜底图片
     if (!wallpaperData) {
-      console.log('所有壁纸源都失败');
-      return new Response(
-        JSON.stringify({
-          error: '无法获取壁纸',
-          resolution: targetResolution,
-          date: today,
-          fallback: '/icon/favicon.png'
-        }),
-        {
-          status: 404,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      console.log('所有壁纸源都失败，使用最终兜底图片');
+
+      // 最终兜底：从可靠的CDN获取静态风景图
+      const finalFallbackUrls = [
+        // Unsplash静态图片（高质量风景）
+        'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=3840&h=2160&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=3840&h=2160&fit=crop&q=80',
+        // Picsum静态图片
+        `https://picsum.photos/${targetResolution.split('x')[0]}/${targetResolution.split('x')[1]}?random=1`,
+      ];
+
+      for (const url of finalFallbackUrls) {
+        wallpaperData = await fetchWallpaperImage(url);
+        if (wallpaperData) {
+          imageUrl = url;
+          isFallback = true;
+          console.log(`使用最终兜底图片成功: ${url}`);
+          break;
         }
-      );
+      }
+
+      // 如果连兜底图片都失败，返回错误（这种情况极少发生）
+      if (!wallpaperData) {
+        console.error('所有图片源（包括兜底）都失败');
+        return new Response(
+          JSON.stringify({
+            error: '无法获取壁纸，所有图片源都不可用',
+            resolution: targetResolution,
+            date: today,
+          }),
+          {
+            status: 503,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          }
+        );
+      }
     }
 
-    // 尝试缓存壁纸到Storage
-    if (supabaseUrl && supabaseKey) {
+    // 尝试缓存壁纸到Storage (仅当不是Fallback时缓存)
+    if (!isFallback && supabaseUrl && supabaseKey) {
       try {
         await fetch(`${supabaseUrl}/storage/v1/object/wallpapers/${cacheKey}`, {
           method: 'POST',
@@ -235,6 +259,8 @@ Deno.serve(async (req) => {
       } catch (error: any) {
         console.log('缓存壁纸失败:', error.message || error);
       }
+    } else if (isFallback) {
+      console.log('使用备用源，跳过服务端缓存');
     }
 
     // 返回壁纸数据
@@ -242,11 +268,12 @@ Deno.serve(async (req) => {
       headers: {
         ...corsHeaders,
         'Content-Type': 'image/jpeg',
-        'Cache-Control': 'public, max-age=43200', // 12小时缓存
+        'Cache-Control': isFallback ? 'no-cache, no-store, must-revalidate' : 'public, max-age=43200',
         'X-Wallpaper-Source': imageUrl,
         'X-Wallpaper-Resolution': targetResolution,
         'X-Wallpaper-Date': today,
         'X-Wallpaper-Size': wallpaperData.byteLength.toString(),
+        'X-Is-Fallback': isFallback ? 'true' : 'false',
       },
     });
 

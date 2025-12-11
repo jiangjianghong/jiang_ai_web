@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { WebsiteData } from '@/lib/supabaseSync';
+import { WebsiteData, mergeWebsiteData } from '@/lib/supabaseSync';
 // import { mockWebsites } from '@/lib/mockData'; // 已删除
 import { StorageManager } from '@/lib/storageManager';
 
@@ -10,6 +10,7 @@ interface UseWebsiteDataOptions {
 
 interface UseWebsiteDataReturn {
   websites: WebsiteData[];
+  allWebsites?: WebsiteData[]; // 包含已删除的数据
   setWebsites: (websites: WebsiteData[] | ((prev: WebsiteData[]) => WebsiteData[])) => void;
   addWebsite: (website: Omit<WebsiteData, 'visitCount' | 'lastVisit'>) => void;
   updateWebsite: (id: string, updates: Partial<WebsiteData>) => void;
@@ -56,12 +57,14 @@ export function useWebsiteData(options: UseWebsiteDataOptions = {}): UseWebsiteD
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          // 使用严格的数据验证
+          // 过滤掉已删除的网站用于显示，但保留在数据中用于同步
+          // 注意：这里我们返回所有有效的网站数据，在UI层或者setWebsites时再决定是否过滤显示
+          // 为了保持向后兼容，loadFromCache 返回所有数据
           const validWebsites = parsed.filter(validateWebsiteData);
           if (validWebsites.length > 0) {
             // 只在开发环境下显示日志，避免生产环境重复日志
             if (process.env.NODE_ENV === 'development') {
-              console.log(`✅ 从缓存加载了 ${validWebsites.length} 个网站`);
+              console.log(`✅ 从缓存加载了 ${validWebsites.length} 个网站数据`);
             }
             return validWebsites;
           }
@@ -107,7 +110,7 @@ export function useWebsiteData(options: UseWebsiteDataOptions = {}): UseWebsiteD
       if (
         cached.length !== websites.length ||
         JSON.stringify(cached.map((w) => w.id).sort()) !==
-          JSON.stringify(websites.map((w) => w.id).sort())
+        JSON.stringify(websites.map((w) => w.id).sort())
       ) {
         console.log('🔄 延迟检查发现不同的缓存数据，更新显示');
         setWebsitesState(cached);
@@ -141,6 +144,8 @@ export function useWebsiteData(options: UseWebsiteDataOptions = {}): UseWebsiteD
         ...website,
         visitCount: 0,
         lastVisit: new Date().toISOString().split('T')[0],
+        updatedAt: Date.now(),
+        deleted: false,
       };
       setWebsites((prev) => [...prev, newWebsite]);
     },
@@ -151,7 +156,7 @@ export function useWebsiteData(options: UseWebsiteDataOptions = {}): UseWebsiteD
   const updateWebsite = useCallback(
     (id: string, updates: Partial<WebsiteData>) => {
       setWebsites((prev) =>
-        prev.map((website) => (website.id === id ? { ...website, ...updates } : website))
+        prev.map((website) => (website.id === id ? { ...website, ...updates, updatedAt: Date.now() } : website))
       );
     },
     [setWebsites]
@@ -160,7 +165,14 @@ export function useWebsiteData(options: UseWebsiteDataOptions = {}): UseWebsiteD
   // 删除网站
   const deleteWebsite = useCallback(
     (id: string) => {
-      setWebsites((prev) => prev.filter((website) => website.id !== id));
+      // 软删除：标记为删除并更新时间戳
+      setWebsites((prev) =>
+        prev.map(website =>
+          website.id === id
+            ? { ...website, deleted: true, updatedAt: Date.now() }
+            : website
+        )
+      );
     },
     [setWebsites]
   );
@@ -227,8 +239,41 @@ export function useWebsiteData(options: UseWebsiteDataOptions = {}): UseWebsiteD
     [setWebsites]
   );
 
+  // 对外暴露的网站数据需要过滤掉已删除的项
+  const visibleWebsites = websites.filter(w => !w.deleted);
+
+  // 监听来自 useCloudData 的实时更新事件
+  useEffect(() => {
+    const handleCloudUpdate = (event: CustomEvent) => {
+      if (event.detail && Array.isArray(event.detail.websites)) {
+        const cloudWebsites = event.detail.websites as WebsiteData[];
+        console.log('📥 收到云端数据更新通知，开始合并...', { count: cloudWebsites.length });
+
+        setWebsites(prevWebsites => {
+          // 这里的 prevWebsites 包含了所有数据（含已删除）
+          // 使用我们的智能合并策略
+          // 为了避免循环引用，我们需要引入 mergeWebsiteData，但 useWebsiteData 和 supabaseSync 本身没有直接的循环引用，可以安全引入
+          // 但是为了代码整洁，我们在这里重新实现简单的合并调用，或者直接在 useWebsiteData 顶部引入 mergeWebsiteData
+          // 由于是在 hook 内部，我们可以使用动态导入或者直接依赖（因为 supabaseSync 是 lib）
+
+          // 暂时使用简单的合并逻辑，因为 supabaseSync.ts 中已经有了 robust 的 mergeWebsiteData
+          // 由于闭包问题，我们不能在 hook 内部轻易引入外部函数(如果它依赖其他hook)，但 supabaseSync 是纯函数库，没问题。
+
+          // 使用导入的合并函数
+          return mergeWebsiteData(prevWebsites, cloudWebsites);
+        });
+      }
+    };
+
+    window.addEventListener('cloudDataUpdated', handleCloudUpdate as EventListener);
+    return () => {
+      window.removeEventListener('cloudDataUpdated', handleCloudUpdate as EventListener);
+    };
+  }, [setWebsites]);
+
   return {
-    websites,
+    websites: visibleWebsites,
+    allWebsites: websites, // 暴露所有数据（包含已删除的）给同步模块使用
     setWebsites,
     addWebsite,
     updateWebsite,

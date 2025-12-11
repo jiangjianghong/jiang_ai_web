@@ -79,7 +79,7 @@ export function useDataManager(
         }
 
         const dataBlob = new Blob([dataStr], { type: 'application/json' });
-        const fileName = `江的标签页_导出数据_${new Date().toISOString().split('T')[0]}.json`;
+        const fileName = `西红柿标签页_导出数据_${new Date().toISOString().split('T')[0]}.json`;
 
         // 优先使用现代文件API
         if ('showSaveFilePicker' in window) {

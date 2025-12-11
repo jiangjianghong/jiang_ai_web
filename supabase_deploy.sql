@@ -1,6 +1,6 @@
 -- ==============================================================================
--- Jiang's Tab - Unified Deployment Script (One-Click Setup)
--- 江的标签页 - 统一部署脚本 (一键安装)
+-- Tomato Tabs - Unified Deployment Script (One-Click Setup)
+-- 西红柿标签页 - 统一部署脚本 (一键安装)
 -- ==============================================================================
 -- Usage: Run this entire script in the Supabase SQL Editor.
 -- 用法: 在 Supabase SQL Editor 中运行此脚本即可完成所有数据库配置。

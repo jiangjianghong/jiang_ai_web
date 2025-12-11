@@ -42,6 +42,15 @@ export const validateWebsiteData = (website: any): website is WebsiteData => {
     return false;
   }
 
+  // 新字段类型验证
+  if (website.updatedAt !== undefined && typeof website.updatedAt !== 'number') {
+    return false;
+  }
+
+  if (website.deleted !== undefined && typeof website.deleted !== 'boolean') {
+    return false;
+  }
+
   return true;
 };
 
@@ -106,6 +115,8 @@ export const sanitizeWebsiteData = (website: any): WebsiteData | null => {
     visitCount: typeof website.visitCount === 'number' ? Math.max(0, website.visitCount) : 0,
     lastVisit: website.lastVisit || new Date().toISOString(),
     note: typeof website.note === 'string' ? website.note : undefined,
+    updatedAt: typeof website.updatedAt === 'number' ? website.updatedAt : Date.now(),
+    deleted: typeof website.deleted === 'boolean' ? website.deleted : false,
   };
 };
 
@@ -137,8 +148,8 @@ export const sanitizeUserSettings = (settings: any): UserSettings => {
       typeof settings.autoSyncEnabled === 'boolean' ? settings.autoSyncEnabled : true,
     autoSyncInterval:
       typeof settings.autoSyncInterval === 'number' &&
-      settings.autoSyncInterval >= 3 &&
-      settings.autoSyncInterval <= 300
+        settings.autoSyncInterval >= 3 &&
+        settings.autoSyncInterval <= 300
         ? settings.autoSyncInterval
         : 30,
     autoSortEnabled:

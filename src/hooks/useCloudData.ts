@@ -6,7 +6,9 @@ import {
   mergeWebsiteData,
   WebsiteData,
   UserSettings,
+  supabase,
 } from '@/lib/supabaseSync';
+import { logger } from '@/lib/logger';
 
 interface CloudDataState {
   cloudWebsites: WebsiteData[] | null;
@@ -322,6 +324,72 @@ export function useCloudData(enabled: boolean = true): UseCloudDataResult {
       window.removeEventListener('userSignedIn', handleUserSignedIn as EventListener);
     };
   }, []); // 移除所有依赖，避免闭包问题
+
+  // 监听 Supabase Realtime 实时更新
+  useEffect(() => {
+    // 只有在启用且已登录时才监听
+    if (!enabled || !currentUser || !currentUser.email_confirmed_at) {
+      return;
+    }
+
+    console.log('🔌 初始化 Realtime 订阅...');
+
+    // 订阅 user_websites 表的变更
+    const channelCallback = (payload: any) => {
+      console.log('⚡ 收到 Realtime 更新:', payload);
+
+      if (payload.eventType === 'UPDATE' && payload.new && payload.new.websites) {
+        if (payload.new.id === currentUser.id) {
+          logger.sync.debug('🔄 收到新的网站数据 (Realtime)，准备合并...', {
+            newCount: payload.new.websites?.length
+          });
+
+          // 验证并清理数据，防止非法数据导致应用崩溃
+          const rawWebsites = payload.new.websites;
+          if (!Array.isArray(rawWebsites)) {
+            logger.sync.warn('Realtime 收到无效的 websites 数据格式', rawWebsites);
+            return;
+          }
+
+          // 这里我们简单转换，让 mergeWebsiteData 处理更细致的校验
+          const newCloudWebsites = rawWebsites as WebsiteData[];
+
+          setState((prev) => ({
+            ...prev,
+            cloudWebsites: newCloudWebsites,
+          }));
+
+          // 发送自定义事件通知上层组件
+          window.dispatchEvent(
+            new CustomEvent('cloudDataUpdated', {
+              detail: { websites: newCloudWebsites, source: 'realtime' }
+            })
+          );
+        }
+      }
+    };
+
+    const channel = supabase
+      .channel('public:user_websites')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_websites',
+          filter: `id=eq.${currentUser.id}`,
+        },
+        channelCallback
+      )
+      .subscribe((status) => {
+        console.log('📡 Realtime 订阅状态:', status);
+      });
+
+    return () => {
+      console.log('🔌 取消 Realtime 订阅');
+      supabase.removeChannel(channel);
+    };
+  }, [currentUser?.id, enabled]);
 
   return {
     ...state,

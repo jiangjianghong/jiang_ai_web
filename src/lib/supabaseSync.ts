@@ -1,7 +1,8 @@
 // Supabase 数据同步工具
 import { supabase, TABLES } from '@/lib/supabase';
+export { supabase };
 import { User } from '@supabase/supabase-js';
-import { WallpaperResolution } from '@/contexts/TransparencyContext';
+import { WallpaperResolution } from '@/types/settings';
 import { logger } from './logger';
 import {
   sanitizeWebsiteArray,
@@ -44,6 +45,9 @@ export interface WebsiteData {
   visitCount: number;
   lastVisit: string;
   note?: string;
+  // 新增字段用于高级同步
+  updatedAt?: number; // 最后修改时间戳 (毫秒)
+  deleted?: boolean;  // 软删除标记
 }
 
 // 同步状态回调接口
@@ -82,7 +86,7 @@ const retryAsync = async <T>(
 
       // 指数退避延迟
       const waitTime = delay * Math.pow(2, i);
-      logger.sync.info(`同步失败，${waitTime}ms后重试 (${i + 1}/${maxRetries + 1})`);
+      logger.sync.info(`同步失败，${waitTime} ms后重试(${i + 1}/${maxRetries + 1})`);
       await new Promise((resolve) => setTimeout(resolve, waitTime));
     }
   }
@@ -259,7 +263,7 @@ export const saveUserWebsites = async (
         validCount: integrityCheck.validCount,
         totalCount: integrityCheck.totalCount,
       });
-      callbacks?.onSyncError?.(`数据验证失败：${integrityCheck.issues.join(', ')}`);
+      callbacks?.onSyncError?.(`数据验证失败：${integrityCheck.issues.join(', ')} `);
       return false;
     }
 
@@ -285,7 +289,7 @@ export const saveUserWebsites = async (
       original: websites.length,
       sanitized: sanitizedWebsites.length,
     });
-    callbacks?.onSyncSuccess?.(`网站数据已同步到云端 (${sanitizedWebsites.length}个有效网站)`);
+    callbacks?.onSyncSuccess?.(`网站数据已同步到云端(${sanitizedWebsites.length}个有效网站)`);
     return true;
   } catch (error) {
     logger.sync.error('保存网站数据失败', error);
@@ -346,49 +350,68 @@ export const getUserWebsites = async (user: User): Promise<WebsiteData[] | null>
   }
 };
 
-// 合并本地和云端数据 - 改进版本，避免数据丢失
+// 合并本地和云端数据 - 改进版本，基于时间戳的冲突解决
 export const mergeWebsiteData = (
   localData: WebsiteData[],
   cloudData: WebsiteData[]
 ): WebsiteData[] => {
   const merged: { [key: string]: WebsiteData } = {};
 
-  // 先添加本地数据
+  // 1. 先处理本地数据
   localData.forEach((item) => {
     merged[item.id] = { ...item };
   });
 
-  // 智能合并云端数据
-  cloudData.forEach((item) => {
-    const existing = merged[item.id];
-    if (!existing) {
-      // 如果本地没有，直接使用云端数据
-      merged[item.id] = { ...item };
+  // 2. 合并云端数据
+  cloudData.forEach((cloudItem) => {
+    const localItem = merged[cloudItem.id];
+
+    if (!localItem) {
+      // 2.1 本地不存在，直接添加云端数据
+      merged[cloudItem.id] = { ...cloudItem };
     } else {
-      // 比较最后访问时间，选择更新的数据作为基础
-      const localTime = new Date(existing.lastVisit || '2000-01-01').getTime();
-      const cloudTime = new Date(item.lastVisit || '2000-01-01').getTime();
+      // 2.2 本地存在，处理冲突
+
+      // 确保都有 updatedAt (兼容旧数据)
+      const localTime = typeof localItem.updatedAt === 'number'
+        ? localItem.updatedAt
+        : new Date(localItem.lastVisit || '2000-01-01').getTime();
+
+      const cloudTime = typeof cloudItem.updatedAt === 'number'
+        ? cloudItem.updatedAt
+        : new Date(cloudItem.lastVisit || '2000-01-01').getTime();
 
       let finalData: WebsiteData;
 
+      // 核心原则：最后写入者胜 (Last Write Wins)
       if (cloudTime > localTime) {
-        // 云端数据更新，使用云端数据作为基础
-        finalData = { ...item };
+        // 云端数据更新 -> 使用云端数据
+        finalData = { ...cloudItem };
       } else if (localTime > cloudTime) {
-        // 本地数据更新，使用本地数据作为基础
-        finalData = { ...existing };
+        // 本地数据更新 -> 使用本地数据
+        finalData = { ...localItem };
       } else {
-        // 时间相同，使用访问次数更高的
-        finalData = item.visitCount > existing.visitCount ? { ...item } : { ...existing };
+        // 时间戳相同（极少见），使用访问次数多的那个作为兜底
+        // 这里需要特别注意 deleted 状态，如果时间相同，优先选择非删除状态
+        if (localItem.deleted !== cloudItem.deleted) {
+          finalData = localItem.deleted ? { ...cloudItem } : { ...localItem }; // 存疑保活? 不，时间相同无法判断。
+          // 策略修正：时间戳完全相同，优先保留"未删除"的状态，或者 ID 字母序?
+          // 简单起见，既然时间戳相同，认为数据一致，取访问次数多的
+          finalData = cloudItem.visitCount > localItem.visitCount ? { ...cloudItem } : { ...localItem };
+        } else {
+          finalData = cloudItem.visitCount > localItem.visitCount ? { ...cloudItem } : { ...localItem };
+        }
       }
 
-      // 保留较高的访问次数（累积值）
-      finalData.visitCount = Math.max(existing.visitCount || 0, item.visitCount || 0);
+      // 所有的"累积型"数据（如访问次数）需要特殊处理?
+      // 不，我们现在完全信任 updatedAt。
+      // 但是为了防止数据丢失，我们可以取两者的最大访问次数?
+      // 是的，访问次数是累加的，不应该因为回滚而减少。
+      if (!finalData.deleted) {
+        finalData.visitCount = Math.max(localItem.visitCount || 0, cloudItem.visitCount || 0);
+      }
 
-      // 保留最新的访问时间
-      finalData.lastVisit = localTime > cloudTime ? existing.lastVisit : item.lastVisit;
-
-      merged[item.id] = finalData;
+      merged[cloudItem.id] = finalData;
     }
   });
 

@@ -208,7 +208,8 @@ class Logger {
 export const logger = Logger.getInstance();
 
 // 开发环境下暴露到全局对象，方便调试
-if (import.meta.env.DEV) {
+// 开发环境下暴露到全局对象，方便调试
+if (import.meta.env.DEV && typeof window !== 'undefined') {
   (window as any).logger = logger;
   logger.debug('日志管理器已初始化', { isDevelopment: import.meta.env.DEV });
   logger.debug('开发模式：可使用 window.logger 访问日志功能');

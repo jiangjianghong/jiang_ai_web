@@ -281,10 +281,34 @@ class OptimizedWallpaperService {
         signal: createTimeoutSignal(12000), // 12秒超时
       });
 
+      // 检查响应Content-Type
+      const contentType = response.headers.get('Content-Type') || '';
+
+      // 如果响应是JSON（错误响应），记录详细信息
+      if (contentType.includes('application/json')) {
+        try {
+          const errorData = await response.json();
+          logger.wallpaper.error('边缘函数返回错误响应', {
+            status: response.status,
+            error: errorData,
+          });
+          throw new Error(`边缘函数返回错误: ${errorData.error || '未知错误'}`);
+        } catch (parseError) {
+          logger.wallpaper.error('解析错误响应失败', parseError);
+          throw new Error('边缘函数返回了无效的错误响应');
+        }
+      }
+
       // 检查是否是服务端Fallback
       const isFallback = response.headers.get('X-Is-Fallback') === 'true';
 
       const blob = await response.blob();
+
+      // 验证blob是否有效
+      if (blob.size === 0) {
+        throw new Error('下载的壁纸数据为空');
+      }
+
       const blobUrl = await memoryManager.createBlobUrl(blob, 'wallpaper');
 
       if (isFallback) {
@@ -314,6 +338,7 @@ class OptimizedWallpaperService {
       logger.wallpaper.info('壁纸下载完成', {
         size: `${(blob.size / 1024 / 1024).toFixed(2)}MB`,
         originalUrl: url,
+        isFallback,
       });
 
       return { blobUrl, originalUrl: url };

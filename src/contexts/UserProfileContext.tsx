@@ -1,12 +1,14 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
-import { getUserProfile, saveUserProfile, UserProfile } from '@/lib/supabaseSync';
+import { getUserProfile, saveUserProfile, updateUserProfile, UserProfile } from '@/lib/supabaseSync';
 import { useStorage } from '@/lib/storageManager';
 
 interface UserProfileContextType {
   userProfile: UserProfile | null;
   displayName: string;
+  avatarUrl?: string;
   updateDisplayName: (name: string) => Promise<boolean>;
+  updateAvatar: (url: string) => Promise<boolean>;
   loading: boolean;
 }
 
@@ -41,6 +43,7 @@ export function UserProfileProvider({ children }: UserProfileProviderProps) {
 
   // 获取显示名称（优先使用 profile 中的名称，否则显示“用户”）
   const displayName = userProfile?.displayName || '用户';
+  const avatarUrl = userProfile?.avatarUrl;
 
   // 更新本地状态和缓存
   const updateUserProfileState = (profile: UserProfile | null) => {
@@ -78,6 +81,38 @@ export function UserProfileProvider({ children }: UserProfileProviderProps) {
       return false;
     } catch (error) {
       console.error('更新用户名失败:', error);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 更新头像
+  const updateAvatar = async (url: string): Promise<boolean> => {
+    if (!currentUser || !currentUser.email_confirmed_at) return false;
+
+    setLoading(true);
+    try {
+      const success = await updateUserProfile(currentUser, { avatarUrl: url });
+      if (success) {
+        // 立即更新本地状态和缓存
+        const updatedProfile = userProfile
+          ? {
+            ...userProfile,
+            avatarUrl: url,
+            updatedAt: new Date().toISOString(),
+          }
+          : null;
+
+        if (updatedProfile) {
+          updateUserProfileState(updatedProfile);
+        }
+
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('更新头像失败:', error);
       return false;
     } finally {
       setLoading(false);
@@ -131,7 +166,9 @@ export function UserProfileProvider({ children }: UserProfileProviderProps) {
   const value: UserProfileContextType = {
     userProfile,
     displayName,
+    avatarUrl,
     updateDisplayName,
+    updateAvatar,
     loading,
   };
 

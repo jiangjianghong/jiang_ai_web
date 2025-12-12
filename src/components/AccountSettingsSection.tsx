@@ -8,7 +8,7 @@ interface AccountSettingsSectionProps {
 
 export default function AccountSettingsSection({ onClose, onOpenSecurityModal }: AccountSettingsSectionProps) {
     const { currentUser, logout } = useAuth();
-    const { displayName } = useUserProfile();
+    const { displayName, avatarUrl } = useUserProfile();
 
     if (!currentUser) return null;
 
@@ -18,9 +18,17 @@ export default function AccountSettingsSection({ onClose, onOpenSecurityModal }:
             <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300">
                 <div className="flex items-center gap-4">
                     <div className="relative">
-                        <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 via-green-500 to-teal-500 rounded-2xl flex items-center justify-center shadow-lg">
-                            <i className="fa-solid fa-cat text-white text-2xl"></i>
-                        </div>
+                        {avatarUrl ? (
+                            <img
+                                src={avatarUrl}
+                                alt="Avatar"
+                                className="w-16 h-16 rounded-2xl object-cover shadow-lg border border-gray-100"
+                            />
+                        ) : (
+                            <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 via-green-500 to-teal-500 rounded-2xl flex items-center justify-center shadow-lg">
+                                <i className="fa-solid fa-cat text-white text-2xl"></i>
+                            </div>
+                        )}
                         {currentUser.email_confirmed_at && (
                             <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-white rounded-full flex items-center justify-center border-2 border-white shadow-sm">
                                 <i className="fa-solid fa-envelope-circle-check text-emerald-500 text-xs"></i>

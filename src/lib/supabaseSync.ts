@@ -62,6 +62,7 @@ export interface UserProfile {
   id: string;
   email: string;
   displayName: string;
+  avatarUrl?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -556,14 +557,33 @@ export const saveUserProfile = async (
   displayName: string,
   callbacks?: SyncStatusCallback
 ) => {
+  return updateUserProfile(user, { displayName }, callbacks);
+};
+
+// 更新用户资料 (支持部分更新)
+export const updateUserProfile = async (
+  user: User,
+  updates: { displayName?: string; avatarUrl?: string },
+  callbacks?: SyncStatusCallback
+) => {
   try {
     callbacks?.onSyncStart?.();
 
-    const { error } = await supabase.from(TABLES.USER_PROFILES).upsert({
+    const updateData: any = {
       id: user.id,
       email: user.email || '',
-      display_name: displayName,
-    });
+      updated_at: new Date().toISOString(),
+    };
+
+    if (updates.displayName !== undefined) {
+      updateData.display_name = updates.displayName;
+    }
+
+    if (updates.avatarUrl !== undefined) {
+      updateData.avatar_url = updates.avatarUrl;
+    }
+
+    const { error } = await supabase.from(TABLES.USER_PROFILES).upsert(updateData);
 
     if (error) throw error;
 
@@ -602,6 +622,7 @@ export const getUserProfile = async (user: User): Promise<UserProfile | null> =>
         id: data.id,
         email: data.email,
         displayName: data.display_name,
+        avatarUrl: data.avatar_url,
         createdAt: data.created_at,
         updatedAt: data.updated_at,
       };

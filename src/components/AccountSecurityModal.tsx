@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { useUserProfile } from '@/contexts/UserProfileContext';
+import { supabase } from '@/lib/supabase';
 
 interface AccountSecurityModalProps {
     isOpen: boolean;
@@ -10,7 +11,10 @@ interface AccountSecurityModalProps {
 
 export default function AccountSecurityModal({ isOpen, onClose }: AccountSecurityModalProps) {
     const { currentUser, updatePassword, linkWithGoogle, linkWithGithub, linkWithNotion, unlinkIdentity, deleteAccount } = useAuth();
-    const { displayName, updateDisplayName } = useUserProfile();
+    const { displayName, updateDisplayName, avatarUrl, updateAvatar } = useUserProfile();
+
+    // 头像上传状态
+    const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
     // 用户名编辑状态
     const [isEditingName, setIsEditingName] = useState(false);
@@ -62,6 +66,67 @@ export default function AccountSecurityModal({ isOpen, onClose }: AccountSecurit
             document.removeEventListener('keydown', handleKeyDown);
         };
     }, [isOpen]);
+
+    // 处理头像上传
+    const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        try {
+            if (!event.target.files || event.target.files.length === 0) {
+                return;
+            }
+
+            const file = event.target.files[0];
+
+            // 验证文件大小 (最大 2MB)
+            if (file.size > 2 * 1024 * 1024) {
+                alert('图片大小不能超过 2MB');
+                return;
+            }
+
+            // 验证文件类型
+            if (!file.type.startsWith('image/')) {
+                alert('请上传图片文件');
+                return;
+            }
+
+            setUploadingAvatar(true);
+
+            // 生成唯一文件名
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${currentUser?.id}/${Date.now()}.${fileExt}`;
+
+            // 上传
+            const { error: uploadError } = await supabase.storage
+                .from('avatars')
+                .upload(fileName, file, {
+                    cacheControl: '3600',
+                    upsert: true
+                });
+
+            if (uploadError) throw uploadError;
+
+            // 获取公开链接
+            const { data: { publicUrl } } = supabase.storage
+                .from('avatars')
+                .getPublicUrl(fileName);
+
+            // 更新资料
+            const success = await updateAvatar(publicUrl);
+            if (success) {
+                alert('头像上传成功！');
+            } else {
+                throw new Error('更新头像失败');
+            }
+
+        } catch (error) {
+            console.error('上传失败:', error);
+            alert('上传失败: ' + (error as Error).message);
+        } finally {
+            setUploadingAvatar(false);
+            // 清除 input value 以许重复上传同一文件
+            const input = document.getElementById('avatar-upload') as HTMLInputElement;
+            if (input) input.value = '';
+        }
+    };
 
     // 处理用户名保存
     const handleSaveName = async () => {
@@ -184,8 +249,32 @@ export default function AccountSecurityModal({ isOpen, onClose }: AccountSecurit
                                 个人资料
                             </h3>
                             <div className="flex items-center gap-3">
-                                <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 via-green-500 to-teal-500 rounded-xl flex items-center justify-center shadow-sm">
-                                    <i className="fa-solid fa-cat text-white text-lg"></i>
+                                <div className="relative group cursor-pointer" onClick={() => !uploadingAvatar && document.getElementById('avatar-upload')?.click()}>
+                                    {avatarUrl ? (
+                                        <img
+                                            src={avatarUrl}
+                                            alt="Avatar"
+                                            className={`w-12 h-12 rounded-xl object-cover border border-gray-200 ${uploadingAvatar ? 'opacity-50' : ''}`}
+                                        />
+                                    ) : (
+                                        <div className={`w-12 h-12 bg-gradient-to-br from-emerald-400 via-green-500 to-teal-500 rounded-xl flex items-center justify-center shadow-sm ${uploadingAvatar ? 'opacity-50' : ''}`}>
+                                            <i className="fa-solid fa-cat text-white text-lg"></i>
+                                        </div>
+                                    )}
+
+                                    {/* Hover 遮罩 */}
+                                    <div className="absolute inset-0 bg-black/30 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <i className={`fa-solid ${uploadingAvatar ? 'fa-spinner fa-spin' : 'fa-camera'} text-white text-sm`}></i>
+                                    </div>
+
+                                    <input
+                                        type="file"
+                                        id="avatar-upload"
+                                        hidden
+                                        accept="image/*"
+                                        onChange={handleAvatarUpload}
+                                        disabled={uploadingAvatar}
+                                    />
                                 </div>
                                 <div className="flex-1">
                                     {isEditingName ? (

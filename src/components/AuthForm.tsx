@@ -19,7 +19,7 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
   const [resetEmail, setResetEmail] = useState('');
   const [cooldown, setCooldown] = useState(0);
 
-  const { login, register, sendVerificationEmail, resetPasswordForEmail, error: authError } = useAuth();
+  const { login, register, loginWithGoogle, sendVerificationEmail, resetPasswordForEmail, error: authError } = useAuth();
 
   // 倒计时效果
   useEffect(() => {
@@ -92,7 +92,7 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
 
   const handleResendVerification = async () => {
     if (cooldown > 0) return;
-    
+
     try {
       await sendVerificationEmail();
       setCooldown(60);
@@ -235,82 +235,108 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
         /* 原来的登录/注册表单 */
         <>
           <form onSubmit={handleSubmit} className="space-y-4">
-        {!isLogin && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">用户名 *</label>
-            <input
-              type="text"
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="请输入用户名（2-20个字符）"
-              disabled={loading}
-              maxLength={20}
-            />
-            <p className="text-xs text-gray-500 mt-1">支持中文、英文、数字、下划线和短横线</p>
-          </div>
-        )}
+            {!isLogin && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">用户名 *</label>
+                <input
+                  type="text"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="请输入用户名（2-20个字符）"
+                  disabled={loading}
+                  maxLength={20}
+                />
+                <p className="text-xs text-gray-500 mt-1">支持中文、英文、数字、下划线和短横线</p>
+              </div>
+            )}
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">邮箱 *</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="请输入邮箱"
-            disabled={loading}
-          />
-        </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">邮箱 *</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="请输入邮箱"
+                disabled={loading}
+              />
+            </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">密码 *</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="请输入密码（至少6位）"
-            disabled={loading}
-            minLength={6}
-          />
-        </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">密码 *</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="请输入密码（至少6位）"
+                disabled={loading}
+                minLength={6}
+              />
+            </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white py-2 px-4 rounded-md transition-colors"
-        >
-          {loading ? '处理中...' : isLogin ? '登录' : '注册'}
-        </button>
-
-        {isLogin && (
-          <div className="text-center">
             <button
-              type="button"
-              onClick={() => {
-                setShowForgotPassword(true);
-                setLocalError('');
-              }}
-              className="text-sm text-blue-500 hover:text-blue-600 hover:underline font-medium"
+              type="submit"
+              disabled={loading}
+              className="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white py-2 px-4 rounded-md transition-colors"
             >
-              忘记密码？
+              {loading ? '处理中...' : isLogin ? '登录' : '注册'}
             </button>
-          </div>
-        )}
-      </form>
 
-      {!showForgotPassword && (
-        <div className="mt-6 text-center">
-          <button
-            onClick={() => setIsLogin(!isLogin)}
-            className="text-blue-500 hover:text-blue-600"
-            disabled={loading}
-          >
-            {isLogin ? '没有账号？点击注册' : '已有账号？点击登录'}
-          </button>
-        </div>
-      )}
+            {isLogin && (
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowForgotPassword(true);
+                    setLocalError('');
+                  }}
+                  className="text-sm text-blue-500 hover:text-blue-600 hover:underline font-medium"
+                >
+                  忘记密码？
+                </button>
+              </div>
+            )}
+          </form>
+
+          {!showForgotPassword && (
+            <div className="mt-6">
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-300"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-white text-gray-500">或者</span>
+                </div>
+              </div>
+
+              <div className="mt-6">
+                <button
+                  onClick={() => loginWithGoogle()}
+                  disabled={loading}
+                  className="w-full inline-flex justify-center items-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed transition-colors"
+                >
+                  <img
+                    className="h-5 w-5 mr-2"
+                    src="https://www.svgrepo.com/show/475656/google-color.svg"
+                    alt="Google"
+                  />
+                  使用 Google 账号登录
+                </button>
+              </div>
+
+              <div className="mt-6 text-center">
+                <button
+                  onClick={() => setIsLogin(!isLogin)}
+                  className="text-blue-500 hover:text-blue-600"
+                  disabled={loading}
+                >
+                  {isLogin ? '没有账号？点击注册' : '已有账号？点击登录'}
+                </button>
+              </div>
+            </div>
+          )}
         </>
       )}
     </div>

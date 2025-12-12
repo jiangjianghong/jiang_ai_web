@@ -26,7 +26,6 @@ export const extractDomain = (url: string): string => {
 export const processFaviconUrl = (url: string, originalUrl: string, faviconUrl: string): string => {
   // 安全检查：防止对 null/undefined 调用 includes 方法
   if (!url || typeof url !== 'string') {
-    console.warn('processFaviconUrl 收到无效参数:', url);
     return faviconUrl; // 返回原始的 faviconUrl 而不是默认图标
   }
 
@@ -41,11 +40,10 @@ export const processFaviconUrl = (url: string, originalUrl: string, faviconUrl: 
 
     // 如果是 favicon.im 或其他已知支持 HTTPS 的服务，直接升级
     if (url.includes('favicon.im') || url.includes('google.com') || url.includes('duckduckgo.com')) {
-       return url.replace('http://', 'https://');
+      return url.replace('http://', 'https://');
     }
-    
+
     // 其他 HTTP 链接使用代理，避免混合内容警告
-    console.log(`🔒 检测到不安全的 HTTP 图标链接，使用代理: ${url}`);
     return proxyPrefix + encodeURIComponent(url);
   }
 
@@ -55,12 +53,9 @@ export const processFaviconUrl = (url: string, originalUrl: string, faviconUrl: 
     const cached = faviconCache.getCachedFavicon(originalUrl);
 
     if (cached) {
-      const domain = extractDomain(originalUrl);
-      console.log(`📁 已有缓存，跳过代理: ${domain}`);
       return url; // 直接返回原URL，不使用代理
     }
 
-    console.log(`🔄 检测到favicon.im URL，优先尝试代理: ${url}`);
     return proxyPrefix + encodeURIComponent(url);
   }
 

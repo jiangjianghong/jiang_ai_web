@@ -69,11 +69,6 @@ export class NotionApiClient {
   private async makeRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const targetUrl = this.baseUrl + endpoint;
 
-    console.log('🔍 Notion API 请求详情:');
-    console.log('- 目标URL:', targetUrl);
-    console.log('- API Key前缀:', this.apiKey.substring(0, 15) + '...');
-    console.log('- 请求方法:', options.method || 'GET');
-
     // Add Notion-specific headers
     const headers = new Headers(options.headers || {});
     headers.set('Authorization', `Bearer ${this.apiKey}`);
@@ -97,8 +92,6 @@ export class NotionApiClient {
 
       for (const proxyUrl of proxyServices) {
         try {
-          console.log('🔄 尝试代理服务:', proxyUrl.split('?')[0]);
-
           const response = await fetch(proxyUrl, requestOptions);
 
           if (!response.ok) {
@@ -120,7 +113,6 @@ export class NotionApiClient {
           }
 
           const data = await response.json();
-          console.log('✅ Notion API 请求成功');
           return data;
         } catch (error) {
           console.warn(
@@ -242,9 +234,9 @@ export class NotionApiClient {
           if (!value) return '';
           const cleanedValue = value.trim();
           // 过滤常见的无效值
-          if (cleanedValue.toLowerCase() === 'null' || 
-              cleanedValue.toLowerCase() === 'undefined' ||
-              cleanedValue === '') {
+          if (cleanedValue.toLowerCase() === 'null' ||
+            cleanedValue.toLowerCase() === 'undefined' ||
+            cleanedValue === '') {
             return '';
           }
           return cleanedValue;

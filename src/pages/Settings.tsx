@@ -4,6 +4,7 @@ import CardEditModal from '@/components/CardEditModal';
 import SyncStatusIndicator from '@/components/SyncStatusIndicator';
 import AuthForm from '@/components/AuthForm';
 import PrivacySettings from '@/components/PrivacySettings';
+import AccountSecurityModal from '@/components/AccountSecurityModal';
 import ConfirmModal from '@/components/ConfirmModal';
 import { ColorPicker } from '@/components/ColorPicker';
 import UserStatsDisplay from '@/components/UserStatsDisplay';
@@ -35,6 +36,7 @@ interface SettingsProps {
 function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: SettingsProps) {
   const [showAddCardModal, setShowAddCardModal] = useState(false);
   const [showPrivacySettings, setShowPrivacySettings] = useState(false);
+  const [showAccountSecurityModal, setShowAccountSecurityModal] = useState(false);
   const [showImportConfirm, setShowImportConfirm] = useState(false);
   const [pendingImportFile, setPendingImportFile] = useState<File | null>(null);
   const [isManualSyncing, setIsManualSyncing] = useState(false);
@@ -670,7 +672,7 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
             </div>
 
             {currentUser ? (
-              <AccountSettingsSection onClose={handleClose} />
+              <AccountSettingsSection onClose={handleClose} onOpenSecurityModal={() => setShowAccountSecurityModal(true)} />
             ) : (
               <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                 <div>
@@ -1763,6 +1765,16 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
           <PrivacySettings
             isOpen={showPrivacySettings}
             onClose={() => setShowPrivacySettings(false)}
+          />
+        )
+      }
+
+      {/* 账号与安全弹窗 */}
+      {
+        showAccountSecurityModal && (
+          <AccountSecurityModal
+            isOpen={showAccountSecurityModal}
+            onClose={() => setShowAccountSecurityModal(false)}
           />
         )
       }

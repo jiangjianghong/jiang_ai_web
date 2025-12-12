@@ -7,10 +7,10 @@ console.log("Wallpaper Service started");
 
 // 支持的壁纸分辨率
 const RESOLUTIONS = {
-  'uhd': '3840x2160',    // 4K
+   uhd: 'UHD',    // 4K
   '1920x1080': '1920x1080', // 1080p
   '1366x768': '1366x768',   // 720p
-  'mobile': '1080x1920'     // 移动端
+  mobile: '1080x1920'     // 移动端
 };
 
 // 获取中国时区的时间对象

@@ -54,24 +54,24 @@ export default function AccountSettingsSection({ onClose, onOpenSecurityModal }:
                         <i className="fa-solid fa-chevron-right text-gray-400 group-hover:text-gray-600 transition-colors"></i>
                     </button>
                 </div>
-            </div>
 
-            {/* 优雅的退出登录 */}
-            <div className="mt-4 pt-4 border-t border-blue-200/50 select-none">
-                <button
-                    onClick={async () => {
-                        try {
-                            await logout();
-                            onClose(); // 登出后关闭设置面板
-                        } catch (error) {
-                            console.error('登出失败:', error);
-                        }
-                    }}
-                    className="group flex items-center gap-2 text-sm text-slate-600 hover:text-slate-800 transition-all duration-200 select-none w-full justify-center py-2 hover:bg-red-50 hover:text-red-600 rounded-xl"
-                >
-                    <i className="fa-solid fa-arrow-right-from-bracket"></i>
-                    <span className="font-medium">退出登录</span>
-                </button>
+                {/* 退出登录 */}
+                <div className="mt-4 pt-4 border-t border-gray-100 select-none">
+                    <button
+                        onClick={async () => {
+                            try {
+                                await logout();
+                                onClose(); // 登出后关闭设置面板
+                            } catch (error) {
+                                console.error('登出失败:', error);
+                            }
+                        }}
+                        className="ml-auto flex items-center gap-1.5 text-xs text-gray-400 hover:text-red-500 transition-colors"
+                    >
+                        <i className="fa-solid fa-arrow-right-from-bracket text-[10px]"></i>
+                        <span>退出登录</span>
+                    </button>
+                </div>
             </div>
         </div>
     );

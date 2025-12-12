@@ -36,9 +36,14 @@ jobs:
         
     - name: Install dependencies
       run: pnpm install
-      
+
+    - name: Update Service Worker version
+      run: pnpm update-sw-version
+      env:
+        GITHUB_SHA: ${{ github.sha }}
+
     - name: Build
-      run: pnpm run build
+      run: pnpm run build:client
       env:
         # Supabase 配置变量
         VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}

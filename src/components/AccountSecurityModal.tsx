@@ -332,7 +332,14 @@ export default function AccountSecurityModal({ isOpen, onClose }: AccountSecurit
                                 </div>
                             ) : (
                                 <button
-                                    onClick={linkWithGoogle}
+                                    onClick={async () => {
+                                        try {
+                                            await linkWithGoogle();
+                                        } catch (error: any) {
+                                            alert('绑定失败: ' + (error.message || '未知错误'));
+                                            console.error('Google linking error:', error);
+                                        }
+                                    }}
                                     className="w-full flex items-center justify-between p-3 rounded-xl bg-white border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all group"
                                 >
                                     <div className="flex items-center gap-3">

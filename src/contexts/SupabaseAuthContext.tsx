@@ -201,17 +201,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
       clearError();
       if (!currentUser) throw new Error('请先登录');
 
+      console.log('Linking with Google...');
       const { data, error } = await supabase.auth.linkIdentity({
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
         }
       });
+      console.log('Link identity result:', { data, error });
 
       if (error) throw error;
       // 链接账号通常需要跳转去Google授权
       if (data?.url) {
+        console.log('Redirecting to:', data.url);
         window.location.href = data.url;
+      } else {
+        console.warn('No redirection URL returned from linkIdentity');
+        throw new Error('未收到 Google 授权链接，请稍后重试');
       }
     } catch (err: any) {
       const message = getLocalizedErrorMessage(err);

@@ -85,7 +85,8 @@ export class WorkspaceManager {
       // Sync workspace data
 
       // Get database structure
-      const database = await this.notionClient.getDatabase(config.databaseId);
+      // Get database structure
+      // const database = await this.notionClient.getDatabase(config.databaseId);
 
       // Query all pages
       const pages = await this.notionClient.queryDatabase(config.databaseId);

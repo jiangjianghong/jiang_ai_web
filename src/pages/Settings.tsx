@@ -126,7 +126,7 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
     setLunchTime,
     setOffWorkTime,
   } = useTransparency();
-  const { currentUser, logout, updatePassword } = useAuth();
+  const { currentUser, logout, updatePassword, linkWithGoogle, unlinkIdentity, deleteAccount } = useAuth();
   const { updateSyncStatus } = useSyncStatus();
   const { displayName, updateDisplayName } = useUserProfile();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -882,6 +882,43 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                       </div>
                     </div>
 
+
+                    {/* 账号绑定区域 */}
+                    <div className="mt-4 pt-4 border-t border-blue-200/50 select-none">
+                      {/* 检查是否已绑定 Google */}
+                      {currentUser.identities?.some(id => id.provider === 'google') ? (
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className='w-6 h-6 flex items-center justify-center bg-white rounded-full shadow-sm border border-gray-100'>
+                              <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4" />
+                            </span>
+                            <span className="text-sm text-gray-700">已绑定 Google 账号</span>
+                          </div>
+                          <button
+                            onClick={() => {
+                              if (window.confirm('确定要解绑 Google 账号吗？')) {
+                                unlinkIdentity('google');
+                              }
+                            }}
+                            className="text-xs text-red-500 hover:text-red-600 hover:underline"
+                          >
+                            解除绑定
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={linkWithGoogle}
+                          className="group flex items-center gap-2 text-sm text-slate-600 hover:text-slate-800 transition-all duration-200 w-full"
+                        >
+                          <div className="w-6 h-6 rounded-lg bg-white border border-gray-200 group-hover:bg-gray-50 flex items-center justify-center transition-colors duration-200">
+                            <img src="https://www.google.com/favicon.ico" alt="Google" className="w-3.5 h-3.5" />
+                          </div>
+                          <span className="font-medium">绑定 Google 账号</span>
+                          <i className="fa-solid fa-arrow-right text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200 ml-auto"></i>
+                        </button>
+                      )}
+                    </div>
+
                     {/* 密码修改区域 */}
                     <div className="mt-4 pt-4 border-t border-blue-200/50 select-none">
                       {!showChangePassword ? (
@@ -966,6 +1003,31 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                           </div>
                         </div>
                       )}
+                    </div>
+
+                    {/* 危险区域 - 删除账号 */}
+                    <div className="mt-8 pt-6 border-t border-red-100 select-none">
+                      <h4 className="text-xs font-semibold text-red-500 uppercase tracking-wider mb-3">危险区域</h4>
+                      <div className="flex items-center justify-between p-4 bg-red-50 rounded-xl border border-red-100">
+                        <div>
+                          <h5 className="text-sm font-medium text-red-700">注销账号</h5>
+                          <p className="text-xs text-red-500 mt-1">此操作不可逆，将永久删除您的所有数据</p>
+                        </div>
+                        <button
+                          onClick={async () => {
+                            if (window.confirm('警告：此操作将永久删除您的账号和所有数据！确定要继续吗？')) {
+                              // 二次确认
+                              const input = window.prompt('请在下方输入 "DELETE" 以确认删除账号');
+                              if (input === 'DELETE') {
+                                await deleteAccount();
+                              }
+                            }
+                          }}
+                          className="px-3 py-1.5 text-xs font-medium text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors duration-200 shadow-sm"
+                        >
+                          注销账号
+                        </button>
+                      </div>
                     </div>
 
                     {/* 优雅的退出登录 */}

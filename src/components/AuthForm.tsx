@@ -19,7 +19,7 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
   const [resetEmail, setResetEmail] = useState('');
   const [cooldown, setCooldown] = useState(0);
 
-  const { login, register, loginWithGoogle, sendVerificationEmail, resetPasswordForEmail, error: authError } = useAuth();
+  const { login, register, loginWithGoogle, loginWithGithub, loginWithNotion, sendVerificationEmail, resetPasswordForEmail, error: authError } = useAuth();
 
   // 倒计时效果
   useEffect(() => {
@@ -311,11 +311,12 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
                 </div>
               </div>
 
-              <div className="mt-6">
+              <div className="mt-6 space-y-3">
+                {/* Google */}
                 <button
                   onClick={() => loginWithGoogle()}
                   disabled={loading}
-                  className="w-full inline-flex justify-center items-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed transition-colors"
+                  className="w-full inline-flex justify-center items-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed transition-colors"
                 >
                   <img
                     className="h-5 w-5 mr-2"
@@ -323,6 +324,26 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
                     alt="Google"
                   />
                   使用 Google 账号登录
+                </button>
+
+                {/* GitHub */}
+                <button
+                  onClick={() => loginWithGithub()}
+                  disabled={loading}
+                  className="w-full inline-flex justify-center items-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed transition-colors"
+                >
+                  <i className="fa-brands fa-github text-xl mr-2"></i>
+                  使用 GitHub 账号登录
+                </button>
+
+                {/* Notion */}
+                <button
+                  onClick={() => loginWithNotion()}
+                  disabled={loading}
+                  className="w-full inline-flex justify-center items-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed transition-colors"
+                >
+                  <img src="https://www.notion.so/images/favicon.ico" alt="Notion" className="h-5 w-5 mr-2" />
+                  使用 Notion 账号登录
                 </button>
               </div>
 

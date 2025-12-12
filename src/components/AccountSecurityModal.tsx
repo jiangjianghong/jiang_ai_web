@@ -9,7 +9,7 @@ interface AccountSecurityModalProps {
 }
 
 export default function AccountSecurityModal({ isOpen, onClose }: AccountSecurityModalProps) {
-    const { currentUser, updatePassword, linkWithGoogle, unlinkIdentity, deleteAccount } = useAuth();
+    const { currentUser, updatePassword, linkWithGoogle, linkWithGithub, linkWithNotion, unlinkIdentity, deleteAccount } = useAuth();
     const { displayName, updateDisplayName } = useUserProfile();
 
     // 用户名编辑状态
@@ -349,6 +349,96 @@ export default function AccountSecurityModal({ isOpen, onClose }: AccountSecurit
                                         <span className="text-sm font-medium text-gray-700">绑定 Google 账号</span>
                                     </div>
                                     <i className="fa-solid fa-plus text-blue-500 text-sm"></i>
+                                </button>
+                            )}
+
+                            {/* GitHub Account */}
+                            {currentUser.identities?.some(id => id.provider === 'github') ? (
+                                <div className="flex items-center justify-between p-3 bg-white rounded-xl border border-gray-200 mt-3">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm border border-gray-100">
+                                            <i className="fa-brands fa-github text-xl"></i>
+                                        </div>
+                                        <div>
+                                            <span className="text-sm font-medium text-gray-700">GitHub</span>
+                                            <p className="text-xs text-green-600">已绑定</p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => {
+                                            if (window.confirm('确定要解绑 GitHub 账号吗？')) {
+                                                unlinkIdentity('github');
+                                            }
+                                        }}
+                                        className="text-sm text-red-500 hover:text-red-600 font-medium px-3 py-1.5 rounded-lg hover:bg-red-50 transition-colors"
+                                    >
+                                        解除绑定
+                                    </button>
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={async () => {
+                                        try {
+                                            await linkWithGithub();
+                                        } catch (error: any) {
+                                            alert('绑定失败: ' + (error.message || '未知错误'));
+                                            console.error('GitHub linking error:', error);
+                                        }
+                                    }}
+                                    className="w-full flex items-center justify-between p-3 rounded-xl bg-white border border-gray-200 hover:border-gray-400 hover:bg-gray-50 transition-all group mt-3"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm border border-gray-100">
+                                            <i className="fa-brands fa-github text-xl"></i>
+                                        </div>
+                                        <span className="text-sm font-medium text-gray-700">绑定 GitHub 账号</span>
+                                    </div>
+                                    <i className="fa-solid fa-plus text-gray-500 text-sm"></i>
+                                </button>
+                            )}
+
+                            {/* Notion Account */}
+                            {currentUser.identities?.some(id => id.provider === 'notion') ? (
+                                <div className="flex items-center justify-between p-3 bg-white rounded-xl border border-gray-200 mt-3">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm border border-gray-100">
+                                            <img src="https://www.notion.so/images/favicon.ico" alt="Notion" className="w-5 h-5" />
+                                        </div>
+                                        <div>
+                                            <span className="text-sm font-medium text-gray-700">Notion</span>
+                                            <p className="text-xs text-green-600">已绑定</p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => {
+                                            if (window.confirm('确定要解绑 Notion 账号吗？')) {
+                                                unlinkIdentity('notion');
+                                            }
+                                        }}
+                                        className="text-sm text-red-500 hover:text-red-600 font-medium px-3 py-1.5 rounded-lg hover:bg-red-50 transition-colors"
+                                    >
+                                        解除绑定
+                                    </button>
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={async () => {
+                                        try {
+                                            await linkWithNotion();
+                                        } catch (error: any) {
+                                            alert('绑定失败: ' + (error.message || '未知错误'));
+                                            console.error('Notion linking error:', error);
+                                        }
+                                    }}
+                                    className="w-full flex items-center justify-between p-3 rounded-xl bg-white border border-gray-200 hover:border-gray-400 hover:bg-gray-50 transition-all group mt-3"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm border border-gray-100">
+                                            <img src="https://www.notion.so/images/favicon.ico" alt="Notion" className="w-5 h-5" />
+                                        </div>
+                                        <span className="text-sm font-medium text-gray-700">绑定 Notion 账号</span>
+                                    </div>
+                                    <i className="fa-solid fa-plus text-gray-500 text-sm"></i>
                                 </button>
                             )}
                         </div>

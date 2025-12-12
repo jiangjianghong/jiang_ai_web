@@ -8,7 +8,11 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
+  loginWithGithub: () => Promise<void>;
+  loginWithNotion: () => Promise<void>;
   linkWithGoogle: () => Promise<void>;
+  linkWithGithub: () => Promise<void>;
+  linkWithNotion: () => Promise<void>;
   unlinkIdentity: (provider: string) => Promise<void>;
   deleteAccount: () => Promise<void>;
   logout: () => Promise<void>;
@@ -195,6 +199,44 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
+  // GitHub 登录
+  const loginWithGithub = async () => {
+    try {
+      clearError();
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'github',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+
+      if (error) throw error;
+    } catch (err: any) {
+      const message = getLocalizedErrorMessage(err);
+      setError(message);
+      throw new Error(message);
+    }
+  };
+
+  // Notion 登录
+  const loginWithNotion = async () => {
+    try {
+      clearError();
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'notion',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+
+      if (error) throw error;
+    } catch (err: any) {
+      const message = getLocalizedErrorMessage(err);
+      setError(message);
+      throw new Error(message);
+    }
+  };
+
   // 绑定 Google 账号
   const linkWithGoogle = async () => {
     try {
@@ -226,6 +268,68 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }
 
+  // 绑定 GitHub 账号
+  const linkWithGithub = async () => {
+    try {
+      clearError();
+      if (!currentUser) throw new Error('请先登录');
+
+      console.log('Linking with GitHub...');
+      const { data, error } = await supabase.auth.linkIdentity({
+        provider: 'github',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        }
+      });
+      console.log('Link identity result:', { data, error });
+
+      if (error) throw error;
+
+      if (data?.url) {
+        console.log('Redirecting to:', data.url);
+        window.location.href = data.url;
+      } else {
+        console.warn('No redirection URL returned from linkIdentity');
+        throw new Error('未收到 GitHub 授权链接，请稍后重试');
+      }
+    } catch (err: any) {
+      const message = getLocalizedErrorMessage(err);
+      setError(message);
+      throw new Error(message);
+    }
+  }
+
+  // 绑定 Notion 账号
+  const linkWithNotion = async () => {
+    try {
+      clearError();
+      if (!currentUser) throw new Error('请先登录');
+
+      console.log('Linking with Notion...');
+      const { data, error } = await supabase.auth.linkIdentity({
+        provider: 'notion',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        }
+      });
+      console.log('Link identity result:', { data, error });
+
+      if (error) throw error;
+
+      if (data?.url) {
+        console.log('Redirecting to:', data.url);
+        window.location.href = data.url;
+      } else {
+        console.warn('No redirection URL returned from linkIdentity');
+        throw new Error('未收到 Notion 授权链接，请稍后重试');
+      }
+    } catch (err: any) {
+      const message = getLocalizedErrorMessage(err);
+      setError(message);
+      throw new Error(message);
+    }
+  }
+
   // 解绑账号
   const unlinkIdentity = async (provider: string) => {
     try {
@@ -241,7 +345,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         throw new Error(`未找到绑定了 ${provider} 的账号`);
       }
 
-      const { error } = await supabase.auth.unlinkIdentity(identity.id);
+      const { error } = await supabase.auth.unlinkIdentity(identity);
       if (error) throw error;
 
       setSuccessMessage(`✅ 已成功解绑 ${provider} 账号`);
@@ -472,7 +576,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
     login,
     register,
     loginWithGoogle,
+    loginWithGithub,
+    loginWithNotion,
     linkWithGoogle,
+    linkWithGithub,
+    linkWithNotion,
     unlinkIdentity,
     deleteAccount,
     logout,

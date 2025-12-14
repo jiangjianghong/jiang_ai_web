@@ -1,0 +1,79 @@
+name: Upstream Sync # 工作流的名称，会在 GitHub Actions 页面显示
+
+# 权限设置：允许工作流写入仓库内容（例如推送同步后的提交）
+permissions:
+  contents: write
+
+on:
+  # 定时触发：设置工作流的执行计划，例如每天 UTC 时间午夜执行
+  schedule:
+	# 示例：每天 UTC 时间午夜执行。你可以根据需要调整。
+    - cron: "0 0 * * *"
+
+  # 手动触发：允许你从 GitHub Actions 页面手动触发这个工作流
+  workflow_dispatch:
+
+jobs:
+  sync_latest_from_upstream:
+	# 作业在 UI 中显示的友好名称
+    name: Sync latest commits from upstream repo
+    # 指定工作流运行的环境，这里是最新的 Ubuntu Linux 虚拟机
+    runs-on: ubuntu-latest
+
+    # 条件判断：此作业仅在当前仓库是另一个仓库的 Fork 时运行
+    if: ${{ github.event.repository.fork }}
+
+    steps:
+      # 步骤 1: 检出当前仓库
+      # 使用 actions/checkout Action 将你的仓库代码检出到运行环境中，以便后续步骤可以访问。
+      # 检出目标仓库
+      - name: Checkout target repo
+        uses: actions/checkout@v3
+
+      # 步骤 2: 同步上游仓库的更改
+      # 使用 aormsby/Fork-Sync-With-Upstream-action Action 来同步上游仓库的最新提交。
+      # 同步上游更改
+      - name: Sync upstream changes
+		# 为此步骤设置一个 ID，以便在后续步骤中引用（例如在条件判断中使用）
+        id: sync
+        uses: aormsby/Fork-Sync-With-Upstream-action@v3.4
+        with:
+          # 上游仓库的完整名称，格式为 'owner/repo'。
+          # 推荐使用 Secrets 来存储，以提高安全性，例如：${{ secrets.UPSTREAM_REPO }}
+          # 例如：'owner/repo'
+          upstream_sync_repo: jiangjianghong/jiang_ai_web
+
+          # 要从上游仓库同步的分支名称。
+          # 推荐使用 Secrets 来存储，例如：${{ secrets.UPSTREAM_BRANCH }}
+          # 例如：'main' 或 'master'
+          upstream_sync_branch: main
+
+          # 要同步到你 Forked 仓库的目标分支名称。
+          # 推荐使用 Secrets 来存储，例如：${{ secrets.TARGET_BRANCH }}
+          # 例如：'main' 或 'master'
+          target_sync_branch: main
+
+          # 用于向你的 Forked 仓库进行身份验证以推送更改的 Personal Access Token (PAT)。
+          # 如果未提供，将使用默认的 GITHUB_TOKEN，它可能有权限限制。
+          # 推荐使用 PAT 以获得更好的可靠性，特别是对于私有仓库或复杂的同步。
+          # 在你的 GitHub 设置中创建一个 PAT，并将其命名为仓库的 Secret `TARGET_REPO_PAT`。
+          # 示例：${{ secrets.TARGET_REPO_PAT }}
+          # 如果你确定 GITHUB_TOKEN 足够，可以保留原样，但请注意其潜在限制。
+          # 推荐：使用 PAT，或者根据需要使用 ${{ secrets.GITHUB_TOKEN }}
+          target_repo_token: ${{ secrets.TARGET_REPO_PAT }} 
+
+          # 设置为 'true' 以在测试模式下运行（模拟同步而不进行实际更改）。
+          # 设置为 'false' 以执行实际的同步操作。
+          test_mode: false
+
+      # 步骤 3: 检查同步错误并提供指导
+      # 这个步骤仅在上游更改同步失败时运行。
+      # 它会输出一个错误消息，并指示用户可能需要手动同步，并提供了查找帮助的建议。
+      - name: Sync check # 同步检查
+        if: failure() # 仅当上一个步骤（Sync upstream changes）失败时执行
+        run: |
+          echo "[Error] 自动同步失败。这可能是由于上游仓库的 workflow 文件变更，或者其他同步冲突。"
+          echo "请考虑手动同步你的 Fork，或查阅上游仓库的 README 以获取相关说明。"
+          # 这里的 URL 是示例，请替换为你实际的上游仓库的 README 指导链接
+          echo "有关详细指导，请参阅：https://github.com/YourUpstreamOwner/YourUpstreamRepo/blob/main/README.md#enable-automatic-updates"
+          exit 1 # 退出并标记整个工作流为失败

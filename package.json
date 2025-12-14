@@ -6,10 +6,11 @@
   "scripts": {
     "dev:client": "vite --host --port 3000",
     "dev": "pnpm dev:client",
+    "update-sw-version": "node scripts/update-sw-version.js",
     "build:client": "vite build",
-    "build": "rimraf dist && pnpm build:client && shx cp package.json dist/ && shx touch dist/build.flag",
+    "build": "rimraf dist && pnpm update-sw-version && pnpm build:client && shx cp package.json dist/ && shx touch dist/build.flag",
     "deploy": "pnpm run build && gh-pages -d dist",
-    "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
+    "lint": "cross-env ESLINT_USE_FLAT_CONFIG=false eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.52.0",

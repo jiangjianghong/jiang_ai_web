@@ -428,12 +428,17 @@ class OptimizedWallpaperService {
 
       if (shouldRefresh) {
         logger.wallpaper.info('检测到跨天，强制刷新壁纸缓存');
-        // 清理今天的缓存，强制重新下载
+        // 🔧 修复: 清理昨天和今天的缓存，防止使用旧壁纸
         await this.clearTodayCache(resolution);
+        // 清理昨天的缓存，防止降级到旧壁纸
+        const yesterdayKey = this.getYesterdayCacheKey(resolution);
+        await indexedDBCache.delete(yesterdayKey);
+        await indexedDBCache.delete(`${yesterdayKey}-metadata`);
+        logger.wallpaper.info('已清除昨天的壁纸缓存，强制下载新壁纸');
       }
 
-      // 1. 首先尝试智能缓存
-      const cachedResult = await this.getSmartCache(resolution);
+      // 1. 首先尝试智能缓存（跨天时跳过缓存检查）
+      const cachedResult = !shouldRefresh ? await this.getSmartCache(resolution) : null;
 
       if (cachedResult) {
         // 🔧 检查旧缓存是否缺少 originalUrl（旧版本的缓存）

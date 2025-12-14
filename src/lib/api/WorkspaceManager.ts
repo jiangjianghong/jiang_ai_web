@@ -82,24 +82,14 @@ export class WorkspaceManager {
     }
 
     try {
-      console.log('🔄 开始同步工作空间数据...');
+      // Sync workspace data
 
       // Get database structure
-      const database = await this.notionClient.getDatabase(config.databaseId);
-      console.log('📊 数据库信息获取成功:', database.title?.[0]?.plain_text || '未知数据库');
+      // Get database structure
+      // const database = await this.notionClient.getDatabase(config.databaseId);
 
       // Query all pages
       const pages = await this.notionClient.queryDatabase(config.databaseId);
-      console.log(`📄 获取到 ${pages.length} 个页面`);
-
-      // Debug: Check page data structure
-      if (pages.length > 0) {
-        console.log('🔍 第一个页面数据示例:', {
-          id: pages[0]?.id,
-          hasProperties: !!pages[0]?.properties,
-          propertyKeys: pages[0]?.properties ? Object.keys(pages[0].properties) : '无属性',
-        });
-      }
 
       // Convert to workspace items
       const workspaceItems = this.notionClient.parseWorkspaceItems(pages);
@@ -107,7 +97,6 @@ export class WorkspaceManager {
       // Cache data
       this.cacheWorkspaceItems(workspaceItems);
 
-      console.log(`✅ 同步完成，获取到 ${workspaceItems.length} 个工作空间项目`);
       return workspaceItems;
     } catch (error) {
       console.error('❌ 同步工作空间数据失败:', error);

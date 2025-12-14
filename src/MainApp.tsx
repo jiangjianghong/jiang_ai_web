@@ -1,5 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
 import Home from '@/pages/Home';
+import AuthCallback from '@/pages/AuthCallback';
 import ResetPassword from '@/pages/ResetPassword';
 import NotFound from '@/pages/NotFound';
 import { DndProvider } from 'react-dnd';
@@ -230,6 +231,7 @@ function AppContent() {
             <Home websites={websites} setWebsites={setWebsites} dataInitialized={dataInitialized} />
           }
         />
+        <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="*" element={<NotFound />} />
       </Routes>

@@ -11,7 +11,7 @@
 
 -- 1.1 User Profiles (用户资料表)
 CREATE TABLE IF NOT EXISTS user_profiles (
-  id UUID REFERENCES auth.users(id) PRIMARY KEY,
+  id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
   email TEXT,
   display_name TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS user_profiles (
 
 -- 1.2 User Settings (用户设置表) - Includes all latest columns
 CREATE TABLE IF NOT EXISTS user_settings (
-  id UUID REFERENCES auth.users(id) PRIMARY KEY,
+  id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
   -- Basic Appearance
   card_opacity NUMERIC DEFAULT 0.8,
   search_bar_opacity NUMERIC DEFAULT 0.9,
@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS user_settings (
 
 -- 1.3 User Websites (用户网站数据表)
 CREATE TABLE IF NOT EXISTS user_websites (
-  id UUID REFERENCES auth.users(id) PRIMARY KEY,
+  id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
   websites JSONB DEFAULT '[]'::jsonb,
   last_sync TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS user_websites (
 
 -- 1.4 User Stats (用户统计表)
 CREATE TABLE IF NOT EXISTS user_stats (
-  id UUID REFERENCES auth.users(id) PRIMARY KEY,
+  id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
   total_site_visits INTEGER DEFAULT 0,
   total_searches INTEGER DEFAULT 0,
   settings_opened INTEGER DEFAULT 0,

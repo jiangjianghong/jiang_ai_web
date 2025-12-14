@@ -8,6 +8,13 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
+  loginWithGithub: () => Promise<void>;
+  loginWithNotion: () => Promise<void>;
+  linkWithGoogle: () => Promise<void>;
+  linkWithGithub: () => Promise<void>;
+  linkWithNotion: () => Promise<void>;
+  unlinkIdentity: (provider: string) => Promise<void>;
+  deleteAccount: () => Promise<void>;
   logout: () => Promise<void>;
   sendVerificationEmail: () => Promise<void>;
   reloadUser: () => Promise<void>;
@@ -185,6 +192,189 @@ export function AuthProvider({ children }: AuthProviderProps) {
       });
 
       if (error) throw error;
+    } catch (err: any) {
+      const message = getLocalizedErrorMessage(err);
+      setError(message);
+      throw new Error(message);
+    }
+  };
+
+  // GitHub 登录
+  const loginWithGithub = async () => {
+    try {
+      clearError();
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'github',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+
+      if (error) throw error;
+    } catch (err: any) {
+      const message = getLocalizedErrorMessage(err);
+      setError(message);
+      throw new Error(message);
+    }
+  };
+
+  // Notion 登录
+  const loginWithNotion = async () => {
+    try {
+      clearError();
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'notion',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+
+      if (error) throw error;
+    } catch (err: any) {
+      const message = getLocalizedErrorMessage(err);
+      setError(message);
+      throw new Error(message);
+    }
+  };
+
+  // 绑定 Google 账号
+  const linkWithGoogle = async () => {
+    try {
+      clearError();
+      if (!currentUser) throw new Error('请先登录');
+
+      console.log('Linking with Google...');
+      const { data, error } = await supabase.auth.linkIdentity({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        }
+      });
+      console.log('Link identity result:', { data, error });
+
+      if (error) throw error;
+      // 链接账号通常需要跳转去Google授权
+      if (data?.url) {
+        console.log('Redirecting to:', data.url);
+        window.location.href = data.url;
+      } else {
+        console.warn('No redirection URL returned from linkIdentity');
+        throw new Error('未收到 Google 授权链接，请稍后重试');
+      }
+    } catch (err: any) {
+      const message = getLocalizedErrorMessage(err);
+      setError(message);
+      throw new Error(message);
+    }
+  }
+
+  // 绑定 GitHub 账号
+  const linkWithGithub = async () => {
+    try {
+      clearError();
+      if (!currentUser) throw new Error('请先登录');
+
+      console.log('Linking with GitHub...');
+      const { data, error } = await supabase.auth.linkIdentity({
+        provider: 'github',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        }
+      });
+      console.log('Link identity result:', { data, error });
+
+      if (error) throw error;
+
+      if (data?.url) {
+        console.log('Redirecting to:', data.url);
+        window.location.href = data.url;
+      } else {
+        console.warn('No redirection URL returned from linkIdentity');
+        throw new Error('未收到 GitHub 授权链接，请稍后重试');
+      }
+    } catch (err: any) {
+      const message = getLocalizedErrorMessage(err);
+      setError(message);
+      throw new Error(message);
+    }
+  }
+
+  // 绑定 Notion 账号
+  const linkWithNotion = async () => {
+    try {
+      clearError();
+      if (!currentUser) throw new Error('请先登录');
+
+      console.log('Linking with Notion...');
+      const { data, error } = await supabase.auth.linkIdentity({
+        provider: 'notion',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        }
+      });
+      console.log('Link identity result:', { data, error });
+
+      if (error) throw error;
+
+      if (data?.url) {
+        console.log('Redirecting to:', data.url);
+        window.location.href = data.url;
+      } else {
+        console.warn('No redirection URL returned from linkIdentity');
+        throw new Error('未收到 Notion 授权链接，请稍后重试');
+      }
+    } catch (err: any) {
+      const message = getLocalizedErrorMessage(err);
+      setError(message);
+      throw new Error(message);
+    }
+  }
+
+  // 解绑账号
+  const unlinkIdentity = async (provider: string) => {
+    try {
+      clearError();
+      if (!currentUser) throw new Error('请先登录');
+
+      // 获取该用户的 identities
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError) throw userError;
+
+      const identity = user?.identities?.find(id => id.provider === provider);
+      if (!identity) {
+        throw new Error(`未找到绑定了 ${provider} 的账号`);
+      }
+
+      const { error } = await supabase.auth.unlinkIdentity(identity);
+      if (error) throw error;
+
+      setSuccessMessage(`✅ 已成功解绑 ${provider} 账号`);
+      await reloadUser(); // 刷新用户信息
+
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (err: any) {
+      const message = getLocalizedErrorMessage(err);
+      setError(message);
+      throw new Error(message);
+    }
+  }
+
+  // 删除账号
+  const deleteAccount = async () => {
+    try {
+      clearError();
+      if (!currentUser) throw new Error('请先登录');
+
+      const { error } = await supabase.functions.invoke('delete-user');
+
+      if (error) throw error;
+
+      // 删除成功后登出
+      await logout();
+
+      setSuccessMessage('账号已注销');
+      setTimeout(() => setSuccessMessage(null), 3000);
+
     } catch (err: any) {
       const message = getLocalizedErrorMessage(err);
       setError(message);
@@ -386,6 +576,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
     login,
     register,
     loginWithGoogle,
+    loginWithGithub,
+    loginWithNotion,
+    linkWithGoogle,
+    linkWithGithub,
+    linkWithNotion,
+    unlinkIdentity,
+    deleteAccount,
     logout,
     sendVerificationEmail,
     reloadUser,

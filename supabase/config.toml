@@ -8,7 +8,7 @@ max_rows = 1000
 
 [auth]
 site_url = "http://localhost:3000"
-additional_redirect_urls = ["https://localhost:3000"]
+additional_redirect_urls = ["https://localhost:3000", "https://jiangjiang.cc", "https://jiangjiang.cc/auth/callback"]
 
 [functions.favicon-service]
 verify_jwt = false

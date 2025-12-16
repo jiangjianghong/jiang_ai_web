@@ -184,10 +184,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const loginWithGoogle = async () => {
     try {
       clearError();
+      const redirectTo = import.meta.env.VITE_SITE_URL
+        ? `${import.meta.env.VITE_SITE_URL}/auth/callback`
+        : `${window.location.origin}/auth/callback`;
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo,
         },
       });
 
@@ -203,10 +207,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const loginWithGithub = async () => {
     try {
       clearError();
+      const redirectTo = import.meta.env.VITE_SITE_URL
+        ? `${import.meta.env.VITE_SITE_URL}/auth/callback`
+        : `${window.location.origin}/auth/callback`;
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'github',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo,
         },
       });
 
@@ -222,10 +230,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const loginWithNotion = async () => {
     try {
       clearError();
+      const redirectTo = import.meta.env.VITE_SITE_URL
+        ? `${import.meta.env.VITE_SITE_URL}/auth/callback`
+        : `${window.location.origin}/auth/callback`;
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'notion',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo,
         },
       });
 
@@ -244,10 +256,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (!currentUser) throw new Error('请先登录');
 
       console.log('Linking with Google...');
+      const redirectTo = import.meta.env.VITE_SITE_URL
+        ? `${import.meta.env.VITE_SITE_URL}/auth/callback`
+        : `${window.location.origin}/auth/callback`;
+
       const { data, error } = await supabase.auth.linkIdentity({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo,
         }
       });
       console.log('Link identity result:', { data, error });
@@ -275,10 +291,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (!currentUser) throw new Error('请先登录');
 
       console.log('Linking with GitHub...');
+      const redirectTo = import.meta.env.VITE_SITE_URL
+        ? `${import.meta.env.VITE_SITE_URL}/auth/callback`
+        : `${window.location.origin}/auth/callback`;
+
       const { data, error } = await supabase.auth.linkIdentity({
         provider: 'github',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo,
         }
       });
       console.log('Link identity result:', { data, error });
@@ -306,10 +326,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (!currentUser) throw new Error('请先登录');
 
       console.log('Linking with Notion...');
+      const redirectTo = import.meta.env.VITE_SITE_URL
+        ? `${import.meta.env.VITE_SITE_URL}/auth/callback`
+        : `${window.location.origin}/auth/callback`;
+
       const { data, error } = await supabase.auth.linkIdentity({
         provider: 'notion',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo,
         }
       });
       console.log('Link identity result:', { data, error });

@@ -21,32 +21,9 @@ function getChinaDate(): Date {
   return new Date(now.getTime() + (8 * 60 * 60 * 1000));
 }
 
-// Bing壁纸API源
-const BING_SOURCES = [
-  // 直接访问Bing官方API
-  (resolution: string) => `https://www.bing.com/th?id=OHR.${getBingImageId()}_${resolution}.jpg`,
-  // Bing HPImageArchive API
-  () => 'https://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1&mkt=zh-CN',
-  // 备用Bing图片API
-  (resolution: string) => `https://bing.com/th?id=OHR.${getTodayId()}_${resolution}.jpg`
-];
-
-// 生成今日的Bing图片ID（基于日期）
-function getTodayId(): string {
-  const today = getChinaDate();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, '0');
-  const day = String(today.getDate()).padStart(2, '0');
-  return `${year}${month}${day}`;
-}
-
-// 获取Bing图片ID
-function getBingImageId(): string {
-  // 使用当前日期生成一个合理的图片ID
-  const today = getChinaDate();
-  const dateStr = today.toISOString().split('T')[0].replace(/-/g, '');
-  return `BingDaily_${dateStr}`;
-}
+// 注意：以前的 BING_SOURCES 和 getBingImageId/getTodayId 已移除
+// 因为直接构造的 Bing 图片 URL 无效（ID 格式不对）
+// 实际使用的是 HPImageArchive API 返回的真实 URL
 
 // 获取Bing每日壁纸元数据
 async function getBingWallpaperMetadata(): Promise<any> {

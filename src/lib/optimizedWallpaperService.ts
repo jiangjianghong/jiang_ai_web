@@ -7,8 +7,10 @@ import { memoryManager } from './memoryManager';
 import { createWallpaperRequest } from './requestManager';
 import { createTimeoutSignal } from './abortUtils';
 import { customWallpaperManager } from './customWallpaperManager';
+import { getLocalDateString } from './dateUtils';
 
-// 移除未使用的接口
+// 重试相关配置
+const RETRY_DELAY_MS = 30 * 60 * 1000; // 30分钟后重试
 
 class OptimizedWallpaperService {
   private static instance: OptimizedWallpaperService;
@@ -23,6 +25,7 @@ class OptimizedWallpaperService {
   >();
   private fallbackImage = '/icon/favicon.png'; // 本地备用图片
   private cleanupTimer: number | null = null; // 定时清理器ID
+  private retryTimers = new Map<string, number>(); // 重试定时器
 
   static getInstance(): OptimizedWallpaperService {
     if (!OptimizedWallpaperService.instance) {
@@ -64,6 +67,32 @@ class OptimizedWallpaperService {
       window.addEventListener('beforeunload', () => {
         this.stopCleanupTimer();
       });
+
+      // 页面可见时检查是否需要更新壁纸
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          this.onPageVisible();
+        }
+      });
+    }
+  }
+
+  // 页面变为可见时的处理
+  private onPageVisible(): void {
+    // 检查今天是否有成功的壁纸更新记录
+    const resolutions = ['1080p', '720p', '4k', 'mobile'];
+    for (const resolution of resolutions) {
+      const successKey = `wallpaper-update-success-${resolution}`;
+      const lastSuccess = localStorage.getItem(successKey);
+      const today = getLocalDateString();
+
+      if (lastSuccess !== today) {
+        // 今天还没成功更新过，尝试更新
+        logger.wallpaper.info(`页面可见，检查 ${resolution} 壁纸是否需要更新`);
+        this.updateWallpaperInBackground(resolution).catch((error) => {
+          logger.wallpaper.warn(`可见性触发更新 ${resolution} 失败`, error);
+        });
+      }
     }
   }
 
@@ -77,14 +106,9 @@ class OptimizedWallpaperService {
   }
 
   // 获取中国时间的日期字符串 (YYYY-MM-DD)
+  // 已迁移到共享的 dateUtils.ts，这里保留包装方法以保持 API 兼容
   private getLocalDateString(date: Date = new Date()): string {
-    // 直接使用 UTC 时间戳 + 8小时
-    const chinaTime = new Date(date.getTime() + (8 * 60 * 60 * 1000));
-
-    const year = chinaTime.getUTCFullYear();
-    const month = String(chinaTime.getUTCMonth() + 1).padStart(2, '0');
-    const day = String(chinaTime.getUTCDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    return getLocalDateString(date);
   }
 
   // 获取今天的缓存键 - 基于本地时间
@@ -93,16 +117,55 @@ class OptimizedWallpaperService {
     return `wallpaper-optimized:${resolution}-${today}`;
   }
 
-  // 检查是否需要强制刷新（跨天检查）
-  private shouldForceRefresh(lastUpdateKey: string): boolean {
-    const storedDate = localStorage.getItem(lastUpdateKey);
-    const today = this.getLocalDateString();
+  // 检查是否需要强制刷新（跨天检查）- 只检查不设置标记
+  // 标记会在成功下载后由 markUpdateSuccess 设置
+  private shouldForceRefresh(resolution: string): boolean {
+    const successKey = `wallpaper-update-success-${resolution}`;
+    const lastSuccessDate = localStorage.getItem(successKey);
+    const today = getLocalDateString();
 
-    if (!storedDate || storedDate !== today) {
-      localStorage.setItem(lastUpdateKey, today);
+    // 如果今天还没成功更新过，需要刷新
+    if (!lastSuccessDate || lastSuccessDate !== today) {
       return true;
     }
     return false;
+  }
+
+  // 标记今天的壁纸更新成功
+  private markUpdateSuccess(resolution: string): void {
+    const successKey = `wallpaper-update-success-${resolution}`;
+    const today = getLocalDateString();
+    localStorage.setItem(successKey, today);
+    logger.wallpaper.info(`标记 ${resolution} 壁纸更新成功: ${today}`);
+
+    // 清除重试定时器
+    const retryKey = `retry-${resolution}`;
+    if (this.retryTimers.has(retryKey)) {
+      clearTimeout(this.retryTimers.get(retryKey));
+      this.retryTimers.delete(retryKey);
+    }
+  }
+
+  // 安排延迟重试
+  private scheduleRetry(resolution: string): void {
+    const retryKey = `retry-${resolution}`;
+
+    // 避免重复安排
+    if (this.retryTimers.has(retryKey)) {
+      return;
+    }
+
+    logger.wallpaper.info(`安排 ${resolution} 壁纸 ${RETRY_DELAY_MS / 1000 / 60} 分钟后重试`);
+
+    const timerId = setTimeout(() => {
+      this.retryTimers.delete(retryKey);
+      logger.wallpaper.info(`执行 ${resolution} 壁纸延迟重试`);
+      this.updateWallpaperInBackground(resolution).catch((error) => {
+        logger.wallpaper.warn(`延迟重试 ${resolution} 失败`, error);
+      });
+    }, RETRY_DELAY_MS) as any;
+
+    this.retryTimers.set(retryKey, timerId);
   }
 
   // 执行每日检查 - 确保壁纸是最新的
@@ -423,12 +486,11 @@ class OptimizedWallpaperService {
       }
 
       // 0.1 检查是否需要强制刷新（跨天检查）
-      const forceRefreshKey = `wallpaper-last-update-${resolution}`;
-      const shouldRefresh = this.shouldForceRefresh(forceRefreshKey);
+      const shouldRefresh = this.shouldForceRefresh(resolution);
 
       if (shouldRefresh) {
-        logger.wallpaper.info('检测到跨天，强制刷新壁纸缓存');
-        // 🔧 修复: 清理昨天和今天的缓存，防止使用旧壁纸
+        logger.wallpaper.info('检测到跨天或今天未成功更新，强制刷新壁纸缓存');
+        // 🔧 修复: 清理今天的缓存，防止使用旧壁纸
         await this.clearTodayCache(resolution);
         // 清理昨天的缓存，防止降级到旧壁纸
         const yesterdayKey = this.getYesterdayCacheKey(resolution);
@@ -501,6 +563,9 @@ class OptimizedWallpaperService {
 
       const downloaded = await this.downloadAndCache(wallpaperUrl, resolution);
 
+      // 🔧 修复: 下载成功后才标记今天已更新
+      this.markUpdateSuccess(resolution);
+
       return {
         url: downloaded.blobUrl,
         isFromCache: false,
@@ -526,11 +591,19 @@ class OptimizedWallpaperService {
     try {
       const wallpaperUrl = await this.getWallpaperUrl(resolution);
       if (wallpaperUrl !== this.fallbackImage) {
-        await this.downloadAndCache(wallpaperUrl, resolution);
-        logger.wallpaper.info('后台壁纸更新完成');
+        const result = await this.downloadAndCache(wallpaperUrl, resolution);
+
+        // 检查是否是 Fallback 壁纸（从 downloadAndCache 的日志可以看到）
+        // Fallback 壁纸不设置成功标记，允许后续重试
+        if (result.blobUrl) {
+          this.markUpdateSuccess(resolution);
+          logger.wallpaper.info('后台壁纸更新完成');
+        }
       }
     } catch (error) {
-      logger.wallpaper.warn('后台壁纸更新失败', error);
+      logger.wallpaper.warn('后台壁纸更新失败，安排重试', error);
+      // 🔧 修复: 失败时安排延迟重试
+      this.scheduleRetry(resolution);
     }
   }
 

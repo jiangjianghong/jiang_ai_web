@@ -132,24 +132,14 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
   };
 
   // 壁纸加载 - 统一处理挂载和分辨率变化
+  // 注意：所有日期检测逻辑都在 optimizedWallpaperService 中统一处理
   useEffect(() => {
     const loadWallpaper = async () => {
       try {
         logger.debug('🖼️ 开始加载壁纸，分辨率:', wallpaperResolution);
         setBgImageLoaded(false);
 
-        // 检查是否需要新的壁纸（跨天检查）
-        const today = new Date().toISOString().split('T')[0];
-        const lastWallpaperDateKey = `last-wallpaper-date-${wallpaperResolution}`;
-        const lastWallpaperDate = localStorage.getItem(lastWallpaperDateKey);
-
-        // 如果是新的一天，记录日期
-        const shouldRefreshForNewDay = lastWallpaperDate !== today;
-        if (shouldRefreshForNewDay) {
-          localStorage.setItem(lastWallpaperDateKey, today);
-          logger.debug('🌅 检测到新的一天，将在后续触发壁纸更新');
-        }
-
+        // 调用壁纸服务获取壁纸（日期检测和缓存逻辑在服务中统一处理）
         const result = await optimizedWallpaperService.getWallpaper(wallpaperResolution);
 
         if (result.url) {

@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { useState, useRef, useEffect, memo } from 'react';
+import { useState, useRef, useEffect, memo, useCallback } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import Tilt from 'react-parallax-tilt';
 import CardEditModal from './CardEditModal';
@@ -145,20 +145,20 @@ export const WebsiteCard = memo(function WebsiteCardComponent({
   }, []);
 
   // 处理卡片悬停效果（简化版）
-  const handleMouseEnter = () => {
+  const handleMouseEnter = useCallback(() => {
     if (!isMobile && !isDragging) {
       setIsHovered(true);
     }
-  };
+  }, [isMobile, isDragging]);
 
-  const handleMouseLeave = () => {
+  const handleMouseLeave = useCallback(() => {
     if (!isMobile) {
       setIsHovered(false);
     }
-  };
+  }, [isMobile]);
 
   // 处理卡片点击动画
-  const handleCardClick = () => {
+  const handleCardClick = useCallback(() => {
     if (isMobile) {
       setClickAnimation(true);
       setTimeout(() => setClickAnimation(false), 200);
@@ -187,7 +187,7 @@ export const WebsiteCard = memo(function WebsiteCardComponent({
       visitCount: visitCount + 1,
       lastVisit: new Date().toISOString().split('T')[0],
     });
-  };
+  }, [isMobile, searchInNewTab, url, id, name, favicon, tags, note, visitCount, onSave]);
 
   // 移动端长按菜单
   const handleLongPress = () => {

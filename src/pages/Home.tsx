@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { WebsiteCard } from '@/components/WebsiteCard';
 import { SearchBar } from '@/components/SearchBar';
 import { TimeDisplay } from '@/components/TimeDisplay';
@@ -173,18 +173,20 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
   }, [wallpaperResolution]); // 分辨率变化时重新加载
 
   // 根据设置决定是否自动排序卡片
-  const displayWebsites = autoSortEnabled
-    ? [...websites].sort((a, b) => {
-      // 首先按访问次数降序排序
-      const visitDiff = (b.visitCount || 0) - (a.visitCount || 0);
-      if (visitDiff !== 0) return visitDiff;
+  const displayWebsites = useMemo(() => {
+    return autoSortEnabled
+      ? [...websites].sort((a, b) => {
+        // 首先按访问次数降序排序
+        const visitDiff = (b.visitCount || 0) - (a.visitCount || 0);
+        if (visitDiff !== 0) return visitDiff;
 
-      // 如果访问次数相同，按最后访问时间降序排序
-      const dateA = new Date(a.lastVisit || '2000-01-01').getTime();
-      const dateB = new Date(b.lastVisit || '2000-01-01').getTime();
-      return dateB - dateA;
-    })
-    : websites;
+        // 如果访问次数相同，按最后访问时间降序排序
+        const dateA = new Date(a.lastVisit || '2000-01-01').getTime();
+        const dateB = new Date(b.lastVisit || '2000-01-01').getTime();
+        return dateB - dateA;
+      })
+      : websites;
+  }, [websites, autoSortEnabled]);
 
   const handleSaveCard = useCallback((updatedCard: {
     id: string;

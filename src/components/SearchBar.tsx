@@ -590,8 +590,111 @@ function SearchBarComponent(props: SearchBarProps = {}) {
     return `https://${trimmedInput}`;
   };
 
-  // 生成搜索建议 - 使用百度联想API (带CORS处理)
-  const generateSuggestions = async (query: string): Promise<any[]> => {
+  // 生成智能搜索建议 - 移出渲染路径
+  const generateSmartSuggestions = useCallback((query: string) => {
+    const suggestions = [];
+    const queryLower = query.toLowerCase();
+
+    // 常见的搜索模式
+    const patterns = [
+      query, // 原始查询
+      `${query} 是什么`,
+      `${query} 怎么用`,
+      `${query} 教程`,
+      `如何 ${query}`,
+      `${query} 下载`,
+      `${query} 官网`,
+      `${query} 价格`,
+    ];
+
+    // 根据查询内容智能生成建议
+    if (queryLower.includes('什么') || queryLower.includes('how')) {
+      suggestions.push(`${query}`, `${query} 详解`, `${query} 原理`);
+    } else if (queryLower.includes('怎么') || queryLower.includes('如何')) {
+      suggestions.push(`${query}`, `${query} 步骤`, `${query} 方法`);
+    } else {
+      suggestions.push(...patterns);
+    }
+
+    // 移除重复并返回
+    return [...new Set(suggestions)];
+  }, []);
+
+  // 拼音索引缓存 - 为每个网站生成拼音索引
+  const pinyinIndexCache = useMemo(() => {
+    const cache = new Map<string, { full: string; first: string; original: string }>();
+
+    const getPinyinIndex = (text: string) => {
+      if (cache.has(text)) return cache.get(text)!;
+
+      const result = {
+        full: pinyin(text, { toneType: 'none', type: 'array' }).join('').toLowerCase(),
+        first: pinyin(text, { pattern: 'first', type: 'array' }).join('').toLowerCase(),
+        original: text.toLowerCase(),
+      };
+      cache.set(text, result);
+      return result;
+    };
+
+    return { getPinyinIndex, cache };
+  }, []);
+
+  // 拼音匹配函数
+  const matchWithPinyin = useCallback((query: string, text: string): { matched: boolean; score: number; matchType: string } => {
+    const queryLower = query.toLowerCase();
+    const { getPinyinIndex } = pinyinIndexCache;
+    const index = getPinyinIndex(text);
+
+    // 1. 原文完全匹配 (最高分)
+    if (index.original === queryLower) {
+      return { matched: true, score: 150, matchType: '完全匹配' };
+    }
+
+    // 2. 原文开头匹配
+    if (index.original.startsWith(queryLower)) {
+      return { matched: true, score: 130, matchType: '开头匹配' };
+    }
+
+    // 3. 原文包含匹配
+    if (index.original.includes(queryLower)) {
+      return { matched: true, score: 100, matchType: '包含匹配' };
+    }
+
+    // 4. 拼音首字母完全匹配 (如: bd -> 百度)
+    if (index.first === queryLower) {
+      return { matched: true, score: 120, matchType: '首字母' };
+    }
+
+    // 5. 拼音首字母开头匹配
+    if (index.first.startsWith(queryLower)) {
+      return { matched: true, score: 95, matchType: '首字母' };
+    }
+
+    // 6. 全拼完全匹配 (如: baidu -> 百度)
+    if (index.full === queryLower) {
+      return { matched: true, score: 110, matchType: '全拼' };
+    }
+
+    // 7. 全拼开头匹配
+    if (index.full.startsWith(queryLower)) {
+      return { matched: true, score: 90, matchType: '全拼' };
+    }
+
+    // 8. 全拼包含匹配
+    if (index.full.includes(queryLower) && queryLower.length >= 2) {
+      return { matched: true, score: 70, matchType: '全拼' };
+    }
+
+    // 9. 智能拼音匹配 (支持部分匹配，如: baid -> 百度)
+    const smartMatch = pinyinMatch(text, query, { continuous: true });
+    if (smartMatch !== null) {
+      return { matched: true, score: 85, matchType: '智能拼音' };
+    }
+
+    return { matched: false, score: 0, matchType: '' };
+  }, [pinyinIndexCache]);
+
+  const generateSuggestions = useCallback(async (query: string): Promise<any[]> => {
     if (!query.trim()) return [];
 
     try {
@@ -674,120 +777,16 @@ function SearchBarComponent(props: SearchBarProps = {}) {
 
       // 备用方案：使用本地智能建议
       const suggestions = generateSmartSuggestions(query);
-      return suggestions.slice(0, 5).map((suggestion, index) => ({
+      return Promise.resolve(suggestions.slice(0, 5).map((suggestion, index) => ({
         id: `local-${index}`,
         text: suggestion,
         query: suggestion,
-      }));
+      })));
     }
-  };
-
-  // 生成智能搜索建议
-  const generateSmartSuggestions = (query: string) => {
-    const suggestions = [];
-    const queryLower = query.toLowerCase();
-
-    // 常见的搜索模式
-    const patterns = [
-      query, // 原始查询
-      `${query} 是什么`,
-      `${query} 怎么用`,
-      `${query} 教程`,
-      `如何 ${query}`,
-      `${query} 下载`,
-      `${query} 官网`,
-      `${query} 价格`,
-    ];
-
-    // 根据查询内容智能生成建议
-    if (queryLower.includes('什么') || queryLower.includes('how')) {
-      suggestions.push(`${query}`, `${query} 详解`, `${query} 原理`);
-    } else if (queryLower.includes('怎么') || queryLower.includes('如何')) {
-      suggestions.push(`${query}`, `${query} 步骤`, `${query} 方法`);
-    } else {
-      suggestions.push(...patterns);
-    }
-
-    // 移除重复并返回
-    return [...new Set(suggestions)];
-  };
-
-  // 拼音索引缓存 - 为每个网站生成拼音索引
-  const pinyinIndexCache = useMemo(() => {
-    const cache = new Map<string, { full: string; first: string; original: string }>();
-
-    const getPinyinIndex = (text: string) => {
-      if (cache.has(text)) return cache.get(text)!;
-
-      const result = {
-        full: pinyin(text, { toneType: 'none', type: 'array' }).join('').toLowerCase(),
-        first: pinyin(text, { pattern: 'first', type: 'array' }).join('').toLowerCase(),
-        original: text.toLowerCase(),
-      };
-      cache.set(text, result);
-      return result;
-    };
-
-    return { getPinyinIndex, cache };
-  }, []);
-
-  // 拼音匹配函数
-  const matchWithPinyin = useCallback((query: string, text: string): { matched: boolean; score: number; matchType: string } => {
-    const queryLower = query.toLowerCase();
-    const { getPinyinIndex } = pinyinIndexCache;
-    const index = getPinyinIndex(text);
-
-    // 1. 原文完全匹配 (最高分)
-    if (index.original === queryLower) {
-      return { matched: true, score: 150, matchType: '完全匹配' };
-    }
-
-    // 2. 原文开头匹配
-    if (index.original.startsWith(queryLower)) {
-      return { matched: true, score: 130, matchType: '开头匹配' };
-    }
-
-    // 3. 原文包含匹配
-    if (index.original.includes(queryLower)) {
-      return { matched: true, score: 100, matchType: '包含匹配' };
-    }
-
-    // 4. 拼音首字母完全匹配 (如: bd -> 百度)
-    if (index.first === queryLower) {
-      return { matched: true, score: 120, matchType: '首字母' };
-    }
-
-    // 5. 拼音首字母开头匹配
-    if (index.first.startsWith(queryLower)) {
-      return { matched: true, score: 95, matchType: '首字母' };
-    }
-
-    // 6. 全拼完全匹配 (如: baidu -> 百度)
-    if (index.full === queryLower) {
-      return { matched: true, score: 110, matchType: '全拼' };
-    }
-
-    // 7. 全拼开头匹配
-    if (index.full.startsWith(queryLower)) {
-      return { matched: true, score: 90, matchType: '全拼' };
-    }
-
-    // 8. 全拼包含匹配
-    if (index.full.includes(queryLower) && queryLower.length >= 2) {
-      return { matched: true, score: 70, matchType: '全拼' };
-    }
-
-    // 9. 智能拼音匹配 (支持部分匹配，如: baid -> 百度)
-    const smartMatch = pinyinMatch(text, query, { continuous: true });
-    if (smartMatch !== null) {
-      return { matched: true, score: 85, matchType: '智能拼音' };
-    }
-
-    return { matched: false, score: 0, matchType: '' };
-  }, [pinyinIndexCache]);
+  }, [generateSmartSuggestions]);
 
   // 搜索网站卡片 - 智能匹配算法（支持拼音搜索）
-  const searchWebsites = (query: string): WebsiteData[] => {
+  const searchWebsites = useCallback((query: string): WebsiteData[] => {
     if (!query.trim() || websites.length === 0 || query.trim().length < 1) return [];
 
     const queryLower = query.toLowerCase();
@@ -867,7 +866,7 @@ function SearchBarComponent(props: SearchBarProps = {}) {
         ...match.website,
         matchType: match.matchType,
       }));
-  };
+  }, [websites, matchWithPinyin]);
 
   // 计算字符串相似度 (简化版Levenshtein距离)
   const calculateSimilarity = (str1: string, str2: string): number => {

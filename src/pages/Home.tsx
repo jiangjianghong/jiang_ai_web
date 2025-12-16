@@ -39,12 +39,12 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
   const { triggerSync } = useAutoSync(websites, dataInitialized);
 
   // 拖拽排序逻辑
-  const moveCard = (dragIndex: number, hoverIndex: number) => {
+  const moveCard = useCallback((dragIndex: number, hoverIndex: number) => {
     const newWebsites = [...websites];
     const [removed] = newWebsites.splice(dragIndex, 1);
     newWebsites.splice(hoverIndex, 0, removed);
     setWebsites(newWebsites);
-  };
+  }, [websites, setWebsites]);
 
   const [bgImage, setBgImage] = useState('');
   const [bgOriginalUrl, setBgOriginalUrl] = useState<string | undefined>(); // 原始URL用于收藏检测
@@ -186,7 +186,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
     })
     : websites;
 
-  const handleSaveCard = (updatedCard: {
+  const handleSaveCard = useCallback((updatedCard: {
     id: string;
     name: string;
     url: string;
@@ -199,7 +199,11 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
     setWebsites(
       websites.map((card) => (card.id === updatedCard.id ? { ...card, ...updatedCard } : card))
     );
-  };
+  }, [websites, setWebsites]);
+
+  const handleDelete = useCallback((id: string) => {
+    setWebsites(websites.filter((card) => card.id !== id));
+  }, [websites, setWebsites]);
 
   // 壁纸加载已在上方统一处理
 
@@ -406,9 +410,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
                   index={originalIndex}
                   moveCard={moveCard}
                   onSave={handleSaveCard}
-                  onDelete={(id) => {
-                    setWebsites(websites.filter((card) => card.id !== id));
-                  }}
+                  onDelete={handleDelete}
                   onCardSave={triggerSync}
                 />
               );

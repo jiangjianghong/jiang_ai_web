@@ -8,6 +8,7 @@ import { TodoModal } from './TodoModal';
 import { processFaviconUrl } from '@/lib/faviconUtils';
 import { pinyin, match as pinyinMatch } from 'pinyin-pro';
 import { userStatsManager } from '@/hooks/useUserStats';
+import { createTomatoRain } from './effects/TomatoRain';
 
 interface WebsiteData {
   id: string;
@@ -984,6 +985,13 @@ function SearchBarComponent(props: SearchBarProps = {}) {
 
   // 监听搜索查询变化，更新建议（优化逻辑：同时显示网站卡片和搜索建议）
   useEffect(() => {
+    // 彩蛋：番茄雨 (实时触发)
+    const queryLower = searchQuery.toLowerCase().trim();
+    if (['tomato', '番茄', '西红柿'].includes(queryLower)) {
+      console.log('Triggering tomato rain easter egg!');
+      createTomatoRain();
+    }
+
     const debounceTimer = setTimeout(() => {
       if (searchQuery.trim()) {
         const queryLower = searchQuery.toLowerCase();
@@ -1432,6 +1440,16 @@ function SearchBarComponent(props: SearchBarProps = {}) {
         setShowSuggestions(false);
         setWebsiteSuggestions([]);
       } else {
+        // 彩蛋：番茄雨 (回车触发)
+        if (['tomato', '番茄', '西红柿'].includes(queryToSearch.toLowerCase().trim())) {
+          console.log('Triggering tomato rain easter egg (Enter key)!');
+          createTomatoRain();
+          setSearchQuery('');
+          setShowSuggestions(false);
+          setWebsiteSuggestions([]);
+          return;
+        }
+
         // 搜索引擎搜索
         performSearchWithStats(engine, queryToSearch);
         setSearchQuery('');

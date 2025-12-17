@@ -1,20 +1,45 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>使用指南</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- FontAwesome 6.7.2 (Consistent with main app) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!-- Tailwind CSS (For utility classes used in new sections) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            corePlugins: {
+                preflight: false, // Disable preflight to protect existing 'style.css' styles
+                container: false, // Disable container plugin to prevent conflict with .container in style.css
+            },
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#635bff',
+                        secondary: '#5e6670',
+                    }
+                }
+            }
+        }
+    </script>
 </head>
+
 <body>
     <!-- 头部导航 -->
     <header class="header">
         <div class="header-container">
             <a href="/" class="logo">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M4 4h16v16H4V4z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-                    <path d="M9 9h6M9 12h6M9 15h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M4 4h16v16H4V4z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+                    <path d="M9 9h6M9 12h6M9 15h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
                 </svg>
                 <span>文档</span>
             </a>
@@ -79,7 +104,9 @@
                     <div class="feature">
                         <div class="feature-icon">
                             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                                <path d="M10 2L3 7v6c0 3.86 2.67 7.47 6.5 8.35.5.11 1-.01 1.35-.35.12-.12.21-.27.26-.43C14.83 19.53 17 15.86 17 12V7l-7-5z" fill="#10B981"/>
+                                <path
+                                    d="M10 2L3 7v6c0 3.86 2.67 7.47 6.5 8.35.5.11 1-.01 1.35-.35.12-.12.21-.27.26-.43C14.83 19.53 17 15.86 17 12V7l-7-5z"
+                                    fill="#10B981" />
                             </svg>
                         </div>
                         <div class="feature-content">
@@ -90,7 +117,8 @@
                     <div class="feature">
                         <div class="feature-icon">
                             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                                <path d="M4 5h12M4 10h12M4 15h12" stroke="#3B82F6" stroke-width="2" stroke-linecap="round"/>
+                                <path d="M4 5h12M4 10h12M4 15h12" stroke="#3B82F6" stroke-width="2"
+                                    stroke-linecap="round" />
                             </svg>
                         </div>
                         <div class="feature-content">
@@ -101,7 +129,7 @@
                     <div class="feature">
                         <div class="feature-icon">
                             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                                <path d="M10 2v16M3 9h14" stroke="#8B5CF6" stroke-width="2" stroke-linecap="round"/>
+                                <path d="M10 2v16M3 9h14" stroke="#8B5CF6" stroke-width="2" stroke-linecap="round" />
                             </svg>
                         </div>
                         <div class="feature-content">
@@ -114,20 +142,301 @@
 
             <!-- 注册与登录 -->
             <section id="register-login" class="section">
-                <h2>注册与登录</h2>
-                <p>XXX</p>
+                <div class="flex items-center gap-3 mb-6">
+                    <div
+                        class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-lg">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-800 m-0">注册与登录详解</h2>
+                </div>
+
+                <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm mb-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-key text-blue-500"></i>
+                        账号安全与规则
+                    </h3>
+                    <p class="text-gray-600 mb-4 leading-relaxed">
+                        我们的账号系统基于 Supabase 构建，提供企业级的安全认证。以下是详细的注册与使用规则：
+                    </p>
+
+                    <div class="space-y-6">
+                        <div class="bg-blue-50 rounded-xl p-4">
+                            <h4 class="font-bold text-blue-800 mb-2 text-sm uppercase tracking-wider">注册限制规则</h4>
+                            <ul class="space-y-2 text-sm text-blue-900">
+                                <li class="flex items-start gap-2">
+                                    <i class="fa-solid fa-check mt-1 opacity-60"></i>
+                                    <span><strong>用户名：</strong>必须在 2-20 个字符之间。支持中文、英文字母、数字、下划线 (_) 和短横线
+                                        (-)。不仅作为显示名称，也是您的唯一标识。</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <i class="fa-solid fa-check mt-1 opacity-60"></i>
+                                    <span><strong>邮箱验证：</strong>注册后通过正则表达式 <code>/^[^\s@]+@[^\s@]+\.[^\s@]+$/</code>
+                                        严格校验格式。必须完成邮箱验证才能解锁云端同步功能。</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <i class="fa-solid fa-check mt-1 opacity-60"></i>
+                                    <span><strong>密码强度：</strong>最低要求 6 位字符。建议使用强密码以保护您的 Notion API 密钥等敏感数据。</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="flex items-start gap-3">
+                            <div class="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2.5"></div>
+                            <div>
+                                <span class="font-medium text-gray-800">第三方快捷登录：</span>
+                                <div class="mt-2 grid grid-cols-1 md:grid-cols-3 gap-2">
+                                    <div
+                                        class="flex items-center gap-2 text-sm text-gray-600 bg-gray-50 p-2 rounded border border-gray-100">
+                                        <i class="fa-brands fa-google text-red-500"></i> Google 账号
+                                    </div>
+                                    <div
+                                        class="flex items-center gap-2 text-sm text-gray-600 bg-gray-50 p-2 rounded border border-gray-100">
+                                        <i class="fa-brands fa-github text-gray-900"></i> GitHub 开发者
+                                    </div>
+                                    <div
+                                        class="flex items-center gap-2 text-sm text-gray-600 bg-gray-50 p-2 rounded border border-gray-100">
+                                        <img src="https://www.notion.so/images/favicon.ico" class="w-4 h-4"
+                                            alt="Notion"> Notion 账号
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-3">
+                            <div class="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2.5"></div>
+                            <div>
+                                <span class="font-medium text-gray-800">安全机制：</span>
+                                <span class="text-gray-600 text-sm block mt-1">
+                                    系统内置了冷却机制（Cooldown），发送验证邮件或重置密码邮件后需等待 <strong>60秒</strong> 方可再次操作，防止恶意请求。
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 rounded-xl overflow-hidden shadow-lg border border-gray-200">
+                        <img src="test.png" alt="登录注册界面演示" class="w-full object-cover bg-gray-50" />
+                        <div class="bg-gray-50 px-4 py-2 text-xs text-gray-500 text-center">完整的注册校验与错误提示系统</div>
+                    </div>
+                </div>
             </section>
 
             <!-- 卡片配置 -->
             <section id="card-config" class="section">
-                <h2>卡片配置</h2>
-                <p>XXX</p>
+                <div class="flex items-center gap-3 mb-6">
+                    <div
+                        class="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white shadow-lg">
+                        <i class="fa-solid fa-layer-group"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-800 m-0">卡片配置深度指南</h2>
+                </div>
+
+                <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm mb-6">
+                    <p class="text-gray-600 mb-6 leading-relaxed">
+                        卡片不仅仅是链接，它是高度可定制的入口。我们采用了智能抓取和多级缓存技术，确保最佳的加载速度和视觉体验。
+                    </p>
+
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="space-y-4">
+                            <h3 class="font-semibold text-gray-800 flex items-center gap-2">
+                                <i class="fa-solid fa-sliders text-violet-500"></i>
+                                参数详解
+                            </h3>
+                            <div class="bg-gray-50 rounded-lg p-4 space-y-3">
+                                <div class="text-sm">
+                                    <strong class="text-gray-800 block mb-1">网址规范 (URL)</strong>
+                                    <p class="text-gray-600">必须以 <code>http://</code> 或 <code>https://</code> 开头。系统会自动校验
+                                        URL 有效性。</p>
+                                </div>
+                                <div class="text-sm">
+                                    <strong class="text-gray-800 block mb-1">标签系统 (Tags)</strong>
+                                    <p class="text-gray-600">每个卡片最多支持 <strong>2个</strong> 标签。输入标签名后按回车添加。标签将极大提高搜索权重。
+                                    </p>
+                                </div>
+                                <div class="text-sm">
+                                    <strong class="text-gray-800 block mb-1">图标 (Favicon)</strong>
+                                    <p class="text-gray-600">支持网络 URL 或本地上传图片（自动转为 Base64 或上传至云存储）。</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-4">
+                            <h3 class="font-semibold text-gray-800 flex items-center gap-2">
+                                <i class="fa-solid fa-wand-magic-sparkles text-violet-500"></i>
+                                自动获取技术 (Auto-Fetch)
+                            </h3>
+                            <div class="text-sm text-gray-600 space-y-2">
+                                <p>点击"自动获取"时，系统会通过以下 <strong>5重策略</strong> 尝试获取最佳图标（按优先级）：</p>
+                                <ol class="list-decimal pl-5 space-y-1">
+                                    <li><strong>Favicon.im 优化代理：</strong>通过代理加速访问，解决跨域问题。</li>
+                                    <li><strong>Google S2 服务：</strong>全球通用的图标抓取服务 (64px 高清)。</li>
+                                    <li><strong>DuckDuckGo Icons：</strong>备用图标源。</li>
+                                    <li><strong>域名根目录：</strong>尝试直接访问 <code>/favicon.ico</code>。</li>
+                                    <li><strong>本地默认：</strong>如果全部失败，使用系统默认图标兜底。</li>
+                                </ol>
+                                <p class="text-xs text-violet-600 mt-2 bg-violet-50 p-2 rounded">
+                                    <i class="fa-solid fa-bolt"></i> 提示：系统会自动清除旧的图标缓存，确保您获取到网站最新的品牌标识。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 pt-4 border-t border-gray-100">
+                        <h4 class="font-semibold text-gray-800 mb-3">交互细节</h4>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                            <div class="p-3 bg-gray-50 rounded border border-gray-200 text-center">
+                                <div class="font-bold text-gray-700">视差效果 (Tilt)</div>
+                                <div class="text-xs text-gray-500 mt-1">编辑弹窗支持 3D 视差交互</div>
+                            </div>
+                            <div class="p-3 bg-gray-50 rounded border border-gray-200 text-center">
+                                <div class="font-bold text-gray-700">ESC 关闭</div>
+                                <div class="text-xs text-gray-500 mt-1">所有弹窗均支持键盘关闭</div>
+                            </div>
+                            <div class="p-3 bg-gray-50 rounded border border-gray-200 text-center">
+                                <div class="font-bold text-gray-700">拖拽排序</div>
+                                <div class="text-xs text-gray-500 mt-1">需先关闭"自动排序"功能</div>
+                            </div>
+                            <div class="p-3 bg-gray-50 rounded border border-gray-200 text-center">
+                                <div class="font-bold text-gray-700">备注搜索</div>
+                                <div class="text-xs text-gray-500 mt-1">备注内容也会被索引</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </section>
 
             <!-- 搜索 -->
             <section id="search" class="section">
-                <h2>搜索</h2>
-                <p>XXX</p>
+                <div class="flex items-center gap-3 mb-6">
+                    <div
+                        class="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-white shadow-lg">
+                        <i class="fa-solid fa-search"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-800 m-0">搜索与命令系统详解</h2>
+                </div>
+
+                <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm mb-6">
+                    <p class="text-gray-600 mb-6 leading-relaxed">
+                        搜索框是本应用的控制中枢。它不仅支持多引擎搜索，还集成了完整的<strong>命令行系统 (Command Line)</strong>，让您无需鼠标即可掌控全局。
+                    </p>
+
+                    <!-- 快捷指令表 -->
+                    <div class="mb-8">
+                        <h3 class="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-terminal text-orange-500"></i>
+                            系统级指令 (Commands)
+                        </h3>
+                        <div class="overflow-hidden border border-gray-200 rounded-xl">
+                            <table class="w-full text-sm text-left">
+                                <thead class="bg-gray-50 text-gray-700 font-semibold">
+                                    <tr>
+                                        <th class="px-4 py-3 border-b">指令 (支持中英文)</th>
+                                        <th class="px-4 py-3 border-b">功能</th>
+                                        <th class="px-4 py-3 border-b">示例</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100">
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-4 py-2"><code class="bg-gray-100 px-1 py-0.5 rounded">/todo</code>
+                                            或 <code>待办</code></td>
+                                        <td class="px-4 py-2">打开待办事项清单</td>
+                                        <td class="px-4 py-2 text-gray-500">todo</td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-4 py-2"><code
+                                                class="bg-gray-100 px-1 py-0.5 rounded">todo: [内容]</code></td>
+                                        <td class="px-4 py-2"><strong>直接添加</strong>一条待办事项</td>
+                                        <td class="px-4 py-2 text-gray-500">todo: 买牛奶</td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-4 py-2"><code
+                                                class="bg-gray-100 px-1 py-0.5 rounded">workspace</code> 或
+                                            <code>工作</code>
+                                        </td>
+                                        <td class="px-4 py-2">打开 Notion 工作空间</td>
+                                        <td class="px-4 py-2 text-gray-500">work</td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-4 py-2"><code
+                                                class="bg-gray-100 px-1 py-0.5 rounded">settings</code> 或
+                                            <code>设置</code>
+                                        </td>
+                                        <td class="px-4 py-2">打开系统设置面板</td>
+                                        <td class="px-4 py-2 text-gray-500">config</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-6 mb-6">
+                        <!-- AI 助手矩阵 -->
+                        <div class="space-y-3">
+                            <h3 class="font-semibold text-gray-800 flex items-center gap-2">
+                                <i class="fa-solid fa-robot text-blue-500"></i>
+                                集成 8 大 AI 模型
+                            </h3>
+                            <p class="text-sm text-gray-600">点击搜索框下方的图标可直达 AI 助手。我们精心挑选了全球最强和国内最快的大模型：</p>
+                            <div class="grid grid-cols-4 gap-2 text-center text-xs text-gray-500">
+                                <div class="bg-gray-50 p-2 rounded">ChatGPT</div>
+                                <div class="bg-gray-50 p-2 rounded">Gemini</div>
+                                <div class="bg-gray-50 p-2 rounded">Deepseek</div>
+                                <div class="bg-gray-50 p-2 rounded">Kimi</div>
+                                <div class="bg-gray-50 p-2 rounded">Grok</div>
+                                <div class="bg-gray-50 p-2 rounded">Claude</div>
+                                <div class="bg-gray-50 p-2 rounded">智谱</div>
+                                <div class="bg-gray-50 p-2 rounded">通义千问</div>
+                            </div>
+                        </div>
+
+                        <!-- 搜索算法 -->
+                        <div class="space-y-3">
+                            <h3 class="font-semibold text-gray-800 flex items-center gap-2">
+                                <i class="fa-solid fa-microchip text-green-500"></i>
+                                智能权重算法
+                            </h3>
+                            <p class="text-sm text-gray-600">搜索本地卡片时，系统会基于复杂算法对结果进行排序，确保最相关的结果排在第一位：</p>
+                            <ul class="space-y-1 text-sm text-gray-600">
+                                <li class="flex justify-between">
+                                    <span>1. 完全或拼音匹配</span>
+                                    <span class="font-mono text-xs bg-green-100 text-green-700 px-1 rounded">150分</span>
+                                </li>
+                                <li class="flex justify-between">
+                                    <span>2. 名称/首字母开头</span>
+                                    <span class="font-mono text-xs bg-green-100 text-green-700 px-1 rounded">130分</span>
+                                </li>
+                                <li class="flex justify-between">
+                                    <span>3. 标签匹配</span>
+                                    <span class="font-mono text-xs bg-blue-100 text-blue-700 px-1 rounded">权重
+                                        x0.8</span>
+                                </li>
+                                <li class="flex justify-between">
+                                    <span>4. 访问频率加权</span>
+                                    <span class="font-mono text-xs bg-purple-100 text-purple-700 px-1 rounded">Max
+                                        +20分</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4 border-t border-gray-100 pt-4">
+                        <h3 class="font-semibold text-gray-800">极客功能 (Power User)</h3>
+                        <ul class="space-y-2 text-sm text-gray-600">
+                            <li class="flex items-center gap-2">
+                                <span class="w-1.5 h-1.5 rounded-full bg-orange-400"></span>
+                                <span><strong>Visual Feedbacks：</strong>切换搜索引擎（Tab键）时会触发粒子烟花特效，不仅是视觉糖果，更是操作确认。</span>
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <span class="w-1.5 h-1.5 rounded-full bg-orange-400"></span>
+                                <span><strong>CORS 穿透建议：</strong>底层使用 JSONP 技术绕过浏览器跨域限制，直连百度 API 获取实时搜索热词搜索建议。</span>
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <span class="w-1.5 h-1.5 rounded-full bg-orange-400"></span>
+                                <span><strong>URL 智能识别：</strong>输入 <code>localhost:3000</code> 或 IP
+                                    地址时，系统会自动识别为直达链接而非搜索词。</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
             </section>
 
             <!-- 工作空间 -->
@@ -259,7 +568,8 @@
                     <div class="substep">
                         <h3>创建集成</h3>
                         <p>
-                            访问 <a href="https://www.notion.so/my-integrations" target="_blank" rel="noopener">Notion 集成页面</a>，
+                            访问 <a href="https://www.notion.so/my-integrations" target="_blank" rel="noopener">Notion
+                                集成页面</a>，
                             点击"新建集成"。
                         </p>
                         <div class="image-container" data-src="image-8.png">
@@ -293,7 +603,8 @@
                 <h2><span class="step-number">5</span>安装 Notion Web Clipper</h2>
                 <p>
                     为了方便地保存网页到 Notion 数据库，建议安装
-                    <a href="https://chrome.google.com/webstore/detail/notion-web-clipper/knheggckgoiihginacbkhaalnibhilkk" target="_blank" rel="noopener">
+                    <a href="https://chrome.google.com/webstore/detail/notion-web-clipper/knheggckgoiihginacbkhaalnibhilkk"
+                        target="_blank" rel="noopener">
                         Notion Web Clipper 扩展
                     </a>。
                 </p>
@@ -361,7 +672,8 @@
 
                 <div class="success-message">
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M10 0C4.48 0 0 4.48 0 10s4.48 10 10 10 10-4.48 10-10S15.52 0 10 0zm-1 15l-5-5 1.41-1.41L9 12.17l7.59-7.59L18 6l-9 9z"/>
+                        <path
+                            d="M10 0C4.48 0 0 4.48 0 10s4.48 10 10 10 10-4.48 10-10S15.52 0 10 0zm-1 15l-5-5 1.41-1.41L9 12.17l7.59-7.59L18 6l-9 9z" />
                     </svg>
                     <span>配置完成！现在你可以在工作空间中管理你的 Notion 数据了。</span>
                 </div>
@@ -369,28 +681,83 @@
 
             <!-- 使用技巧 -->
             <section id="tips" class="section">
-                <h2>使用技巧</h2>
-                <ul class="tips-list">
-                    <li>刷新页面即可同步最新的 Notion 数据</li>
-                    <li>可以在 Notion 中直接编辑条目，修改会实时同步</li>
-                    <li>使用分类标签可以更好地组织内容</li>
-                    <li>描述字段有助于搜索，建议填写关键词</li>
-                    <li>包含账号密码的条目会有特殊标记</li>
-                </ul>
+                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-lightbulb text-yellow-500"></i>
+                        高阶使用技巧
+                    </h2>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <h3 class="font-medium text-gray-800 mb-2">待办事项 (Todo) 彩蛋</h3>
+                            <ul class="tips-list text-sm text-gray-600 space-y-2">
+                                <li><strong>庆祝特效：</strong>每当你勾选完成一个任务时，鼠标位置会触发粒子烟花庆祝特效。</li>
+                                <li><strong>记事本模式：</strong>点击任务进入编辑，界面会变成横线记事本风格，支持多行文本 (最大 400 字符)。</li>
+                                <li><strong>智能排序：</strong>未完成的任务可自定义排序（拖拽即将上线），已完成的任务自动按时间沉底。</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 class="font-medium text-gray-800 mb-2">壁纸与视觉</h3>
+                            <ul class="tips-list text-sm text-gray-600 space-y-2">
+                                <li><strong>全局拖拽上传：</strong>将任意图片文件拖入网页任意位置，即可立即将其设为自定义壁纸。</li>
+                                <li><strong>沉浸模式：</strong>鼠标静止 3 秒后，搜索框和卡片会自动降低透明度或隐藏（取决于设置），只展示精美壁纸。</li>
+                                <li><strong>动态模糊：</strong>所有弹窗背景均采用实时 <code>backdrop-filter: blur()</code> 毛玻璃效果。</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
             </section>
 
             <!-- 隐私说明 -->
             <section id="privacy" class="section">
-                <h2>隐私说明</h2>
-                <div class="privacy-notice">
-                    <p>
-                        <strong>数据安全：</strong>工作空间的所有数据仅存储在你的浏览器本地缓存中，
-                        不会上传到我们的服务器。API 密钥等敏感信息均采用加密存储。
-                    </p>
-                    <p>
-                        <strong>权限说明：</strong>网站仅读取你授权的 Notion 数据库，
-                        不会访问你的其他 Notion 内容。
-                    </p>
+                <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-shield-halved text-green-500"></i>
+                        隐私与数据架构
+                    </h2>
+                    <div class="privacy-notice space-y-6">
+                        <div class="flex gap-4">
+                            <div
+                                class="flex-shrink-0 w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-green-600">
+                                <i class="fa-solid fa-database"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-gray-800">本地优先架构 (Local-First)</h4>
+                                <p class="text-sm text-gray-600 mt-1">
+                                    我们的核心架构基于 <strong>IndexedDB</strong> 和
+                                    <strong>LocalStorage</strong>。您的搜索历史、未登录状态下的卡片配置、UI 偏好设置等均完全存储在您的浏览器本地数据库中。
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-4">
+                            <div
+                                class="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
+                                <i class="fa-solid fa-lock"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-gray-800">端到端数据流</h4>
+                                <p class="text-sm text-gray-600 mt-1">
+                                    当您连接 Notion 时，API 密钥仅保存在您的<strong>浏览器本地存储</strong>中，我们仅作为"客户端"直接与 Notion 官方 API
+                                    通信。您的数据流向为：<code>浏览器 <-> Notion API</code>，中间不经过我们的服务器中转。
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-4">
+                            <div
+                                class="flex-shrink-0 w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center text-purple-600">
+                                <i class="fa-solid fa-file-export"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-gray-800">完全的数据掌控权</h4>
+                                <p class="text-sm text-gray-600 mt-1">
+                                    <strong>导出：</strong>支持将所有配置一键导出为标准 JSON 格式文件，方便迁移或备份。<br>
+                                    <strong>擦除：</strong>"清除所有数据"功能会调用 <code>localforage.clear()</code> 和
+                                    <code>localStorage.clear()</code>，从物理层面彻底删除浏览器内的所有残留数据。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
         </main>
@@ -398,4 +765,5 @@
 
     <script src="script.js"></script>
 </body>
+
 </html>

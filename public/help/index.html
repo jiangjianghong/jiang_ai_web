@@ -306,82 +306,89 @@
             <section id="card-config" class="section">
                 <div class="flex items-center gap-3 mb-6">
                     <div
-                        class="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white shadow-lg">
+                        class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-lg">
                         <i class="fa-solid fa-layer-group"></i>
                     </div>
-                    <h2 class="text-2xl font-bold text-gray-800 m-0">卡片配置深度指南</h2>
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800 m-0">卡片管理与配置</h2>
+                        <p class="text-gray-500 text-sm mt-1">完全掌控您的专属导航网格</p>
+                    </div>
                 </div>
 
-                <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm mb-6">
-                    <p class="text-gray-600 mb-6 leading-relaxed">
-                        卡片不仅仅是链接，它是高度可定制的入口。我们采用了智能抓取和多级缓存技术，确保最佳的加载速度和视觉体验。
-                    </p>
-
-                    <div class="grid md:grid-cols-2 gap-6">
-                        <div class="space-y-4">
-                            <h3 class="font-semibold text-gray-800 flex items-center gap-2">
-                                <i class="fa-solid fa-sliders text-violet-500"></i>
-                                参数详解
-                            </h3>
-                            <div class="bg-gray-50 rounded-lg p-4 space-y-3">
-                                <div class="text-sm">
-                                    <strong class="text-gray-800 block mb-1">网址规范 (URL)</strong>
-                                    <p class="text-gray-600">必须以 <code>http://</code> 或 <code>https://</code> 开头。系统会自动校验
-                                        URL 有效性。</p>
-                                </div>
-                                <div class="text-sm">
-                                    <strong class="text-gray-800 block mb-1">标签系统 (Tags)</strong>
-                                    <p class="text-gray-600">每个卡片最多支持 <strong>2个</strong> 标签。输入标签名后按回车添加。标签将极大提高搜索权重。
-                                    </p>
-                                </div>
-                                <div class="text-sm">
-                                    <strong class="text-gray-800 block mb-1">图标 (Favicon)</strong>
-                                    <p class="text-gray-600">支持网络 URL 或本地上传图片（自动转为 Base64 或上传至云存储）。</p>
-                                </div>
+                <div class="space-y-6">
+                    <!-- 添加与编辑 -->
+                    <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+                        <h3 class="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-pen-to-square text-blue-500"></i>
+                            增删改查
+                        </h3>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="space-y-2">
+                                <h4 class="text-sm font-medium text-gray-700">添加新卡片</h4>
+                                <p class="text-xs text-gray-500 leading-relaxed">
+                                    进入 <strong>设置 (Settings)</strong> > <strong>卡片管理</strong>，点击"添加新卡片"。
+                                    <br>
+                                    <span class="text-blue-600 bg-blue-50 px-1 rounded">智能获取:</span> 输入网址后点击"自动获取"，系统将自动抓取标题和图标。
+                                </p>
                             </div>
-                        </div>
-
-                        <div class="space-y-4">
-                            <h3 class="font-semibold text-gray-800 flex items-center gap-2">
-                                <i class="fa-solid fa-wand-magic-sparkles text-violet-500"></i>
-                                自动获取技术 (Auto-Fetch)
-                            </h3>
-                            <div class="text-sm text-gray-600 space-y-2">
-                                <p>点击"自动获取"时，系统会通过以下 <strong>5重策略</strong> 尝试获取最佳图标（按优先级）：</p>
-                                <ol class="list-decimal pl-5 space-y-1">
-                                    <li><strong>Favicon.im 优化代理：</strong>通过代理加速访问，解决跨域问题。</li>
-                                    <li><strong>Google S2 服务：</strong>全球通用的图标抓取服务 (64px 高清)。</li>
-                                    <li><strong>DuckDuckGo Icons：</strong>备用图标源。</li>
-                                    <li><strong>域名根目录：</strong>尝试直接访问 <code>/favicon.ico</code>。</li>
-                                    <li><strong>本地默认：</strong>如果全部失败，使用系统默认图标兜底。</li>
-                                </ol>
-                                <p class="text-xs text-violet-600 mt-2 bg-violet-50 p-2 rounded">
-                                    <i class="fa-solid fa-bolt"></i> 提示：系统会自动清除旧的图标缓存，确保您获取到网站最新的品牌标识。
+                            <div class="space-y-2">
+                                <h4 class="text-sm font-medium text-gray-700">编辑与删除</h4>
+                                <p class="text-xs text-gray-500 leading-relaxed">
+                                    <span class="font-semibold text-gray-600">PC端:</span> 悬停在卡片上，点击右上角的齿轮 <i class="fa-solid fa-gear text-xs"></i> 图标。
+                                    <br>
+                                    <span class="font-semibold text-gray-600">移动端:</span> 长按卡片即可唤出编辑菜单。
+                                    <br>
+                                    删除按钮位于编辑弹窗的最下方（需二次确认）。
                                 </p>
                             </div>
                         </div>
                     </div>
 
-                    <div class="mt-6 pt-4 border-t border-gray-100">
-                        <h4 class="font-semibold text-gray-800 mb-3">交互细节</h4>
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                            <div class="p-3 bg-gray-50 rounded border border-gray-200 text-center">
-                                <div class="font-bold text-gray-700">视差效果 (Tilt)</div>
-                                <div class="text-xs text-gray-500 mt-1">编辑弹窗支持 3D 视差交互</div>
+                    <!-- 布局与排序 -->
+                    <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+                        <h3 class="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-arrows-up-down-left-right text-indigo-500"></i>
+                            布局与排序
+                        </h3>
+                        <div class="flex flex-col gap-4">
+                            <div class="flex items-start gap-3">
+                                <div class="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center flex-shrink-0">
+                                    <span class="font-bold text-gray-400">1</span>
+                                </div>
+                                <div>
+                                    <span class="text-sm font-medium text-gray-700 block mb-1">自由拖拽 (Drag & Drop)</span>
+                                    <p class="text-xs text-gray-500">按住卡片即可随意拖动调整位置。系统会自动保存您的布局顺序。</p>
+                                </div>
                             </div>
-                            <div class="p-3 bg-gray-50 rounded border border-gray-200 text-center">
-                                <div class="font-bold text-gray-700">ESC 关闭</div>
-                                <div class="text-xs text-gray-500 mt-1">所有弹窗均支持键盘关闭</div>
-                            </div>
-                            <div class="p-3 bg-gray-50 rounded border border-gray-200 text-center">
-                                <div class="font-bold text-gray-700">拖拽排序</div>
-                                <div class="text-xs text-gray-500 mt-1">需先关闭"自动排序"功能</div>
-                            </div>
-                            <div class="p-3 bg-gray-50 rounded border border-gray-200 text-center">
-                                <div class="font-bold text-gray-700">备注搜索</div>
-                                <div class="text-xs text-gray-500 mt-1">备注内容也会被索引</div>
+                            <div class="flex items-start gap-3">
+                                <div class="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center flex-shrink-0">
+                                    <span class="font-bold text-gray-400">2</span>
+                                </div>
+                                <div>
+                                    <span class="text-sm font-medium text-gray-700 block mb-1">智能自动排序</span>
+                                    <p class="text-xs text-gray-500">在设置中开启"自动排序"后，卡片将根据<strong>访问频率</strong>和<strong>最近访问时间</strong>动态排列，让常用网站永远触手可及。</p>
+                                </div>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- 图标管理 -->
+                    <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm border-l-4 border-l-yellow-400">
+                        <h3 class="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-image text-yellow-500"></i>
+                            Favicon 图标系统
+                        </h3>
+                        <p class="text-sm text-gray-600 mb-3">系统采用五级策略获取图标，确保最佳显示效果：</p>
+                        <ol class="list-decimal list-inside text-xs text-gray-500 space-y-1 ml-1">
+                            <li><strong>官方API代理:</strong> 优先使用 favicon.im 等服务获取高清图标。</li>
+                            <li><strong>Google S2 服务:</strong> 备用全球通用图标源。</li>
+                            <li><strong>DuckDuckGo Icons:</strong> 第三方备用源。</li>
+                            <li><strong>域名根目录:</strong> 尝试直接访问 /favicon.ico。</li>
+                            <li><strong>自定义上传:</strong> 如果自动获取失败，支持上传本地图片 (支持透明PNG)。</li>
+                        </ol>
+                        <p class="text-xs text-violet-600 mt-2 bg-violet-50 p-2 rounded">
+                            <i class="fa-solid fa-bolt"></i> 提示：系统会自动清除旧的图标缓存，确保您获取到网站最新的品牌标识。
+                        </p>
                     </div>
                 </div>
             </section>
@@ -653,6 +660,8 @@
                     </div>
                 </div>
             </section>
+
+
 
             <!-- 工作空间 -->
             <section id="workspace" class="section">

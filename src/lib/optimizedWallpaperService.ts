@@ -327,7 +327,7 @@ class OptimizedWallpaperService {
   private async downloadAndCache(
     url: string,
     resolution: string
-  ): Promise<{ blobUrl: string; originalUrl: string }> {
+  ): Promise<{ blobUrl: string; originalUrl: string; isFallback?: boolean }> {
     try {
       logger.wallpaper.info('开始下载壁纸', { url: url.substring(0, 50) });
 
@@ -374,9 +374,8 @@ class OptimizedWallpaperService {
         }
       }
 
-      // 检查是否是服务端Fallback
-      const isFallback = response.headers.get('X-Is-Fallback') === 'true';
-
+      // 服务端现在不再返回 fallback，获取失败会返回 503 错误
+      // 保留基本的数据验证检测
       const blob = await response.blob();
 
       // 验证blob是否有效
@@ -384,13 +383,15 @@ class OptimizedWallpaperService {
         throw new Error('下载的壁纸数据为空');
       }
 
+      // 基本验证：4K壁纸应该至少 500KB
+      if (resolution === '4k' && blob.size < 500 * 1024) {
+        logger.wallpaper.warn(`4K壁纸大小异常 (${Math.round(blob.size / 1024)}KB)，跳过缓存`);
+        const blobUrl = await memoryManager.createBlobUrl(blob, 'wallpaper');
+        return { blobUrl, originalUrl: url, isFallback: true };
+      }
+
       const blobUrl = await memoryManager.createBlobUrl(blob, 'wallpaper');
 
-      if (isFallback) {
-        logger.wallpaper.warn('检测到服务端返回的是降级壁纸，跳过本地长期缓存');
-        // 不写入 IndexedDB，下次刷新会重新请求
-        return { blobUrl, originalUrl: url };
-      }
 
       // 异步缓存到IndexedDB（保存 Blob）
       const cacheKey = this.getTodayCacheKey(resolution);
@@ -413,15 +414,15 @@ class OptimizedWallpaperService {
       logger.wallpaper.info('壁纸下载完成', {
         size: `${(blob.size / 1024 / 1024).toFixed(2)}MB`,
         originalUrl: url,
-        isFallback,
       });
 
-      return { blobUrl, originalUrl: url };
+      return { blobUrl, originalUrl: url, isFallback: false };
     } catch (error) {
       logger.wallpaper.error('下载壁纸失败', error);
       throw error;
     }
   }
+
 
   // 主要方法：获取壁纸（优化的加载策略）
   async getWallpaper(resolution: string): Promise<{
@@ -563,16 +564,22 @@ class OptimizedWallpaperService {
 
       const downloaded = await this.downloadAndCache(wallpaperUrl, resolution);
 
-      // 🔧 修复: 下载成功后才标记今天已更新
-      this.markUpdateSuccess(resolution);
+      // 🔧 修复: 只有真正的 Bing 壁纸才标记成功，fallback 则安排重试
+      if (!downloaded.isFallback) {
+        this.markUpdateSuccess(resolution);
+      } else {
+        logger.wallpaper.warn('下载到fallback壁纸，安排后台重试');
+        this.scheduleRetry(resolution);
+      }
 
       return {
         url: downloaded.blobUrl,
         isFromCache: false,
         isToday: true,
-        needsUpdate: false,
+        needsUpdate: downloaded.isFallback || false, // 如果是 fallback，标记需要更新
         originalUrl: downloaded.originalUrl,
       };
+
     } catch (error) {
       const errorInfo = errorHandler.handleError(error as Error, 'wallpaper-load');
       logger.wallpaper.error('获取壁纸失败，使用备用图片', errorInfo);
@@ -593,11 +600,14 @@ class OptimizedWallpaperService {
       if (wallpaperUrl !== this.fallbackImage) {
         const result = await this.downloadAndCache(wallpaperUrl, resolution);
 
-        // 检查是否是 Fallback 壁纸（从 downloadAndCache 的日志可以看到）
-        // Fallback 壁纸不设置成功标记，允许后续重试
-        if (result.blobUrl) {
+        // 🔧 修复: 只有真正的 Bing 壁纸才标记成功
+        // Fallback 壁纸不设置成功标记，允许后续重试获取真正的壁纸
+        if (result.blobUrl && !result.isFallback) {
           this.markUpdateSuccess(resolution);
-          logger.wallpaper.info('后台壁纸更新完成');
+          logger.wallpaper.info('后台壁纸更新完成（非fallback）');
+        } else if (result.isFallback) {
+          logger.wallpaper.warn('后台更新获取到fallback壁纸，安排重试');
+          this.scheduleRetry(resolution);
         }
       }
     } catch (error) {
@@ -606,6 +616,7 @@ class OptimizedWallpaperService {
       this.scheduleRetry(resolution);
     }
   }
+
 
   // 预加载壁纸（在空闲时间）
   async preloadWallpapers(): Promise<void> {

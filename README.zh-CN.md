@@ -13,7 +13,7 @@
 [![Vite](https://img.shields.io/badge/Vite-6.0-646CFF?style=for-the-badge&logo=vite&logoColor=white&color=646CFF)](https://vitejs.dev/)
 [![Supabase](https://img.shields.io/badge/Supabase-Enabled-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white&color=3ECF8E)](https://supabase.com/)
 
-[🌐 在线演示](https://jiangjiang.cc) · [🐛 报告问题](https://github.com/jiangjianghong/jiang_ai_web/issues) · [✨ 功能建议](https://github.com/jiangjianghong/jiang_ai_web/issues)
+[🌐 在线演示](https://jiangjiang.cc) · [🐛 报告问题](https://github.com/jiangjianghong/tomato-tab/issues) · [✨ 功能建议](https://github.com/jiangjianghong/tomato-tab/issues)
 
 **[ [English](README.md) | 简体中文 ]**
 
@@ -99,8 +99,8 @@
 
 1. **克隆仓库**
    ```bash
-   git clone https://github.com/jiangjianghong/jiang_ai_web.git
-   cd jiang_ai_web
+   git clone https://github.com/jiangjianghong/tomato-tab.git
+   cd tomato-tab
    ```
 
 2. **安装依赖**
@@ -243,7 +243,7 @@ src/
 - [ ] **规划中**: AI 驱动的书签智能分类
 - [ ] **规划中**: 可公开分享的仪表盘
 
-查看 [Issue 列表](https://github.com/jiangjianghong/jiang_ai_web/issues) 了解完整规划（以及已知问题）。
+查看 [Issue 列表](https://github.com/jiangjianghong/tomato-tab/issues) 了解完整规划（以及已知问题）。
 
 ---
 
@@ -263,18 +263,18 @@ src/
 
 ## 📈 Star 趋势
 
-<a href="https://star-history.com/#jiangjianghong/jiang_ai_web&Date">
+<a href="https://star-history.com/#jiangjianghong/tomato-tab&Date">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=jiangjianghong/jiang_ai_web&type=Date&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=jiangjianghong/jiang_ai_web&type=Date" />
-   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=jiangjianghong/jiang_ai_web&type=Date" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=jiangjianghong/tomato-tab&type=Date&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=jiangjianghong/tomato-tab&type=Date" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=jiangjianghong/tomato-tab&type=Date" />
  </picture>
 </a>
 
 ## 👥 贡献者
 
-<a href="https://github.com/jiangjianghong/jiang_ai_web/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=jiangjianghong/jiang_ai_web" />
+<a href="https://github.com/jiangjianghong/tomato-tab/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=jiangjianghong/tomato-tab" />
 </a>
 
 ---

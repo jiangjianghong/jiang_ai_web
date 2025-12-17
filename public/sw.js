@@ -1,18 +1,13 @@
 // 离线优先的Service Worker
 // ⚠️ 更新版本时，请同步更新 src/lib/swConfig.ts 中的 SW_VERSION
 const SW_VERSION = 'v79a96ee';
-const CACHE_NAME = `jiang-ai-web-${SW_VERSION}-offline`;
+const CACHE_NAME = `tomato-tab-${SW_VERSION}-offline`;
 const STATIC_CACHE_NAME = `static-${SW_VERSION}`;
 const DYNAMIC_CACHE_NAME = `dynamic-${SW_VERSION}`;
 const WALLPAPER_CACHE_NAME = `wallpaper-${SW_VERSION}`;
 
-// 动态获取正确的路径前缀
+// 使用自定义域名，始终返回空字符串作为 base path
 const getBasePath = () => {
-  const currentPath = self.location.pathname;
-  // 如果当前路径包含 /jiang_ai_web，说明需要这个前缀
-  if (currentPath.includes('/jiang_ai_web')) {
-    return '/jiang_ai_web';
-  }
   return '';
 };
 
@@ -125,13 +120,12 @@ self.addEventListener('activate', (event) => {
         cacheNames.map((cacheName) => {
           // 保留当前版本的缓存
           const currentCaches = [STATIC_CACHE_NAME, DYNAMIC_CACHE_NAME, WALLPAPER_CACHE_NAME, CACHE_NAME];
-          if (!currentCaches.includes(cacheName) && cacheName.startsWith('jiang-ai-web') ||
-            cacheName.startsWith('static-') || cacheName.startsWith('dynamic-') || cacheName.startsWith('wallpaper-')) {
-            // 只删除旧版本的缓存
-            if (!currentCaches.includes(cacheName)) {
-              console.log('Service Worker: 删除旧缓存', cacheName);
-              return caches.delete(cacheName);
-            }
+          // 清理旧版本缓存（包括旧的 jiang-ai-web 和新的 tomato-tab）
+          if (!currentCaches.includes(cacheName) &&
+            (cacheName.startsWith('jiang-ai-web') || cacheName.startsWith('tomato-tab') ||
+              cacheName.startsWith('static-') || cacheName.startsWith('dynamic-') || cacheName.startsWith('wallpaper-'))) {
+            console.log('Service Worker: 删除旧缓存', cacheName);
+            return caches.delete(cacheName);
           }
         })
       );

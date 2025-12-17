@@ -62,8 +62,11 @@
                 <div class="nav-section">
                     <h5 class="nav-title">功能指南</h5>
                     <a href="#register-login" class="nav-link">注册与登录</a>
+                    <a href="#account-security" class="nav-link">账号与安全</a>
                     <a href="#card-config" class="nav-link">卡片配置</a>
+                    <a href="#personalization" class="nav-link">个性化定制</a>
                     <a href="#search" class="nav-link">搜索</a>
+                    <a href="#widgets" class="nav-link">小部件与发现</a>
                     <a href="#workspace" class="nav-link">工作空间</a>
                 </div>
 
@@ -220,6 +223,85 @@
                 </div>
             </section>
 
+            <!-- 账号与安全 -->
+            <section id="account-security" class="section">
+                <div class="flex items-center gap-3 mb-6">
+                    <div
+                        class="w-10 h-10 bg-gradient-to-br from-emerald-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg shadow-green-500/20">
+                        <i class="fa-solid fa-shield-halved text-white text-lg"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800 m-0">账号与安全</h2>
+                        <p class="text-gray-500 text-sm mt-1">全方位的账号保护与多端同步机制</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- 账号绑定 -->
+                    <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                        <h3 class="flex items-center gap-2 text-lg font-semibold text-gray-800 mb-4">
+                            <i class="fa-solid fa-link text-blue-500"></i> 三方账号绑定
+                        </h3>
+                        <p class="text-gray-600 text-sm mb-4">
+                            支持将 Google、GitHub 或 Notion 账号与当前邮箱账号绑定，实现多渠道一键登录。
+                        </p>
+                        <ul class="space-y-3 text-sm text-gray-600">
+                            <li class="flex items-start gap-2">
+                                <i class="fa-solid fa-check-circle text-green-500 mt-1"></i>
+                                <span><strong>一键解绑</strong>：随时可在安全设置中解除绑定（需保留至少一种登录方式）。</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="fa-solid fa-check-circle text-green-500 mt-1"></i>
+                                <span><strong>数据互通</strong>：绑定后，无论使用哪个平台登录，都能访问同一份云端数据。</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- 数据同步机制 -->
+                    <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                        <h3 class="flex items-center gap-2 text-lg font-semibold text-gray-800 mb-4">
+                            <i class="fa-solid fa-rotate text-blue-500"></i> 智能数据同步
+                        </h3>
+                        <div class="space-y-4">
+                            <div class="bg-blue-50 rounded-lg p-3">
+                                <h4 class="font-medium text-blue-700 text-sm mb-1">智能合并 (Smart Merge)</h4>
+                                <p class="text-xs text-blue-600">
+                                    当本地与云端数据冲突时，系统会基于<strong>"访问次数"</strong>自动保留更有价值的数据，并去除重复项。
+                                </p>
+                            </div>
+                            <div class="flex gap-2 text-xs">
+                                <span class="bg-gray-100 px-2 py-1 rounded text-gray-600">云端覆盖本地</span>
+                                <span class="bg-gray-100 px-2 py-1 rounded text-gray-600">本地覆盖云端</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 个人资料规范 -->
+                    <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow md:col-span-2">
+                        <h3 class="flex items-center gap-2 text-lg font-semibold text-gray-800 mb-4">
+                            <i class="fa-solid fa-user-shield text-blue-500"></i> 资料安全规范
+                        </h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div class="border border-gray-200 rounded-xl p-4 text-center">
+                                <div class="text-2xl text-blue-500 mb-2"><i class="fa-solid fa-image"></i></div>
+                                <h4 class="font-medium text-gray-800 mb-1">头像上传</h4>
+                                <p class="text-xs text-gray-500">支持 JPG/PNG/WebP<br>最大限制 2MB</p>
+                            </div>
+                            <div class="border border-gray-200 rounded-xl p-4 text-center">
+                                <div class="text-2xl text-blue-500 mb-2"><i class="fa-solid fa-signature"></i></div>
+                                <h4 class="font-medium text-gray-800 mb-1">用户名</h4>
+                                <p class="text-xs text-gray-500">2-20 个字符<br>支持中英文、数字、下划线</p>
+                            </div>
+                            <div class="border border-gray-200 rounded-xl p-4 text-center">
+                                <div class="text-2xl text-blue-500 mb-2"><i class="fa-solid fa-key"></i></div>
+                                <h4 class="font-medium text-gray-800 mb-1">密码安全</h4>
+                                <p class="text-xs text-gray-500">最少 6 位字符<br>修改需二次确认</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <!-- 卡片配置 -->
             <section id="card-config" class="section">
                 <div class="flex items-center gap-3 mb-6">
@@ -304,6 +386,97 @@
                 </div>
             </section>
 
+            <!-- 个性化设置 -->
+            <section id="personalization" class="section">
+                <div class="flex items-center gap-3 mb-6">
+                    <div
+                        class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/20">
+                        <i class="fa-solid fa-wand-magic-sparkles text-white text-lg"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800 m-0">个性化定制</h2>
+                        <p class="text-gray-500 text-sm mt-1">打造独一无二的专属主页</p>
+                    </div>
+                </div>
+
+                <div class="space-y-8">
+                    <!-- 视觉效果 -->
+                    <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4 border-b border-gray-100 pb-2">视觉微调</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm font-medium text-gray-700">透明度控制</span>
+                                    <span class="text-xs bg-purple-100 text-purple-600 px-2 py-0.5 rounded">0.05 - 0.5</span>
+                                </div>
+                                <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                                    <div class="h-full bg-gradient-to-r from-purple-400 to-pink-500 w-1/2"></div>
+                                </div>
+                                <p className="text-xs text-gray-500">精准调节搜索框与卡片的背景透明度，兼顾美观与可读性。</p>
+                            </div>
+
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm font-medium text-gray-700">圆角风格</span>
+                                    <span class="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded">0 - 50px</span>
+                                </div>
+                                <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                                    <div class="h-full bg-blue-400 w-3/4"></div>
+                                </div>
+                                <p className="text-xs text-gray-500">从硬朗直角到柔和全圆角，搜索框形态随心而定。</p>
+                            </div>
+
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm font-medium text-gray-700">动画质感</span>
+                                    <span class="text-xs bg-green-100 text-green-600 px-2 py-0.5 rounded">Dynamic / Simple</span>
+                                </div>
+                                <div class="flex gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                                    <p className="text-xs text-gray-500">选择 "灵动" 获得果冻般回弹效果，或 "简约" 追求极致流畅。</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 壁纸系统 -->
+                    <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4 border-b border-gray-100 pb-2">壁纸系统</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <h4 class="font-medium text-gray-700 mb-2">每日必应 (Bing Daily)</h4>
+                                <ul class="text-sm text-gray-600 space-y-2">
+                                    <li class="flex items-center gap-2"><i class="fa-solid fa-tv text-gray-400"></i> <strong>4K 超高清</strong>：适合大屏显示器</li>
+                                    <li class="flex items-center gap-2"><i class="fa-solid fa-laptop text-gray-400"></i> <strong>1080P 高清</strong>：平衡清晰度与加载速度</li>
+                                    <li class="flex items-center gap-2"><i class="fa-solid fa-mobile-screen text-gray-400"></i> <strong>竖屏适配</strong>：移动端专属优化</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 class="font-medium text-gray-700 mb-2">自定义上传</h4>
+                                <div class="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center bg-gray-50">
+                                    <i class="fa-solid fa-cloud-upload-alt text-2xl text-gray-400 mb-2"></i>
+                                    <p class="text-xs text-gray-500">支持全屏拖拽上传<br>Max 10MB (JPG/PNG/WebP)</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 时间与效率 -->
+                    <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4 border-b border-gray-100 pb-2">时间与效率</h3>
+                        <div class="flex flex-wrap gap-4">
+                            <span class="px-3 py-1 bg-gray-100 rounded-full text-xs text-gray-600">显示秒数开关</span>
+                            <span class="px-3 py-1 bg-gray-100 rounded-full text-xs text-gray-600">农历/星期显示</span>
+                            <span class="px-3 py-1 bg-orange-100 text-orange-600 rounded-full text-xs font-medium">下班倒计时</span>
+                            <span class="px-3 py-1 bg-green-100 text-green-600 rounded-full text-xs font-medium">午休提醒</span>
+                        </div>
+                        <p class="text-sm text-gray-500 mt-3">
+                            开启"下班倒计时"后，鼠标悬停在时间区域，即可看到距离下班或午休的精确剩余时间，助您劳逸结合。
+                        </p>
+                    </div>
+                </div>
+            </section>
+
             <!-- 搜索 -->
             <section id="search" class="section">
                 <div class="flex items-center gap-3 mb-6">
@@ -363,8 +536,50 @@
                                         <td class="px-4 py-2">打开系统设置面板</td>
                                         <td class="px-4 py-2 text-gray-500">config</td>
                                     </tr>
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-4 py-2"><code
+                                                class="bg-gray-100 px-1 py-0.5 rounded">help</code> 或
+                                            <code>帮助</code>
+                                        </td>
+                                        <td class="px-4 py-2">打开本帮助文档</td>
+                                        <td class="px-4 py-2 text-gray-500">guide</td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-4 py-2"><code
+                                                class="bg-gray-100 px-1 py-0.5 rounded">author</code> 或
+                                            <code>作者</code>
+                                        </td>
+                                        <td class="px-4 py-2">查看开发者信息 ("About Me")</td>
+                                        <td class="px-4 py-2 text-gray-500">me</td>
+                                    </tr>
                                 </tbody>
                             </table>
+                        </div>
+                    </div>
+
+                    <!-- 键盘快捷键 -->
+                    <div class="mb-8 p-4 bg-gray-50 rounded-xl border border-gray-100">
+                        <h3 class="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-keyboard text-gray-500"></i>
+                            效率快捷键 (Shortcuts)
+                        </h3>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div class="text-center">
+                                <kbd class="px-2 py-1 bg-white border border-gray-300 rounded-lg text-xs font-mono text-gray-700 shadow-sm">Space</kbd>
+                                <p class="text-xs text-gray-500 mt-1">全局聚焦搜索框</p>
+                            </div>
+                            <div class="text-center">
+                                <kbd class="px-2 py-1 bg-white border border-gray-300 rounded-lg text-xs font-mono text-gray-700 shadow-sm">Tab</kbd>
+                                <p class="text-xs text-gray-500 mt-1">切换 Google / Bing</p>
+                            </div>
+                            <div class="text-center">
+                                <kbd class="px-2 py-1 bg-white border border-gray-300 rounded-lg text-xs font-mono text-gray-700 shadow-sm">Esc</kbd>
+                                <p class="text-xs text-gray-500 mt-1">关闭建议 / 取消聚焦</p>
+                            </div>
+                            <div class="text-center">
+                                <kbd class="px-2 py-1 bg-white border border-gray-300 rounded-lg text-xs font-mono text-gray-700 shadow-sm">↑ / ↓</kbd>
+                                <p class="text-xs text-gray-500 mt-1">切换选中建议</p>
+                            </div>
                         </div>
                     </div>
 
@@ -676,6 +891,71 @@
                             d="M10 0C4.48 0 0 4.48 0 10s4.48 10 10 10 10-4.48 10-10S15.52 0 10 0zm-1 15l-5-5 1.41-1.41L9 12.17l7.59-7.59L18 6l-9 9z" />
                     </svg>
                     <span>配置完成！现在你可以在工作空间中管理你的 Notion 数据了。</span>
+                </div>
+            </section>
+
+            <!-- 小部件与彩蛋 -->
+            <section id="widgets" class="section">
+                <div class="flex items-center gap-3 mb-6">
+                    <div
+                        class="w-10 h-10 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/20">
+                        <i class="fa-solid fa-gift text-white text-lg"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800 m-0">小部件与发现</h2>
+                        <p class="text-gray-500 text-sm mt-1">探索那些隐藏在角落的惊喜功能</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- 待办事项 -->
+                    <div class="group bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-lg transition-all md:col-span-2 relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-orange-100 rounded-bl-full -mr-12 -mt-12 opacity-50 group-hover:scale-110 transition-transform"></div>
+                        <h3 class="text-lg font-semibold text-gray-800 mb-2 relative z-10">
+                            <i class="fa-solid fa-check-square text-orange-500 mr-2"></i>极简待办 (Todo)
+                        </h3>
+                        <p class="text-gray-600 text-sm mb-4 relative z-10">
+                            不只是看时间，更是效率入口。
+                        </p>
+                        <div className="bg-orange-50 rounded-lg p-3 text-sm text-orange-800 border border-orange-100 relative z-10">
+                            <strong>触发方式：</strong> 直接点击主页面的 <span class="bg-white px-1.5 py-0.5 rounded shadow-sm">时间数字</span>
+                        </div>
+                        <ul class="mt-4 space-y-2 text-xs text-gray-500 relative z-10">
+                            <li>• 随手记录灵感与任务</li>
+                            <li>• 完成任务时的庆典动画</li>
+                            <li>• 支持 <code>/todo</code> 搜索命令快速呼出</li>
+                        </ul>
+                    </div>
+
+                    <!-- 每日一言 -->
+                    <div class="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl p-6 text-white shadow-lg shadow-blue-500/30 flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-lg font-semibold mb-2"><i class="fa-solid fa-quote-left mr-2 opacity-60"></i>每日诗词</h3>
+                            <p class="text-blue-100 text-xs leading-relaxed">
+                                精选 Hitokoto 诗词接口，每 10 分钟或切换标签页时自动更新。
+                            </p>
+                        </div>
+                        <div class="mt-4 text-center">
+                            <p class="font-serif italic text-lg opacity-90">"山高水长，人间值得。"</p>
+                        </div>
+                        <div class="mt-4 text-xs text-blue-200 text-center bg-white/10 rounded py-1">
+                            仅在搜索聚焦时显现
+                        </div>
+                    </div>
+
+                    <!-- 招财猫彩蛋 -->
+                    <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow flex items-center gap-4">
+                        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center text-3xl">
+                            🐱
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-gray-800">神秘的猫咪</h3>
+                            <p class="text-xs text-gray-500 mt-1">
+                                在页面停留 <strong>10秒</strong> 后出现。<br>
+                                点击它，去看看作者的故事。
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </section>
 

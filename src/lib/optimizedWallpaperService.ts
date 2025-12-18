@@ -9,8 +9,9 @@ import { createTimeoutSignal } from './abortUtils';
 import { customWallpaperManager } from './customWallpaperManager';
 import { getLocalDateString } from './dateUtils';
 
-// 重试相关配置
-const RETRY_DELAY_MS = 30 * 60 * 1000; // 30分钟后重试
+// 重试相关配置 - 指数退避策略
+const RETRY_DELAYS_MS = [30 * 1000, 60 * 1000, 120 * 1000, 240 * 1000]; // 30s, 60s, 120s, 240s
+const MAX_RETRY_COUNT = 8;
 
 class OptimizedWallpaperService {
   private static instance: OptimizedWallpaperService;
@@ -26,6 +27,7 @@ class OptimizedWallpaperService {
   private fallbackImage = '/icon/favicon.png'; // 本地备用图片
   private cleanupTimer: number | null = null; // 定时清理器ID
   private retryTimers = new Map<string, number>(); // 重试定时器
+  private retryCounts = new Map<string, number>(); // 内存中的重试计数
 
   static getInstance(): OptimizedWallpaperService {
     if (!OptimizedWallpaperService.instance) {
@@ -138,15 +140,17 @@ class OptimizedWallpaperService {
     localStorage.setItem(successKey, today);
     logger.wallpaper.info(`标记 ${resolution} 壁纸更新成功: ${today}`);
 
-    // 清除重试定时器
+    // 清除重试定时器和重试计数
     const retryKey = `retry-${resolution}`;
     if (this.retryTimers.has(retryKey)) {
       clearTimeout(this.retryTimers.get(retryKey));
       this.retryTimers.delete(retryKey);
     }
+    // 清除内存中的重试计数
+    this.retryCounts.delete(resolution);
   }
 
-  // 安排延迟重试
+  // 安排延迟重试（指数退避策略）
   private scheduleRetry(resolution: string): void {
     const retryKey = `retry-${resolution}`;
 
@@ -155,15 +159,29 @@ class OptimizedWallpaperService {
       return;
     }
 
-    logger.wallpaper.info(`安排 ${resolution} 壁纸 ${RETRY_DELAY_MS / 1000 / 60} 分钟后重试`);
+    // 获取并增加重试计数（内存中）
+    const retryCount = this.retryCounts.get(resolution) || 0;
+    
+    // 检查是否超过最大重试次数
+    if (retryCount >= MAX_RETRY_COUNT) {
+      logger.wallpaper.warn(`${resolution} 壁纸已达到最大重试次数 (${MAX_RETRY_COUNT})，停止重试`);
+      return;
+    }
+
+    // 循环使用延迟数组：30s, 60s, 120s, 240s, 30s, 60s, 120s, 240s
+    const delayIndex = retryCount % RETRY_DELAYS_MS.length;
+    const delayMs = RETRY_DELAYS_MS[delayIndex];
+    logger.wallpaper.info(`安排 ${resolution} 壁纸 ${delayMs / 1000} 秒后重试 (第 ${retryCount + 1}/${MAX_RETRY_COUNT} 次)`);
 
     const timerId = setTimeout(() => {
       this.retryTimers.delete(retryKey);
-      logger.wallpaper.info(`执行 ${resolution} 壁纸延迟重试`);
+      // 更新重试计数
+      this.retryCounts.set(resolution, retryCount + 1);
+      logger.wallpaper.info(`执行 ${resolution} 壁纸延迟重试 (第 ${retryCount + 1}/${MAX_RETRY_COUNT} 次)`);
       this.updateWallpaperInBackground(resolution).catch((error) => {
         logger.wallpaper.warn(`延迟重试 ${resolution} 失败`, error);
       });
-    }, RETRY_DELAY_MS) as any;
+    }, delayMs) as any;
 
     this.retryTimers.set(retryKey, timerId);
   }
@@ -489,29 +507,29 @@ class OptimizedWallpaperService {
       // 0.1 检查是否需要强制刷新（跨天检查）
       const shouldRefresh = this.shouldForceRefresh(resolution);
 
-      // 🔧 修复: 跨天时先获取旧缓存作为降级备用，不要立即删除
+      // 🔧 修复: 先获取旧缓存作为降级备用，不要立即删除
       // 只有成功下载新壁纸后才清理旧缓存
       let fallbackCache: { url: string; isToday: boolean; originalUrl?: string } | null = null;
 
+      // 无论是否需要刷新，都先获取缓存（用于降级或直接使用）
+      const cachedResult = await this.getSmartCache(resolution);
+
       if (shouldRefresh) {
         logger.wallpaper.info('检测到跨天或今天未成功更新，尝试获取新壁纸');
-        // 先获取旧缓存作为降级备用（不删除）
-        fallbackCache = await this.getSmartCache(resolution);
-        if (fallbackCache) {
+        // 保存旧缓存作为降级备用
+        if (cachedResult) {
+          fallbackCache = cachedResult;
           logger.wallpaper.info('已获取旧缓存作为降级备用');
         }
-      }
-
-      // 1. 如果不需要刷新，尝试使用智能缓存
-      if (!shouldRefresh) {
-        const cachedResult = await this.getSmartCache(resolution);
-
+      } else {
+        // 1. 如果不需要刷新，尝试使用智能缓存
         if (cachedResult) {
           // 🔧 检查旧缓存是否缺少 originalUrl（旧版本的缓存）
           if (!cachedResult.originalUrl && cachedResult.isToday) {
             logger.wallpaper.warn('⚠️ 检测到今天的缓存缺少 originalUrl，清除并重新下载');
             await this.clearTodayCache(resolution);
-            // 继续执行，触发重新下载
+            // 保存缓存作为降级备用，然后继续下载
+            fallbackCache = cachedResult;
           } else if (cachedResult.originalUrl) {
             // 有 originalUrl 的缓存，正常返回
             const result = {

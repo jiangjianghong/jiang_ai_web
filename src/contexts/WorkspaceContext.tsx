@@ -276,7 +276,11 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 
   // 测试连接
   const testConnection = async (): Promise<boolean> => {
-    if (!isConfigured) return false;
+    // 直接检查 workspaceManager 的配置状态，而不是依赖 React 状态
+    // 因为 React 状态更新是异步的，configureNotion 后立即调用 testConnection
+    // 此时 isConfigured 状态可能还未更新
+    const config = workspaceManager.getConfig();
+    if (!config) return false;
 
     try {
       const isConnected = await workspaceManager.testConnection();

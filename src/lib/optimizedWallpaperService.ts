@@ -489,70 +489,85 @@ class OptimizedWallpaperService {
       // 0.1 检查是否需要强制刷新（跨天检查）
       const shouldRefresh = this.shouldForceRefresh(resolution);
 
+      // 🔧 修复: 跨天时先获取旧缓存作为降级备用，不要立即删除
+      // 只有成功下载新壁纸后才清理旧缓存
+      let fallbackCache: { url: string; isToday: boolean; originalUrl?: string } | null = null;
+
       if (shouldRefresh) {
-        logger.wallpaper.info('检测到跨天或今天未成功更新，强制刷新壁纸缓存');
-        // 🔧 修复: 清理今天的缓存，防止使用旧壁纸
-        await this.clearTodayCache(resolution);
-        // 清理昨天的缓存，防止降级到旧壁纸
-        const yesterdayKey = this.getYesterdayCacheKey(resolution);
-        await indexedDBCache.delete(yesterdayKey);
-        await indexedDBCache.delete(`${yesterdayKey}-metadata`);
-        logger.wallpaper.info('已清除昨天的壁纸缓存，强制下载新壁纸');
-      }
-
-      // 1. 首先尝试智能缓存（跨天时跳过缓存检查）
-      const cachedResult = !shouldRefresh ? await this.getSmartCache(resolution) : null;
-
-      if (cachedResult) {
-        // 🔧 检查旧缓存是否缺少 originalUrl（旧版本的缓存）
-        if (!cachedResult.originalUrl && cachedResult.isToday) {
-          logger.wallpaper.warn('⚠️ 检测到今天的缓存缺少 originalUrl，清除并重新下载');
-          await this.clearTodayCache(resolution);
-          // 继续执行，触发重新下载
-        } else if (cachedResult.originalUrl) {
-          // 有 originalUrl 的缓存，正常返回
-          const result = {
-            url: cachedResult.url,
-            isFromCache: true,
-            isToday: cachedResult.isToday,
-            needsUpdate: !cachedResult.isToday,
-            originalUrl: cachedResult.originalUrl,
-          };
-
-          // 如果不是今天的缓存，后台更新
-          if (!cachedResult.isToday) {
-            logger.wallpaper.info('后台更新今天的壁纸');
-            this.updateWallpaperInBackground(resolution).catch((error) => {
-              logger.wallpaper.warn('后台更新壁纸失败', error);
-            });
-          }
-
-          return result;
-        } else {
-          // 旧缓存但不是今天的，先用着但标记需要更新
-          logger.wallpaper.warn('⚠️ 使用旧缓存壁纸（无 originalUrl），将后台更新');
-          const result = {
-            url: cachedResult.url,
-            isFromCache: true,
-            isToday: cachedResult.isToday,
-            needsUpdate: true,
-            originalUrl: cachedResult.originalUrl, // undefined
-          };
-
-          // 后台更新以获取新壁纸和 originalUrl
-          this.updateWallpaperInBackground(resolution).catch((error) => {
-            logger.wallpaper.warn('后台更新壁纸失败', error);
-          });
-
-          return result;
+        logger.wallpaper.info('检测到跨天或今天未成功更新，尝试获取新壁纸');
+        // 先获取旧缓存作为降级备用（不删除）
+        fallbackCache = await this.getSmartCache(resolution);
+        if (fallbackCache) {
+          logger.wallpaper.info('已获取旧缓存作为降级备用');
         }
       }
 
-      // 2. 无缓存，需要下载
-      logger.wallpaper.info('无可用缓存，开始下载新壁纸');
+      // 1. 如果不需要刷新，尝试使用智能缓存
+      if (!shouldRefresh) {
+        const cachedResult = await this.getSmartCache(resolution);
+
+        if (cachedResult) {
+          // 🔧 检查旧缓存是否缺少 originalUrl（旧版本的缓存）
+          if (!cachedResult.originalUrl && cachedResult.isToday) {
+            logger.wallpaper.warn('⚠️ 检测到今天的缓存缺少 originalUrl，清除并重新下载');
+            await this.clearTodayCache(resolution);
+            // 继续执行，触发重新下载
+          } else if (cachedResult.originalUrl) {
+            // 有 originalUrl 的缓存，正常返回
+            const result = {
+              url: cachedResult.url,
+              isFromCache: true,
+              isToday: cachedResult.isToday,
+              needsUpdate: !cachedResult.isToday,
+              originalUrl: cachedResult.originalUrl,
+            };
+
+            // 如果不是今天的缓存，后台更新
+            if (!cachedResult.isToday) {
+              logger.wallpaper.info('后台更新今天的壁纸');
+              this.updateWallpaperInBackground(resolution).catch((error) => {
+                logger.wallpaper.warn('后台更新壁纸失败', error);
+              });
+            }
+
+            return result;
+          } else {
+            // 旧缓存但不是今天的，先用着但标记需要更新
+            logger.wallpaper.warn('⚠️ 使用旧缓存壁纸（无 originalUrl），将后台更新');
+            const result = {
+              url: cachedResult.url,
+              isFromCache: true,
+              isToday: cachedResult.isToday,
+              needsUpdate: true,
+              originalUrl: cachedResult.originalUrl, // undefined
+            };
+
+            // 后台更新以获取新壁纸和 originalUrl
+            this.updateWallpaperInBackground(resolution).catch((error) => {
+              logger.wallpaper.warn('后台更新壁纸失败', error);
+            });
+
+            return result;
+          }
+        }
+      }
+
+      // 2. 需要下载新壁纸（无缓存或需要刷新）
+      logger.wallpaper.info(shouldRefresh ? '跨天刷新，开始下载新壁纸' : '无可用缓存，开始下载新壁纸');
       const wallpaperUrl = await this.getWallpaperUrl(resolution);
 
       if (wallpaperUrl === this.fallbackImage) {
+        // Supabase 服务不可用，尝试使用旧缓存
+        if (fallbackCache) {
+          logger.wallpaper.warn('壁纸服务不可用，使用旧缓存作为降级');
+          return {
+            url: fallbackCache.url,
+            isFromCache: true,
+            isToday: false,
+            needsUpdate: true,
+            originalUrl: fallbackCache.originalUrl,
+          };
+        }
         // 使用本地备用图片
         return {
           url: wallpaperUrl,
@@ -562,23 +577,53 @@ class OptimizedWallpaperService {
         };
       }
 
-      const downloaded = await this.downloadAndCache(wallpaperUrl, resolution);
+      try {
+        const downloaded = await this.downloadAndCache(wallpaperUrl, resolution);
 
-      // 🔧 修复: 只有真正的 Bing 壁纸才标记成功，fallback 则安排重试
-      if (!downloaded.isFallback) {
-        this.markUpdateSuccess(resolution);
-      } else {
-        logger.wallpaper.warn('下载到fallback壁纸，安排后台重试');
-        this.scheduleRetry(resolution);
+        // 🔧 修复: 只有真正的 Bing 壁纸才标记成功，fallback 则安排重试
+        if (!downloaded.isFallback) {
+          this.markUpdateSuccess(resolution);
+          
+          // 🔧 修复: 下载成功后才清理旧缓存
+          if (shouldRefresh) {
+            logger.wallpaper.info('新壁纸下载成功，清理旧缓存');
+            // 清理昨天的缓存
+            const yesterdayKey = this.getYesterdayCacheKey(resolution);
+            await indexedDBCache.delete(yesterdayKey);
+            await indexedDBCache.delete(`${yesterdayKey}-metadata`);
+          }
+        } else {
+          logger.wallpaper.warn('下载到fallback壁纸，安排后台重试');
+          this.scheduleRetry(resolution);
+        }
+
+        return {
+          url: downloaded.blobUrl,
+          isFromCache: false,
+          isToday: true,
+          needsUpdate: downloaded.isFallback || false, // 如果是 fallback，标记需要更新
+          originalUrl: downloaded.originalUrl,
+        };
+      } catch (downloadError) {
+        // 🔧 修复: 下载失败时，使用旧缓存作为降级，而不是直接返回 fallbackImage
+        logger.wallpaper.warn('下载新壁纸失败', downloadError);
+        
+        if (fallbackCache) {
+          logger.wallpaper.info('使用旧缓存作为降级显示');
+          // 安排后台重试
+          this.scheduleRetry(resolution);
+          return {
+            url: fallbackCache.url,
+            isFromCache: true,
+            isToday: false,
+            needsUpdate: true,
+            originalUrl: fallbackCache.originalUrl,
+          };
+        }
+        
+        // 没有旧缓存可用，抛出错误让外层处理
+        throw downloadError;
       }
-
-      return {
-        url: downloaded.blobUrl,
-        isFromCache: false,
-        isToday: true,
-        needsUpdate: downloaded.isFallback || false, // 如果是 fallback，标记需要更新
-        originalUrl: downloaded.originalUrl,
-      };
 
     } catch (error) {
       const errorInfo = errorHandler.handleError(error as Error, 'wallpaper-load');
@@ -588,7 +633,7 @@ class OptimizedWallpaperService {
         url: this.fallbackImage,
         isFromCache: false,
         isToday: true,
-        needsUpdate: false,
+        needsUpdate: true, // 🔧 修复: 标记需要更新，后续会重试
       };
     }
   }

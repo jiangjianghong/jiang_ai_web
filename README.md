@@ -2,7 +2,10 @@
 
 # Tomato Tabs
 ### Your Personal Web Gateway
-
+<p align="center">
+  <img src="image-1.png" alt="Tomato Tabs Screenshot" width="800px" style="border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+</p>
+ 
 <p align="center">
   <img src="image.png" alt="Tomato Tabs Screenshot" width="800px" style="border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
 </p>

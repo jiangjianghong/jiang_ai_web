@@ -2,6 +2,9 @@
 
 # 西红柿标签页 (Tomato Tabs)
 ### 你的个人网络门户
+<p align="center">
+  <img src="image-1.png" alt="Tomato Tabs Screenshot" width="800px" style="border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+</p>
 
 <p align="center">
   <img src="image.png" alt="Tomato Tabs Screenshot" width="800px" style="border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">

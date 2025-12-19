@@ -2319,11 +2319,9 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                   }}
                 >
                   <div
-                    className="rounded-xl px-2 py-1 shadow-xl border border-white/20"
+                    className="rounded-xl px-2 py-1 backdrop-blur-md border border-white/20"
                     style={{
-                      backgroundColor: `rgba(${searchBarColor}, 0.6)`,
-                      backdropFilter: 'blur(12px)',
-                      WebkitBackdropFilter: 'blur(12px)',
+                      backgroundColor: `rgba(${searchBarColor}, ${searchBarOpacity})`,
                       pointerEvents: 'auto',
                       marginLeft: 120,
                     }}

@@ -40,6 +40,7 @@ interface TransparencyContextType {
   workCountdownEnabled: boolean; // 下班倒计时开关
   lunchTime: string; // 午休时间 HH:mm
   offWorkTime: string; // 下班时间 HH:mm
+  aiIconDisplayMode: 'circular' | 'dropdown'; // AI图标显示模式：圆形布局或下拉面板
   setCardOpacity: (opacity: number) => void;
   setSearchBarOpacity: (opacity: number) => void;
   setParallaxEnabled: (enabled: boolean) => void;
@@ -65,6 +66,7 @@ interface TransparencyContextType {
   setWorkCountdownEnabled: (enabled: boolean) => void;
   setLunchTime: (time: string) => void;
   setOffWorkTime: (time: string) => void;
+  setAiIconDisplayMode: (mode: 'circular' | 'dropdown') => void;
 }
 
 const TransparencyContext = createContext<TransparencyContextType | undefined>(undefined);
@@ -211,6 +213,12 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
     return saved || '18:00'; // 默认下班时间
   });
 
+  // AI图标显示模式
+  const [aiIconDisplayMode, setAiIconDisplayMode] = useState<'circular' | 'dropdown'>(() => {
+    const saved = localStorage.getItem('aiIconDisplayMode') as 'circular' | 'dropdown';
+    return saved || 'circular'; // 默认圆形布局
+  });
+
   // 初始化autoSortEnabled从localStorage
   useEffect(() => {
     try {
@@ -315,6 +323,10 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('offWorkTime', offWorkTime);
   }, [offWorkTime]);
 
+  useEffect(() => {
+    localStorage.setItem('aiIconDisplayMode', aiIconDisplayMode);
+  }, [aiIconDisplayMode]);
+
   const contextValue = React.useMemo(() => ({
     cardOpacity,
     searchBarOpacity,
@@ -341,6 +353,7 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
     workCountdownEnabled,
     lunchTime,
     offWorkTime,
+    aiIconDisplayMode,
     setCardOpacity,
     setSearchBarOpacity,
     setParallaxEnabled,
@@ -366,10 +379,11 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
     setWorkCountdownEnabled,
     setLunchTime,
     setOffWorkTime,
+    setAiIconDisplayMode,
   }), [
     cardOpacity, searchBarOpacity, parallaxEnabled, wallpaperResolution, isSettingsOpen, isSearchFocused, cardColor, searchBarColor,
     autoSyncEnabled, autoSyncInterval, searchInNewTab, autoSortEnabled, timeComponentEnabled, showFullDate, showSeconds, showWeekday,
-    showYear, showMonth, showDay, dateDisplayMode, searchBarBorderRadius, animationStyle, workCountdownEnabled, lunchTime, offWorkTime
+    showYear, showMonth, showDay, dateDisplayMode, searchBarBorderRadius, animationStyle, workCountdownEnabled, lunchTime, offWorkTime, aiIconDisplayMode
   ]);
 
   return (

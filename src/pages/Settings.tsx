@@ -119,6 +119,8 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
     setWorkCountdownEnabled,
     setLunchTime,
     setOffWorkTime,
+    aiIconDisplayMode,
+    setAiIconDisplayMode,
   } = useTransparency();
 
   const { currentUser } = useAuth();
@@ -1093,6 +1095,45 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                       }`}
                   />
                 </button>
+              </div>
+
+              <div className="border-t border-gray-100"></div>
+
+              {/* AI图标显示模式 */}
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <i className="fa-solid fa-robot text-blue-500 text-sm"></i>
+                    <span className="text-sm font-medium text-gray-700 select-none">
+                      AI图标样式
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 select-none">
+                    {aiIconDisplayMode === 'dropdown' ? '下拉面板式，网格布局展示AI服务' : '圆形布局，悬停时环绕展开'}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setAiIconDisplayMode('circular')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${aiIconDisplayMode === 'circular'
+                      ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                  >
+                    <i className="fa-solid fa-circle-nodes mr-1"></i>
+                    圆形
+                  </button>
+                  <button
+                    onClick={() => setAiIconDisplayMode('dropdown')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${aiIconDisplayMode === 'dropdown'
+                      ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                  >
+                    <i className="fa-solid fa-grip mr-1"></i>
+                    面板
+                  </button>
+                </div>
               </div>
             </div>
           </div>

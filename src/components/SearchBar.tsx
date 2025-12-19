@@ -39,7 +39,7 @@ function SearchBarComponent(props: SearchBarProps = {}) {
   const { websites = [], onOpenSettings } = props;
   const inputRef = useRef<HTMLInputElement>(null);
   const [isFocused, setIsFocused] = useState(false);
-  const { searchBarOpacity, searchBarColor, setIsSearchFocused, searchInNewTab, isSettingsOpen, searchBarBorderRadius, animationStyle } =
+  const { searchBarOpacity, searchBarColor, setIsSearchFocused, searchInNewTab, isSettingsOpen, searchBarBorderRadius, animationStyle, aiIconDisplayMode } =
     useTransparency();
   const { isMobile } = useResponsiveLayout();
   const { isWorkspaceOpen, setIsWorkspaceOpen, workspaceItems } = useWorkspace();
@@ -2187,8 +2187,8 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                   style={{ display: 'inline-block' }}
                 />
 
-                {/* 悬停时显示的AI图标（以搜索图标为圆心） */}
-                {isHovered && (
+                {/* 悬停时显示的AI图标（以搜索图标为圆心）- 圆形布局模式 */}
+                {isHovered && aiIconDisplayMode === 'circular' && (
                   <div
                     className="absolute z-30"
                     style={{
@@ -2303,6 +2303,51 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                   </div>
                 )}
               </motion.button>
+
+              {/* 下拉面板式AI图标 */}
+              {isHovered && aiIconDisplayMode === 'dropdown' && !searchQuery && (
+                <div
+                  className="absolute z-30 opacity-0"
+                  style={{
+                    top: 'calc(100% + 8px)',
+                    left: 0,
+                    right: 0,
+                    display: 'flex',
+                    justifyContent: 'center',
+                    pointerEvents: 'none',
+                    animation: 'fade-in-up 0.4s ease-out 0.45s forwards',
+                  }}
+                >
+                  <div
+                    className="rounded-xl px-2 py-1 shadow-xl border border-white/20"
+                    style={{
+                      backgroundColor: `rgba(${searchBarColor}, 0.6)`,
+                      backdropFilter: 'blur(12px)',
+                      WebkitBackdropFilter: 'blur(12px)',
+                      pointerEvents: 'auto',
+                      marginLeft: 120,
+                    }}
+                  >
+                    <div className="flex items-center gap-1.5">
+                      {emojiList.map((emoji, i) => (
+                        <div
+                          key={i}
+                          onClick={() => window.open(emojiLinks[i], '_blank')}
+                          className="flex items-center justify-center p-1.5 rounded-lg cursor-pointer transition-transform duration-150 hover:bg-white/20 hover:scale-110 active:scale-95"
+                          style={{ userSelect: 'none' }}
+                        >
+                          <div
+                            className="flex items-center justify-center"
+                            style={{ width: 26, height: 26 }}
+                          >
+                            {emoji}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
             </motion.div>
           </form>
         </motion.div>

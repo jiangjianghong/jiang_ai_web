@@ -161,7 +161,7 @@ class OptimizedWallpaperService {
 
     // 获取并增加重试计数（内存中）
     const retryCount = this.retryCounts.get(resolution) || 0;
-    
+
     // 检查是否超过最大重试次数
     if (retryCount >= MAX_RETRY_COUNT) {
       logger.wallpaper.warn(`${resolution} 壁纸已达到最大重试次数 (${MAX_RETRY_COUNT})，停止重试`);
@@ -250,7 +250,11 @@ class OptimizedWallpaperService {
 
         const targetResolution =
           resolutionMap[resolution as keyof typeof resolutionMap] || '1920x1080';
-        return `${supabaseUrl}/functions/v1/wallpaper-service?resolution=${targetResolution}`;
+
+        // 🔧 修复: 添加日期参数以避免浏览器缓存 (Edge Function 返回 12h 缓存头)
+        // 使用中国时区的日期，确保每天产生一个新的 URL
+        const today = this.getLocalDateString();
+        return `${supabaseUrl}/functions/v1/wallpaper-service?resolution=${targetResolution}&date=${today}`;
       }
     } catch (error) {
       logger.wallpaper.warn('Supabase壁纸服务访问失败', error);
@@ -601,7 +605,7 @@ class OptimizedWallpaperService {
         // 🔧 修复: 只有真正的 Bing 壁纸才标记成功，fallback 则安排重试
         if (!downloaded.isFallback) {
           this.markUpdateSuccess(resolution);
-          
+
           // 🔧 修复: 下载成功后才清理旧缓存
           if (shouldRefresh) {
             logger.wallpaper.info('新壁纸下载成功，清理旧缓存');
@@ -625,7 +629,7 @@ class OptimizedWallpaperService {
       } catch (downloadError) {
         // 🔧 修复: 下载失败时，使用旧缓存作为降级，而不是直接返回 fallbackImage
         logger.wallpaper.warn('下载新壁纸失败', downloadError);
-        
+
         if (fallbackCache) {
           logger.wallpaper.info('使用旧缓存作为降级显示');
           // 安排后台重试
@@ -638,7 +642,7 @@ class OptimizedWallpaperService {
             originalUrl: fallbackCache.originalUrl,
           };
         }
-        
+
         // 没有旧缓存可用，抛出错误让外层处理
         throw downloadError;
       }

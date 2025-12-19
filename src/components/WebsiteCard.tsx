@@ -3,6 +3,7 @@ import { useState, useRef, useEffect, memo, useCallback } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import Tilt from 'react-parallax-tilt';
 import CardEditModal from './CardEditModal';
+import { ContextMenu, ContextMenuItem } from './ContextMenu';
 import { useTransparency } from '@/contexts/TransparencyContext';
 import { useLazyFavicon } from '@/hooks/useLazyFavicon';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
@@ -32,6 +33,7 @@ interface WebsiteCardProps {
   onSave: (data: WebsiteCardData) => void;
   onDelete?: (id: string) => void;
   onCardSave?: () => void; // 可选的保存回调，用于触发同步
+  onAddCard?: () => void; // 新增卡片回调
 }
 
 export const WebsiteCard = memo(function WebsiteCardComponent({
@@ -47,10 +49,12 @@ export const WebsiteCard = memo(function WebsiteCardComponent({
   onSave,
   onDelete,
   onCardSave,
+  onAddCard,
 }: WebsiteCardProps) {
   const [showEditModal, setShowEditModal] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [, setClickAnimation] = useState(false);
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
   const { cardOpacity, cardColor, autoSortEnabled, searchInNewTab } = useTransparency();
@@ -209,6 +213,31 @@ export const WebsiteCard = memo(function WebsiteCardComponent({
     }
   };
 
+  // 右键菜单处理
+  const handleContextMenu = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setContextMenu({ x: e.clientX, y: e.clientY });
+  }, []);
+
+  // 右键菜单项
+  const contextMenuItems: ContextMenuItem[] = [
+    {
+      icon: 'fa-solid fa-pen-to-square',
+      label: '编辑卡片',
+      onClick: () => {
+        setShowEditModal(true);
+      },
+    },
+    ...(onAddCard ? [{
+      icon: 'fa-solid fa-plus',
+      label: '新增卡片',
+      onClick: () => {
+        onAddCard();
+      },
+    }] : []),
+  ];
+
   return (
     <>
       {/* 使用Tilt组件实现3D效果 */}
@@ -227,6 +256,7 @@ export const WebsiteCard = memo(function WebsiteCardComponent({
       >
         {/* 简化的卡片容器 - 保留圆角 */}
         <motion.div
+          data-website-card="true"
           className={`${getCardClasses()} relative rounded-lg`}
           style={{
             backgroundColor: `rgba(${cardColor}, ${cardOpacity})`,
@@ -253,6 +283,7 @@ export const WebsiteCard = memo(function WebsiteCardComponent({
           onTouchMove={clearLongPress}
           onTouchCancel={clearLongPress}
           onClick={handleCardClick}
+          onContextMenu={handleContextMenu}
           whileTap={{
             scale: 0.95,
             filter: 'brightness(0.85)',
@@ -425,6 +456,16 @@ export const WebsiteCard = memo(function WebsiteCardComponent({
         />
       )
       }
+
+      {/* 右键菜单 */}
+      {contextMenu && (
+        <ContextMenu
+          x={contextMenu.x}
+          y={contextMenu.y}
+          items={contextMenuItems}
+          onClose={() => setContextMenu(null)}
+        />
+      )}
     </>
   );
 });

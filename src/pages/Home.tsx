@@ -4,6 +4,7 @@ import { SearchBar } from '@/components/SearchBar';
 import { TimeDisplay } from '@/components/TimeDisplay';
 import { PoemDisplay } from '@/components/PoemDisplay';
 import { AnimatedCat } from '@/components/AnimatedCat';
+import CardEditModal from '@/components/CardEditModal';
 // 拖拽逻辑已迁移到 WebsiteCard
 import { motion } from 'framer-motion';
 import { useTransparency } from '@/contexts/TransparencyContext';
@@ -50,10 +51,30 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
   const [bgOriginalUrl, setBgOriginalUrl] = useState<string | undefined>(); // 原始URL用于收藏检测
   const [bgImageLoaded, setBgImageLoaded] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showAddCardModal, setShowAddCardModal] = useState(false);
   const [mousePosition, setMousePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [isFavoriting, setIsFavoriting] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
   const [isAlreadyFavorited, setIsAlreadyFavorited] = useState(false);
+
+  // 阻止空白区域右键菜单
+  useEffect(() => {
+    const handleContextMenu = (e: MouseEvent) => {
+      // 检查是否点击在卡片上（卡片内部会处理自己的右键菜单）
+      const target = e.target as HTMLElement;
+      const isOnCard = target.closest('[data-website-card]');
+
+      // 如果不是在卡片上，阻止默认右键菜单
+      if (!isOnCard) {
+        e.preventDefault();
+      }
+    };
+
+    document.addEventListener('contextmenu', handleContextMenu);
+    return () => {
+      document.removeEventListener('contextmenu', handleContextMenu);
+    };
+  }, []);
 
   // 检查当前壁纸是否已收藏
   useEffect(() => {
@@ -414,6 +435,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
                   onSave={handleSaveCard}
                   onDelete={handleDelete}
                   onCardSave={triggerSync}
+                  onAddCard={() => setShowAddCardModal(true)}
                 />
               );
             })}
@@ -543,6 +565,31 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
 
         {/* 工作空间模态框 */}
         <LazyWorkspaceModal isOpen={isWorkspaceOpen} onClose={() => setIsWorkspaceOpen(false)} />
+
+        {/* 新增卡片模态框 */}
+        {showAddCardModal && (
+          <CardEditModal
+            id=""
+            name=""
+            url=""
+            favicon=""
+            tags={[]}
+            note=""
+            onClose={() => setShowAddCardModal(false)}
+            onSave={(data) => {
+              // 创建新卡片
+              const newCard = {
+                ...data,
+                id: `card-${Date.now()}`,
+                visitCount: 0,
+                lastVisit: new Date().toISOString().split('T')[0],
+              };
+              setWebsites([...websites, newCard]);
+              setShowAddCardModal(false);
+              triggerSync();
+            }}
+          />
+        )}
       </div>
     </>
   );

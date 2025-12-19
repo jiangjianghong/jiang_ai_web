@@ -41,6 +41,7 @@ interface TransparencyContextType {
   lunchTime: string; // 午休时间 HH:mm
   offWorkTime: string; // 下班时间 HH:mm
   aiIconDisplayMode: 'circular' | 'dropdown'; // AI图标显示模式：圆形布局或下拉面板
+  atmosphereEnabled: boolean; // 氛围效果开关（立冬下雪等）
   setCardOpacity: (opacity: number) => void;
   setSearchBarOpacity: (opacity: number) => void;
   setParallaxEnabled: (enabled: boolean) => void;
@@ -67,6 +68,7 @@ interface TransparencyContextType {
   setLunchTime: (time: string) => void;
   setOffWorkTime: (time: string) => void;
   setAiIconDisplayMode: (mode: 'circular' | 'dropdown') => void;
+  setAtmosphereEnabled: (enabled: boolean) => void;
 }
 
 const TransparencyContext = createContext<TransparencyContextType | undefined>(undefined);
@@ -219,6 +221,12 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
     return saved || 'circular'; // 默认圆形布局
   });
 
+  // 氛围效果开关（立冬下雪等）
+  const [atmosphereEnabled, setAtmosphereEnabled] = useState(() => {
+    const saved = localStorage.getItem('atmosphereEnabled');
+    return saved ? saved === 'true' : true; // 默认开启
+  });
+
   // 初始化autoSortEnabled从localStorage
   useEffect(() => {
     try {
@@ -327,6 +335,10 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('aiIconDisplayMode', aiIconDisplayMode);
   }, [aiIconDisplayMode]);
 
+  useEffect(() => {
+    localStorage.setItem('atmosphereEnabled', atmosphereEnabled.toString());
+  }, [atmosphereEnabled]);
+
   const contextValue = React.useMemo(() => ({
     cardOpacity,
     searchBarOpacity,
@@ -354,6 +366,7 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
     lunchTime,
     offWorkTime,
     aiIconDisplayMode,
+    atmosphereEnabled,
     setCardOpacity,
     setSearchBarOpacity,
     setParallaxEnabled,
@@ -380,10 +393,11 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
     setLunchTime,
     setOffWorkTime,
     setAiIconDisplayMode,
+    setAtmosphereEnabled,
   }), [
     cardOpacity, searchBarOpacity, parallaxEnabled, wallpaperResolution, isSettingsOpen, isSearchFocused, cardColor, searchBarColor,
     autoSyncEnabled, autoSyncInterval, searchInNewTab, autoSortEnabled, timeComponentEnabled, showFullDate, showSeconds, showWeekday,
-    showYear, showMonth, showDay, dateDisplayMode, searchBarBorderRadius, animationStyle, workCountdownEnabled, lunchTime, offWorkTime, aiIconDisplayMode
+    showYear, showMonth, showDay, dateDisplayMode, searchBarBorderRadius, animationStyle, workCountdownEnabled, lunchTime, offWorkTime, aiIconDisplayMode, atmosphereEnabled
   ]);
 
   return (

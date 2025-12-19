@@ -18,6 +18,8 @@ import { useRAFThrottledMouseMove } from '@/hooks/useRAFThrottle';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import { logger } from '@/utils/logger';
 import { customWallpaperManager } from '@/lib/customWallpaperManager';
+import SnowEffect from '@/components/effects/SnowEffect';
+import { isWinterSeason } from '@/utils/solarTerms';
 
 interface HomeProps {
   websites: any[];
@@ -32,6 +34,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
     isSettingsOpen,
     autoSortEnabled,
     isSearchFocused,
+    atmosphereEnabled,
   } = useTransparency();
   const { isWorkspaceOpen, setIsWorkspaceOpen } = useWorkspace();
   const { isMobile, getGridClasses, getSearchBarLayout } = useResponsiveLayout();
@@ -367,6 +370,9 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
           }}
         />
       )}
+
+      {/* 雪花氛围效果 - 仅在开关开启且处于冬季时显示 */}
+      {atmosphereEnabled && isWinterSeason() && <SnowEffect />}
 
       {/* 壁纸加载指示器 - 响应式位置 */}
       {!bgImageLoaded && bgImage && (

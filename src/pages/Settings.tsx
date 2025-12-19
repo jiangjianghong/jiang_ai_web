@@ -121,6 +121,8 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
     setOffWorkTime,
     aiIconDisplayMode,
     setAiIconDisplayMode,
+    atmosphereEnabled,
+    setAtmosphereEnabled,
   } = useTransparency();
 
   const { currentUser } = useAuth();
@@ -1092,6 +1094,37 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                     className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${animationStyle === 'dynamic'
                       ? 'translate-x-6 shadow-purple-200'
                       : 'translate-x-1 shadow-gray-200'
+                      }`}
+                  />
+                </button>
+              </div>
+
+              <div className="border-t border-gray-100"></div>
+
+              {/* 氛围效果开关 */}
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <i className="fa-solid fa-snowflake text-cyan-500 text-sm"></i>
+                    <span className="text-sm font-medium text-gray-700 select-none">
+                      氛围效果
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 select-none">
+                    {atmosphereEnabled ? '立冬至立春期间页面会飘落雪花' : '已关闭季节氛围效果'}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setAtmosphereEnabled(!atmosphereEnabled)}
+                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${atmosphereEnabled
+                      ? 'bg-gradient-to-r from-cyan-400 to-blue-500 shadow-lg shadow-cyan-300/50'
+                      : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
+                    }`}
+                >
+                  <span
+                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${atmosphereEnabled
+                        ? 'translate-x-6 shadow-cyan-200'
+                        : 'translate-x-1 shadow-gray-200'
                       }`}
                   />
                 </button>

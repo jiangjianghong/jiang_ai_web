@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,7 +8,7 @@
   <script>
     // GitHub Pages SPA 重定向脚本
     // 将 404 页面重定向到主页面，但排除静态目录（如 /me）
-    (function(l) {
+    (function (l) {
       // 静态目录列表（不需要重定向到 SPA 的路径）
       var staticDirs = ['/me', '/help'];
 
@@ -28,17 +29,18 @@
         }
       }
 
-      // 对于其他路径，使用 SPA 路由重定向
+      // 对于其他路径（如 /admin），使用 SPA 路由重定向
       // 将路径信息编码到查询参数中
-      var pathSegment = l.pathname.slice(1);
-      if (pathSegment) {
-        // 将路径转换为查询参数，用于 index.html 恢复
-        window.location.replace(
-          l.origin + l.pathname.split('/').slice(0, -1).join('/') +
-          '/?/' + pathSegment +
-          (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
-          l.hash
-        );
+      if (l.pathname && l.pathname !== '/') {
+        var pathSegment = l.pathname.slice(1); // 移除开头的 /
+        if (pathSegment) {
+          // 重定向到根路径，带上 /?/path 格式的查询参数
+          var redirectUrl = l.origin +
+            '/?/' + pathSegment +
+            (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
+            l.hash;
+          window.location.replace(redirectUrl);
+        }
       }
     }(window.location))
   </script>
@@ -81,27 +83,74 @@
       animation: float 15s infinite;
     }
 
-    .particle:nth-child(1) { left: 10%; animation-delay: 0s; animation-duration: 12s; }
-    .particle:nth-child(2) { left: 20%; animation-delay: 2s; animation-duration: 14s; }
-    .particle:nth-child(3) { left: 30%; animation-delay: 4s; animation-duration: 11s; }
-    .particle:nth-child(4) { left: 40%; animation-delay: 1s; animation-duration: 16s; }
-    .particle:nth-child(5) { left: 50%; animation-delay: 3s; animation-duration: 13s; }
-    .particle:nth-child(6) { left: 60%; animation-delay: 5s; animation-duration: 15s; }
-    .particle:nth-child(7) { left: 70%; animation-delay: 2s; animation-duration: 12s; }
-    .particle:nth-child(8) { left: 80%; animation-delay: 4s; animation-duration: 14s; }
-    .particle:nth-child(9) { left: 90%; animation-delay: 1s; animation-duration: 11s; }
+    .particle:nth-child(1) {
+      left: 10%;
+      animation-delay: 0s;
+      animation-duration: 12s;
+    }
+
+    .particle:nth-child(2) {
+      left: 20%;
+      animation-delay: 2s;
+      animation-duration: 14s;
+    }
+
+    .particle:nth-child(3) {
+      left: 30%;
+      animation-delay: 4s;
+      animation-duration: 11s;
+    }
+
+    .particle:nth-child(4) {
+      left: 40%;
+      animation-delay: 1s;
+      animation-duration: 16s;
+    }
+
+    .particle:nth-child(5) {
+      left: 50%;
+      animation-delay: 3s;
+      animation-duration: 13s;
+    }
+
+    .particle:nth-child(6) {
+      left: 60%;
+      animation-delay: 5s;
+      animation-duration: 15s;
+    }
+
+    .particle:nth-child(7) {
+      left: 70%;
+      animation-delay: 2s;
+      animation-duration: 12s;
+    }
+
+    .particle:nth-child(8) {
+      left: 80%;
+      animation-delay: 4s;
+      animation-duration: 14s;
+    }
+
+    .particle:nth-child(9) {
+      left: 90%;
+      animation-delay: 1s;
+      animation-duration: 11s;
+    }
 
     @keyframes float {
       0% {
         transform: translateY(100vh) scale(0);
         opacity: 0;
       }
+
       10% {
         opacity: 1;
       }
+
       90% {
         opacity: 1;
       }
+
       100% {
         transform: translateY(-100vh) scale(1);
         opacity: 0;
@@ -132,9 +181,17 @@
     }
 
     @keyframes gradient {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
+      0% {
+        background-position: 0% 50%;
+      }
+
+      50% {
+        background-position: 100% 50%;
+      }
+
+      100% {
+        background-position: 0% 50%;
+      }
     }
 
     .error-title {
@@ -159,6 +216,7 @@
         opacity: 0;
         transform: translateY(20px);
       }
+
       to {
         opacity: 1;
         transform: translateY(0);
@@ -184,15 +242,27 @@
       animation: bounce 1.4s ease-in-out infinite;
     }
 
-    .loader-dot:nth-child(1) { animation-delay: 0s; }
-    .loader-dot:nth-child(2) { animation-delay: 0.2s; }
-    .loader-dot:nth-child(3) { animation-delay: 0.4s; }
+    .loader-dot:nth-child(1) {
+      animation-delay: 0s;
+    }
+
+    .loader-dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .loader-dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
 
     @keyframes bounce {
-      0%, 80%, 100% {
+
+      0%,
+      80%,
+      100% {
         transform: scale(0.6);
         opacity: 0.5;
       }
+
       40% {
         transform: scale(1);
         opacity: 1;
@@ -254,6 +324,7 @@
     }
   </style>
 </head>
+
 <body>
   <!-- 背景粒子 -->
   <div class="particles">
@@ -285,7 +356,8 @@
     <p class="redirect-text">正在自动跳转...</p>
 
     <a href="/" class="home-button">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
         <polyline points="9 22 9 12 15 12 15 22"></polyline>
       </svg>
@@ -300,7 +372,7 @@
     var seconds = 3;
     var timerEl = document.getElementById('timer');
 
-    var countdown = setInterval(function() {
+    var countdown = setInterval(function () {
       seconds--;
       if (timerEl) {
         timerEl.textContent = seconds;
@@ -313,4 +385,5 @@
     }, 1000);
   </script>
 </body>
+
 </html>

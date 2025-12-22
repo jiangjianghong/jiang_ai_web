@@ -22,13 +22,23 @@ export default function ConfirmModal({
   cancelText = '取消',
   type = 'warning',
 }: ConfirmModalProps) {
-  // ESC键关闭模态框
+  // ESC键关闭模态框，Enter键确认
   useEffect(() => {
     if (!isOpen) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         onClose();
+      } else if (e.key === 'Enter') {
+        // 确保不是在输入框中按Enter
+        const activeElement = document.activeElement;
+        const isInput = activeElement?.tagName === 'INPUT' ||
+          activeElement?.tagName === 'TEXTAREA';
+        if (!isInput) {
+          e.preventDefault();
+          onConfirm();
+          onClose();
+        }
       }
     };
 
@@ -36,7 +46,7 @@ export default function ConfirmModal({
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, onConfirm]);
 
   const getTypeStyles = () => {
     switch (type) {

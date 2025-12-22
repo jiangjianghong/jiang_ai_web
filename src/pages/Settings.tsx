@@ -394,10 +394,15 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
     return () => setIsSettingsOpen(false);
   }, [setIsSettingsOpen]);
 
-  // ESC键关闭设置页面
+  // ESC键关闭设置页面（仅在没有子模态框打开时）
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
+        // 检查是否有子模态框打开，如果有则让子模态框处理ESC
+        if (showPrivacySettings || showAccountSecurityModal || showAddCardModal ||
+          showImportConfirm || showWallpaperGallery || showPreviewModal || showUserStatsModal) {
+          return; // 让子模态框自己处理ESC关闭
+        }
         onClose();
       }
     };
@@ -406,7 +411,8 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [onClose]);
+  }, [onClose, showPrivacySettings, showAccountSecurityModal, showAddCardModal,
+    showImportConfirm, showWallpaperGallery, showPreviewModal, showUserStatsModal]);
 
   const handleClose = () => {
     setIsSettingsOpen(false);
@@ -1117,14 +1123,14 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                 <button
                   onClick={() => setAtmosphereEnabled(!atmosphereEnabled)}
                   className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${atmosphereEnabled
-                      ? 'bg-gradient-to-r from-cyan-400 to-blue-500 shadow-lg shadow-cyan-300/50'
-                      : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
+                    ? 'bg-gradient-to-r from-cyan-400 to-blue-500 shadow-lg shadow-cyan-300/50'
+                    : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
                     }`}
                 >
                   <span
                     className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${atmosphereEnabled
-                        ? 'translate-x-6 shadow-cyan-200'
-                        : 'translate-x-1 shadow-gray-200'
+                      ? 'translate-x-6 shadow-cyan-200'
+                      : 'translate-x-1 shadow-gray-200'
                       }`}
                   />
                 </button>

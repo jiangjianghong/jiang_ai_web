@@ -20,6 +20,7 @@ import { logger } from '@/utils/logger';
 import { customWallpaperManager } from '@/lib/customWallpaperManager';
 import SnowEffect from '@/components/effects/SnowEffect';
 import AnnouncementBanner from '@/components/AnnouncementBanner';
+import AnnouncementCenter from '@/components/AnnouncementCenter';
 import { isWinterSeason } from '@/utils/solarTerms';
 
 interface HomeProps {
@@ -566,6 +567,9 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
             <i className={`fa-solid fa-sliders ${isMobile ? 'text-base' : 'text-lg'}`}></i>
           </button>
         </motion.div>
+
+        {/* 公告中心入口 - 左下角 */}
+        <AnnouncementCenter isVisible={!isSearchFocused} />
 
         {/* 诗句显示 - 页面下方 */}
         <PoemDisplay />

@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS user_profiles (
   id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
   email TEXT,
   display_name TEXT,
+  role TEXT DEFAULT 'user' CHECK (role IN ('user', 'admin', 'super_admin')),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -182,5 +183,138 @@ DROP POLICY IF EXISTS "Service role wallpaper upload" ON storage.objects;
 CREATE POLICY "Service role wallpaper upload" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'wallpapers');
 
 -- ==============================================================================
+-- 6. Admin System Tables (管理员系统表)
+-- ==============================================================================
+
+-- 6.1 User Bans (用户禁用表)
+CREATE TABLE IF NOT EXISTS user_bans (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE UNIQUE,
+  banned_by UUID REFERENCES auth.users(id),
+  reason TEXT,
+  banned_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  expires_at TIMESTAMP WITH TIME ZONE
+);
+
+ALTER TABLE user_bans ENABLE ROW LEVEL SECURITY;
+
+-- 6.2 Announcements (公告表)
+CREATE TABLE IF NOT EXISTS announcements (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  title TEXT NOT NULL,
+  content TEXT NOT NULL,
+  type TEXT DEFAULT 'info' CHECK (type IN ('info', 'warning', 'update', 'maintenance')),
+  is_active BOOLEAN DEFAULT true,
+  created_by UUID REFERENCES auth.users(id),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  expires_at TIMESTAMP WITH TIME ZONE
+);
+
+ALTER TABLE announcements ENABLE ROW LEVEL SECURITY;
+
+-- 6.3 Default Websites (默认网站卡片)
+CREATE TABLE IF NOT EXISTS default_websites (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name TEXT NOT NULL,
+  url TEXT NOT NULL,
+  favicon TEXT,
+  category TEXT,
+  sort_order INTEGER DEFAULT 0,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE default_websites ENABLE ROW LEVEL SECURITY;
+
+-- 6.4 Analytics Daily (每日统计聚合)
+CREATE TABLE IF NOT EXISTS analytics_daily (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  date DATE NOT NULL UNIQUE,
+  total_users INTEGER DEFAULT 0,
+  new_users INTEGER DEFAULT 0,
+  active_users INTEGER DEFAULT 0,
+  total_searches INTEGER DEFAULT 0,
+  total_site_visits INTEGER DEFAULT 0,
+  avg_cards_per_user NUMERIC DEFAULT 0,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE analytics_daily ENABLE ROW LEVEL SECURITY;
+
+-- 7. Admin Helper Function (管理员辅助函数)
+-- ==============================================================================
+
+CREATE OR REPLACE FUNCTION is_admin()
+RETURNS BOOLEAN AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM user_profiles 
+    WHERE id = auth.uid() AND role IN ('admin', 'super_admin')
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 8. Admin RLS Policies (管理员安全策略)
+-- ==============================================================================
+
+-- user_bans: Only admins can manage
+DROP POLICY IF EXISTS "Admins can manage bans" ON user_bans;
+CREATE POLICY "Admins can manage bans" ON user_bans FOR ALL USING (is_admin());
+
+-- announcements: Anyone can read active, admins can manage
+DROP POLICY IF EXISTS "Anyone can read active announcements" ON announcements;
+CREATE POLICY "Anyone can read active announcements" ON announcements
+  FOR SELECT USING (is_active = true AND (expires_at IS NULL OR expires_at > NOW()));
+
+DROP POLICY IF EXISTS "Admins can manage announcements" ON announcements;
+CREATE POLICY "Admins can manage announcements" ON announcements FOR ALL USING (is_admin());
+
+-- default_websites: Anyone can read active, admins can manage
+DROP POLICY IF EXISTS "Anyone can read default websites" ON default_websites;
+CREATE POLICY "Anyone can read default websites" ON default_websites FOR SELECT USING (is_active = true);
+
+DROP POLICY IF EXISTS "Admins can manage default websites" ON default_websites;
+CREATE POLICY "Admins can manage default websites" ON default_websites FOR ALL USING (is_admin());
+
+-- analytics_daily: Only admins can read
+DROP POLICY IF EXISTS "Admins can read analytics" ON analytics_daily;
+CREATE POLICY "Admins can read analytics" ON analytics_daily FOR SELECT USING (is_admin());
+
+DROP POLICY IF EXISTS "System can insert analytics" ON analytics_daily;
+CREATE POLICY "System can insert analytics" ON analytics_daily FOR INSERT WITH CHECK (true);
+
+-- Admin can read all user profiles (basic info only)
+DROP POLICY IF EXISTS "Admins can read all profiles" ON user_profiles;
+CREATE POLICY "Admins can read all profiles" ON user_profiles FOR SELECT USING (auth.uid() = id OR is_admin());
+
+-- Admin can read all user stats
+DROP POLICY IF EXISTS "Admins can read all stats" ON user_stats;
+CREATE POLICY "Admins can read all stats" ON user_stats FOR SELECT USING (auth.uid() = id OR is_admin());
+
+-- 9. Aggregate Stats Function (统计聚合函数)
+-- ==============================================================================
+
+CREATE OR REPLACE FUNCTION aggregate_daily_stats()
+RETURNS void AS $$
+BEGIN
+  INSERT INTO analytics_daily (date, total_users, new_users, active_users, total_searches, total_site_visits)
+  SELECT 
+    CURRENT_DATE,
+    (SELECT COUNT(*) FROM user_profiles),
+    (SELECT COUNT(*) FROM user_profiles WHERE created_at::date = CURRENT_DATE),
+    (SELECT COUNT(*) FROM user_stats WHERE last_visit_date = CURRENT_DATE),
+    (SELECT COALESCE(SUM(total_searches), 0) FROM user_stats),
+    (SELECT COALESCE(SUM(total_site_visits), 0) FROM user_stats)
+  ON CONFLICT (date) DO UPDATE SET
+    total_users = EXCLUDED.total_users,
+    new_users = EXCLUDED.new_users,
+    active_users = EXCLUDED.active_users,
+    total_searches = EXCLUDED.total_searches,
+    total_site_visits = EXCLUDED.total_site_visits;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- ==============================================================================
 -- Deployment Complete! 部署完成!
 -- ==============================================================================
+

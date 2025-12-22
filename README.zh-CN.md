@@ -174,13 +174,40 @@ Vercel 对 Vite 应用提供零配置支持。
 <details>
 <summary><b>1️⃣ SQL 数据库初始化 (一键配置)</b></summary>
 
-我们提供了一个**统一部署脚本**，可以自动创建所有数据表（资料、设置、网站、统计）、安全策略以及存储桶。
+我们提供了一个**统一部署脚本**，可以自动创建所有数据表（资料、设置、网站、统计、公告、管理员）、安全策略以及存储桶。
 
 1. 复制 **[supabase_deploy.sql](supabase_deploy.sql)** 文件的全部内容。
 2. 粘贴到你的 **Supabase SQL Editor** 中。
 3. 点击 **Run** 运行。
 
 搞定！你的数据库已经完全配置好了。
+
+</details>
+
+<details>
+<summary><b>2️⃣ 管理员配置 (可选)</b></summary>
+
+如果你想启用管理后台功能，请执行以下步骤：
+
+**1. 配置环境变量**
+
+在 `.env` 文件中添加管理员邮箱：
+```bash
+VITE_ADMIN_EMAIL=your-admin@example.com
+```
+
+**2. 设置管理员角色**
+
+在 Supabase SQL Editor 中执行：
+```sql
+UPDATE user_profiles SET role = 'super_admin' WHERE email = 'your-admin@example.com';
+```
+
+**3. 访问管理后台**
+
+使用管理员账号登录后，访问 `/admin` 即可进入管理后台。
+
+> ⚠️ **隐私说明**：管理员只能查看聚合统计数据，无法访问用户的网站列表等个人数据。
 
 </details>
 

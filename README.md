@@ -177,13 +177,40 @@ This project relies on Supabase for Auth & Database.
 <details>
 <summary><b>1️⃣ SQL Schema Setup (One-Click)</b></summary>
 
-We provide a **unified deployment script** that sets up all tables (`profiles`, `settings`, `websites`, `stats`), security policies, and storage buckets automatically.
+We provide a **unified deployment script** that sets up all tables (`profiles`, `settings`, `websites`, `stats`, `announcements`, `admin`), security policies, and storage buckets automatically.
 
 1. Copy the content of **[supabase_deploy.sql](supabase_deploy.sql)**.
 2. Paste it into your **Supabase SQL Editor**.
 3. Click **Run**.
 
 That's it! Your database is fully configured.
+
+</details>
+
+<details>
+<summary><b>2️⃣ Admin Setup (Optional)</b></summary>
+
+To enable the admin dashboard:
+
+**1. Configure Environment Variable**
+
+Add admin email to your `.env` file:
+```bash
+VITE_ADMIN_EMAIL=your-admin@example.com
+```
+
+**2. Set Admin Role**
+
+In Supabase SQL Editor, run:
+```sql
+UPDATE user_profiles SET role = 'super_admin' WHERE email = 'your-admin@example.com';
+```
+
+**3. Access Admin Dashboard**
+
+After logging in with your admin account, visit `/admin`.
+
+> ⚠️ **Privacy**: Admins can only view aggregate statistics, not users' personal data like website lists.
 
 </details>
 

@@ -19,6 +19,7 @@ import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import { logger } from '@/utils/logger';
 import { customWallpaperManager } from '@/lib/customWallpaperManager';
 import SnowEffect from '@/components/effects/SnowEffect';
+import AnnouncementBanner from '@/components/AnnouncementBanner';
 import { isWinterSeason } from '@/utils/solarTerms';
 
 interface HomeProps {
@@ -338,6 +339,9 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
     <>
       {/* 邮箱验证横幅 */}
       <EmailVerificationBanner />
+
+      {/* 系统公告横幅 */}
+      <AnnouncementBanner />
 
       {/* 壁纸背景层 - 响应式优化 */}
       <div

@@ -318,9 +318,9 @@ function WorkspaceModalComponent({ isOpen, onClose }: WorkspaceModalProps) {
                 <div className="flex-shrink-0 px-6 py-3 bg-gray-50/80 border-t border-gray-200 backdrop-blur-sm">
                   <div className="flex items-center justify-between text-xs text-gray-500">
                     <div className="flex items-center space-x-6">
-                      <span>💡 快捷键: Space-搜索 • ↑↓-导航 • Enter-打开 • C-复制</span>
+                      <span>💡 快捷键: Space-搜索 • ↑↓←→-导航 • Enter-打开 • C-复制 • D-密码</span>
                       {!isMobile && (
-                        <span>1-9-分类切换 • V-切换视图</span>
+                        <span>0-9-分类切换 • Esc-关闭</span>
                       )}
                     </div>
                     <div className="flex items-center space-x-4">

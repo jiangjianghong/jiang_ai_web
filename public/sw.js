@@ -196,7 +196,8 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 对于静态资源，使用缓存优先策略
+  // 对于静态资源（JS/CSS/图片），使用缓存优先策略
+  // 带哈希的文件（如 xxx-[hash].js）本身就是版本控制，缓存找不到时自动走网络
   if (event.request.destination === 'script' ||
     event.request.destination === 'style' ||
     event.request.destination === 'image') {
@@ -204,20 +205,25 @@ self.addEventListener('fetch', (event) => {
       caches.match(event.request)
         .then((cachedResponse) => {
           if (cachedResponse) {
-            // 有缓存，后台更新
-            fetch(event.request).then((response) => {
-              if (response.status === 200) {
-                caches.open(CACHE_NAME).then((cache) => {
-                  cache.put(event.request, response.clone());
-                });
-              }
-            }).catch(() => {
-              // 忽略网络错误
-            });
-            return cachedResponse;
+            // 验证缓存响应是否有效
+            if (cachedResponse.status === 200 && cachedResponse.headers.get('content-type')) {
+              // 有效缓存，后台更新
+              fetch(event.request).then((response) => {
+                if (response.status === 200) {
+                  caches.open(CACHE_NAME).then((cache) => {
+                    cache.put(event.request, response.clone());
+                  });
+                }
+              }).catch(() => {
+                // 忽略后台更新的网络错误
+              });
+              return cachedResponse;
+            }
+            // 缓存无效，删除并走网络
+            caches.open(CACHE_NAME).then(cache => cache.delete(event.request));
           }
 
-          // 无缓存，网络请求并缓存
+          // 无缓存或缓存无效，网络请求并缓存
           return fetch(event.request).then((response) => {
             if (response.status === 200) {
               const responseClone = response.clone();
@@ -227,6 +233,10 @@ self.addEventListener('fetch', (event) => {
             }
             return response;
           });
+        })
+        .catch((error) => {
+          console.error('[SW] 静态资源加载失败:', event.request.url, error);
+          return new Response('Resource unavailable', { status: 503, statusText: 'Service Unavailable' });
         })
     );
     return;

@@ -3,6 +3,7 @@ import Home from '@/pages/Home';
 import AuthCallback from '@/pages/AuthCallback';
 import ResetPassword from '@/pages/ResetPassword';
 import NotFound from '@/pages/NotFound';
+import Admin from '@/pages/Admin';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { TransparencyProvider } from '@/contexts/TransparencyContext';
@@ -10,6 +11,7 @@ import { AuthProvider, useAuth } from '@/contexts/SupabaseAuthContext';
 import { SyncProvider } from '@/contexts/SyncContext';
 import { UserProfileProvider, useUserProfile } from '@/contexts/UserProfileContext';
 import { WorkspaceProvider } from '@/contexts/WorkspaceContext';
+import { AdminProvider } from '@/contexts/AdminContext';
 import { WebsiteData } from '@/lib/supabaseSync';
 import { useState, useEffect } from 'react';
 import { usePageTitle } from '@/hooks/usePageTitle';
@@ -233,6 +235,7 @@ function AppContent() {
         />
         <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/admin" element={<Admin />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
 
@@ -260,9 +263,11 @@ export default function MainApp() {
         <AuthProvider>
           <SyncProvider>
             <UserProfileProvider>
-              <WorkspaceProvider>
-                <AppContent />
-              </WorkspaceProvider>
+              <AdminProvider>
+                <WorkspaceProvider>
+                  <AppContent />
+                </WorkspaceProvider>
+              </AdminProvider>
             </UserProfileProvider>
           </SyncProvider>
         </AuthProvider>

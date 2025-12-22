@@ -213,9 +213,10 @@ function SearchBarComponent(props: SearchBarProps = {}) {
         const styles = window.getComputedStyle(el);
         const zIndex = parseInt(styles.zIndex) || 0;
         // 检查是否是需要阻止快捷键的模态框背景
-        // 排除工作空间和壁纸背景
+        // 排除工作空间和壁纸背景、pointer-events-none的装饰元素（如雪花效果）
         return zIndex >= 40 &&
           !el.classList.contains('wallpaper') &&
+          !el.classList.contains('pointer-events-none') && // 排除装饰性效果（如雪花）
           !el.querySelector('img') && // 不包含图片（排除壁纸）
           styles.display !== 'none' &&
           !el.closest('[data-workspace-modal]'); // 排除工作空间模态框

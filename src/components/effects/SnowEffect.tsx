@@ -19,7 +19,7 @@ interface Snowflake {
 }
 
 // 性能配置
-const MAX_SNOWFLAKES = 1000; // 最大雪花数量
+const MAX_SNOWFLAKES = 10; // 最大雪花数量
 const SPAWN_RATE = 0.5; // 每帧生成雪花的概率
 const SIZE_THRESHOLD = 2.2; // 大于此值的雪花在近景层
 

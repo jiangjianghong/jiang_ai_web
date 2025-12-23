@@ -39,7 +39,7 @@ function SearchBarComponent(props: SearchBarProps = {}) {
   const { websites = [], onOpenSettings } = props;
   const inputRef = useRef<HTMLInputElement>(null);
   const [isFocused, setIsFocused] = useState(false);
-  const { searchBarOpacity, searchBarColor, setIsSearchFocused, searchInNewTab, isSettingsOpen, searchBarBorderRadius, animationStyle, aiIconDisplayMode } =
+  const { searchBarOpacity, searchBarColor, setIsSearchFocused, searchInNewTab, isSettingsOpen, searchBarBorderRadius, animationStyle, aiIconDisplayMode, darkMode } =
     useTransparency();
   const { isMobile } = useResponsiveLayout();
   const { isWorkspaceOpen, setIsWorkspaceOpen, workspaceItems } = useWorkspace();
@@ -1666,8 +1666,8 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                 <AnimatePresence>
                   {showSuggestions && (websiteSuggestions.length > 0 || workspaceSuggestions.length > 0 || suggestions.length > 0) && (
                     <motion.div
-                      className={`absolute top-full left-3 right-0 mt-2 backdrop-blur-md rounded-lg shadow-lg border border-white/20 z-30 overflow-y-auto custom-scrollbar ${isMobile ? 'max-h-72' : 'max-h-96'
-                        }`}
+                      className={`absolute top-full left-3 right-0 mt-2 backdrop-blur-md rounded-lg shadow-lg border z-30 overflow-y-auto custom-scrollbar ${isMobile ? 'max-h-72' : 'max-h-96'
+                        } ${darkMode ? 'border-gray-700/50' : 'border-white/20'}`}
                       initial={{ opacity: 0, y: -10, scaleY: 0.8 }}
                       animate={{ opacity: 1, y: 0, scaleY: 1 }}
                       exit={{
@@ -1685,7 +1685,7 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                       }}
                       style={{
                         pointerEvents: 'auto',
-                        backgroundColor: `rgba(255, 255, 255, 0.95)`,
+                        backgroundColor: darkMode ? 'rgba(31, 41, 55, 0.95)' : 'rgba(255, 255, 255, 0.95)',
                         transformOrigin: 'top center',
                       }}
                       onMouseEnter={() => {
@@ -1697,14 +1697,14 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                     >
                       {/* 网站建议部分 */}
                       {websiteSuggestions.length > 0 && (
-                        <div className="border-b border-gray-200/50">
+                        <div className={`border-b ${darkMode ? 'border-gray-700/50' : 'border-gray-200/50'}`}>
                           <div
-                            className={`${isMobile ? 'px-3 py-1.5' : 'px-4 py-2'} bg-gradient-to-r from-purple-50 to-violet-50 border-b border-purple-100`}
+                            className={`${isMobile ? 'px-3 py-1.5' : 'px-4 py-2'} ${darkMode ? 'bg-gradient-to-r from-purple-900/30 to-violet-900/30 border-b border-purple-700/50' : 'bg-gradient-to-r from-purple-50 to-violet-50 border-b border-purple-100'}`}
                           >
                             <div className="flex items-center gap-2">
-                              <i className="fa-solid fa-globe text-purple-500 text-sm"></i>
+                              <i className={`fa-solid fa-globe ${darkMode ? 'text-purple-400' : 'text-purple-500'} text-sm`}></i>
                               <span
-                                className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium text-purple-700`}
+                                className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium ${darkMode ? 'text-purple-300' : 'text-purple-700'}`}
                               >
                                 网站建议
                               </span>
@@ -1715,9 +1715,14 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                             return (
                               <div
                                 key={website.id}
-                                className={`${isMobile ? 'px-3 py-2' : 'px-4 py-3'} cursor-pointer transition-all duration-200 border-b border-gray-100/50 last:border-b-0 select-none ${isSelected
-                                  ? 'bg-gradient-to-r from-purple-500/10 to-violet-500/10 border-purple-200'
-                                  : 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-purple-50'
+                                className={`${isMobile ? 'px-3 py-2' : 'px-4 py-3'} cursor-pointer transition-all duration-200 border-b last:border-b-0 select-none ${darkMode ? 'border-gray-700/50' : 'border-gray-100/50'
+                                  } ${isSelected
+                                    ? darkMode
+                                      ? 'bg-gradient-to-r from-purple-800/30 to-violet-800/30 border-purple-600/50'
+                                      : 'bg-gradient-to-r from-purple-500/10 to-violet-500/10 border-purple-200'
+                                    : darkMode
+                                      ? 'hover:bg-gradient-to-r hover:from-gray-700/50 hover:to-purple-900/30'
+                                      : 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-purple-50'
                                   }`}
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -1731,7 +1736,7 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                                 >
                                   {/* 网站图标 */}
                                   <div
-                                    className={`${isMobile ? 'w-6 h-6' : 'w-8 h-8'} rounded-lg overflow-hidden bg-white shadow-sm border border-gray-200/50 flex-shrink-0`}
+                                    className={`${isMobile ? 'w-6 h-6' : 'w-8 h-8'} rounded-lg overflow-hidden ${darkMode ? 'bg-gray-700' : 'bg-white'} shadow-sm border ${darkMode ? 'border-gray-600/50' : 'border-gray-200/50'} flex-shrink-0`}
                                   >
                                     <img
                                       src={processFaviconUrl(website.favicon, website.url, website.favicon)}
@@ -1748,12 +1753,12 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                                       className={`flex items-center gap-2 ${isMobile ? 'mb-0.5' : 'mb-1'}`}
                                     >
                                       <h4
-                                        className={`font-medium text-gray-800 ${isMobile ? 'text-xs' : 'text-sm'} truncate`}
+                                        className={`font-medium ${darkMode ? 'text-gray-100' : 'text-gray-800'} ${isMobile ? 'text-xs' : 'text-sm'} truncate`}
                                       >
                                         {website.name}
                                       </h4>
                                       {(website as any).matchType && !isMobile && (
-                                        <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full font-medium">
+                                        <span className={`px-2 py-0.5 ${darkMode ? 'bg-blue-900/50 text-blue-300' : 'bg-blue-100 text-blue-700'} text-xs rounded-full font-medium`}>
                                           {(website as any).matchType}
                                         </span>
                                       )}
@@ -1761,7 +1766,7 @@ function SearchBarComponent(props: SearchBarProps = {}) {
 
                                     {/* URL和标签 */}
                                     <div
-                                      className={`flex items-center gap-1 ${isMobile ? 'text-[10px]' : 'text-xs'} text-gray-500`}
+                                      className={`flex items-center gap-1 ${isMobile ? 'text-[10px]' : 'text-xs'} ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}
                                     >
                                       <span
                                         className={`truncate ${isMobile ? 'max-w-[120px]' : 'max-w-[200px]'}`}
@@ -1783,7 +1788,7 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                                             {website.tags.slice(0, 2).map((tag, tagIndex) => (
                                               <span
                                                 key={tagIndex}
-                                                className="px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded text-xs"
+                                                className={`px-1.5 py-0.5 ${darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'} rounded text-xs`}
                                               >
                                                 {tag}
                                               </span>
@@ -1810,14 +1815,14 @@ function SearchBarComponent(props: SearchBarProps = {}) {
 
                                     {/* 备注显示 */}
                                     {website.note && (
-                                      <div className="mt-1 text-xs text-gray-600 truncate">
+                                      <div className={`mt-1 text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'} truncate`}>
                                         {website.note}
                                       </div>
                                     )}
                                   </div>
 
                                   {/* 快捷键提示 */}
-                                  <div className="text-xs text-purple-600 bg-purple-100 px-2 py-1 rounded">
+                                  <div className={`text-xs ${darkMode ? 'text-purple-300 bg-purple-900/50' : 'text-purple-600 bg-purple-100'} px-2 py-1 rounded`}>
                                     Enter
                                   </div>
                                 </div>
@@ -1829,14 +1834,14 @@ function SearchBarComponent(props: SearchBarProps = {}) {
 
                       {/* 工作空间建议部分 */}
                       {workspaceSuggestions.length > 0 && (
-                        <div className="border-b border-gray-200/50">
+                        <div className={`border-b ${darkMode ? 'border-gray-700/50' : 'border-gray-200/50'}`}>
                           <div
-                            className={`${isMobile ? 'px-3 py-1.5' : 'px-4 py-2'} bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100`}
+                            className={`${isMobile ? 'px-3 py-1.5' : 'px-4 py-2'} ${darkMode ? 'bg-gradient-to-r from-blue-900/30 to-indigo-900/30 border-b border-blue-700/50' : 'bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100'}`}
                           >
                             <div className="flex items-center gap-2">
-                              <i className="fa-solid fa-briefcase text-blue-500 text-sm"></i>
+                              <i className={`fa-solid fa-briefcase ${darkMode ? 'text-blue-400' : 'text-blue-500'} text-sm`}></i>
                               <span
-                                className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium text-blue-700`}
+                                className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium ${darkMode ? 'text-blue-300' : 'text-blue-700'}`}
                               >
                                 工作空间建议
                               </span>
@@ -1848,9 +1853,14 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                             return (
                               <div
                                 key={workspace.id}
-                                className={`${isMobile ? 'px-3 py-2' : 'px-4 py-3'} cursor-pointer transition-all duration-200 border-b border-gray-100/50 last:border-b-0 select-none ${isSelected
-                                  ? 'bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border-blue-200'
-                                  : 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50'
+                                className={`${isMobile ? 'px-3 py-2' : 'px-4 py-3'} cursor-pointer transition-all duration-200 border-b last:border-b-0 select-none ${darkMode ? 'border-gray-700/50' : 'border-gray-100/50'
+                                  } ${isSelected
+                                    ? darkMode
+                                      ? 'bg-gradient-to-r from-blue-800/30 to-indigo-800/30 border-blue-600/50'
+                                      : 'bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border-blue-200'
+                                    : darkMode
+                                      ? 'hover:bg-gradient-to-r hover:from-gray-700/50 hover:to-blue-900/30'
+                                      : 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50'
                                   }`}
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -1868,12 +1878,12 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                                 >
                                   {/* 工作空间图标 */}
                                   <div
-                                    className={`${isMobile ? 'w-6 h-6' : 'w-8 h-8'} rounded-lg overflow-hidden bg-gradient-to-br from-orange-100 to-amber-100 shadow-sm border border-orange-200/50 flex items-center justify-center flex-shrink-0`}
+                                    className={`${isMobile ? 'w-6 h-6' : 'w-8 h-8'} rounded-lg overflow-hidden ${darkMode ? 'bg-gradient-to-br from-orange-900/50 to-amber-900/50 border-orange-700/50' : 'bg-gradient-to-br from-orange-100 to-amber-100 border-orange-200/50'} shadow-sm border flex items-center justify-center flex-shrink-0`}
                                   >
                                     {workspace.icon ? (
                                       <span className="text-lg">{workspace.icon}</span>
                                     ) : (
-                                      <i className="fa-solid fa-link text-orange-600 text-sm"></i>
+                                      <i className={`fa-solid fa-link ${darkMode ? 'text-orange-400' : 'text-orange-600'} text-sm`}></i>
                                     )}
                                   </div>
 
@@ -1883,12 +1893,12 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                                       className={`flex items-center gap-2 ${isMobile ? 'mb-0.5' : 'mb-1'}`}
                                     >
                                       <h4
-                                        className={`font-medium text-gray-800 ${isMobile ? 'text-xs' : 'text-sm'} truncate`}
+                                        className={`font-medium ${darkMode ? 'text-gray-100' : 'text-gray-800'} ${isMobile ? 'text-xs' : 'text-sm'} truncate`}
                                       >
                                         {workspace.title}
                                       </h4>
                                       {(workspace as any).matchType && !isMobile && (
-                                        <span className="px-2 py-0.5 bg-orange-100 text-orange-700 text-xs rounded-full font-medium">
+                                        <span className={`px-2 py-0.5 ${darkMode ? 'bg-orange-900/50 text-orange-300' : 'bg-orange-100 text-orange-700'} text-xs rounded-full font-medium`}>
                                           {(workspace as any).matchType}
                                         </span>
                                       )}
@@ -1896,12 +1906,12 @@ function SearchBarComponent(props: SearchBarProps = {}) {
 
                                     {/* 分类和描述 */}
                                     <div
-                                      className={`flex items-center gap-1 ${isMobile ? 'text-[10px]' : 'text-xs'} text-gray-500`}
+                                      className={`flex items-center gap-1 ${isMobile ? 'text-[10px]' : 'text-xs'} ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}
                                     >
                                       {/* 分类标签 */}
                                       {workspace.category && (
                                         <>
-                                          <span className="px-1.5 py-0.5 bg-orange-100 text-orange-600 rounded text-xs font-medium">
+                                          <span className={`px-1.5 py-0.5 ${darkMode ? 'bg-orange-900/50 text-orange-300' : 'bg-orange-100 text-orange-600'} rounded text-xs font-medium`}>
                                             {workspace.category}
                                           </span>
                                         </>
@@ -1928,14 +1938,14 @@ function SearchBarComponent(props: SearchBarProps = {}) {
 
                                     {/* 描述显示 */}
                                     {workspace.description && !isMobile && (
-                                      <div className="mt-1 text-xs text-gray-600 truncate">
+                                      <div className={`mt-1 text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'} truncate`}>
                                         {workspace.description}
                                       </div>
                                     )}
                                   </div>
 
                                   {/* 快捷键提示 */}
-                                  <div className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded">
+                                  <div className={`text-xs ${darkMode ? 'text-blue-300 bg-blue-900/50' : 'text-blue-600 bg-blue-100'} px-2 py-1 rounded`}>
                                     Enter
                                   </div>
                                 </div>
@@ -1947,14 +1957,14 @@ function SearchBarComponent(props: SearchBarProps = {}) {
 
                       {/* 搜索引擎建议部分 */}
                       {suggestions.length > 0 && (
-                        <div className="border-b border-gray-200/50 last:border-b-0">
+                        <div className={`border-b last:border-b-0 ${darkMode ? 'border-gray-700/50' : 'border-gray-200/50'}`}>
                           <div
-                            className={`${isMobile ? 'px-3 py-1.5' : 'px-4 py-2'} bg-gradient-to-r from-emerald-50 to-teal-50 border-b border-emerald-100`}
+                            className={`${isMobile ? 'px-3 py-1.5' : 'px-4 py-2'} ${darkMode ? 'bg-gradient-to-r from-emerald-900/30 to-teal-900/30 border-b border-emerald-700/50' : 'bg-gradient-to-r from-emerald-50 to-teal-50 border-b border-emerald-100'}`}
                           >
                             <div className="flex items-center gap-2">
-                              <i className="fa-solid fa-magnifying-glass text-emerald-500 text-sm"></i>
+                              <i className={`fa-solid fa-magnifying-glass ${darkMode ? 'text-emerald-400' : 'text-emerald-500'} text-sm`}></i>
                               <span
-                                className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium text-emerald-700`}
+                                className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium ${darkMode ? 'text-emerald-300' : 'text-emerald-700'}`}
                               >
                                 搜索建议
                               </span>
@@ -1972,7 +1982,7 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                             return (
                               <div
                                 key={suggestion.id}
-                                className={`${isMobile ? 'px-3 py-2' : 'px-4 py-3'} ${isHint ? 'cursor-default' : 'cursor-pointer'} transition-all duration-200 border-b border-gray-100/50 last:border-b-0 select-none ${isSelected
+                                className={`${isMobile ? 'px-3 py-2' : 'px-4 py-3'} ${isHint ? 'cursor-default' : 'cursor-pointer'} transition-all duration-200 border-b ${darkMode ? 'border-gray-700/50' : 'border-gray-100/50'} last:border-b-0 select-none ${isSelected
                                   ? isTodoAction && !isHint
                                     ? isAdd
                                       ? 'bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-green-200'
@@ -2137,7 +2147,7 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                                         </div>
                                       </div>
                                     ) : (
-                                      <div className="font-medium text-sm truncate select-none">
+                                      <div className={`font-medium text-sm truncate select-none ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>
                                         {suggestion.text}
                                       </div>
                                     )}

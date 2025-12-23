@@ -22,7 +22,12 @@ import SnowEffect from '@/components/effects/SnowEffect';
 import AnnouncementBanner from '@/components/AnnouncementBanner';
 import AnnouncementCenter from '@/components/AnnouncementCenter';
 import { isWinterSeason } from '@/utils/solarTerms';
-import { shouldApplyOverlay } from '@/utils/imageColorAnalyzer';
+import { shouldApplyOverlay, clearAllColorCache } from '@/utils/imageColorAnalyzer';
+
+// 暴露给控制台调试用
+if (typeof window !== 'undefined') {
+  (window as any).clearWallpaperColorCache = clearAllColorCache;
+}
 
 interface HomeProps {
   websites: any[];
@@ -214,6 +219,28 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
 
     loadWallpaper();
   }, [wallpaperResolution]); // 分辨率变化时重新加载
+
+  // 智能遮罩模式切换时重新检测颜色
+  useEffect(() => {
+    // 只有在智能模式且已有壁纸时才检测
+    if (darkOverlayMode === 'smart' && bgImage) {
+      const checkColor = async () => {
+        try {
+          const wallpaperId = wallpaperResolution === 'custom' ? 'current-custom' : undefined;
+          const needsOverlay = await shouldApplyOverlay(bgImage, wallpaperId);
+          setSmartOverlayNeeded(needsOverlay);
+          logger.debug('🎨 模式切换触发颜色检测:', needsOverlay ? '需要遮罩' : '不需要遮罩');
+        } catch (error) {
+          logger.warn('壁纸颜色分析失败:', error);
+          setSmartOverlayNeeded(false);
+        }
+      };
+      checkColor();
+    } else if (darkOverlayMode !== 'smart') {
+      // 非智能模式时重置状态
+      setSmartOverlayNeeded(false);
+    }
+  }, [darkOverlayMode, bgImage, wallpaperResolution]);
 
   // 根据设置决定是否自动排序卡片
   const displayWebsites = useMemo(() => {

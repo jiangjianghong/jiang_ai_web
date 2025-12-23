@@ -72,6 +72,7 @@ CREATE TABLE IF NOT EXISTS user_stats (
   card_clicks JSONB DEFAULT '{}'::jsonb,
   first_use_date DATE DEFAULT CURRENT_DATE,
   last_visit_date DATE DEFAULT CURRENT_DATE,
+  last_active_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(), -- 精确活跃时间戳
   last_sync TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -302,7 +303,10 @@ BEGIN
     CURRENT_DATE,
     (SELECT COUNT(*) FROM user_profiles),
     (SELECT COUNT(*) FROM user_profiles WHERE created_at::date = CURRENT_DATE),
-    (SELECT COUNT(*) FROM user_stats WHERE last_visit_date = CURRENT_DATE),
+    (SELECT COUNT(*) FROM user_stats WHERE 
+      (last_active_at IS NOT NULL AND last_active_at::date = CURRENT_DATE)
+      OR (last_active_at IS NULL AND last_visit_date = CURRENT_DATE)
+    ),
     (SELECT COALESCE(SUM(total_searches), 0) FROM user_stats),
     (SELECT COALESCE(SUM(total_site_visits), 0) FROM user_stats)
   ON CONFLICT (date) DO UPDATE SET

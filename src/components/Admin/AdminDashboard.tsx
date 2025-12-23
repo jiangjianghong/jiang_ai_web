@@ -48,13 +48,17 @@ export default function AdminDashboard() {
             // 获取统计汇总（聚合数据，不含个人信息）
             const { data: statsData, error: statsError } = await supabase
                 .from('user_stats')
-                .select('total_searches, total_site_visits, last_visit_date');
+                .select('total_searches, total_site_visits, last_visit_date, last_active_at');
 
             if (statsError) throw statsError;
 
-            const activeUsersToday = statsData?.filter(
-                (s) => s.last_visit_date === today
-            ).length || 0;
+            // 今日活跃：判断 last_active_at 是否在今天，或回退到 last_visit_date
+            const activeUsersToday = statsData?.filter((s) => {
+                if (s.last_active_at) {
+                    return s.last_active_at.startsWith(today);
+                }
+                return s.last_visit_date === today;
+            }).length || 0;
 
             const totalSearches = statsData?.reduce(
                 (sum, s) => sum + (s.total_searches || 0),

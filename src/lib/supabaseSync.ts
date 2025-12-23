@@ -645,6 +645,7 @@ export interface UserStatsData {
   cardClicks: Record<string, number>;
   firstUseDate: string;
   lastVisitDate: string;
+  lastActiveAt?: string; // 精确活跃时间戳 (ISO 格式)
 }
 
 // 保存用户统计数据到 Supabase
@@ -668,6 +669,7 @@ export const saveUserStats = async (
             card_clicks: stats.cardClicks,
             first_use_date: stats.firstUseDate,
             last_visit_date: stats.lastVisitDate,
+            last_active_at: stats.lastActiveAt || new Date().toISOString(),
             last_sync: new Date().toISOString(),
           },
           { onConflict: 'id' }
@@ -715,6 +717,7 @@ export const getUserStats = async (user: User): Promise<UserStatsData | null> =>
         cardClicks: data.card_clicks || {},
         firstUseDate: data.first_use_date || new Date().toISOString().split('T')[0],
         lastVisitDate: data.last_visit_date || new Date().toISOString().split('T')[0],
+        lastActiveAt: data.last_active_at || undefined,
       };
     } else {
       logger.sync.debug('用户统计数据不存在');

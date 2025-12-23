@@ -85,7 +85,7 @@ const saveLocalStats = (stats: UserStats): void => {
 };
 
 // 转换为云端格式
-const toCloudFormat = (stats: UserStats): UserStatsData => ({
+const toCloudFormat = (stats: UserStats, includeActiveAt = false): UserStatsData => ({
   totalSiteVisits: stats.totalSiteVisits,
   totalSearches: stats.totalSearches,
   settingsOpened: stats.settingsOpened,
@@ -93,6 +93,7 @@ const toCloudFormat = (stats: UserStats): UserStatsData => ({
   cardClicks: stats.cardClicks,
   firstUseDate: stats.firstUseDate,
   lastVisitDate: stats.lastVisitDate,
+  ...(includeActiveAt ? { lastActiveAt: new Date().toISOString() } : {}),
 });
 
 // 从云端格式转换
@@ -191,8 +192,36 @@ export const useUserStats = () => {
     // 如果已登录，尝试从云端同步
     if (currentUser?.email_confirmed_at) {
       loadFromCloud();
+      // 后台静默更新精确活跃时间（不影响 UI 加载）
+      updateLastActiveTime(currentUser, currentStats);
     }
   }, [currentUser, loadFromCloud]);
+
+  // 后台静默更新活跃时间（使用 requestIdleCallback 确保不影响用户体验）
+  const updateLastActiveTime = useCallback(
+    (user: typeof currentUser, stats: UserStats) => {
+      if (!user || !user.email_confirmed_at) return;
+
+      const doUpdate = async () => {
+        try {
+          // 只更新活跃时间，不更改其他数据
+          await saveUserStats(user, toCloudFormat(stats, true));
+        } catch (error) {
+          // 静默失败，不影响用户体验
+          console.debug('后台更新活跃时间失败:', error);
+        }
+      };
+
+      // 使用 requestIdleCallback 在浏览器空闲时执行
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(() => doUpdate(), { timeout: 5000 });
+      } else {
+        // 回退：使用 setTimeout 延迟执行
+        setTimeout(doUpdate, 1000);
+      }
+    },
+    []
+  );
 
   // 记录网站点击（只记录总数，卡片级别的访问次数由 visitCount 管理）
   const recordSiteVisit = useCallback(

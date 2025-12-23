@@ -12,9 +12,33 @@ interface UserProfile {
 
 interface UserWithStats extends UserProfile {
     last_visit_date: string | null;
+    last_active_at: string | null;
     total_searches: number;
     total_site_visits: number;
     is_banned: boolean;
+}
+
+// 相对时间格式化函数
+function formatRelativeTime(isoString: string | null): string {
+    if (!isoString) return '-';
+
+    const date = new Date(isoString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+
+    if (diffMs < 0) return '刚刚';
+
+    const diffMins = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffMins < 1) return '刚刚';
+    if (diffMins < 60) return `${diffMins}分钟前`;
+    if (diffHours < 24) return `${diffHours}小时前`;
+    if (diffDays < 7) return `${diffDays}天前`;
+    if (diffDays < 30) return `${Math.floor(diffDays / 7)}周前`;
+    if (diffDays < 365) return `${Math.floor(diffDays / 30)}月前`;
+    return `${Math.floor(diffDays / 365)}年前`;
 }
 
 export default function AdminUserList() {
@@ -48,7 +72,7 @@ export default function AdminUserList() {
             // 获取用户统计（聚合数据）
             const { data: stats, error: statsError } = await supabase
                 .from('user_stats')
-                .select('id, last_visit_date, total_searches, total_site_visits');
+                .select('id, last_visit_date, last_active_at, total_searches, total_site_visits');
 
             if (statsError) throw statsError;
 
@@ -67,6 +91,7 @@ export default function AdminUserList() {
                 return {
                     ...profile,
                     last_visit_date: userStats?.last_visit_date || null,
+                    last_active_at: userStats?.last_active_at || null,
                     total_searches: userStats?.total_searches || 0,
                     total_site_visits: userStats?.total_site_visits || 0,
                     is_banned: bannedIds.has(profile.id),
@@ -199,8 +224,10 @@ export default function AdminUserList() {
                                     <td className="py-3 px-4 text-right text-white/80">
                                         {user.total_site_visits.toLocaleString()}
                                     </td>
-                                    <td className="py-3 px-4 text-white/60">
-                                        {user.last_visit_date || '-'}
+                                    <td className="py-3 px-4 text-white/60" title={user.last_active_at || user.last_visit_date || ''}>
+                                        {formatRelativeTime(user.last_active_at) !== '-'
+                                            ? formatRelativeTime(user.last_active_at)
+                                            : user.last_visit_date || '-'}
                                     </td>
                                     <td className="py-3 px-4 text-white/60">
                                         {new Date(user.created_at).toLocaleDateString('zh-CN')}

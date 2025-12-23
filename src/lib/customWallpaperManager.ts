@@ -2,6 +2,7 @@
 import { indexedDBCache } from './indexedDBCache';
 import { memoryManager } from './memoryManager';
 import { logger } from './logger';
+import { clearCustomWallpaperColorCache, clearAllColorCache } from '@/utils/imageColorAnalyzer';
 
 // 壁纸元数据接口
 export interface WallpaperMetadata {
@@ -348,6 +349,9 @@ class CustomWallpaperManager {
       memoryManager.cleanupCategory('custom-wallpaper');
       memoryManager.cleanupCategory('custom-wallpaper-thumb');
 
+      // 清除对应的颜色缓存
+      clearCustomWallpaperColorCache(id);
+
       logger.wallpaper.info('删除自定义壁纸成功', { id });
       return true;
     } catch (error) {
@@ -372,6 +376,9 @@ class CustomWallpaperManager {
       // 清理内存中的 Blob URL
       memoryManager.cleanupCategory('custom-wallpaper');
       memoryManager.cleanupCategory('custom-wallpaper-thumb');
+
+      // 清除所有颜色缓存
+      clearAllColorCache();
 
       logger.wallpaper.info('删除所有自定义壁纸成功');
       return true;

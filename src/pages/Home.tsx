@@ -183,7 +183,9 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
           // 智能遮罩模式：分析壁纸颜色
           if (darkOverlayMode === 'smart') {
             try {
-              const needsOverlay = await shouldApplyOverlay(result.url);
+              // 自定义壁纸传递 ID，Bing 壁纸不传（使用日期作为缓存键）
+              const wallpaperId = wallpaperResolution === 'custom' ? 'current-custom' : undefined;
+              const needsOverlay = await shouldApplyOverlay(result.url, wallpaperId);
               setSmartOverlayNeeded(needsOverlay);
               logger.debug('🎨 智能遮罩检测结果:', needsOverlay ? '需要遮罩' : '不需要遮罩');
             } catch (error) {

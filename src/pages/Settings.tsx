@@ -94,7 +94,7 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
       },
       {
         root: document.getElementById('settings-content-scroll-container'),
-        rootMargin: '-20% 0px -60% 0px',
+        rootMargin: '-10% 0px -80% 0px',
         threshold: 0
       }
     );
@@ -769,7 +769,7 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
           id="settings-content-scroll-container"
           className="flex-1 overflow-y-auto select-none custom-scrollbar bg-white dark:bg-gray-900"
         >
-          <div className="p-8 space-y-12 pb-24">
+          <div className="p-8 space-y-12 pb-[60vh]">
 
             {/* 账号管理部分 - 现代化设计 */}
             <div id="account" ref={(el) => (sectionsRef.current['account'] = el)} className="space-y-5 select-none settings-section scroll-mt-6">
@@ -1069,7 +1069,7 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                 </div>
               </div>
             </div>
-            <div className="space-y-5 select-none settings-section">
+            <div id="theme" ref={(el) => (sectionsRef.current['theme'] = el)} className="space-y-5 select-none settings-section scroll-mt-6">
               <div className="flex items-center gap-3 select-none">
                 <div className="w-6 h-6 bg-gradient-to-br from-purple-400 to-pink-500 rounded-lg flex items-center justify-center">
                   <i className="fa-solid fa-moon text-white text-xs"></i>
@@ -1227,7 +1227,7 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                 </div>
               </div>
             </div>
-            <div className="space-y-5 select-none settings-section">
+            <div id="wallpaper" ref={(el) => (sectionsRef.current['wallpaper'] = el)} className="space-y-5 select-none settings-section scroll-mt-6">
               <div className="flex items-center gap-3 select-none">
                 <div className="w-6 h-6 bg-gradient-to-br from-pink-500 to-rose-600 rounded-lg flex items-center justify-center">
                   <i className="fa-solid fa-image text-white text-xs"></i>

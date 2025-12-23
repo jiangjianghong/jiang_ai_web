@@ -13,10 +13,10 @@ html {
 
 :root {
   font-family:
-    system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', 'PingFang SC',
+    'Microsoft YaHei', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
     'Hiragino Sans GB', 'Noto Sans CJK SC', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
   line-height: 1.5;
-  font-weight: 400;
+  font-weight: 450;
   font-synthesis: none;
   text-rendering: optimizelegibility;
   -webkit-font-smoothing: antialiased;
@@ -149,14 +149,12 @@ button,
 
   60% {
     opacity: 1;
-    transform: translate(-50%, -50%) rotate(var(--angle, 0deg))
-      translateY(calc(var(--distance, 80px) * 0.7)) skewY(var(--curve, 0));
+    transform: translate(-50%, -50%) rotate(var(--angle, 0deg)) translateY(calc(var(--distance, 80px) * 0.7)) skewY(var(--curve, 0));
   }
 
   100% {
     opacity: 0;
-    transform: translate(-50%, -50%) rotate(var(--angle, 0deg)) translateY(var(--distance, 80px))
-      skewY(calc(var(--curve, 0px) * 1.5));
+    transform: translate(-50%, -50%) rotate(var(--angle, 0deg)) translateY(var(--distance, 80px)) skewY(calc(var(--curve, 0px) * 1.5));
   }
 }
 
@@ -363,7 +361,7 @@ input[type='range']::-moz-range-thumb:hover {
   box-shadow: inset 0 2px 4px rgb(0 0 0 / 10%);
 }
 
-.modern-switch input:checked + .slider {
+.modern-switch input:checked+.slider {
   background: linear-gradient(135deg, #3b82f6, #6366f1);
   box-shadow: 0 4px 12px rgb(59 130 246 / 40%);
 }
@@ -381,7 +379,7 @@ input[type='range']::-moz-range-thumb:hover {
   box-shadow: 0 2px 8px rgb(0 0 0 / 20%);
 }
 
-.modern-switch input:checked + .slider::before {
+.modern-switch input:checked+.slider::before {
   transform: translateX(20px);
   box-shadow: 0 4px 12px rgb(0 0 0 / 30%);
 }
@@ -440,4 +438,3 @@ input[type='range']::-moz-range-thumb:hover {
   -moz-user-select: text !important;
   -ms-user-select: text !important;
 }
-

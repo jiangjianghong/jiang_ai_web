@@ -54,19 +54,19 @@ export default function ConfirmModal({
         return {
           icon: 'fa-solid fa-triangle-exclamation text-red-500',
           confirmButton: 'bg-red-500 hover:bg-red-600 text-white',
-          borderColor: 'border-red-200',
+          borderColor: 'border-red-200 dark:border-red-800',
         };
       case 'warning':
         return {
           icon: 'fa-solid fa-exclamation-triangle text-orange-500',
           confirmButton: 'bg-orange-500 hover:bg-orange-600 text-white',
-          borderColor: 'border-orange-200',
+          borderColor: 'border-orange-200 dark:border-orange-800',
         };
       case 'info':
         return {
           icon: 'fa-solid fa-info-circle text-blue-500',
           confirmButton: 'bg-blue-500 hover:bg-blue-600 text-white',
-          borderColor: 'border-blue-200',
+          borderColor: 'border-blue-200 dark:border-blue-800',
         };
     }
   };
@@ -90,7 +90,7 @@ export default function ConfirmModal({
             onClick={onClose}
           />
           <motion.div
-            className={`relative bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 border-2 ${styles.borderColor}`}
+            className={`relative bg-white dark:bg-gray-900 rounded-xl shadow-2xl max-w-md w-full mx-4 border-2 ${styles.borderColor}`}
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
@@ -102,15 +102,15 @@ export default function ConfirmModal({
                   <i className={`${styles.icon} text-2xl`}></i>
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
-                  <div className="text-sm text-gray-600 whitespace-pre-line">{message}</div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">{title}</h3>
+                  <div className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-line">{message}</div>
                 </div>
               </div>
 
               <div className="flex justify-end space-x-3 mt-6">
                 <button
                   onClick={onClose}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                 >
                   {cancelText}
                 </button>

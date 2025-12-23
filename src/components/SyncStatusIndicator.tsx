@@ -94,21 +94,20 @@ export default function SyncStatusIndicator() {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             {getStatusIcon()}
-            <span className="text-sm font-medium text-gray-700">{getStatusText()}</span>
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-200">{getStatusText()}</span>
           </div>
 
           {/* 网络状态指示器 */}
           <div className="flex items-center space-x-1">
             <div
-              className={`w-2 h-2 rounded-full ${
-                syncStatus.isOnline ? 'bg-green-500' : 'bg-red-500'
-              }`}
+              className={`w-2 h-2 rounded-full ${syncStatus.isOnline ? 'bg-green-500' : 'bg-red-500'
+                }`}
             ></div>
-            <span className="text-xs text-gray-500">{syncStatus.isOnline ? '在线' : '离线'}</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400">{syncStatus.isOnline ? '在线' : '离线'}</span>
           </div>
         </div>
 
-        <p className="text-xs text-gray-500">{getStatusDetail()}</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400">{getStatusDetail()}</p>
 
         {/* 错误详情展示 */}
         <AnimatePresence>
@@ -117,9 +116,9 @@ export default function SyncStatusIndicator() {
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              className="bg-red-50 border border-red-200 rounded p-2"
+              className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded p-2"
             >
-              <p className="text-xs text-red-600">
+              <p className="text-xs text-red-600 dark:text-red-400">
                 <i className="fa-solid fa-info-circle mr-1"></i>
                 {syncStatus.syncError}
               </p>
@@ -134,7 +133,7 @@ export default function SyncStatusIndicator() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="w-full bg-gray-200 rounded-full h-1"
+              className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1"
             >
               <motion.div
                 className="bg-blue-500 h-1 rounded-full"

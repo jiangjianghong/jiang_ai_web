@@ -127,6 +127,8 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
     setAtmosphereParticleCount,
     darkOverlayMode,
     setDarkOverlayMode,
+    darkMode,
+    setDarkMode,
   } = useTransparency();
 
   const { currentUser } = useAuth();
@@ -658,17 +660,16 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
       />
 
       <motion.div
-        className="w-[420px] bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 z-50 max-h-[85vh] flex flex-col select-none overflow-hidden"
+        className="w-[420px] bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 dark:border-gray-700/30 z-50 max-h-[85vh] flex flex-col select-none overflow-hidden"
         initial={{ scale: 0.8, opacity: 0, y: 20 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.8, opacity: 0, y: 20 }}
         transition={{ type: 'spring', damping: 25, stiffness: 400 }}
       >
-        {/* 简洁的顶部标题栏 */}
         <div className="p-6 pb-0 select-none">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-medium text-gray-800 select-none">设置</h2>
-            <button onClick={handleClose} className="text-gray-500 hover:text-gray-700 select-none">
+            <h2 className="text-xl font-medium text-gray-800 dark:text-gray-100 select-none">设置</h2>
+            <button onClick={handleClose} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 select-none">
               <i className="fa-solid fa-xmark text-lg select-none"></i>
             </button>
           </div>
@@ -681,24 +682,24 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
               <div className="w-6 h-6 bg-gradient-to-br from-emerald-400 to-green-500 rounded-lg flex items-center justify-center">
                 <i className="fa-solid fa-user text-white text-xs"></i>
               </div>
-              <h3 className="text-base font-semibold text-gray-800 select-none">账号管理</h3>
-              <div className="flex-1 h-px bg-gradient-to-r from-gray-200 to-transparent"></div>
+              <h3 className="text-base font-semibold text-gray-800 dark:text-gray-100 select-none">账号管理</h3>
+              <div className="flex-1 h-px bg-gradient-to-r from-gray-200 dark:from-gray-700 to-transparent"></div>
             </div>
 
             {currentUser ? (
               <AccountSettingsSection onClose={handleClose} onOpenSecurityModal={() => setShowAccountSecurityModal(true)} />
             ) : (
-              <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+              <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                 <div>
                   <div className="flex items-center gap-4 mb-6">
                     <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
                       <i className="fa-solid fa-cat text-white text-xl"></i>
                     </div>
                     <div className="flex-1">
-                      <div className="text-lg font-semibold text-slate-800 mb-1 select-none">
+                      <div className="text-lg font-semibold text-slate-800 dark:text-gray-100 mb-1 select-none">
                         账号登录
                       </div>
-                      <div className="text-sm text-slate-600 select-none">
+                      <div className="text-sm text-slate-600 dark:text-gray-400 select-none">
                         登录后可同步数据到云端
                       </div>
                     </div>
@@ -715,17 +716,17 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
               <div className="w-6 h-6 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-lg flex items-center justify-center">
                 <i className="fa-solid fa-cloud text-white text-xs"></i>
               </div>
-              <h3 className="text-base font-semibold text-gray-800 select-none">云端同步</h3>
-              <div className="flex-1 h-px bg-gradient-to-r from-gray-200 to-transparent"></div>
+              <h3 className="text-base font-semibold text-gray-800 dark:text-gray-100 select-none">云端同步</h3>
+              <div className="flex-1 h-px bg-gradient-to-r from-gray-200 dark:from-gray-700 to-transparent"></div>
             </div>
 
             {/* 同步控制区域 - 现代化卡片 */}
-            <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 space-y-5">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 space-y-5">
               {/* 同步状态显示 */}
               <SyncStatusIndicator />
 
               {/* 分割线 */}
-              <div className="border-t border-gray-100"></div>
+              <div className="border-t border-gray-100 dark:border-gray-700"></div>
 
               {/* 自动同步开关 */}
               <div className="flex items-center justify-between">
@@ -738,11 +739,11 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                         className={`fa-solid text-sm ${autoSyncEnabled ? 'fa-sync' : 'fa-hand-paper'} select-none`}
                       ></i>
                     </div>
-                    <span className="text-sm font-semibold text-gray-800 select-none">
+                    <span className="text-sm font-semibold text-gray-800 dark:text-gray-100 select-none">
                       {autoSyncEnabled ? '自动同步模式' : '手动同步模式'}
                     </span>
                   </div>
-                  <p className="text-xs text-gray-600 ml-11 select-none">
+                  <p className="text-xs text-gray-600 dark:text-gray-400 ml-11 select-none">
                     {autoSyncEnabled
                       ? '数据变化后自动同步到云端，保持实时更新'
                       : '需要手动操作同步数据，完全由您控制'}
@@ -752,13 +753,13 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                   onClick={() => setAutoSyncEnabled(!autoSyncEnabled)}
                   className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${autoSyncEnabled
                     ? 'bg-gradient-to-r from-blue-400 to-cyan-500 shadow-lg shadow-cyan-300/50'
-                    : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
+                    : 'bg-gradient-to-r from-gray-400 to-gray-500 dark:from-gray-600 dark:to-gray-700 shadow-lg shadow-gray-300/50 dark:shadow-gray-900/50'
                     }`}
                 >
                   <span
-                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${autoSyncEnabled
+                    className={`inline-block h-5 w-5 transform rounded-full bg-white dark:bg-gray-200 transition-all duration-300 shadow-md ${autoSyncEnabled
                       ? 'translate-x-6 shadow-cyan-200'
-                      : 'translate-x-1 shadow-gray-200'
+                      : 'translate-x-1 shadow-gray-200 dark:shadow-gray-600'
                       }`}
                   />
                 </button>
@@ -766,16 +767,16 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
 
               {/* 自动同步间隔设置 */}
               {autoSyncEnabled && (
-                <div className="space-y-3 pt-3 border-t border-gray-100">
+                <div className="space-y-3 pt-3 border-t border-gray-100 dark:border-gray-700">
                   <div className="flex items-center justify-between">
-                    <label className="text-sm font-medium text-gray-700 select-none">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-200 select-none">
                       数据变化后延迟同步
                     </label>
-                    <span className="text-sm text-blue-600 font-medium bg-blue-50 px-2 py-1 rounded">
+                    <span className="text-sm text-blue-600 dark:text-blue-400 font-medium bg-blue-50 dark:bg-blue-900/50 px-2 py-1 rounded">
                       {autoSyncInterval}秒
                     </span>
                   </div>
-                  <p className="text-xs text-gray-500 select-none">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 select-none">
                     数据变化后等待此时间再同步，避免频繁请求。关闭设置或保存卡片时会立即同步。
                   </p>
                   <input
@@ -790,7 +791,7 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                       background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${((autoSyncInterval - 3) / 57) * 100}%, #e2e8f0 ${((autoSyncInterval - 3) / 57) * 100}%, #e2e8f0 100%)`,
                     }}
                   />
-                  <div className="flex justify-between text-xs text-gray-400 select-none">
+                  <div className="flex justify-between text-xs text-gray-400 dark:text-gray-500 select-none">
                     <span className="select-none">3秒</span>
                     <span className="text-green-600 select-none">快速</span>
                     <span className="text-blue-600 select-none">平衡</span>
@@ -851,22 +852,22 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
               <div className="w-6 h-6 bg-gradient-to-br from-purple-400 to-pink-500 rounded-lg flex items-center justify-center">
                 <i className="fa-solid fa-palette text-white text-xs"></i>
               </div>
-              <h3 className="text-base font-semibold text-gray-800 select-none">外观设置</h3>
-              <div className="flex-1 h-px bg-gradient-to-r from-gray-200 to-transparent"></div>
+              <h3 className="text-base font-semibold text-gray-800 dark:text-gray-100 select-none">外观设置</h3>
+              <div className="flex-1 h-px bg-gradient-to-r from-gray-200 dark:from-gray-700 to-transparent"></div>
             </div>
 
             {/* 透明度控制区域 - 现代化卡片 */}
-            <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 space-y-5">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 space-y-5">
               {/* 搜索框不透明度控制 */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <i className="fa-solid fa-search text-blue-500 text-sm"></i>
-                    <label className="text-sm font-medium text-gray-700 select-none">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-200 select-none">
                       搜索框不透明度
                     </label>
                   </div>
-                  <span className="text-sm text-blue-600 font-medium bg-blue-50 px-2 py-1 rounded select-none">
+                  <span className="text-sm text-blue-600 dark:text-blue-400 font-medium bg-blue-50 dark:bg-blue-900/50 px-2 py-1 rounded select-none">
                     {Math.round(searchBarOpacity * 100)}%
                   </span>
                 </div>
@@ -877,21 +878,21 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                   step="0.01"
                   value={searchBarOpacity}
                   onChange={(e) => setSearchBarOpacity(parseFloat(e.target.value))}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                  className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer"
                   style={{
-                    background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${((searchBarOpacity - 0.05) / 0.45) * 100}%, #e2e8f0 ${((searchBarOpacity - 0.05) / 0.45) * 100}%, #e2e8f0 100%)`,
+                    background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${((searchBarOpacity - 0.05) / 0.45) * 100}%, ${darkMode ? '#374151' : '#e2e8f0'} ${((searchBarOpacity - 0.05) / 0.45) * 100}%, ${darkMode ? '#374151' : '#e2e8f0'} 100%)`,
                   }}
                 />
-                <div className="flex justify-between text-xs text-gray-400 select-none">
+                <div className="flex justify-between text-xs text-gray-400 dark:text-gray-500 select-none">
                   <span className="select-none">5%</span>
-                  <span className="text-gray-600 select-none">透明</span>
-                  <span className="text-gray-600 select-none">清晰</span>
+                  <span className="text-gray-600 dark:text-gray-400 select-none">透明</span>
+                  <span className="text-gray-600 dark:text-gray-400 select-none">清晰</span>
                   <span className="select-none">50%</span>
                 </div>
               </div>
 
               {/* 搜索框颜色选择 */}
-              <div className="pt-2 border-t border-gray-100/60">
+              <div className="pt-2 border-t border-gray-100/60 dark:border-gray-700/60">
                 <ColorPicker
                   label="搜索框颜色"
                   selectedColor={searchBarColor}
@@ -904,11 +905,11 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <i className="fa-solid fa-border-all text-blue-500 text-sm"></i>
-                    <label className="text-sm font-medium text-gray-700 select-none">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-200 select-none">
                       搜索框圆角
                     </label>
                   </div>
-                  <span className="text-sm text-blue-600 font-medium bg-blue-50 px-2 py-1 rounded select-none">
+                  <span className="text-sm text-blue-600 dark:text-blue-400 font-medium bg-blue-50 dark:bg-blue-900/50 px-2 py-1 rounded select-none">
                     {searchBarBorderRadius >= 50 ? '全圆角' : `${searchBarBorderRadius}px`}
                   </span>
                 </div>
@@ -922,9 +923,9 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                     const value = parseInt(e.target.value);
                     setSearchBarBorderRadius(value === 50 ? 9999 : value);
                   }}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                  className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer"
                   style={{
-                    background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${(Math.min(searchBarBorderRadius, 50) / 50) * 100}%, #e2e8f0 ${(Math.min(searchBarBorderRadius, 50) / 50) * 100}%, #e2e8f0 100%)`,
+                    background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${(Math.min(searchBarBorderRadius, 50) / 50) * 100}%, ${darkMode ? '#374151' : '#e2e8f0'} ${(Math.min(searchBarBorderRadius, 50) / 50) * 100}%, ${darkMode ? '#374151' : '#e2e8f0'} 100%)`,
                   }}
                 />
                 <div className="flex justify-between text-xs text-gray-400 select-none">
@@ -939,11 +940,11 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <i className="fa-solid fa-layer-group text-blue-500 text-sm"></i>
-                    <label className="text-sm font-medium text-gray-700 select-none">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-200 select-none">
                       卡片不透明度
                     </label>
                   </div>
-                  <span className="text-sm text-blue-600 font-medium bg-blue-50 px-2 py-1 rounded select-none">
+                  <span className="text-sm text-blue-600 dark:text-blue-400 font-medium bg-blue-50 dark:bg-blue-900/50 px-2 py-1 rounded select-none">
                     {Math.round(cardOpacity * 100)}%
                   </span>
                 </div>
@@ -954,15 +955,15 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                   step="0.01"
                   value={cardOpacity}
                   onChange={(e) => setCardOpacity(parseFloat(e.target.value))}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                  className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer"
                   style={{
-                    background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${((cardOpacity - 0.05) / 0.45) * 100}%, #e2e8f0 ${((cardOpacity - 0.05) / 0.45) * 100}%, #e2e8f0 100%)`,
+                    background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${((cardOpacity - 0.05) / 0.45) * 100}%, ${darkMode ? '#374151' : '#e2e8f0'} ${((cardOpacity - 0.05) / 0.45) * 100}%, ${darkMode ? '#374151' : '#e2e8f0'} 100%)`,
                   }}
                 />
-                <div className="flex justify-between text-xs text-gray-400 select-none">
+                <div className="flex justify-between text-xs text-gray-400 dark:text-gray-500 select-none">
                   <span className="select-none">5%</span>
-                  <span className="text-gray-600 select-none">透明</span>
-                  <span className="text-gray-600 select-none">清晰</span>
+                  <span className="text-gray-600 dark:text-gray-400 select-none">透明</span>
+                  <span className="text-gray-600 dark:text-gray-400 select-none">清晰</span>
                   <span className="select-none">50%</span>
                 </div>
               </div>
@@ -979,22 +980,22 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
               <div className="w-6 h-6 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
                 <i className="fa-solid fa-cogs text-white text-xs"></i>
               </div>
-              <h3 className="text-base font-semibold text-gray-800 select-none">功能管理</h3>
-              <div className="flex-1 h-px bg-gradient-to-r from-gray-200 to-transparent"></div>
+              <h3 className="text-base font-semibold text-gray-800 dark:text-gray-100 select-none">功能管理</h3>
+              <div className="flex-1 h-px bg-gradient-to-r from-gray-200 dark:from-gray-700 to-transparent"></div>
             </div>
 
             {/* 特效设置区域 */}
-            <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 space-y-4">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 space-y-4">
               {/* 视差效果开关 */}
               <div className="flex items-center justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <i className="fa-solid fa-mouse text-blue-500 text-sm"></i>
-                    <span className="text-sm font-medium text-gray-700 select-none">
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-200 select-none">
                       视差背景效果
                     </span>
                   </div>
-                  <p className="text-xs text-gray-500 select-none">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 select-none">
                     {parallaxEnabled ? '背景会跟随鼠标轻微移动' : '背景固定不动'}
                   </p>
                 </div>
@@ -1002,32 +1003,32 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                   onClick={() => setParallaxEnabled(!parallaxEnabled)}
                   className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${parallaxEnabled
                     ? 'bg-gradient-to-r from-indigo-500 to-purple-600 shadow-lg shadow-purple-300/50'
-                    : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
+                    : 'bg-gradient-to-r from-gray-400 to-gray-500 dark:from-gray-600 dark:to-gray-700 shadow-lg shadow-gray-300/50 dark:shadow-gray-900/50'
                     }`}
                 >
                   <span
-                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${parallaxEnabled
+                    className={`inline-block h-5 w-5 transform rounded-full bg-white dark:bg-gray-200 transition-all duration-300 shadow-md ${parallaxEnabled
                       ? 'translate-x-6 shadow-purple-200'
-                      : 'translate-x-1 shadow-gray-200'
+                      : 'translate-x-1 shadow-gray-200 dark:shadow-gray-600'
                       }`}
                   />
                 </button>
               </div>
 
-              <div className="border-t border-gray-100"></div>
+              <div className="border-t border-gray-100 dark:border-gray-700"></div>
 
-              <div className="border-t border-gray-100"></div>
+              <div className="border-t border-gray-100 dark:border-gray-700"></div>
 
               {/* 搜索行为开关 */}
               <div className="flex items-center justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <i className="fa-solid fa-external-link-alt text-blue-500 text-sm"></i>
-                    <span className="text-sm font-medium text-gray-700 select-none">
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-200 select-none">
                       链接打开方式
                     </span>
                   </div>
-                  <p className="text-xs text-gray-500 select-none">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 select-none">
                     {searchInNewTab ? '在新标签页中打开搜索结果和卡片' : '在当前页面直接跳转'}
                   </p>
                 </div>
@@ -1035,30 +1036,30 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                   onClick={() => setSearchInNewTab(!searchInNewTab)}
                   className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${searchInNewTab
                     ? 'bg-gradient-to-r from-indigo-500 to-purple-600 shadow-lg shadow-purple-300/50'
-                    : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
+                    : 'bg-gradient-to-r from-gray-400 to-gray-500 dark:from-gray-600 dark:to-gray-700 shadow-lg shadow-gray-300/50 dark:shadow-gray-900/50'
                     }`}
                 >
                   <span
-                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${searchInNewTab
+                    className={`inline-block h-5 w-5 transform rounded-full bg-white dark:bg-gray-200 transition-all duration-300 shadow-md ${searchInNewTab
                       ? 'translate-x-6 shadow-purple-200'
-                      : 'translate-x-1 shadow-gray-200'
+                      : 'translate-x-1 shadow-gray-200 dark:shadow-gray-600'
                       }`}
                   />
                 </button>
               </div>
 
-              <div className="border-t border-gray-100"></div>
+              <div className="border-t border-gray-100 dark:border-gray-700"></div>
 
               {/* 自动排序开关 */}
               <div className="flex items-center justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <i className="fa-solid fa-sort text-blue-500 text-sm"></i>
-                    <span className="text-sm font-medium text-gray-700 select-none">
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-200 select-none">
                       卡片自动排序
                     </span>
                   </div>
-                  <p className="text-xs text-gray-500 select-none">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 select-none">
                     {autoSortEnabled ? '按访问次数自动排序卡片' : '保持手动拖拽的顺序'}
                   </p>
                 </div>
@@ -1066,30 +1067,61 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                   onClick={() => setAutoSortEnabled(!autoSortEnabled)}
                   className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${autoSortEnabled
                     ? 'bg-gradient-to-r from-indigo-500 to-purple-600 shadow-lg shadow-purple-300/50'
-                    : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
+                    : 'bg-gradient-to-r from-gray-400 to-gray-500 dark:from-gray-600 dark:to-gray-700 shadow-lg shadow-gray-300/50 dark:shadow-gray-900/50'
                     }`}
                 >
                   <span
-                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${autoSortEnabled
+                    className={`inline-block h-5 w-5 transform rounded-full bg-white dark:bg-gray-200 transition-all duration-300 shadow-md ${autoSortEnabled
                       ? 'translate-x-6 shadow-purple-200'
-                      : 'translate-x-1 shadow-gray-200'
+                      : 'translate-x-1 shadow-gray-200 dark:shadow-gray-600'
                       }`}
                   />
                 </button>
               </div>
 
-              <div className="border-t border-gray-100"></div>
+              <div className="border-t border-gray-100 dark:border-gray-700"></div>
+
+              {/* 夜间模式开关 */}
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <i className={`fa-solid ${darkMode ? 'fa-moon' : 'fa-sun'} text-indigo-500 text-sm`}></i>
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-200 select-none">
+                      夜间模式
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 select-none">
+                    {darkMode ? '已启用深色主题，减少眼睛疲劳' : '浅色主题，适合明亮环境'}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setDarkMode(!darkMode)}
+                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${darkMode
+                    ? 'bg-gradient-to-r from-indigo-600 to-purple-700 shadow-lg shadow-indigo-300/50'
+                    : 'bg-gradient-to-r from-gray-400 to-gray-500 dark:from-gray-600 dark:to-gray-700 shadow-lg shadow-gray-300/50 dark:shadow-gray-900/50'
+                    }`}
+                >
+                  <span
+                    className={`inline-block h-5 w-5 transform rounded-full bg-white dark:bg-gray-200 transition-all duration-300 shadow-md ${darkMode
+                      ? 'translate-x-6 shadow-indigo-200'
+                      : 'translate-x-1 shadow-gray-200 dark:shadow-gray-600'
+                      }`}
+                  />
+                </button>
+              </div>
+
+              <div className="border-t border-gray-100 dark:border-gray-700"></div>
 
               {/* 动画样式开关 */}
               <div className="flex items-center justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <i className="fa-solid fa-wand-magic-sparkles text-blue-500 text-sm"></i>
-                    <span className="text-sm font-medium text-gray-700 select-none">
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-200 select-none">
                       动画样式
                     </span>
                   </div>
-                  <p className="text-xs text-gray-500 select-none">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 select-none">
                     {animationStyle === 'dynamic' ? '灵动弹簧动画，更多视觉反馈' : '简约平滑动画，更稳定流畅'}
                   </p>
                 </div>
@@ -1097,30 +1129,30 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                   onClick={() => setAnimationStyle(animationStyle === 'dynamic' ? 'simple' : 'dynamic')}
                   className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${animationStyle === 'dynamic'
                     ? 'bg-gradient-to-r from-indigo-500 to-purple-600 shadow-lg shadow-purple-300/50'
-                    : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
+                    : 'bg-gradient-to-r from-gray-400 to-gray-500 dark:from-gray-600 dark:to-gray-700 shadow-lg shadow-gray-300/50 dark:shadow-gray-900/50'
                     }`}
                 >
                   <span
-                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${animationStyle === 'dynamic'
+                    className={`inline-block h-5 w-5 transform rounded-full bg-white dark:bg-gray-200 transition-all duration-300 shadow-md ${animationStyle === 'dynamic'
                       ? 'translate-x-6 shadow-purple-200'
-                      : 'translate-x-1 shadow-gray-200'
+                      : 'translate-x-1 shadow-gray-200 dark:shadow-gray-600'
                       }`}
                   />
                 </button>
               </div>
 
-              <div className="border-t border-gray-100"></div>
+              <div className="border-t border-gray-100 dark:border-gray-700"></div>
 
               {/* 氛围效果开关 */}
               <div className="flex items-center justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <i className="fa-solid fa-snowflake text-cyan-500 text-sm"></i>
-                    <span className="text-sm font-medium text-gray-700 select-none">
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-200 select-none">
                       氛围效果
                     </span>
                   </div>
-                  <p className="text-xs text-gray-500 select-none">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 select-none">
                     {atmosphereEnabled ? '立冬至立春期间页面会飘落雪花' : '已关闭季节氛围效果'}
                   </p>
                 </div>
@@ -1128,13 +1160,13 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                   onClick={() => setAtmosphereEnabled(!atmosphereEnabled)}
                   className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${atmosphereEnabled
                     ? 'bg-gradient-to-r from-indigo-500 to-purple-600 shadow-lg shadow-indigo-300/50'
-                    : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
+                    : 'bg-gradient-to-r from-gray-400 to-gray-500 dark:from-gray-600 dark:to-gray-700 shadow-lg shadow-gray-300/50 dark:shadow-gray-900/50'
                     }`}
                 >
                   <span
-                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${atmosphereEnabled
+                    className={`inline-block h-5 w-5 transform rounded-full bg-white dark:bg-gray-200 transition-all duration-300 shadow-md ${atmosphereEnabled
                       ? 'translate-x-6 shadow-indigo-200'
-                      : 'translate-x-1 shadow-gray-200'
+                      : 'translate-x-1 shadow-gray-200 dark:shadow-gray-600'
                       }`}
                   />
                 </button>
@@ -1143,12 +1175,12 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
               {/* 氛围效果粒子数量滑轨 - 仅开启时显示 */}
               {atmosphereEnabled && (
                 <>
-                  <div className="border-t border-gray-100"></div>
+                  <div className="border-t border-gray-100 dark:border-gray-700"></div>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <i className="fa-solid fa-sliders text-indigo-500 text-sm"></i>
-                        <span className="text-sm font-medium text-gray-700 select-none">
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-200 select-none">
                           粒子数量
                         </span>
                       </div>
@@ -1163,7 +1195,7 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                       step="10"
                       value={atmosphereParticleCount}
                       onChange={(e) => setAtmosphereParticleCount(parseInt(e.target.value, 10))}
-                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                      className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer"
                     />
                     <div className="flex justify-between text-xs text-gray-400">
                       <span>10</span>
@@ -1173,18 +1205,18 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                 </>
               )}
 
-              <div className="border-t border-gray-100"></div>
+              <div className="border-t border-gray-100 dark:border-gray-700"></div>
 
               {/* 壁纸遮罩模式选择 */}
               <div className="flex items-center justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <i className="fa-solid fa-circle-half-stroke text-gray-600 text-sm"></i>
-                    <span className="text-sm font-medium text-gray-700 select-none">
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-200 select-none">
                       壁纸遮罩
                     </span>
                   </div>
-                  <p className="text-xs text-gray-500 select-none">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 select-none">
                     {darkOverlayMode === 'off' ? '显示原始壁纸' : darkOverlayMode === 'always' ? '始终覆盖暗角遮罩' : '根据壁纸亮度自动判断'}
                   </p>
                 </div>
@@ -1193,7 +1225,7 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                     onClick={() => setDarkOverlayMode('off')}
                     className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${darkOverlayMode === 'off'
                       ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                       }`}
                   >
                     关闭
@@ -1202,7 +1234,7 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                     onClick={() => setDarkOverlayMode('always')}
                     className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${darkOverlayMode === 'always'
                       ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                       }`}
                   >
                     始终
@@ -1211,7 +1243,7 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                     onClick={() => setDarkOverlayMode('smart')}
                     className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${darkOverlayMode === 'smart'
                       ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                       }`}
                   >
                     <i className="fa-solid fa-wand-magic-sparkles mr-1"></i>智能
@@ -1219,18 +1251,18 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                 </div>
               </div>
 
-              <div className="border-t border-gray-100"></div>
+              <div className="border-t border-gray-100 dark:border-gray-700"></div>
 
               {/* AI图标显示模式 */}
               <div className="flex items-center justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <i className="fa-solid fa-robot text-blue-500 text-sm"></i>
-                    <span className="text-sm font-medium text-gray-700 select-none">
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-200 select-none">
                       AI图标样式
                     </span>
                   </div>
-                  <p className="text-xs text-gray-500 select-none">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 select-none">
                     {aiIconDisplayMode === 'dropdown' ? '下拉面板式，网格布局展示AI服务' : '圆形布局，悬停时环绕展开'}
                   </p>
                 </div>
@@ -1239,7 +1271,7 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                     onClick={() => setAiIconDisplayMode('circular')}
                     className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${aiIconDisplayMode === 'circular'
                       ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                       }`}
                   >
                     <i className="fa-solid fa-circle-nodes mr-1"></i>
@@ -1249,7 +1281,7 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                     onClick={() => setAiIconDisplayMode('dropdown')}
                     className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${aiIconDisplayMode === 'dropdown'
                       ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                       }`}
                   >
                     <i className="fa-solid fa-grip mr-1"></i>
@@ -1265,22 +1297,22 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
               <div className="w-6 h-6 bg-gradient-to-br from-orange-400 to-yellow-500 rounded-lg flex items-center justify-center">
                 <i className="fa-solid fa-clock text-white text-xs"></i>
               </div>
-              <h3 className="text-base font-semibold text-gray-800 select-none">时间设置</h3>
-              <div className="flex-1 h-px bg-gradient-to-r from-gray-200 to-transparent"></div>
+              <h3 className="text-base font-semibold text-gray-800 dark:text-gray-100 select-none">时间设置</h3>
+              <div className="flex-1 h-px bg-gradient-to-r from-gray-200 dark:from-gray-700 to-transparent"></div>
             </div>
 
             {/* 时间设置区域 */}
-            <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 space-y-4">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 space-y-4">
               {/* 时间组件开关 */}
               <div className="flex items-center justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <i className="fa-solid fa-clock text-orange-500 text-sm"></i>
-                    <span className="text-sm font-medium text-gray-700 select-none">
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-200 select-none">
                       显示时间组件
                     </span>
                   </div>
-                  <p className="text-xs text-gray-500 select-none">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 select-none">
                     {timeComponentEnabled ? '在搜索框上方显示当前时间和日期' : '隐藏时间和日期显示'}
                   </p>
                 </div>
@@ -1288,13 +1320,13 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                   onClick={() => setTimeComponentEnabled(!timeComponentEnabled)}
                   className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${timeComponentEnabled
                     ? 'bg-gradient-to-r from-orange-400 to-yellow-500 shadow-lg shadow-orange-300/50'
-                    : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
+                    : 'bg-gradient-to-r from-gray-400 to-gray-500 dark:from-gray-600 dark:to-gray-700 shadow-lg shadow-gray-300/50 dark:shadow-gray-900/50'
                     }`}
                 >
                   <span
-                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${timeComponentEnabled
+                    className={`inline-block h-5 w-5 transform rounded-full bg-white dark:bg-gray-200 transition-all duration-300 shadow-md ${timeComponentEnabled
                       ? 'translate-x-6 shadow-orange-200'
-                      : 'translate-x-1 shadow-gray-200'
+                      : 'translate-x-1 shadow-gray-200 dark:shadow-gray-600'
                       }`}
                   />
                 </button>
@@ -1302,13 +1334,13 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
 
               {timeComponentEnabled && (
                 <>
-                  <div className="border-t border-gray-100"></div>
+                  <div className="border-t border-gray-100 dark:border-gray-700"></div>
 
                   {/* 年月日独立开关 */}
                   <div className="space-y-4">
                     <div className="flex items-center gap-2">
                       <i className="fa-solid fa-calendar text-orange-500 text-sm"></i>
-                      <span className="text-sm font-medium text-gray-700 select-none">
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-200 select-none">
                         日期显示控制
                       </span>
                     </div>
@@ -1319,8 +1351,8 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                         <button
                           onClick={() => setShowYear(!showYear)}
                           className={`w-full p-3 rounded-lg border-2 transition-all duration-200 text-center select-none cursor-pointer ${showYear
-                            ? 'border-orange-400 bg-orange-50 text-orange-700'
-                            : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
+                            ? 'border-orange-400 bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300'
+                            : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-600'
                             }`}
                         >
                           <div className="flex items-center justify-center gap-2 mb-1">
@@ -1330,7 +1362,7 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                             ></i>
                             <div className="font-medium text-sm select-none">年份</div>
                           </div>
-                          <div className="text-xs text-gray-500 select-none">2024年</div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400 select-none">2024年</div>
                         </button>
                       </div>
 
@@ -1339,8 +1371,8 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                         <button
                           onClick={() => setShowMonth(!showMonth)}
                           className={`w-full p-3 rounded-lg border-2 transition-all duration-200 text-center select-none cursor-pointer ${showMonth
-                            ? 'border-orange-400 bg-orange-50 text-orange-700'
-                            : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
+                            ? 'border-orange-400 bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300'
+                            : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-600'
                             }`}
                         >
                           <div className="flex items-center justify-center gap-2 mb-1">
@@ -1350,7 +1382,7 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                             ></i>
                             <div className="font-medium text-sm select-none">月份</div>
                           </div>
-                          <div className="text-xs text-gray-500 select-none">8月</div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400 select-none">8月</div>
                         </button>
                       </div>
 
@@ -1359,8 +1391,8 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                         <button
                           onClick={() => setShowDay(!showDay)}
                           className={`w-full p-3 rounded-lg border-2 transition-all duration-200 text-center select-none cursor-pointer ${showDay
-                            ? 'border-orange-400 bg-orange-50 text-orange-700'
-                            : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
+                            ? 'border-orange-400 bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300'
+                            : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-600'
                             }`}
                         >
                           <div className="flex items-center justify-center gap-2 mb-1">
@@ -1370,24 +1402,24 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                             ></i>
                             <div className="font-medium text-sm select-none">日期</div>
                           </div>
-                          <div className="text-xs text-gray-500 select-none">28日</div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400 select-none">28日</div>
                         </button>
                       </div>
                     </div>
                   </div>
 
-                  <div className="border-t border-gray-100"></div>
+                  <div className="border-t border-gray-100 dark:border-gray-700"></div>
 
                   {/* 显示星期开关 */}
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <i className="fa-solid fa-calendar-week text-orange-500 text-sm"></i>
-                        <span className="text-sm font-medium text-gray-700 select-none">
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-200 select-none">
                           显示星期
                         </span>
                       </div>
-                      <p className="text-xs text-gray-500 select-none">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 select-none">
                         {showWeekday ? '显示当前是星期几' : '隐藏星期信息'}
                       </p>
                     </div>
@@ -1395,30 +1427,30 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                       onClick={() => setShowWeekday(!showWeekday)}
                       className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${showWeekday
                         ? 'bg-gradient-to-r from-orange-400 to-yellow-500 shadow-lg shadow-orange-300/50'
-                        : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
+                        : 'bg-gradient-to-r from-gray-400 to-gray-500 dark:from-gray-600 dark:to-gray-700 shadow-lg shadow-gray-300/50 dark:shadow-gray-900/50'
                         }`}
                     >
                       <span
-                        className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${showWeekday
+                        className={`inline-block h-5 w-5 transform rounded-full bg-white dark:bg-gray-200 transition-all duration-300 shadow-md ${showWeekday
                           ? 'translate-x-6 shadow-orange-200'
-                          : 'translate-x-1 shadow-gray-200'
+                          : 'translate-x-1 shadow-gray-200 dark:shadow-gray-600'
                           }`}
                       />
                     </button>
                   </div>
 
-                  <div className="border-t border-gray-100"></div>
+                  <div className="border-t border-gray-100 dark:border-gray-700"></div>
 
                   {/* 精确到秒设置 */}
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <i className="fa-solid fa-stopwatch text-orange-500 text-sm"></i>
-                        <span className="text-sm font-medium text-gray-700 select-none">
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-200 select-none">
                           精确到秒
                         </span>
                       </div>
-                      <p className="text-xs text-gray-500 select-none">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 select-none">
                         {showSeconds ? '显示精确的秒数时间' : '只显示时:分，冒号每秒闪烁'}
                       </p>
                     </div>
@@ -1426,19 +1458,19 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                       onClick={() => setShowSeconds(!showSeconds)}
                       className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${showSeconds
                         ? 'bg-gradient-to-r from-orange-400 to-yellow-500 shadow-lg shadow-orange-300/50'
-                        : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
+                        : 'bg-gradient-to-r from-gray-400 to-gray-500 dark:from-gray-600 dark:to-gray-700 shadow-lg shadow-gray-300/50 dark:shadow-gray-900/50'
                         }`}
                     >
                       <span
-                        className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${showSeconds
+                        className={`inline-block h-5 w-5 transform rounded-full bg-white dark:bg-gray-200 transition-all duration-300 shadow-md ${showSeconds
                           ? 'translate-x-6 shadow-orange-200'
-                          : 'translate-x-1 shadow-gray-200'
+                          : 'translate-x-1 shadow-gray-200 dark:shadow-gray-600'
                           }`}
                       />
                     </button>
                   </div>
 
-                  <div className="border-t border-gray-100"></div>
+                  <div className="border-t border-gray-100 dark:border-gray-700"></div>
 
                   {/* 下班倒计时设置 */}
                   <div className="space-y-4">
@@ -1446,11 +1478,11 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
                           <i className="fa-solid fa-hourglass-half text-orange-500 text-sm"></i>
-                          <span className="text-sm font-medium text-gray-700 select-none">
+                          <span className="text-sm font-medium text-gray-700 dark:text-gray-200 select-none">
                             下班倒计时
                           </span>
                         </div>
-                        <p className="text-xs text-gray-500 select-none">
+                        <p className="text-xs text-gray-500 dark:text-gray-400 select-none">
                           {workCountdownEnabled
                             ? '鼠标悬停时间显示距离午休/下班时间'
                             : '禁用倒计时功能'}
@@ -1460,13 +1492,13 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                         onClick={() => setWorkCountdownEnabled(!workCountdownEnabled)}
                         className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${workCountdownEnabled
                           ? 'bg-gradient-to-r from-orange-400 to-yellow-500 shadow-lg shadow-orange-300/50'
-                          : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
+                          : 'bg-gradient-to-r from-gray-400 to-gray-500 dark:from-gray-600 dark:to-gray-700 shadow-lg shadow-gray-300/50 dark:shadow-gray-900/50'
                           }`}
                       >
                         <span
-                          className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${workCountdownEnabled
+                          className={`inline-block h-5 w-5 transform rounded-full bg-white dark:bg-gray-200 transition-all duration-300 shadow-md ${workCountdownEnabled
                             ? 'translate-x-6 shadow-orange-200'
-                            : 'translate-x-1 shadow-gray-200'
+                            : 'translate-x-1 shadow-gray-200 dark:shadow-gray-600'
                             }`}
                         />
                       </button>
@@ -1506,25 +1538,25 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
               <div className="w-6 h-6 bg-gradient-to-br from-pink-500 to-rose-600 rounded-lg flex items-center justify-center">
                 <i className="fa-solid fa-image text-white text-xs"></i>
               </div>
-              <h3 className="text-base font-semibold text-gray-800 select-none">壁纸设置</h3>
-              <div className="flex-1 h-px bg-gradient-to-r from-gray-200 to-transparent"></div>
+              <h3 className="text-base font-semibold text-gray-800 dark:text-gray-100 select-none">壁纸设置</h3>
+              <div className="flex-1 h-px bg-gradient-to-r from-gray-200 dark:from-gray-700 to-transparent"></div>
             </div>
 
             {/* 壁纸设置区域 */}
-            <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 space-y-5">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 space-y-5">
               {/* 模式切换 Tab */}
-              <div className="flex p-1 bg-gray-100 rounded-xl select-none relative">
+              <div className="flex p-1 bg-gray-100 dark:bg-gray-700 rounded-xl select-none relative">
                 <button
                   onClick={() => setWallpaperResolution(lastBingResolution)}
                   className={`relative flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200 ${wallpaperResolution !== 'custom'
-                    ? 'text-pink-600'
-                    : 'text-gray-500 hover:text-gray-700'
+                    ? 'text-pink-600 dark:text-pink-400'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
                     }`}
                 >
                   {wallpaperResolution !== 'custom' && (
                     <motion.div
                       layoutId="activeTab"
-                      className="absolute inset-0 bg-white rounded-lg shadow-sm"
+                      className="absolute inset-0 bg-white dark:bg-gray-600 rounded-lg shadow-sm"
                       transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                     />
                   )}
@@ -1536,14 +1568,14 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                 <button
                   onClick={() => setWallpaperResolution('custom')}
                   className={`relative flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200 ${wallpaperResolution === 'custom'
-                    ? 'text-pink-600'
-                    : 'text-gray-500 hover:text-gray-700'
+                    ? 'text-pink-600 dark:text-pink-400'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
                     }`}
                 >
                   {wallpaperResolution === 'custom' && (
                     <motion.div
                       layoutId="activeTab"
-                      className="absolute inset-0 bg-white rounded-lg shadow-sm"
+                      className="absolute inset-0 bg-white dark:bg-gray-600 rounded-lg shadow-sm"
                       transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                     />
                   )}
@@ -1562,7 +1594,7 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <i className="fa-solid fa-image text-blue-500 text-sm"></i>
-                        <label className="text-sm font-medium text-gray-700 select-none">
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-200 select-none">
                           壁纸分辨率
                         </label>
                       </div>
@@ -1586,20 +1618,20 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                           key={option.value}
                           onClick={() => setWallpaperResolution(option.value as WallpaperResolution)}
                           className={`group p-3 rounded-lg border-2 transition-all duration-200 text-left select-none cursor-pointer ${wallpaperResolution === option.value
-                            ? 'border-pink-500 bg-pink-50 text-pink-700'
-                            : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
+                            ? 'border-pink-500 bg-pink-50 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300'
+                            : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-600'
                             }`}
                         >
                           <div className="flex items-center gap-2 mb-1">
                             <i
                               className={`fa-solid ${option.icon} text-sm transition-colors ${wallpaperResolution === option.value
-                                ? 'text-pink-500'
-                                : 'text-gray-400 group-hover:text-gray-500'
+                                ? 'text-pink-500 dark:text-pink-400'
+                                : 'text-gray-400 dark:text-gray-500 group-hover:text-gray-500 dark:group-hover:text-gray-400'
                                 } select-none`}
                             ></i>
                             <div className="font-medium text-sm select-none">{option.label}</div>
                           </div>
-                          <div className="text-xs text-gray-500 select-none">{option.desc}</div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400 select-none">{option.desc}</div>
                         </button>
                       ))}
                     </div>
@@ -1610,7 +1642,7 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <i className="fa-solid fa-upload text-blue-500 text-sm"></i>
-                        <span className="text-sm font-medium text-gray-700">上传壁纸</span>
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-200">上传壁纸</span>
                       </div>
                       <div className="relative group">
                         <i className="fa-solid fa-info-circle text-gray-400 text-xs cursor-help"></i>
@@ -1700,19 +1732,19 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
               <div className="w-6 h-6 bg-gradient-to-br from-violet-500 to-purple-600 rounded-lg flex items-center justify-center">
                 <i className="fa-solid fa-layer-group text-white text-xs"></i>
               </div>
-              <h3 className="text-base font-semibold text-gray-800 select-none">卡片管理</h3>
-              <div className="flex-1 h-px bg-gradient-to-r from-gray-200 to-transparent"></div>
+              <h3 className="text-base font-semibold text-gray-800 dark:text-gray-100 select-none">卡片管理</h3>
+              <div className="flex-1 h-px bg-gradient-to-r from-gray-200 dark:from-gray-700 to-transparent"></div>
             </div>
 
-            <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 bg-violet-500 rounded-lg flex items-center justify-center">
                     <i className="fa-solid fa-layer-group text-white text-sm"></i>
                   </div>
                   <div>
-                    <div className="text-sm font-medium text-gray-800 select-none">卡片收藏</div>
-                    <div className="text-xs text-gray-500 select-none">
+                    <div className="text-sm font-medium text-gray-800 dark:text-gray-100 select-none">卡片收藏</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 select-none">
                       当前有 {websites.length} 个卡片
                     </div>
                   </div>
@@ -1734,18 +1766,18 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
               <div className="w-6 h-6 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center">
                 <i className="fa-solid fa-database text-white text-xs"></i>
               </div>
-              <h3 className="text-base font-semibold text-gray-800 select-none">数据管理</h3>
-              <div className="flex-1 h-px bg-gradient-to-r from-gray-200 to-transparent"></div>
+              <h3 className="text-base font-semibold text-gray-800 dark:text-gray-100 select-none">数据管理</h3>
+              <div className="flex-1 h-px bg-gradient-to-r from-gray-200 dark:from-gray-700 to-transparent"></div>
             </div>
 
-            <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 space-y-4">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 space-y-4">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center">
                   <i className="fa-solid fa-database text-white text-sm"></i>
                 </div>
                 <div>
-                  <div className="text-sm font-medium text-gray-800 select-none">备份与恢复</div>
-                  <div className="text-xs text-gray-500 select-none">导出或导入您的数据</div>
+                  <div className="text-sm font-medium text-gray-800 dark:text-gray-100 select-none">备份与恢复</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 select-none">导出或导入您的数据</div>
                 </div>
               </div>
 
@@ -1801,14 +1833,14 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                 className="hidden"
               />
 
-              <div className="bg-teal-50 border border-teal-200 rounded-lg p-3 select-none">
+              <div className="bg-teal-50 dark:bg-teal-900/30 border border-teal-200 dark:border-teal-800 rounded-lg p-3 select-none">
                 <div className="flex items-start gap-2 select-none">
-                  <i className="fa-solid fa-exclamation-triangle text-teal-500 text-sm mt-0.5 select-none"></i>
+                  <i className="fa-solid fa-exclamation-triangle text-teal-500 dark:text-teal-400 text-sm mt-0.5 select-none"></i>
                   <div className="select-none">
-                    <div className="text-xs font-medium text-teal-700 mb-1 select-none">
+                    <div className="text-xs font-medium text-teal-700 dark:text-teal-300 mb-1 select-none">
                       重要提醒
                     </div>
-                    <div className="text-xs text-teal-600 select-none">
+                    <div className="text-xs text-teal-600 dark:text-teal-400 select-none">
                       导入会覆盖所有当前数据，建议先导出备份
                     </div>
                   </div>
@@ -1823,18 +1855,18 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
               <div className="w-6 h-6 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center">
                 <i className="fa-solid fa-shield-halved text-white text-xs"></i>
               </div>
-              <h3 className="text-base font-semibold text-gray-800 select-none">隐私与帮助</h3>
-              <div className="flex-1 h-px bg-gradient-to-r from-gray-200 to-transparent"></div>
+              <h3 className="text-base font-semibold text-gray-800 dark:text-gray-100 select-none">隐私与帮助</h3>
+              <div className="flex-1 h-px bg-gradient-to-r from-gray-200 dark:from-gray-700 to-transparent"></div>
             </div>
 
-            <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 space-y-4">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 space-y-4">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center">
                   <i className="fa-solid fa-shield-halved text-white text-sm"></i>
                 </div>
                 <div>
-                  <div className="text-sm font-medium text-gray-800 select-none">隐私与帮助</div>
-                  <div className="text-xs text-gray-500 select-none">
+                  <div className="text-sm font-medium text-gray-800 dark:text-gray-100 select-none">隐私与帮助</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 select-none">
                     管理隐私设置和查看使用教程
                   </div>
                 </div>
@@ -1861,7 +1893,7 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                   href="/help/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-b from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 text-sm font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-[1.02] select-none"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-b from-gray-100 to-gray-200 dark:from-gray-600 dark:to-gray-700 hover:from-gray-200 hover:to-gray-300 dark:hover:from-gray-500 dark:hover:to-gray-600 text-gray-700 dark:text-gray-200 text-sm font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-[1.02] select-none"
                   style={{ textDecoration: 'none' }}
                 >
                   <i className="fa-solid fa-graduation-cap select-none"></i>
@@ -1873,7 +1905,7 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
               {/* 图标修复功能 */}
               <div className="pt-3 border-t border-gray-100">
                 <div className="text-center space-y-2">
-                  <p className="text-xs text-gray-500 select-none">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 select-none">
                     图标显示不正确？
                     <button
                       onClick={handleFixIcons}

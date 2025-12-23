@@ -15,7 +15,7 @@ export default function AccountSettingsSection({ onClose, onOpenSecurityModal }:
     return (
         <div className="space-y-4">
             {/* User Info Card - Snapshot */}
-            <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-300">
                 <div className="flex items-center gap-4">
                     <div className="relative">
                         {avatarUrl ? (
@@ -36,8 +36,8 @@ export default function AccountSettingsSection({ onClose, onOpenSecurityModal }:
                         )}
                     </div>
                     <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-slate-800 mb-1 select-none">{displayName || '用户'}</h3>
-                        <div className="flex items-center gap-2 text-sm text-slate-500 select-none">
+                        <h3 className="text-lg font-semibold text-slate-800 dark:text-gray-100 mb-1 select-none">{displayName || '用户'}</h3>
+                        <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-gray-400 select-none">
                             <i className="fa-solid fa-envelope text-xs"></i>
                             <span>{currentUser.email}</span>
                         </div>
@@ -45,26 +45,26 @@ export default function AccountSettingsSection({ onClose, onOpenSecurityModal }:
                 </div>
 
                 {/* Navigation to Security Menu */}
-                <div className="mt-6 pt-4 border-t border-gray-100 select-none">
+                <div className="mt-6 pt-4 border-t border-gray-100 dark:border-gray-700 select-none">
                     <button
                         onClick={onOpenSecurityModal}
-                        className="w-full flex items-center justify-between p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors group"
+                        className="w-full flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors group"
                     >
                         <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">
+                            <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 flex items-center justify-center">
                                 <i className="fa-solid fa-shield-halved text-sm"></i>
                             </div>
                             <div className="text-left">
-                                <div className="text-sm font-medium text-gray-800">账号与安全</div>
-                                <div className="text-xs text-gray-400">修改资料、密码、绑定账号、注销</div>
+                                <div className="text-sm font-medium text-gray-800 dark:text-gray-100">账号与安全</div>
+                                <div className="text-xs text-gray-400 dark:text-gray-500">修改资料、密码、绑定账号、注销</div>
                             </div>
                         </div>
-                        <i className="fa-solid fa-chevron-right text-gray-400 group-hover:text-gray-600 transition-colors"></i>
+                        <i className="fa-solid fa-chevron-right text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors"></i>
                     </button>
                 </div>
 
                 {/* 退出登录 */}
-                <div className="mt-4 pt-4 border-t border-gray-100 select-none">
+                <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 select-none">
                     <button
                         onClick={async () => {
                             try {

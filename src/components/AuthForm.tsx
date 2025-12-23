@@ -176,10 +176,10 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
   return (
     <div className="space-y-4">
       <div className="text-center mb-4">
-        <h3 className="text-lg font-semibold text-gray-800">
+        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
           {showForgotPassword ? '重置密码' : isLogin ? '登录账号' : '注册账号'}
         </h3>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-gray-600 dark:text-gray-400">
           {showForgotPassword
             ? '请输入您的邮箱地址'
             : isLogin
@@ -189,7 +189,7 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
       </div>
 
       {displayError && (
-        <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+        <div className="mb-4 p-3 bg-red-100 dark:bg-red-900/50 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-300 rounded">
           {displayError}
         </div>
       )}
@@ -198,12 +198,12 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
         /* 忘记密码表单 */
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">邮箱 *</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">邮箱 *</label>
             <input
               type="email"
               value={resetEmail}
               onChange={(e) => setResetEmail(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="请输入您的邮箱"
               disabled={loading}
             />
@@ -237,39 +237,39 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
           <form onSubmit={handleSubmit} className="space-y-4">
             {!isLogin && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">用户名 *</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">用户名 *</label>
                 <input
                   type="text"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="请输入用户名（2-20个字符）"
                   disabled={loading}
                   maxLength={20}
                 />
-                <p className="text-xs text-gray-500 mt-1">支持中文、英文、数字、下划线和短横线</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">支持中文、英文、数字、下划线和短横线</p>
               </div>
             )}
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">邮箱 *</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">邮箱 *</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="请输入邮箱"
                 disabled={loading}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">密码 *</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">密码 *</label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="请输入密码（至少6位）"
                 disabled={loading}
                 minLength={6}
@@ -304,10 +304,10 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
             <div className="mt-6">
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300"></div>
+                  <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">或者</span>
+                  <span className="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">或者</span>
                 </div>
               </div>
 
@@ -316,7 +316,7 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
                 <button
                   onClick={() => loginWithGoogle()}
                   disabled={loading}
-                  className="w-full inline-flex justify-center items-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed transition-colors"
+                  className="w-full inline-flex justify-center items-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:cursor-not-allowed transition-colors"
                 >
                   <img
                     className="h-5 w-5 mr-2"
@@ -330,7 +330,7 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
                 <button
                   onClick={() => loginWithGithub()}
                   disabled={loading}
-                  className="w-full inline-flex justify-center items-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed transition-colors"
+                  className="w-full inline-flex justify-center items-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:cursor-not-allowed transition-colors"
                 >
                   <i className="fa-brands fa-github text-xl mr-2"></i>
                   使用 GitHub 账号登录
@@ -340,7 +340,7 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
                 <button
                   onClick={() => loginWithNotion()}
                   disabled={loading}
-                  className="w-full inline-flex justify-center items-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed transition-colors"
+                  className="w-full inline-flex justify-center items-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:cursor-not-allowed transition-colors"
                 >
                   <img src="https://www.notion.so/images/favicon.ico" alt="Notion" className="h-5 w-5 mr-2" />
                   使用 Notion 账号登录

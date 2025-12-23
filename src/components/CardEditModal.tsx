@@ -324,7 +324,7 @@ export default function CardEditModal({
         glarePosition="all"
       >
         <motion.div
-          className="w-full max-w-md bg-white rounded-xl shadow-xl p-6 select-none"
+          className="w-full max-w-md bg-white dark:bg-gray-900 rounded-xl shadow-xl p-6 select-none"
           initial={{ opacity: 0, scale: 0.9, rotateX: -10 }}
           animate={{ opacity: 1, scale: 1, rotateX: 0 }}
           exit={{ opacity: 0, scale: 0.9, rotateX: 10 }}
@@ -335,19 +335,16 @@ export default function CardEditModal({
             duration: 0.4,
           }}
           style={{
-            background:
-              'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
             backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(255,255,255,0.3)',
           }}
         >
           <div className="flex justify-between items-center mb-4 select-none">
-            <h2 className="text-xl font-semibold select-none bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+            <h2 className="text-xl font-semibold select-none bg-gradient-to-r from-gray-800 to-gray-600 dark:from-gray-100 dark:to-gray-300 bg-clip-text text-transparent">
               编辑卡片
             </h2>
             <motion.button
               onClick={onClose}
-              className="text-gray-500 hover:text-gray-700 select-none p-2 rounded-full hover:bg-gray-100 transition-colors"
+              className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 select-none p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               whileHover={{ scale: 1.1, rotate: 90 }}
               whileTap={{ scale: 0.9 }}
             >
@@ -357,7 +354,7 @@ export default function CardEditModal({
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1 select-none">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1 select-none">
                 网址
               </label>
               <div className="flex gap-2">
@@ -366,7 +363,7 @@ export default function CardEditModal({
                   name="url"
                   value={formData.url}
                   onChange={handleChange}
-                  className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="https://example.com"
                 />
                 <motion.button
@@ -396,7 +393,7 @@ export default function CardEditModal({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1 select-none">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1 select-none">
                 网站名
               </label>
               <input
@@ -404,7 +401,7 @@ export default function CardEditModal({
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="网站名称"
               />
               {errors.name && (
@@ -413,7 +410,7 @@ export default function CardEditModal({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1 select-none">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1 select-none">
                 图标
               </label>
               <div className="flex items-center gap-3">
@@ -423,7 +420,7 @@ export default function CardEditModal({
                     name="favicon"
                     value={formData.favicon}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="https://example.com/favicon.ico"
                   />
                 </div>
@@ -473,7 +470,7 @@ export default function CardEditModal({
 
             {/* 独立的标签编辑区域 */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1 select-none">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1 select-none">
                 标签 (最多2个)
               </label>
               <div className="space-y-2">
@@ -541,14 +538,14 @@ export default function CardEditModal({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1 select-none">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1 select-none">
                 备注
               </label>
               <textarea
                 name="note"
                 value={formData.note}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 rows={3}
                 placeholder="网站用途说明..."
               />

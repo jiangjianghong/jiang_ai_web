@@ -45,6 +45,7 @@ interface TransparencyContextType {
   atmosphereParticleCount: number; // 氛围效果粒子数量（10-1000）
   darkOverlayEnabled: boolean; // 黑色遮罩开关（壁纸暗角效果）
   darkOverlayMode: 'off' | 'always' | 'smart'; // 黑色遮罩模式：关闭/始终/智能
+  darkMode: boolean; // 夜间模式开关
   setCardOpacity: (opacity: number) => void;
   setSearchBarOpacity: (opacity: number) => void;
   setParallaxEnabled: (enabled: boolean) => void;
@@ -75,6 +76,7 @@ interface TransparencyContextType {
   setAtmosphereParticleCount: (count: number) => void;
   setDarkOverlayEnabled: (enabled: boolean) => void;
   setDarkOverlayMode: (mode: 'off' | 'always' | 'smart') => void;
+  setDarkMode: (enabled: boolean) => void;
 }
 
 const TransparencyContext = createContext<TransparencyContextType | undefined>(undefined);
@@ -251,6 +253,15 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
     return saved || 'off'; // 默认关闭
   });
 
+  // 夜间模式（深色/浅色主题）
+  const [darkMode, setDarkMode] = useState(() => {
+    const saved = localStorage.getItem('theme');
+    if (saved) {
+      return saved === 'dark';
+    }
+    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  });
+
   // 初始化autoSortEnabled从localStorage
   useEffect(() => {
     try {
@@ -375,6 +386,14 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('darkOverlayMode', darkOverlayMode);
   }, [darkOverlayMode]);
 
+  // 夜间模式持久化和主题应用
+  useEffect(() => {
+    const theme = darkMode ? 'dark' : 'light';
+    localStorage.setItem('theme', theme);
+    document.documentElement.classList.remove('light', 'dark');
+    document.documentElement.classList.add(theme);
+  }, [darkMode]);
+
   const contextValue = React.useMemo(() => ({
     cardOpacity,
     searchBarOpacity,
@@ -406,6 +425,7 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
     atmosphereParticleCount,
     darkOverlayEnabled,
     darkOverlayMode,
+    darkMode,
     setCardOpacity,
     setSearchBarOpacity,
     setParallaxEnabled,
@@ -436,10 +456,11 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
     setAtmosphereParticleCount,
     setDarkOverlayEnabled,
     setDarkOverlayMode,
+    setDarkMode,
   }), [
     cardOpacity, searchBarOpacity, parallaxEnabled, wallpaperResolution, isSettingsOpen, isSearchFocused, cardColor, searchBarColor,
     autoSyncEnabled, autoSyncInterval, searchInNewTab, autoSortEnabled, timeComponentEnabled, showFullDate, showSeconds, showWeekday,
-    showYear, showMonth, showDay, dateDisplayMode, searchBarBorderRadius, animationStyle, workCountdownEnabled, lunchTime, offWorkTime, aiIconDisplayMode, atmosphereEnabled, atmosphereParticleCount, darkOverlayEnabled, darkOverlayMode
+    showYear, showMonth, showDay, dateDisplayMode, searchBarBorderRadius, animationStyle, workCountdownEnabled, lunchTime, offWorkTime, aiIconDisplayMode, atmosphereEnabled, atmosphereParticleCount, darkOverlayEnabled, darkOverlayMode, darkMode
   ]);
 
   return (

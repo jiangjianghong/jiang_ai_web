@@ -319,6 +319,99 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- ==============================================================================
--- Deployment Complete! 部署完成!
+-- 10. Admin Enhancement Tables (管理增强表)
 -- ==============================================================================
+
+-- 10.1 Admin Logs (管理员操作日志表)
+CREATE TABLE IF NOT EXISTS admin_logs (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  admin_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  action_type TEXT NOT NULL CHECK (action_type IN ('ban_user', 'unban_user', 'create_announcement', 'update_announcement', 'delete_announcement', 'toggle_announcement', 'other')),
+  target_id UUID,
+  target_type TEXT CHECK (target_type IN ('user', 'announcement', 'system', 'other')),
+  details JSONB DEFAULT '{}'::jsonb,
+  ip_address TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE admin_logs ENABLE ROW LEVEL SECURITY;
+
+CREATE INDEX IF NOT EXISTS idx_admin_logs_created_at ON admin_logs(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_admin_logs_action_type ON admin_logs(action_type);
+CREATE INDEX IF NOT EXISTS idx_admin_logs_admin_id ON admin_logs(admin_id);
+
+-- 10.2 Search Logs (搜索日志表 - 用于热门搜索分析)
+CREATE TABLE IF NOT EXISTS search_logs (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  keyword TEXT NOT NULL,
+  search_engine TEXT DEFAULT 'google',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE search_logs ENABLE ROW LEVEL SECURITY;
+
+CREATE INDEX IF NOT EXISTS idx_search_logs_keyword ON search_logs(keyword);
+CREATE INDEX IF NOT EXISTS idx_search_logs_created_at ON search_logs(created_at DESC);
+
+-- 11. Admin Enhancement RLS Policies (管理增强安全策略)
+-- ==============================================================================
+
+DROP POLICY IF EXISTS "Admins can read logs" ON admin_logs;
+CREATE POLICY "Admins can read logs" ON admin_logs
+  FOR SELECT USING (is_admin());
+
+DROP POLICY IF EXISTS "Admins can insert logs" ON admin_logs;
+CREATE POLICY "Admins can insert logs" ON admin_logs
+  FOR INSERT WITH CHECK (is_admin());
+
+DROP POLICY IF EXISTS "Users can insert own search logs" ON search_logs;
+CREATE POLICY "Users can insert own search logs" ON search_logs
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Admins can read search logs" ON search_logs;
+CREATE POLICY "Admins can read search logs" ON search_logs
+  FOR SELECT USING (is_admin());
+
+-- 12. Admin Analytics Functions (管理分析函数)
+-- ==============================================================================
+
+-- 获取热门搜索词
+CREATE OR REPLACE FUNCTION get_popular_searches(p_limit INTEGER DEFAULT 10, p_days INTEGER DEFAULT 7)
+RETURNS TABLE (keyword TEXT, count BIGINT) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT sl.keyword, COUNT(*) as count
+  FROM search_logs sl
+  WHERE sl.created_at >= NOW() - (p_days || ' days')::INTERVAL
+  GROUP BY sl.keyword
+  ORDER BY count DESC
+  LIMIT p_limit;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 获取小时活跃分布
+CREATE OR REPLACE FUNCTION get_hourly_activity(p_days INTEGER DEFAULT 7)
+RETURNS TABLE (hour INTEGER, count BIGINT) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT EXTRACT(HOUR FROM last_active_at)::INTEGER as hour, COUNT(*) as count
+  FROM user_stats
+  WHERE last_active_at >= NOW() - (p_days || ' days')::INTERVAL
+  GROUP BY hour
+  ORDER BY hour;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- ==============================================================================
+-- Deployment Complete! 部署完成!
+-- 
+-- 包含:
+-- - 用户表: user_profiles, user_settings, user_websites, user_stats
+-- - 管理表: user_bans, announcements, default_websites, analytics_daily
+-- - 日志表: admin_logs, search_logs
+-- - 存储桶: favicons, wallpapers
+-- - 函数: is_admin(), aggregate_daily_stats(), get_popular_searches(), get_hourly_activity()
+-- ==============================================================================
+
 

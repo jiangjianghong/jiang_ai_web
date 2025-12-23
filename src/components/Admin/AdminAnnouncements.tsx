@@ -2,6 +2,26 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 
+// 记录管理员操作日志
+async function logAdminAction(
+    actionType: string,
+    targetId: string,
+    targetType: string = 'announcement',
+    details: Record<string, any> = {}
+) {
+    try {
+        await supabase.from('admin_logs').insert({
+            admin_id: (await supabase.auth.getUser()).data.user?.id,
+            action_type: actionType,
+            target_id: targetId,
+            target_type: targetType,
+            details,
+        });
+    } catch (err) {
+        console.warn('Failed to log admin action:', err);
+    }
+}
+
 interface Announcement {
     id: string;
     title: string;
@@ -74,11 +94,19 @@ export default function AdminAnnouncements() {
                     .update(payload)
                     .eq('id', editingId);
                 if (error) throw error;
+                // 记录日志
+                await logAdminAction('update_announcement', editingId, 'announcement', { title: formData.title });
             } else {
-                const { error } = await supabase
+                const { data, error } = await supabase
                     .from('announcements')
-                    .insert(payload);
+                    .insert(payload)
+                    .select('id')
+                    .single();
                 if (error) throw error;
+                // 记录日志
+                if (data) {
+                    await logAdminAction('create_announcement', data.id, 'announcement', { title: formData.title });
+                }
             }
 
             setShowEditor(false);
@@ -109,6 +137,8 @@ export default function AdminAnnouncements() {
                 .update({ is_active: !currentActive })
                 .eq('id', id);
             if (error) throw error;
+            // 记录日志
+            await logAdminAction('toggle_announcement', id, 'announcement', { is_active: !currentActive });
             await loadAnnouncements();
         } catch (err: any) {
             console.error('Failed to toggle announcement:', err);
@@ -125,6 +155,8 @@ export default function AdminAnnouncements() {
                 .delete()
                 .eq('id', id);
             if (error) throw error;
+            // 记录日志
+            await logAdminAction('delete_announcement', id, 'announcement', {});
             await loadAnnouncements();
         } catch (err: any) {
             console.error('Failed to delete announcement:', err);
@@ -270,8 +302,8 @@ export default function AdminAnnouncements() {
                                     <button
                                         onClick={() => handleToggleActive(announcement.id, announcement.is_active)}
                                         className={`px-3 py-1 rounded text-xs transition-colors ${announcement.is_active
-                                                ? 'bg-yellow-600/20 text-yellow-400 hover:bg-yellow-600/30'
-                                                : 'bg-green-600/20 text-green-400 hover:bg-green-600/30'
+                                            ? 'bg-yellow-600/20 text-yellow-400 hover:bg-yellow-600/30'
+                                            : 'bg-green-600/20 text-green-400 hover:bg-green-600/30'
                                             }`}
                                     >
                                         {announcement.is_active ? '隐藏' : '显示'}

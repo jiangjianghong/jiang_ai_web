@@ -210,6 +210,15 @@ UPDATE user_profiles SET role = 'super_admin' WHERE email = 'your-admin@example.
 
 After logging in with your admin account, visit `/admin`.
 
+**Admin Dashboard Features:**
+- 📊 **Dashboard** - Data visualization (line/bar charts)
+- 👥 **User Management** - User list, details, ban/unban
+- 📈 **Analytics** - Activity distribution, role distribution, popular searches
+- ⚡ **Realtime** - Online users, Realtime subscription
+- 📢 **Announcements** - Create, edit, delete announcements
+- 📋 **Logs** - Admin action audit logs
+- ⚙️ **System** - API health checks, response times
+
 > ⚠️ **Privacy**: Admins can only view aggregate statistics, not users' personal data like website lists.
 
 </details>

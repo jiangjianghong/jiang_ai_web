@@ -7,8 +7,11 @@ import AdminDashboard from '@/components/Admin/AdminDashboard';
 import AdminUserList from '@/components/Admin/AdminUserList';
 import AdminAnnouncements from '@/components/Admin/AdminAnnouncements';
 import AdminSystem from '@/components/Admin/AdminSystem';
+import AdminAnalytics from '@/components/Admin/AdminAnalytics';
+import AdminRealtime from '@/components/Admin/AdminRealtime';
+import AdminLogs from '@/components/Admin/AdminLogs';
 
-type TabType = 'dashboard' | 'users' | 'content' | 'system';
+type TabType = 'dashboard' | 'users' | 'analytics' | 'realtime' | 'content' | 'logs' | 'system';
 
 interface TabConfig {
     id: TabType;
@@ -19,7 +22,10 @@ interface TabConfig {
 const TABS: TabConfig[] = [
     { id: 'dashboard', label: '仪表盘', icon: '📊' },
     { id: 'users', label: '用户管理', icon: '👥' },
-    { id: 'content', label: '内容管理', icon: '📝' },
+    { id: 'analytics', label: '行为分析', icon: '📈' },
+    { id: 'realtime', label: '实时监控', icon: '⚡' },
+    { id: 'content', label: '公告管理', icon: '📢' },
+    { id: 'logs', label: '操作日志', icon: '📋' },
     { id: 'system', label: '系统监控', icon: '⚙️' },
 ];
 
@@ -66,8 +72,14 @@ export default function Admin() {
                 return <AdminDashboard />;
             case 'users':
                 return <AdminUserList />;
+            case 'analytics':
+                return <AdminAnalytics />;
+            case 'realtime':
+                return <AdminRealtime />;
             case 'content':
                 return <AdminAnnouncements />;
+            case 'logs':
+                return <AdminLogs />;
             case 'system':
                 return <AdminSystem />;
             default:
@@ -113,8 +125,8 @@ export default function Admin() {
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
                                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${activeTab === tab.id
-                                            ? 'bg-white/10 text-white'
-                                            : 'text-white/60 hover:bg-white/5 hover:text-white'
+                                        ? 'bg-white/10 text-white'
+                                        : 'text-white/60 hover:bg-white/5 hover:text-white'
                                         }`}
                                 >
                                     <span className="text-lg">{tab.icon}</span>

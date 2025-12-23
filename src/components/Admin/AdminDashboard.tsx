@@ -1,5 +1,17 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import {
+    LineChart,
+    Line,
+    BarChart,
+    Bar,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    ResponsiveContainer,
+    Legend,
+} from 'recharts';
 
 interface Stats {
     totalUsers: number;
@@ -21,6 +33,7 @@ export default function AdminDashboard() {
     const [dailyData, setDailyData] = useState<DailyData[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [chartView, setChartView] = useState<'line' | 'bar'>('line');
 
     useEffect(() => {
         loadStats();
@@ -90,7 +103,7 @@ export default function AdminDashboard() {
             const { data, error } = await supabase
                 .from('analytics_daily')
                 .select('date, total_users, new_users, active_users')
-                .order('date', { ascending: false })
+                .order('date', { ascending: true })
                 .limit(30);
 
             if (error) throw error;
@@ -111,6 +124,18 @@ export default function AdminDashboard() {
             setError(err.message);
         }
     };
+
+    // 格式化日期用于显示
+    const formatDate = (dateStr: string) => {
+        const date = new Date(dateStr);
+        return `${date.getMonth() + 1}/${date.getDate()}`;
+    };
+
+    // 准备图表数据
+    const chartData = dailyData.map((row) => ({
+        ...row,
+        displayDate: formatDate(row.date),
+    }));
 
     if (loading) {
         return (
@@ -141,7 +166,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                 <StatCard
                     title="总用户数"
                     value={stats?.totalUsers || 0}
@@ -166,10 +191,6 @@ export default function AdminDashboard() {
                     icon="🔍"
                     color="purple"
                 />
-            </div>
-
-            {/* Additional Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <StatCard
                     title="总访问次数"
                     value={stats?.totalSiteVisits || 0}
@@ -178,9 +199,151 @@ export default function AdminDashboard() {
                 />
             </div>
 
-            {/* Daily Trend */}
+            {/* Charts Section */}
+            {dailyData.length > 0 && (
+                <div className="bg-white/5 rounded-xl p-6 border border-white/10">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-semibold text-white">📈 趋势图表（最近30天）</h3>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => setChartView('line')}
+                                className={`px-3 py-1 rounded text-sm transition-colors ${chartView === 'line'
+                                        ? 'bg-blue-600 text-white'
+                                        : 'bg-white/10 text-white/60 hover:bg-white/20'
+                                    }`}
+                            >
+                                折线图
+                            </button>
+                            <button
+                                onClick={() => setChartView('bar')}
+                                className={`px-3 py-1 rounded text-sm transition-colors ${chartView === 'bar'
+                                        ? 'bg-blue-600 text-white'
+                                        : 'bg-white/10 text-white/60 hover:bg-white/20'
+                                    }`}
+                            >
+                                柱状图
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* User Growth Chart */}
+                    <div className="mb-6">
+                        <h4 className="text-sm text-white/60 mb-3">用户增长</h4>
+                        <div className="h-64">
+                            <ResponsiveContainer width="100%" height="100%">
+                                {chartView === 'line' ? (
+                                    <LineChart data={chartData}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                                        <XAxis
+                                            dataKey="displayDate"
+                                            stroke="rgba(255,255,255,0.5)"
+                                            tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 12 }}
+                                        />
+                                        <YAxis
+                                            stroke="rgba(255,255,255,0.5)"
+                                            tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 12 }}
+                                        />
+                                        <Tooltip
+                                            contentStyle={{
+                                                backgroundColor: 'rgba(0,0,0,0.8)',
+                                                border: '1px solid rgba(255,255,255,0.2)',
+                                                borderRadius: '8px',
+                                            }}
+                                            labelStyle={{ color: 'white' }}
+                                        />
+                                        <Legend />
+                                        <Line
+                                            type="monotone"
+                                            dataKey="total_users"
+                                            name="总用户"
+                                            stroke="#3b82f6"
+                                            strokeWidth={2}
+                                            dot={{ fill: '#3b82f6', strokeWidth: 2, r: 3 }}
+                                        />
+                                        <Line
+                                            type="monotone"
+                                            dataKey="new_users"
+                                            name="新用户"
+                                            stroke="#10b981"
+                                            strokeWidth={2}
+                                            dot={{ fill: '#10b981', strokeWidth: 2, r: 3 }}
+                                        />
+                                    </LineChart>
+                                ) : (
+                                    <BarChart data={chartData}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                                        <XAxis
+                                            dataKey="displayDate"
+                                            stroke="rgba(255,255,255,0.5)"
+                                            tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 12 }}
+                                        />
+                                        <YAxis
+                                            stroke="rgba(255,255,255,0.5)"
+                                            tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 12 }}
+                                        />
+                                        <Tooltip
+                                            contentStyle={{
+                                                backgroundColor: 'rgba(0,0,0,0.8)',
+                                                border: '1px solid rgba(255,255,255,0.2)',
+                                                borderRadius: '8px',
+                                            }}
+                                            labelStyle={{ color: 'white' }}
+                                        />
+                                        <Legend />
+                                        <Bar dataKey="new_users" name="新用户" fill="#10b981" radius={[4, 4, 0, 0]} />
+                                        <Bar dataKey="active_users" name="活跃用户" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+                                    </BarChart>
+                                )}
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+
+                    {/* Active Users Chart */}
+                    <div>
+                        <h4 className="text-sm text-white/60 mb-3">活跃用户趋势</h4>
+                        <div className="h-48">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={chartData}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                                    <XAxis
+                                        dataKey="displayDate"
+                                        stroke="rgba(255,255,255,0.5)"
+                                        tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 12 }}
+                                    />
+                                    <YAxis
+                                        stroke="rgba(255,255,255,0.5)"
+                                        tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 12 }}
+                                    />
+                                    <Tooltip
+                                        contentStyle={{
+                                            backgroundColor: 'rgba(0,0,0,0.8)',
+                                            border: '1px solid rgba(255,255,255,0.2)',
+                                            borderRadius: '8px',
+                                        }}
+                                        labelStyle={{ color: 'white' }}
+                                    />
+                                    <Bar
+                                        dataKey="active_users"
+                                        name="活跃用户"
+                                        fill="url(#colorActive)"
+                                        radius={[4, 4, 0, 0]}
+                                    />
+                                    <defs>
+                                        <linearGradient id="colorActive" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stopColor="#f59e0b" stopOpacity={0.8} />
+                                            <stop offset="100%" stopColor="#f59e0b" stopOpacity={0.3} />
+                                        </linearGradient>
+                                    </defs>
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Data Table */}
             <div className="bg-white/5 rounded-xl p-6 border border-white/10">
-                <h3 className="text-lg font-semibold text-white mb-4">📈 每日趋势（最近30天）</h3>
+                <h3 className="text-lg font-semibold text-white mb-4">📋 详细数据</h3>
                 {dailyData.length > 0 ? (
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm">
@@ -193,7 +356,7 @@ export default function AdminDashboard() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {dailyData.map((row) => (
+                                {[...dailyData].reverse().slice(0, 10).map((row) => (
                                     <tr key={row.date} className="border-b border-white/5 text-white/80">
                                         <td className="py-2 px-3">{row.date}</td>
                                         <td className="text-right py-2 px-3">{row.total_users}</td>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import ConfirmModal from '@/components/ConfirmModal';
+import AdminUserDetail from './AdminUserDetail';
 
 interface UserProfile {
     id: string;
@@ -41,11 +42,32 @@ function formatRelativeTime(isoString: string | null): string {
     return `${Math.floor(diffDays / 365)}年前`;
 }
 
+// 记录管理员操作日志
+async function logAdminAction(
+    actionType: string,
+    targetId: string,
+    targetType: string = 'user',
+    details: Record<string, any> = {}
+) {
+    try {
+        await supabase.from('admin_logs').insert({
+            admin_id: (await supabase.auth.getUser()).data.user?.id,
+            action_type: actionType,
+            target_id: targetId,
+            target_type: targetType,
+            details,
+        });
+    } catch (err) {
+        console.warn('Failed to log admin action:', err);
+    }
+}
+
 export default function AdminUserList() {
     const [users, setUsers] = useState<UserWithStats[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
     const [confirmModal, setConfirmModal] = useState<{
         isOpen: boolean;
         title: string;
@@ -107,7 +129,7 @@ export default function AdminUserList() {
         }
     };
 
-    const handleBanUser = async (userId: string, currentlyBanned: boolean) => {
+    const handleBanUser = async (userId: string, currentlyBanned: boolean, userEmail: string) => {
         const action = currentlyBanned ? '解禁' : '禁用';
 
         setConfirmModal({
@@ -119,12 +141,16 @@ export default function AdminUserList() {
                     if (currentlyBanned) {
                         // 解禁
                         await supabase.from('user_bans').delete().eq('user_id', userId);
+                        // 记录日志
+                        await logAdminAction('unban_user', userId, 'user', { email: userEmail });
                     } else {
                         // 禁用
                         await supabase.from('user_bans').insert({
                             user_id: userId,
                             reason: '管理员手动禁用',
                         });
+                        // 记录日志
+                        await logAdminAction('ban_user', userId, 'user', { email: userEmail, reason: '管理员手动禁用' });
                     }
                     await loadUsers();
                 } catch (err: any) {
@@ -244,15 +270,23 @@ export default function AdminUserList() {
                                         )}
                                     </td>
                                     <td className="py-3 px-4 text-center">
-                                        <button
-                                            onClick={() => handleBanUser(user.id, user.is_banned)}
-                                            className={`px-3 py-1 rounded text-xs transition-colors ${user.is_banned
-                                                ? 'bg-green-600/20 text-green-400 hover:bg-green-600/30'
-                                                : 'bg-red-600/20 text-red-400 hover:bg-red-600/30'
-                                                }`}
-                                        >
-                                            {user.is_banned ? '解禁' : '禁用'}
-                                        </button>
+                                        <div className="flex items-center justify-center gap-2">
+                                            <button
+                                                onClick={() => setSelectedUserId(user.id)}
+                                                className="px-3 py-1 bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 rounded text-xs transition-colors"
+                                            >
+                                                详情
+                                            </button>
+                                            <button
+                                                onClick={() => handleBanUser(user.id, user.is_banned, user.email)}
+                                                className={`px-3 py-1 rounded text-xs transition-colors ${user.is_banned
+                                                    ? 'bg-green-600/20 text-green-400 hover:bg-green-600/30'
+                                                    : 'bg-red-600/20 text-red-400 hover:bg-red-600/30'
+                                                    }`}
+                                            >
+                                                {user.is_banned ? '解禁' : '禁用'}
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
@@ -271,6 +305,14 @@ export default function AdminUserList() {
             <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 text-blue-300 text-sm">
                 💡 <strong>隐私保护：</strong> 用户列表仅显示基本信息和聚合统计，不包含用户的网站列表、收藏夹等个人数据。
             </div>
+
+            {/* User Detail Modal */}
+            {selectedUserId && (
+                <AdminUserDetail
+                    userId={selectedUserId}
+                    onClose={() => setSelectedUserId(null)}
+                />
+            )}
 
             {/* Confirm Modal */}
             {confirmModal && (

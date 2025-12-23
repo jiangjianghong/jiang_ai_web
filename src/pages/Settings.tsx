@@ -1125,13 +1125,13 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                 <button
                   onClick={() => setAtmosphereEnabled(!atmosphereEnabled)}
                   className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${atmosphereEnabled
-                    ? 'bg-gradient-to-r from-cyan-400 to-blue-500 shadow-lg shadow-cyan-300/50'
+                    ? 'bg-gradient-to-r from-indigo-500 to-purple-600 shadow-lg shadow-indigo-300/50'
                     : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
                     }`}
                 >
                   <span
                     className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${atmosphereEnabled
-                      ? 'translate-x-6 shadow-cyan-200'
+                      ? 'translate-x-6 shadow-indigo-200'
                       : 'translate-x-1 shadow-gray-200'
                       }`}
                   />
@@ -1157,7 +1157,7 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                   <button
                     onClick={() => setDarkOverlayMode('off')}
                     className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${darkOverlayMode === 'off'
-                      ? 'bg-gradient-to-r from-gray-600 to-gray-800 text-white shadow-md'
+                      ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                       }`}
                   >
@@ -1166,7 +1166,7 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                   <button
                     onClick={() => setDarkOverlayMode('always')}
                     className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${darkOverlayMode === 'always'
-                      ? 'bg-gradient-to-r from-gray-600 to-gray-800 text-white shadow-md'
+                      ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                       }`}
                   >

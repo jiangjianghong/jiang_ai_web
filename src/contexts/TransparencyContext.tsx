@@ -43,6 +43,7 @@ interface TransparencyContextType {
   aiIconDisplayMode: 'circular' | 'dropdown'; // AI图标显示模式：圆形布局或下拉面板
   atmosphereEnabled: boolean; // 氛围效果开关（立冬下雪等）
   darkOverlayEnabled: boolean; // 黑色遮罩开关（壁纸暗角效果）
+  darkOverlayMode: 'off' | 'always' | 'smart'; // 黑色遮罩模式：关闭/始终/智能
   setCardOpacity: (opacity: number) => void;
   setSearchBarOpacity: (opacity: number) => void;
   setParallaxEnabled: (enabled: boolean) => void;
@@ -71,6 +72,7 @@ interface TransparencyContextType {
   setAiIconDisplayMode: (mode: 'circular' | 'dropdown') => void;
   setAtmosphereEnabled: (enabled: boolean) => void;
   setDarkOverlayEnabled: (enabled: boolean) => void;
+  setDarkOverlayMode: (mode: 'off' | 'always' | 'smart') => void;
 }
 
 const TransparencyContext = createContext<TransparencyContextType | undefined>(undefined);
@@ -235,6 +237,12 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
     return saved ? saved === 'true' : false; // 默认关闭
   });
 
+  // 黑色遮罩模式：关闭/始终/智能
+  const [darkOverlayMode, setDarkOverlayMode] = useState<'off' | 'always' | 'smart'>(() => {
+    const saved = localStorage.getItem('darkOverlayMode') as 'off' | 'always' | 'smart';
+    return saved || 'off'; // 默认关闭
+  });
+
   // 初始化autoSortEnabled从localStorage
   useEffect(() => {
     try {
@@ -351,6 +359,10 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('darkOverlayEnabled', darkOverlayEnabled.toString());
   }, [darkOverlayEnabled]);
 
+  useEffect(() => {
+    localStorage.setItem('darkOverlayMode', darkOverlayMode);
+  }, [darkOverlayMode]);
+
   const contextValue = React.useMemo(() => ({
     cardOpacity,
     searchBarOpacity,
@@ -380,6 +392,7 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
     aiIconDisplayMode,
     atmosphereEnabled,
     darkOverlayEnabled,
+    darkOverlayMode,
     setCardOpacity,
     setSearchBarOpacity,
     setParallaxEnabled,
@@ -408,10 +421,11 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
     setAiIconDisplayMode,
     setAtmosphereEnabled,
     setDarkOverlayEnabled,
+    setDarkOverlayMode,
   }), [
     cardOpacity, searchBarOpacity, parallaxEnabled, wallpaperResolution, isSettingsOpen, isSearchFocused, cardColor, searchBarColor,
     autoSyncEnabled, autoSyncInterval, searchInNewTab, autoSortEnabled, timeComponentEnabled, showFullDate, showSeconds, showWeekday,
-    showYear, showMonth, showDay, dateDisplayMode, searchBarBorderRadius, animationStyle, workCountdownEnabled, lunchTime, offWorkTime, aiIconDisplayMode, atmosphereEnabled, darkOverlayEnabled
+    showYear, showMonth, showDay, dateDisplayMode, searchBarBorderRadius, animationStyle, workCountdownEnabled, lunchTime, offWorkTime, aiIconDisplayMode, atmosphereEnabled, darkOverlayEnabled, darkOverlayMode
   ]);
 
   return (

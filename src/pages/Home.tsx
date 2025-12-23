@@ -22,6 +22,7 @@ import SnowEffect from '@/components/effects/SnowEffect';
 import AnnouncementBanner from '@/components/AnnouncementBanner';
 import AnnouncementCenter from '@/components/AnnouncementCenter';
 import { isWinterSeason } from '@/utils/solarTerms';
+import { shouldApplyOverlay } from '@/utils/imageColorAnalyzer';
 
 interface HomeProps {
   websites: any[];
@@ -37,7 +38,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
     autoSortEnabled,
     isSearchFocused,
     atmosphereEnabled,
-    darkOverlayEnabled,
+    darkOverlayMode,
   } = useTransparency();
   const { isWorkspaceOpen, setIsWorkspaceOpen } = useWorkspace();
   const { isMobile, getGridClasses, getSearchBarLayout } = useResponsiveLayout();
@@ -62,6 +63,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
   const [isFavoriting, setIsFavoriting] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
   const [isAlreadyFavorited, setIsAlreadyFavorited] = useState(false);
+  const [smartOverlayNeeded, setSmartOverlayNeeded] = useState(false); // 智能模式下是否需要遮罩
 
   // 阻止空白区域右键菜单
   useEffect(() => {
@@ -177,6 +179,18 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
           setBgImage(result.url);
           setBgOriginalUrl(result.originalUrl); // 保存原始 URL 用于收藏检测
           setBgImageLoaded(true);
+
+          // 智能遮罩模式：分析壁纸颜色
+          if (darkOverlayMode === 'smart') {
+            try {
+              const needsOverlay = await shouldApplyOverlay(result.url);
+              setSmartOverlayNeeded(needsOverlay);
+              logger.debug('🎨 智能遮罩检测结果:', needsOverlay ? '需要遮罩' : '不需要遮罩');
+            } catch (error) {
+              logger.warn('壁纸颜色分析失败:', error);
+              setSmartOverlayNeeded(false);
+            }
+          }
 
           // 如果缓存的不是今天的壁纸，记录警告
           if (!result.isToday && result.isFromCache) {
@@ -378,7 +392,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
       )}
 
       {/* 黑色遮罩层 - 暗角滤镜效果 */}
-      {darkOverlayEnabled && bgImage && (
+      {bgImage && (darkOverlayMode === 'always' || (darkOverlayMode === 'smart' && smartOverlayNeeded)) && (
         <div
           className="fixed top-0 left-0 w-full h-full"
           style={{

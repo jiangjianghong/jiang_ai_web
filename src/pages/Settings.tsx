@@ -123,8 +123,8 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
     setAiIconDisplayMode,
     atmosphereEnabled,
     setAtmosphereEnabled,
-    darkOverlayEnabled,
-    setDarkOverlayEnabled,
+    darkOverlayMode,
+    setDarkOverlayMode,
   } = useTransparency();
 
   const { currentUser } = useAuth();
@@ -1140,7 +1140,7 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
 
               <div className="border-t border-gray-100"></div>
 
-              {/* 黑色遮罩开关 */}
+              {/* 壁纸遮罩模式选择 */}
               <div className="flex items-center justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
@@ -1150,23 +1150,38 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                     </span>
                   </div>
                   <p className="text-xs text-gray-500 select-none">
-                    {darkOverlayEnabled ? '覆盖一层淡黑色遮罩，边缘颜色较深' : '显示原始壁纸'}
+                    {darkOverlayMode === 'off' ? '显示原始壁纸' : darkOverlayMode === 'always' ? '始终覆盖暗角遮罩' : '根据壁纸亮度自动判断'}
                   </p>
                 </div>
-                <button
-                  onClick={() => setDarkOverlayEnabled(!darkOverlayEnabled)}
-                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${darkOverlayEnabled
-                    ? 'bg-gradient-to-r from-gray-600 to-gray-800 shadow-lg shadow-gray-400/50'
-                    : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
-                    }`}
-                >
-                  <span
-                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${darkOverlayEnabled
-                      ? 'translate-x-6 shadow-gray-400'
-                      : 'translate-x-1 shadow-gray-200'
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setDarkOverlayMode('off')}
+                    className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${darkOverlayMode === 'off'
+                      ? 'bg-gradient-to-r from-gray-600 to-gray-800 text-white shadow-md'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                       }`}
-                  />
-                </button>
+                  >
+                    关闭
+                  </button>
+                  <button
+                    onClick={() => setDarkOverlayMode('always')}
+                    className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${darkOverlayMode === 'always'
+                      ? 'bg-gradient-to-r from-gray-600 to-gray-800 text-white shadow-md'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                  >
+                    始终
+                  </button>
+                  <button
+                    onClick={() => setDarkOverlayMode('smart')}
+                    className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${darkOverlayMode === 'smart'
+                      ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                  >
+                    <i className="fa-solid fa-wand-magic-sparkles mr-1"></i>智能
+                  </button>
+                </div>
               </div>
 
               <div className="border-t border-gray-100"></div>

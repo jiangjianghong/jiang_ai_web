@@ -43,6 +43,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
     autoSortEnabled,
     isSearchFocused,
     atmosphereEnabled,
+    atmosphereParticleCount,
     darkOverlayMode,
   } = useTransparency();
   const { isWorkspaceOpen, setIsWorkspaceOpen } = useWorkspace();
@@ -434,7 +435,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
       )}
 
       {/* 雪花氛围效果 - 仅在开关开启且处于冬季时显示 */}
-      {atmosphereEnabled && isWinterSeason() && <SnowEffect />}
+      {atmosphereEnabled && isWinterSeason() && <SnowEffect particleCount={atmosphereParticleCount} />}
 
       {/* 壁纸加载指示器 - 响应式位置 */}
       {!bgImageLoaded && bgImage && (

@@ -42,6 +42,7 @@ interface TransparencyContextType {
   offWorkTime: string; // 下班时间 HH:mm
   aiIconDisplayMode: 'circular' | 'dropdown'; // AI图标显示模式：圆形布局或下拉面板
   atmosphereEnabled: boolean; // 氛围效果开关（立冬下雪等）
+  atmosphereParticleCount: number; // 氛围效果粒子数量（10-1000）
   darkOverlayEnabled: boolean; // 黑色遮罩开关（壁纸暗角效果）
   darkOverlayMode: 'off' | 'always' | 'smart'; // 黑色遮罩模式：关闭/始终/智能
   setCardOpacity: (opacity: number) => void;
@@ -71,6 +72,7 @@ interface TransparencyContextType {
   setOffWorkTime: (time: string) => void;
   setAiIconDisplayMode: (mode: 'circular' | 'dropdown') => void;
   setAtmosphereEnabled: (enabled: boolean) => void;
+  setAtmosphereParticleCount: (count: number) => void;
   setDarkOverlayEnabled: (enabled: boolean) => void;
   setDarkOverlayMode: (mode: 'off' | 'always' | 'smart') => void;
 }
@@ -231,6 +233,12 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
     return saved ? saved === 'true' : true; // 默认开启
   });
 
+  // 氛围效果粒子数量（10-1000）
+  const [atmosphereParticleCount, setAtmosphereParticleCount] = useState(() => {
+    const saved = localStorage.getItem('atmosphereParticleCount');
+    return saved ? parseInt(saved, 10) : 100; // 默认100
+  });
+
   // 黑色遮罩开关（壁纸暗角效果）
   const [darkOverlayEnabled, setDarkOverlayEnabled] = useState(() => {
     const saved = localStorage.getItem('darkOverlayEnabled');
@@ -356,6 +364,10 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
   }, [atmosphereEnabled]);
 
   useEffect(() => {
+    localStorage.setItem('atmosphereParticleCount', atmosphereParticleCount.toString());
+  }, [atmosphereParticleCount]);
+
+  useEffect(() => {
     localStorage.setItem('darkOverlayEnabled', darkOverlayEnabled.toString());
   }, [darkOverlayEnabled]);
 
@@ -391,6 +403,7 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
     offWorkTime,
     aiIconDisplayMode,
     atmosphereEnabled,
+    atmosphereParticleCount,
     darkOverlayEnabled,
     darkOverlayMode,
     setCardOpacity,
@@ -420,12 +433,13 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
     setOffWorkTime,
     setAiIconDisplayMode,
     setAtmosphereEnabled,
+    setAtmosphereParticleCount,
     setDarkOverlayEnabled,
     setDarkOverlayMode,
   }), [
     cardOpacity, searchBarOpacity, parallaxEnabled, wallpaperResolution, isSettingsOpen, isSearchFocused, cardColor, searchBarColor,
     autoSyncEnabled, autoSyncInterval, searchInNewTab, autoSortEnabled, timeComponentEnabled, showFullDate, showSeconds, showWeekday,
-    showYear, showMonth, showDay, dateDisplayMode, searchBarBorderRadius, animationStyle, workCountdownEnabled, lunchTime, offWorkTime, aiIconDisplayMode, atmosphereEnabled, darkOverlayEnabled, darkOverlayMode
+    showYear, showMonth, showDay, dateDisplayMode, searchBarBorderRadius, animationStyle, workCountdownEnabled, lunchTime, offWorkTime, aiIconDisplayMode, atmosphereEnabled, atmosphereParticleCount, darkOverlayEnabled, darkOverlayMode
   ]);
 
   return (

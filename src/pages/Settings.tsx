@@ -123,6 +123,8 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
     setAiIconDisplayMode,
     atmosphereEnabled,
     setAtmosphereEnabled,
+    atmosphereParticleCount,
+    setAtmosphereParticleCount,
     darkOverlayMode,
     setDarkOverlayMode,
   } = useTransparency();
@@ -1137,6 +1139,39 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                   />
                 </button>
               </div>
+
+              {/* 氛围效果粒子数量滑轨 - 仅开启时显示 */}
+              {atmosphereEnabled && (
+                <>
+                  <div className="border-t border-gray-100"></div>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <i className="fa-solid fa-sliders text-indigo-500 text-sm"></i>
+                        <span className="text-sm font-medium text-gray-700 select-none">
+                          粒子数量
+                        </span>
+                      </div>
+                      <span className="text-sm font-medium text-indigo-600">
+                        {atmosphereParticleCount}
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min="10"
+                      max="1000"
+                      step="10"
+                      value={atmosphereParticleCount}
+                      onChange={(e) => setAtmosphereParticleCount(parseInt(e.target.value, 10))}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                    />
+                    <div className="flex justify-between text-xs text-gray-400">
+                      <span>10</span>
+                      <span>1000</span>
+                    </div>
+                  </div>
+                </>
+              )}
 
               <div className="border-t border-gray-100"></div>
 

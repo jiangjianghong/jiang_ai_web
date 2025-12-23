@@ -18,12 +18,16 @@ interface Snowflake {
     layer: 'far' | 'near'; // 远景或近景
 }
 
+interface SnowEffectProps {
+    particleCount?: number; // 粒子数量（10-1000）
+}
+
 // 性能配置
-const MAX_SNOWFLAKES = 10; // 最大雪花数量
 const SPAWN_RATE = 0.5; // 每帧生成雪花的概率
 const SIZE_THRESHOLD = 2.2; // 大于此值的雪花在近景层
 
-export default function SnowEffect() {
+export default function SnowEffect({ particleCount = 100 }: SnowEffectProps) {
+    const maxSnowflakes = particleCount; // 使用传入的粒子数量
     const farCanvasRef = useRef<HTMLCanvasElement>(null);  // 远景 Canvas
     const nearCanvasRef = useRef<HTMLCanvasElement>(null); // 近景 Canvas
     const snowflakesRef = useRef<Snowflake[]>([]);
@@ -71,7 +75,7 @@ export default function SnowEffect() {
         nearCtx.clearRect(0, 0, width, height);
 
         // 可能生成新雪花
-        if (snowflakesRef.current.length < MAX_SNOWFLAKES && Math.random() < SPAWN_RATE) {
+        if (snowflakesRef.current.length < maxSnowflakes && Math.random() < SPAWN_RATE) {
             snowflakesRef.current.push(createSnowflake(width));
         }
 

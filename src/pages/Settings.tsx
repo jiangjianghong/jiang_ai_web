@@ -2007,26 +2007,26 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
               onClick={() => setShowWallpaperGallery(false)}
             />
             <motion.div
-              className="relative bg-white rounded-2xl shadow-2xl max-w-4xl w-full mx-4 max-h-[80vh] flex flex-col"
+              className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-4xl w-full mx-4 max-h-[80vh] flex flex-col"
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
               transition={{ type: 'spring', damping: 25, stiffness: 400 }}
             >
               {/* 标题栏 */}
-              <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-rose-600 rounded-xl flex items-center justify-center">
                     <i className="fa-solid fa-images text-white"></i>
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-800">壁纸管理</h3>
-                    <p className="text-sm text-gray-500">共 {wallpapers.length} 张壁纸</p>
+                    <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">壁纸管理</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">共 {wallpapers.length} 张壁纸</p>
                   </div>
                 </div>
                 <button
                   onClick={() => setShowWallpaperGallery(false)}
-                  className="text-gray-500 hover:text-gray-700 transition-colors"
+                  className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
                 >
                   <i className="fa-solid fa-xmark text-xl"></i>
                 </button>
@@ -2045,14 +2045,14 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                       <motion.div
                         key={wallpaper.metadata.id}
                         className={`relative group rounded-xl overflow-hidden border-2 transition-all duration-200 ${wallpaper.isActive
-                          ? 'border-pink-500 shadow-lg shadow-pink-200'
-                          : 'border-gray-200 hover:border-gray-300'
+                          ? 'border-pink-500 shadow-lg shadow-pink-200 dark:shadow-pink-900/50'
+                          : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
                           }`}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                       >
                         {/* 壁纸缩略图 */}
-                        <div className="aspect-video bg-gray-100 relative">
+                        <div className="aspect-video bg-gray-100 dark:bg-gray-800 relative">
                           <img
                             src={wallpaper.thumbnailUrl}
                             alt={wallpaper.metadata.name}
@@ -2226,23 +2226,23 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
               onClick={() => setShowUserStatsModal(false)}
             />
             <motion.div
-              className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 overflow-hidden"
+              className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-2xl mx-4 overflow-hidden"
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             >
               {/* 标题栏 */}
-              <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-gray-50/50">
+              <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-lg flex items-center justify-center shadow-sm">
                     <i className="fa-solid fa-chart-pie text-white text-sm"></i>
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-800">使用统计</h3>
+                  <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">使用统计</h3>
                 </div>
                 <button
                   onClick={() => setShowUserStatsModal(false)}
-                  className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200/80 text-gray-500 transition-colors"
+                  className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200/80 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors"
                 >
                   <i className="fa-solid fa-xmark text-lg"></i>
                 </button>

@@ -221,7 +221,7 @@ export default function AccountSecurityModal({ isOpen, onClose }: AccountSecurit
             <div className="fixed inset-0 z-[9999] flex items-center justify-center">
                 <div className="absolute inset-0 bg-black/50" onClick={handleClose} />
                 <motion.div
-                    className="w-full max-w-2xl bg-white rounded-xl shadow-2xl z-50 max-h-[90vh] flex flex-col mx-4"
+                    className="w-full max-w-2xl bg-white dark:bg-gray-900 rounded-xl shadow-2xl z-50 max-h-[90vh] flex flex-col mx-4"
                     initial={{ scale: 0.9, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     exit={{ scale: 0.9, opacity: 0 }}
@@ -231,10 +231,10 @@ export default function AccountSecurityModal({ isOpen, onClose }: AccountSecurit
                     <div className="p-6 pb-0">
                         <div className="flex justify-between items-center mb-4">
                             <div className="flex items-center gap-3">
-                                <i className="fa-solid fa-shield-halved text-blue-600 text-2xl"></i>
-                                <h2 className="text-2xl font-bold text-gray-800">账号与安全</h2>
+                                <i className="fa-solid fa-shield-halved text-blue-600 dark:text-blue-400 text-2xl"></i>
+                                <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">账号与安全</h2>
                             </div>
-                            <button onClick={handleClose} className="text-gray-500 hover:text-gray-700 text-xl">
+                            <button onClick={handleClose} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-xl">
                                 <i className="fa-solid fa-xmark"></i>
                             </button>
                         </div>
@@ -244,7 +244,7 @@ export default function AccountSecurityModal({ isOpen, onClose }: AccountSecurit
                     <div className="flex-1 px-6 py-4 space-y-5 overflow-y-auto">
                         {/* 个人资料 */}
                         <div className="space-y-3">
-                            <h3 className="text-sm font-medium text-gray-500 flex items-center gap-2">
+                            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 flex items-center gap-2">
                                 <i className="fa-solid fa-user text-xs"></i>
                                 个人资料
                             </h3>
@@ -283,7 +283,7 @@ export default function AccountSecurityModal({ isOpen, onClose }: AccountSecurit
                                                 type="text"
                                                 value={newName}
                                                 onChange={(e) => setNewName(e.target.value)}
-                                                className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
+                                                className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white dark:bg-gray-800 dark:text-gray-100"
                                                 placeholder="请输入用户名"
                                                 maxLength={20}
                                                 disabled={nameLoading}
@@ -310,8 +310,8 @@ export default function AccountSecurityModal({ isOpen, onClose }: AccountSecurit
                                     ) : (
                                         <div className="flex items-center justify-between">
                                             <div>
-                                                <div className="font-medium text-gray-800">{displayName || '用户'}</div>
-                                                <div className="text-xs text-gray-400">{currentUser.email}</div>
+                                                <div className="font-medium text-gray-800 dark:text-gray-100">{displayName || '用户'}</div>
+                                                <div className="text-xs text-gray-400 dark:text-gray-500">{currentUser.email}</div>
                                             </div>
                                             <button
                                                 onClick={() => setIsEditingName(true)}
@@ -326,17 +326,17 @@ export default function AccountSecurityModal({ isOpen, onClose }: AccountSecurit
                         </div>
 
                         {/* 分割线 */}
-                        <div className="border-t border-gray-100"></div>
+                        <div className="border-t border-gray-100 dark:border-gray-700"></div>
 
                         {/* 安全设置 */}
                         <div className="space-y-3">
-                            <h3 className="text-sm font-medium text-gray-500 flex items-center gap-2">
+                            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 flex items-center gap-2">
                                 <i className="fa-solid fa-key text-xs"></i>
                                 安全设置
                             </h3>
                             {!showChangePassword ? (
                                 <div className="flex items-center justify-between">
-                                    <span className="text-sm text-gray-700">登录密码</span>
+                                    <span className="text-sm text-gray-700 dark:text-gray-200">登录密码</span>
                                     <button
                                         onClick={() => setShowChangePassword(true)}
                                         className="text-xs text-blue-500 hover:text-blue-600"
@@ -345,7 +345,7 @@ export default function AccountSecurityModal({ isOpen, onClose }: AccountSecurit
                                     </button>
                                 </div>
                             ) : (
-                                <div className="bg-gray-50 rounded-lg p-3 space-y-2">
+                                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 space-y-2">
                                     <div className="flex items-center justify-between">
                                         <span className="text-sm text-gray-700">修改密码</span>
                                         <button onClick={handleCancelChangePassword} className="text-xs text-gray-400 hover:text-gray-600">
@@ -359,14 +359,14 @@ export default function AccountSecurityModal({ isOpen, onClose }: AccountSecurit
                                         type="password"
                                         value={newPassword}
                                         onChange={(e) => setNewPassword(e.target.value)}
-                                        className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
+                                        className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white dark:bg-gray-700 dark:text-gray-100"
                                         placeholder="新密码（至少6位）"
                                     />
                                     <input
                                         type="password"
                                         value={confirmPassword}
                                         onChange={(e) => setConfirmPassword(e.target.value)}
-                                        className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
+                                        className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white dark:bg-gray-700 dark:text-gray-100"
                                         placeholder="确认新密码"
                                     />
                                     <button
@@ -381,11 +381,11 @@ export default function AccountSecurityModal({ isOpen, onClose }: AccountSecurit
                         </div>
 
                         {/* 分割线 */}
-                        <div className="border-t border-gray-100"></div>
+                        <div className="border-t border-gray-100 dark:border-gray-700"></div>
 
                         {/* 关联账号 */}
                         <div className="space-y-3">
-                            <h3 className="text-sm font-medium text-gray-500 flex items-center gap-2">
+                            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 flex items-center gap-2">
                                 <i className="fa-solid fa-link text-xs"></i>
                                 关联账号
                             </h3>
@@ -394,7 +394,7 @@ export default function AccountSecurityModal({ isOpen, onClose }: AccountSecurit
                                 <div className="flex items-center justify-between py-1">
                                     <div className="flex items-center gap-2">
                                         <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4" />
-                                        <span className="text-sm text-gray-700">Google</span>
+                                        <span className="text-sm text-gray-700 dark:text-gray-200">Google</span>
                                         {currentUser.identities?.some(id => id.provider === 'google') && (
                                             <span className="text-xs text-green-500">已绑定</span>
                                         )}
@@ -420,7 +420,7 @@ export default function AccountSecurityModal({ isOpen, onClose }: AccountSecurit
                                 <div className="flex items-center justify-between py-1">
                                     <div className="flex items-center gap-2">
                                         <i className="fa-brands fa-github text-sm text-gray-700"></i>
-                                        <span className="text-sm text-gray-700">GitHub</span>
+                                        <span className="text-sm text-gray-700 dark:text-gray-200">GitHub</span>
                                         {currentUser.identities?.some(id => id.provider === 'github') && (
                                             <span className="text-xs text-green-500">已绑定</span>
                                         )}
@@ -446,7 +446,7 @@ export default function AccountSecurityModal({ isOpen, onClose }: AccountSecurit
                                 <div className="flex items-center justify-between py-1">
                                     <div className="flex items-center gap-2">
                                         <img src="https://www.notion.so/images/favicon.ico" alt="Notion" className="w-4 h-4" />
-                                        <span className="text-sm text-gray-700">Notion</span>
+                                        <span className="text-sm text-gray-700 dark:text-gray-200">Notion</span>
                                         {currentUser.identities?.some(id => id.provider === 'notion') && (
                                             <span className="text-xs text-green-500">已绑定</span>
                                         )}
@@ -471,7 +471,7 @@ export default function AccountSecurityModal({ isOpen, onClose }: AccountSecurit
                         </div>
 
                         {/* 分割线 */}
-                        <div className="border-t border-gray-100"></div>
+                        <div className="border-t border-gray-100 dark:border-gray-700"></div>
 
                         {/* 注销账号 */}
                         <div className="flex justify-center">
@@ -494,10 +494,10 @@ export default function AccountSecurityModal({ isOpen, onClose }: AccountSecurit
                     </div>
 
                     {/* 底部 */}
-                    <div className="p-4 border-t border-gray-100">
+                    <div className="p-4 border-t border-gray-100 dark:border-gray-700">
                         <button
                             onClick={handleClose}
-                            className="w-full py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg text-sm transition-colors"
+                            className="w-full py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-lg text-sm transition-colors"
                         >
                             关闭
                         </button>

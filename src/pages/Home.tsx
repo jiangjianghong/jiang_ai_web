@@ -37,6 +37,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
     autoSortEnabled,
     isSearchFocused,
     atmosphereEnabled,
+    darkOverlayEnabled,
   } = useTransparency();
   const { isWorkspaceOpen, setIsWorkspaceOpen } = useWorkspace();
   const { isMobile, getGridClasses, getSearchBarLayout } = useResponsiveLayout();
@@ -372,6 +373,19 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
             opacity: bgImageLoaded ? 0 : 1,
             transition: 'opacity 1.5s ease-out',
             pointerEvents: 'none',
+          }}
+        />
+      )}
+
+      {/* 黑色遮罩层 - 暗角滤镜效果 */}
+      {darkOverlayEnabled && bgImage && (
+        <div
+          className="fixed top-0 left-0 w-full h-full"
+          style={{
+            background: 'radial-gradient(ellipse 80% 80% at center, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.15) 40%, rgba(0, 0, 0, 0.4) 70%, rgba(0, 0, 0, 0.7) 100%)',
+            zIndex: -9,
+            pointerEvents: 'none',
+            transition: 'opacity 0.5s ease-out',
           }}
         />
       )}

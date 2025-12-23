@@ -123,6 +123,8 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
     setAiIconDisplayMode,
     atmosphereEnabled,
     setAtmosphereEnabled,
+    darkOverlayEnabled,
+    setDarkOverlayEnabled,
   } = useTransparency();
 
   const { currentUser } = useAuth();
@@ -1130,6 +1132,37 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                   <span
                     className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${atmosphereEnabled
                       ? 'translate-x-6 shadow-cyan-200'
+                      : 'translate-x-1 shadow-gray-200'
+                      }`}
+                  />
+                </button>
+              </div>
+
+              <div className="border-t border-gray-100"></div>
+
+              {/* 黑色遮罩开关 */}
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <i className="fa-solid fa-circle-half-stroke text-gray-600 text-sm"></i>
+                    <span className="text-sm font-medium text-gray-700 select-none">
+                      壁纸遮罩
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 select-none">
+                    {darkOverlayEnabled ? '覆盖一层淡黑色遮罩，边缘颜色较深' : '显示原始壁纸'}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setDarkOverlayEnabled(!darkOverlayEnabled)}
+                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${darkOverlayEnabled
+                    ? 'bg-gradient-to-r from-gray-600 to-gray-800 shadow-lg shadow-gray-400/50'
+                    : 'bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg shadow-gray-300/50'
+                    }`}
+                >
+                  <span
+                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-md ${darkOverlayEnabled
+                      ? 'translate-x-6 shadow-gray-400'
                       : 'translate-x-1 shadow-gray-200'
                       }`}
                   />

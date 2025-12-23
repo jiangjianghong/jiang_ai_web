@@ -14,30 +14,30 @@ const TYPE_CONFIG = {
     info: {
         icon: '📢',
         label: '通知',
-        bg: 'bg-blue-50',
-        border: 'border-blue-200',
-        text: 'text-blue-600',
+        bg: 'bg-blue-50 dark:bg-blue-900/30',
+        border: 'border-blue-200 dark:border-blue-800',
+        text: 'text-blue-600 dark:text-blue-400',
     },
     update: {
         icon: '🆕',
         label: '更新',
-        bg: 'bg-emerald-50',
-        border: 'border-emerald-200',
-        text: 'text-emerald-600',
+        bg: 'bg-emerald-50 dark:bg-emerald-900/30',
+        border: 'border-emerald-200 dark:border-emerald-800',
+        text: 'text-emerald-600 dark:text-emerald-400',
     },
     warning: {
         icon: '⚠️',
         label: '警告',
-        bg: 'bg-yellow-50',
-        border: 'border-yellow-200',
-        text: 'text-yellow-600',
+        bg: 'bg-yellow-50 dark:bg-yellow-900/30',
+        border: 'border-yellow-200 dark:border-yellow-800',
+        text: 'text-yellow-600 dark:text-yellow-400',
     },
     maintenance: {
         icon: '🔧',
         label: '维护',
-        bg: 'bg-red-50',
-        border: 'border-red-200',
-        text: 'text-red-600',
+        bg: 'bg-red-50 dark:bg-red-900/30',
+        border: 'border-red-200 dark:border-red-800',
+        text: 'text-red-600 dark:text-red-400',
     },
 };
 
@@ -153,16 +153,16 @@ export default function AnnouncementCenter({ isVisible = true }: AnnouncementCen
                             transition={{ type: 'spring', damping: 25 }}
                             onClick={(e) => e.target === e.currentTarget && setIsOpen(false)}
                         >
-                            <div className="bg-white/95 backdrop-blur-xl border border-gray-200 rounded-2xl max-h-[70vh] w-full max-w-lg overflow-hidden flex flex-col shadow-2xl">
+                            <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border border-gray-200 dark:border-gray-700 rounded-2xl max-h-[70vh] w-full max-w-lg overflow-hidden flex flex-col shadow-2xl">
                                 {/* 头部 */}
-                                <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-                                    <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                                        <i className="fa-solid fa-bullhorn text-gray-500"></i>
+                                <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                                    <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 flex items-center gap-2">
+                                        <i className="fa-solid fa-bullhorn text-gray-500 dark:text-gray-400"></i>
                                         系统公告
                                     </h2>
                                     <button
                                         onClick={() => setIsOpen(false)}
-                                        className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-700 flex items-center justify-center transition-colors"
+                                        className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 flex items-center justify-center transition-colors"
                                     >
                                         ✕
                                     </button>
@@ -190,11 +190,11 @@ export default function AnnouncementCenter({ isVisible = true }: AnnouncementCen
                                                                 <h3 className={`font-medium ${config.text}`}>
                                                                     {announcement.title}
                                                                 </h3>
-                                                                <span className="text-gray-400 text-xs">
+                                                                <span className="text-gray-400 dark:text-gray-500 text-xs">
                                                                     {formatDate(announcement.created_at)}
                                                                 </span>
                                                             </div>
-                                                            <p className="text-gray-600 text-sm">{announcement.content}</p>
+                                                            <p className="text-gray-600 dark:text-gray-300 text-sm">{announcement.content}</p>
                                                         </div>
                                                     </div>
                                                 </div>

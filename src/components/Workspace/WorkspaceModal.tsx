@@ -38,9 +38,9 @@ function WorkspaceModalComponent({ isOpen, onClose }: WorkspaceModalProps) {
   const [showSettings, setShowSettings] = useState(false);
 
   // 键盘导航
-  useKeyboardNavigation({ 
+  useKeyboardNavigation({
     isEnabled: isOpen && !showSettings,
-    onEscape: onClose 
+    onEscape: onClose
   });
 
   // 如果未配置，默认显示设置
@@ -86,7 +86,7 @@ function WorkspaceModalComponent({ isOpen, onClose }: WorkspaceModalProps) {
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none select-none">
             <motion.div
               data-workspace-modal
-              className={`${containerClasses} bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200 select-none`}
+              className={`${containerClasses} bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 select-none`}
               style={{
                 display: 'flex',
                 flexDirection: 'column',
@@ -106,16 +106,16 @@ function WorkspaceModalComponent({ isOpen, onClose }: WorkspaceModalProps) {
               }}
             >
               {/* 头部区域 */}
-              <div className="flex-shrink-0 border-b border-gray-200/80 bg-white/90 backdrop-blur-sm rounded-t-2xl overflow-visible" style={{ position: 'relative', zIndex: 100 }}>
+              <div className="flex-shrink-0 border-b border-gray-200/80 dark:border-gray-700 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-t-2xl overflow-visible" style={{ position: 'relative', zIndex: 100 }}>
                 {/* 标题栏 */}
                 <div className="flex items-center justify-between px-6 py-4">
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center shadow-lg">
-                      <i className="fa-solid fa-briefcase text-blue-600 text-lg"></i>
+                    <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/50 rounded-xl flex items-center justify-center shadow-lg">
+                      <i className="fa-solid fa-briefcase text-blue-600 dark:text-blue-400 text-lg"></i>
                     </div>
                     <div>
-                      <h1 className="text-xl font-bold text-gray-900">工作空间</h1>
-                      <p className="text-sm text-gray-600">
+                      <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">工作空间</h1>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
                         {isConfigured ? (
                           <>
                             {workspaceItems.length} 个项目 • {formatSyncTime(lastSync)}
@@ -134,7 +134,7 @@ function WorkspaceModalComponent({ isOpen, onClose }: WorkspaceModalProps) {
                         <motion.button
                           onClick={refreshItems}
                           disabled={isLoading}
-                          className="p-2.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-colors disabled:opacity-50"
+                          className="p-2.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors disabled:opacity-50"
                           title="刷新数据"
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
@@ -145,7 +145,7 @@ function WorkspaceModalComponent({ isOpen, onClose }: WorkspaceModalProps) {
                         {/* 设置按钮 */}
                         <motion.button
                           onClick={() => setShowSettings(true)}
-                          className="p-2.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-colors"
+                          className="p-2.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors"
                           title="设置"
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
@@ -158,7 +158,7 @@ function WorkspaceModalComponent({ isOpen, onClose }: WorkspaceModalProps) {
                     {/* 关闭按钮 */}
                     <motion.button
                       onClick={onClose}
-                      className="p-2.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-colors"
+                      className="p-2.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors"
                       title="关闭 (Esc)"
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
@@ -170,12 +170,12 @@ function WorkspaceModalComponent({ isOpen, onClose }: WorkspaceModalProps) {
 
                 {/* 导航栏 */}
                 {isConfigured && !showSettings && (
-                  <div className="border-t border-gray-100 overflow-visible" style={{ position: 'relative', zIndex: 50 }}>
+                  <div className="border-t border-gray-100 dark:border-gray-700 overflow-visible" style={{ position: 'relative', zIndex: 50 }}>
                     {/* 分类标签 */}
                     <CategoryTabs />
 
                     {/* 搜索和视图控制 */}
-                    <div className="px-6 py-4 bg-gray-50/50 border-t border-gray-100 overflow-visible" style={{ position: 'relative' }}>
+                    <div className="px-6 py-4 bg-gray-50/50 dark:bg-gray-800/50 border-t border-gray-100 dark:border-gray-700 overflow-visible" style={{ position: 'relative' }}>
                       <div className={`flex ${isMobile ? 'flex-col space-y-3' : 'items-center justify-between'}`}>
                         {/* 搜索栏 */}
                         <div className={isMobile ? 'w-full' : 'flex-1 max-w-md'}>
@@ -229,8 +229,8 @@ function WorkspaceModalComponent({ isOpen, onClose }: WorkspaceModalProps) {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -20 }}
                       transition={{ duration: 0.3 }}
-                      style={{ 
-                        flex: '1 1 0', 
+                      style={{
+                        flex: '1 1 0',
                         minHeight: '0',
                         display: 'flex',
                         flexDirection: 'column',
@@ -239,20 +239,20 @@ function WorkspaceModalComponent({ isOpen, onClose }: WorkspaceModalProps) {
                     >
                       {/* 错误提示 */}
                       {error && (
-                        <div className="flex-shrink-0 mx-6 mt-4 mb-2 p-4 bg-red-50 border border-red-200 rounded-xl">
+                        <div className="flex-shrink-0 mx-6 mt-4 mb-2 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl">
                           <div className="flex items-center space-x-3">
-                            <i className="fa-solid fa-exclamation-triangle text-red-500"></i>
+                            <i className="fa-solid fa-exclamation-triangle text-red-500 dark:text-red-400"></i>
                             <div>
-                              <h3 className="text-sm font-medium text-red-800">同步失败</h3>
-                              <p className="text-sm text-red-700 mt-1">{error}</p>
+                              <h3 className="text-sm font-medium text-red-800 dark:text-red-300">同步失败</h3>
+                              <p className="text-sm text-red-700 dark:text-red-400 mt-1">{error}</p>
                             </div>
                           </div>
                         </div>
                       )}
 
                       {/* 内容视图 - 这里是滚动的关键 */}
-                      <div style={{ 
-                        flex: '1 1 0', 
+                      <div style={{
+                        flex: '1 1 0',
                         minHeight: '0',
                         overflow: 'hidden'
                       }}>
@@ -293,11 +293,11 @@ function WorkspaceModalComponent({ isOpen, onClose }: WorkspaceModalProps) {
                       transition={{ duration: 0.3 }}
                       className="h-full flex flex-col items-center justify-center p-8"
                     >
-                      <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-purple-100 rounded-2xl flex items-center justify-center mb-6">
-                        <i className="fa-brands fa-notion text-3xl text-blue-600"></i>
+                      <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/50 dark:to-purple-900/50 rounded-2xl flex items-center justify-center mb-6">
+                        <i className="fa-brands fa-notion text-3xl text-blue-600 dark:text-blue-400"></i>
                       </div>
-                      <h2 className="text-2xl font-bold text-gray-900 mb-2">欢迎使用工作空间</h2>
-                      <p className="text-gray-600 text-center mb-8 max-w-md">
+                      <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">欢迎使用工作空间</h2>
+                      <p className="text-gray-600 dark:text-gray-400 text-center mb-8 max-w-md">
                         连接您的 Notion 数据库，让工作链接触手可及。支持智能搜索、分类管理和键盘快捷操作。
                       </p>
                       <motion.button
@@ -315,8 +315,8 @@ function WorkspaceModalComponent({ isOpen, onClose }: WorkspaceModalProps) {
 
               {/* 底部状态栏 */}
               {isConfigured && !showSettings && (
-                <div className="flex-shrink-0 px-6 py-3 bg-gray-50/80 border-t border-gray-200 backdrop-blur-sm">
-                  <div className="flex items-center justify-between text-xs text-gray-500">
+                <div className="flex-shrink-0 px-6 py-3 bg-gray-50/80 dark:bg-gray-800/80 border-t border-gray-200 dark:border-gray-700 backdrop-blur-sm">
+                  <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
                     <div className="flex items-center space-x-6">
                       <span>💡 快捷键: Space-搜索 • ↑↓←→-导航 • Enter-打开 • C-复制 • D-密码</span>
                       {!isMobile && (

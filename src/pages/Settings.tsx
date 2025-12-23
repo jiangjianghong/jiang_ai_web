@@ -1680,12 +1680,12 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                         <label
                           htmlFor="wallpaper-upload"
                           className={`flex items-center justify-center gap-2 px-4 py-8 text-sm font-medium rounded-lg border-2 border-dashed transition-all w-full ${uploadingWallpaper
-                            ? 'border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed'
+                            ? 'border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed'
                             : isDragOver
-                              ? 'border-pink-500 bg-pink-100 text-pink-700'
+                              ? 'border-pink-500 bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300'
                               : isGlobalDragOver
-                                ? 'border-pink-400 bg-pink-50 text-pink-600 animate-pulse'
-                                : 'border-pink-300 bg-white text-pink-600 hover:border-pink-400 hover:bg-pink-50'
+                                ? 'border-pink-400 bg-pink-50 dark:bg-pink-900/20 text-pink-600 dark:text-pink-400 animate-pulse'
+                                : 'border-pink-300 dark:border-pink-700 bg-white dark:bg-gray-700 text-pink-600 dark:text-pink-400 hover:border-pink-400 dark:hover:border-pink-500 hover:bg-pink-50 dark:hover:bg-pink-900/20'
                             }`}
                         >
                           <div className="text-center space-y-2">

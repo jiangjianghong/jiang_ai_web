@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, ReactNode } from 'react';
 import { WallpaperResolution, ColorOption } from '@/types/settings';
 
 export type { WallpaperResolution, ColorOption };
@@ -45,7 +45,10 @@ interface TransparencyContextType {
   atmosphereParticleCount: number; // 氛围效果粒子数量（10-1000）
   darkOverlayEnabled: boolean; // 黑色遮罩开关（壁纸暗角效果）
   darkOverlayMode: 'off' | 'always' | 'smart'; // 黑色遮罩模式：关闭/始终/智能
-  darkMode: boolean; // 夜间模式开关
+  darkMode: boolean; // 夜间模式开关（计算属性）
+  darkModePreference: 'system' | 'on' | 'off' | 'scheduled'; // 夜间模式偏好
+  darkModeScheduleStart: string; // 定时开始时间 HH:mm
+  darkModeScheduleEnd: string; // 定时结束时间 HH:mm
   setCardOpacity: (opacity: number) => void;
   setSearchBarOpacity: (opacity: number) => void;
   setParallaxEnabled: (enabled: boolean) => void;
@@ -76,7 +79,9 @@ interface TransparencyContextType {
   setAtmosphereParticleCount: (count: number) => void;
   setDarkOverlayEnabled: (enabled: boolean) => void;
   setDarkOverlayMode: (mode: 'off' | 'always' | 'smart') => void;
-  setDarkMode: (enabled: boolean) => void;
+  setDarkModePreference: (preference: 'system' | 'on' | 'off' | 'scheduled') => void;
+  setDarkModeScheduleStart: (time: string) => void;
+  setDarkModeScheduleEnd: (time: string) => void;
 }
 
 const TransparencyContext = createContext<TransparencyContextType | undefined>(undefined);
@@ -252,15 +257,84 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
     const saved = localStorage.getItem('darkOverlayMode') as 'off' | 'always' | 'smart';
     return saved || 'off'; // 默认关闭
   });
-
-  // 夜间模式（深色/浅色主题）
-  const [darkMode, setDarkMode] = useState(() => {
-    const saved = localStorage.getItem('theme');
-    if (saved) {
-      return saved === 'dark';
-    }
-    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  // 夜间模式偏好设置
+  const [darkModePreference, setDarkModePreference] = useState<'system' | 'on' | 'off' | 'scheduled'>(() => {
+    const saved = localStorage.getItem('darkModePreference') as 'system' | 'on' | 'off' | 'scheduled';
+    return saved || 'system'; // 默认跟随系统
   });
+
+  // 定时开始时间
+  const [darkModeScheduleStart, setDarkModeScheduleStart] = useState(() => {
+    const saved = localStorage.getItem('darkModeScheduleStart');
+    return saved || '22:00'; // 默认晚上10点
+  });
+
+  // 定时结束时间
+  const [darkModeScheduleEnd, setDarkModeScheduleEnd] = useState(() => {
+    const saved = localStorage.getItem('darkModeScheduleEnd');
+    return saved || '06:00'; // 默认早上6点
+  });
+
+  // 用于触发定时模式更新的时间状态
+  const [currentMinute, setCurrentMinute] = useState(() => {
+    const now = new Date();
+    return now.getHours() * 60 + now.getMinutes();
+  });
+
+  // 每分钟更新一次，用于定时模式
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = new Date();
+      setCurrentMinute(now.getHours() * 60 + now.getMinutes());
+    }, 60000); // 每分钟检查一次
+    return () => clearInterval(interval);
+  }, []);
+
+  // 判断当前时间是否在定时范围内
+  const isInScheduledTime = (start: string, end: string): boolean => {
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+    const [startHour, startMin] = start.split(':').map(Number);
+    const [endHour, endMin] = end.split(':').map(Number);
+
+    const startMinutes = startHour * 60 + startMin;
+    const endMinutes = endHour * 60 + endMin;
+
+    // 处理跨天情况（如 22:00 - 06:00）
+    if (startMinutes > endMinutes) {
+      return currentMinutes >= startMinutes || currentMinutes < endMinutes;
+    }
+    // 同一天内
+    return currentMinutes >= startMinutes && currentMinutes < endMinutes;
+  };
+
+  // 监听系统主题变化
+  const [systemPrefersDark, setSystemPrefersDark] = useState(() =>
+    window.matchMedia('(prefers-color-scheme: dark)').matches
+  );
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handler = (e: MediaQueryListEvent) => setSystemPrefersDark(e.matches);
+    mediaQuery.addEventListener('change', handler);
+    return () => mediaQuery.removeEventListener('change', handler);
+  }, []);
+
+  // 计算当前是否应该启用深色模式
+  const darkMode = useMemo(() => {
+    switch (darkModePreference) {
+      case 'on':
+        return true;
+      case 'off':
+        return false;
+      case 'scheduled':
+        return isInScheduledTime(darkModeScheduleStart, darkModeScheduleEnd);
+      case 'system':
+      default:
+        return systemPrefersDark;
+    }
+  }, [darkModePreference, darkModeScheduleStart, darkModeScheduleEnd, systemPrefersDark, currentMinute]);
 
   // 初始化autoSortEnabled从localStorage
   useEffect(() => {
@@ -386,10 +460,22 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('darkOverlayMode', darkOverlayMode);
   }, [darkOverlayMode]);
 
-  // 夜间模式持久化和主题应用
+  // 夜间模式偏好设置持久化
+  useEffect(() => {
+    localStorage.setItem('darkModePreference', darkModePreference);
+  }, [darkModePreference]);
+
+  useEffect(() => {
+    localStorage.setItem('darkModeScheduleStart', darkModeScheduleStart);
+  }, [darkModeScheduleStart]);
+
+  useEffect(() => {
+    localStorage.setItem('darkModeScheduleEnd', darkModeScheduleEnd);
+  }, [darkModeScheduleEnd]);
+
+  // 夜间模式主题应用
   useEffect(() => {
     const theme = darkMode ? 'dark' : 'light';
-    localStorage.setItem('theme', theme);
     document.documentElement.classList.remove('light', 'dark');
     document.documentElement.classList.add(theme);
   }, [darkMode]);
@@ -426,6 +512,9 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
     darkOverlayEnabled,
     darkOverlayMode,
     darkMode,
+    darkModePreference,
+    darkModeScheduleStart,
+    darkModeScheduleEnd,
     setCardOpacity,
     setSearchBarOpacity,
     setParallaxEnabled,
@@ -456,11 +545,13 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
     setAtmosphereParticleCount,
     setDarkOverlayEnabled,
     setDarkOverlayMode,
-    setDarkMode,
+    setDarkModePreference,
+    setDarkModeScheduleStart,
+    setDarkModeScheduleEnd,
   }), [
     cardOpacity, searchBarOpacity, parallaxEnabled, wallpaperResolution, isSettingsOpen, isSearchFocused, cardColor, searchBarColor,
     autoSyncEnabled, autoSyncInterval, searchInNewTab, autoSortEnabled, timeComponentEnabled, showFullDate, showSeconds, showWeekday,
-    showYear, showMonth, showDay, dateDisplayMode, searchBarBorderRadius, animationStyle, workCountdownEnabled, lunchTime, offWorkTime, aiIconDisplayMode, atmosphereEnabled, atmosphereParticleCount, darkOverlayEnabled, darkOverlayMode, darkMode
+    showYear, showMonth, showDay, dateDisplayMode, searchBarBorderRadius, animationStyle, workCountdownEnabled, lunchTime, offWorkTime, aiIconDisplayMode, atmosphereEnabled, atmosphereParticleCount, darkOverlayEnabled, darkOverlayMode, darkMode, darkModePreference, darkModeScheduleStart, darkModeScheduleEnd
   ]);
 
   return (

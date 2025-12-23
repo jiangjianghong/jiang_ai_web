@@ -128,7 +128,12 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
     darkOverlayMode,
     setDarkOverlayMode,
     darkMode,
-    setDarkMode,
+    darkModePreference,
+    setDarkModePreference,
+    darkModeScheduleStart,
+    setDarkModeScheduleStart,
+    darkModeScheduleEnd,
+    setDarkModeScheduleEnd,
   } = useTransparency();
 
   const { currentUser } = useAuth();
@@ -1081,33 +1086,74 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
 
               <div className="border-t border-gray-100 dark:border-gray-700"></div>
 
-              {/* 夜间模式开关 */}
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <i className={`fa-solid ${darkMode ? 'fa-moon' : 'fa-sun'} text-indigo-500 text-sm`}></i>
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-200 select-none">
-                      夜间模式
-                    </span>
-                  </div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 select-none">
-                    {darkMode ? '已启用深色主题，减少眼睛疲劳' : '浅色主题，适合明亮环境'}
-                  </p>
+              {/* 夜间模式设置 */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <i className={`fa-solid ${darkMode ? 'fa-moon' : 'fa-sun'} text-indigo-500 text-sm`}></i>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-200 select-none">
+                    夜间模式
+                  </span>
                 </div>
-                <button
-                  onClick={() => setDarkMode(!darkMode)}
-                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${darkMode
-                    ? 'bg-gradient-to-r from-indigo-600 to-purple-700 shadow-lg shadow-indigo-300/50'
-                    : 'bg-gradient-to-r from-gray-400 to-gray-500 dark:from-gray-600 dark:to-gray-700 shadow-lg shadow-gray-300/50 dark:shadow-gray-900/50'
-                    }`}
-                >
-                  <span
-                    className={`inline-block h-5 w-5 transform rounded-full bg-white dark:bg-gray-200 transition-all duration-300 shadow-md ${darkMode
-                      ? 'translate-x-6 shadow-indigo-200'
-                      : 'translate-x-1 shadow-gray-200 dark:shadow-gray-600'
-                      }`}
-                  />
-                </button>
+
+                {/* 模式选择按钮组 */}
+                <div className="grid grid-cols-4 gap-2">
+                  {[
+                    { value: 'system', label: '跟随系统', icon: 'fa-desktop' },
+                    { value: 'on', label: '始终开启', icon: 'fa-moon' },
+                    { value: 'off', label: '始终关闭', icon: 'fa-sun' },
+                    { value: 'scheduled', label: '定时', icon: 'fa-clock' },
+                  ].map((option) => (
+                    <button
+                      key={option.value}
+                      onClick={() => setDarkModePreference(option.value as 'system' | 'on' | 'off' | 'scheduled')}
+                      className={`group p-2 rounded-lg border-2 transition-all duration-200 text-center select-none cursor-pointer ${darkModePreference === option.value
+                        ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300'
+                        : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-600'
+                        }`}
+                    >
+                      <i
+                        className={`fa-solid ${option.icon} text-sm transition-colors ${darkModePreference === option.value
+                          ? 'text-indigo-500 dark:text-indigo-400'
+                          : 'text-gray-400 dark:text-gray-500 group-hover:text-gray-500 dark:group-hover:text-gray-400'
+                          } select-none`}
+                      ></i>
+                      <div className="font-medium text-xs mt-1 select-none">{option.label}</div>
+                    </button>
+                  ))}
+                </div>
+
+                {/* 当前状态描述 */}
+                <p className="text-xs text-gray-500 dark:text-gray-400 select-none">
+                  {darkModePreference === 'system' && '跟随系统主题自动切换'}
+                  {darkModePreference === 'on' && '始终使用深色主题'}
+                  {darkModePreference === 'off' && '始终使用浅色主题'}
+                  {darkModePreference === 'scheduled' && `${darkModeScheduleStart} - ${darkModeScheduleEnd} 自动开启深色模式`}
+                </p>
+
+                {/* 自定义时间设置 - 仅当选择 scheduled 时显示 */}
+                {darkModePreference === 'scheduled' && (
+                  <div className="flex items-center gap-4 pt-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-gray-600 dark:text-gray-300">开始</span>
+                      <input
+                        type="time"
+                        value={darkModeScheduleStart}
+                        onChange={(e) => setDarkModeScheduleStart(e.target.value)}
+                        className="px-2 py-1 text-sm rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                      />
+                    </div>
+                    <span className="text-gray-400">-</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-gray-600 dark:text-gray-300">结束</span>
+                      <input
+                        type="time"
+                        value={darkModeScheduleEnd}
+                        onChange={(e) => setDarkModeScheduleEnd(e.target.value)}
+                        className="px-2 py-1 text-sm rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="border-t border-gray-100 dark:border-gray-700"></div>

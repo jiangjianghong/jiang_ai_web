@@ -73,13 +73,60 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
   const [showWallpaperGallery, setShowWallpaperGallery] = useState(false);
   const [activeSection, setActiveSection] = useState('account');
   const sectionsRef = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  const isManualScrolling = useRef(false);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const scrollToSection = (id: string) => {
     const element = sectionsRef.current[id];
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      // 这里的SetActiveSection主要用于点击时的立即反馈
+    const container = document.getElementById('settings-content-scroll-container');
+
+    if (element && container) {
+      // 设置手动滚动标志
+      isManualScrolling.current = true;
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+
+      // 立即更新 active 状态
       setActiveSection(id);
+
+      // 自定义滚动逻辑
+      const start = container.scrollTop;
+      // 计算目标位置：元素的相对位置 + 当前滚动位置 - 顶部偏移（如果有padding）
+      // 这里直接使用 offsetTop 可能不准，改用 getBoundingClientRect 计算相对差值
+      const elementRect = element.getBoundingClientRect();
+      const containerRect = container.getBoundingClientRect();
+      const relativeTop = elementRect.top - containerRect.top;
+      const offset = 32; // 顶部留出 32px 的间距
+      const target = start + relativeTop - offset;
+      const distance = target - start;
+      const duration = 1200; // 更长的持续时间，1.2秒
+      let startTime: number | null = null;
+
+      // 缓动函数: easeInOutCubic (先加速后减速)
+      const easeInOutCubic = (t: number) => {
+        return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      };
+
+      const animation = (currentTime: number) => {
+        if (startTime === null) startTime = currentTime;
+        const timeElapsed = currentTime - startTime;
+        const progress = Math.min(timeElapsed / duration, 1);
+        const ease = easeInOutCubic(progress);
+
+        container.scrollTop = start + distance * ease;
+
+        if (timeElapsed < duration) {
+          requestAnimationFrame(animation);
+        } else {
+          // 动画结束，稍微延迟后释放锁，防止惯性误触
+          scrollTimeoutRef.current = setTimeout(() => {
+            isManualScrolling.current = false;
+          }, 100);
+        }
+      };
+
+      requestAnimationFrame(animation);
     }
   };
 
@@ -87,7 +134,7 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) {
+          if (entry.isIntersecting && !isManualScrolling.current) {
             setActiveSection(entry.target.id);
           }
         });
@@ -723,7 +770,7 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
         <div className="w-[180px] flex-shrink-0 flex flex-col border-r border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/30">
           {/* 标题 */}
           <div className="p-6 pb-4">
-            <div className="text-xl font-medium text-gray-800 dark:text-gray-100 select-none mb-1">设置</div>
+            <div className="text-2xl font-black bg-gradient-to-br from-gray-800 to-gray-500 dark:from-white dark:to-gray-400 bg-clip-text text-transparent select-none mb-1 drop-shadow-sm filter">设置</div>
           </div>
 
           {/* 导航列表 - 使用 SECTIONS 生成 */}
@@ -733,14 +780,14 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                 key={section.id}
                 onClick={() => scrollToSection(section.id)}
                 className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-all duration-200 group relative ${activeSection === section.id
-                  ? 'text-gray-900 dark:text-white font-medium'
+                  ? 'text-gray-900 dark:text-white font-bold'
                   : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-white/50 dark:hover:bg-gray-700/30'
                   }`}
               >
                 {activeSection === section.id && (
                   <motion.div
                     layoutId="activeSectionBg"
-                    className="absolute inset-0 bg-white dark:bg-gray-700 shadow-sm rounded-xl"
+                    className="absolute inset-0 bg-gradient-to-b from-white to-gray-50 dark:from-gray-700 dark:to-gray-800 shadow-md border border-gray-100 dark:border-gray-600 rounded-xl"
                     transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                   />
                 )}

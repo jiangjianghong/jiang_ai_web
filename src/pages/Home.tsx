@@ -389,6 +389,13 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
       {/* 系统公告横幅 */}
       <AnnouncementBanner />
 
+      {/* 壁纸加载前的静态背景 */}
+      {!bgImageLoaded && (
+        <div
+          className="fixed top-0 left-0 w-full h-full -z-10 bg-slate-800"
+        />
+      )}
+
       {/* 壁纸背景层 - 响应式优化 */}
       <div
         className="fixed top-0 left-0 w-full h-full -z-10"
@@ -397,12 +404,12 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
           backgroundSize: 'cover',
           backgroundPosition: isMobile ? 'center center' : 'center top',
           backgroundRepeat: 'no-repeat',
-          filter: bgImageLoaded ? 'none' : 'blur(2px)',
+          opacity: bgImageLoaded ? 1 : 0,
           transform:
             !isSettingsOpen && !isSearchFocused && parallaxEnabled && !isMobile && mousePosition
               ? `translate(${mousePosition.x * 0.02}px, ${mousePosition.y * 0.02}px) scale(1.05)`
               : 'translate(0px, 0px) scale(1)',
-          transition: 'filter 1.5s ease-out, transform 0.3s ease-out',
+          transition: 'opacity 1s ease-out, transform 0.3s ease-out',
         }}
       />
 

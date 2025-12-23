@@ -56,6 +56,21 @@ button,
   }
 }
 
+/* 壁纸骨架屏渐变动画 */
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
 /* 卡片入场动画 */
 @keyframes fade-in-up {
   from {

@@ -95,7 +95,7 @@ export default function CookieConsent({ onAccept, onDecline, onCustomize }: Cook
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 100, opacity: 0 }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed bottom-0 left-0 right-0 z-[9999] bg-white border-t border-gray-200 shadow-2xl"
+            className="fixed bottom-0 left-0 right-0 z-[9999] bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 shadow-2xl"
             role="dialog"
             aria-label="Cookie consent banner"
             data-nosnippet
@@ -109,10 +109,10 @@ export default function CookieConsent({ onAccept, onDecline, onCustomize }: Cook
                       <i className="fa-solid fa-cookie-bite text-amber-500 text-xl"></i>
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
                         🍪 Cookie使用说明
                       </h3>
-                      <p className="text-sm text-gray-600 leading-relaxed">
+                      <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
                         我们使用Cookie和本地存储来提供更好的用户体验，包括：
                         <br />
                         <span className="inline-flex items-center gap-4 mt-1 text-xs">
@@ -122,10 +122,10 @@ export default function CookieConsent({ onAccept, onDecline, onCustomize }: Cook
                           <span>📊 性能分析</span>
                         </span>
                       </p>
-                      <p className="text-xs text-gray-500 mt-2">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                         您可以随时在浏览器设置中管理这些Cookie。了解更多请查看我们的
                         <button
-                          className="text-blue-600 hover:text-blue-800 underline mx-1"
+                          className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline mx-1"
                           onClick={() =>
                             window.open('https://github.com/jiangjianghong/tomato-tab#privacy', '_blank')
                           }
@@ -140,14 +140,14 @@ export default function CookieConsent({ onAccept, onDecline, onCustomize }: Cook
                 <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                   <button
                     onClick={handleCustomize}
-                    className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                   >
                     <i className="fa-solid fa-cog mr-2"></i>
                     自定义设置
                   </button>
                   <button
                     onClick={handleDecline}
-                    className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                   >
                     <i className="fa-solid fa-times mr-2"></i>
                     拒绝

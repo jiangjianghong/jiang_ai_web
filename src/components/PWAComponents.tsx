@@ -53,12 +53,12 @@ export function PWAPrompt() {
             exit={{ opacity: 0, y: 100, scale: 0.9 }}
             transition={{ type: 'spring', stiffness: 300, damping: 20 }}
           >
-            <div className="bg-white/95 backdrop-blur-sm rounded-lg shadow-xl border border-white/20 p-4">
+            <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-lg shadow-xl border border-white/20 dark:border-gray-700 p-4">
               <div className="flex items-start space-x-3">
                 <div className="flex-shrink-0 text-2xl">📱</div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-sm font-semibold text-gray-900">安装到主屏幕</h3>
-                  <p className="text-xs text-gray-600 mt-1">获得更好的体验，支持离线使用</p>
+                  <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">安装到主屏幕</h3>
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">获得更好的体验，支持离线使用</p>
                 </div>
               </div>
 
@@ -71,7 +71,7 @@ export function PWAPrompt() {
                 </button>
                 <button
                   onClick={handleDismiss}
-                  className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-medium py-2 px-3 rounded-md transition-colors"
+                  className="flex-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 text-xs font-medium py-2 px-3 rounded-md transition-colors"
                 >
                   稍后
                 </button>
@@ -209,21 +209,20 @@ export function AdaptiveImageLoader({
       <img
         src={imageSrc}
         alt={alt}
-        className={`w-full h-full object-cover transition-opacity duration-300 ${
-          isLoading ? 'opacity-0' : 'opacity-100'
-        }`}
+        className={`w-full h-full object-cover transition-opacity duration-300 ${isLoading ? 'opacity-0' : 'opacity-100'
+          }`}
         loading={priority ? 'eager' : 'lazy'}
       />
 
       {isLoading && (
-        <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
-          <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+        <div className="absolute inset-0 bg-gray-200 dark:bg-gray-700 animate-pulse flex items-center justify-center">
+          <div className="w-6 h-6 border-2 border-gray-400 dark:border-gray-500 border-t-transparent rounded-full animate-spin"></div>
         </div>
       )}
 
       {error && !placeholder && (
-        <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
-          <i className="fa-solid fa-image text-gray-400 text-2xl"></i>
+        <div className="absolute inset-0 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+          <i className="fa-solid fa-image text-gray-400 dark:text-gray-500 text-2xl"></i>
         </div>
       )}
 

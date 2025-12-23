@@ -53,7 +53,7 @@ export default function DataSyncModal({
     <div className="fixed inset-0 z-[9999] flex items-center justify-center">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
       <motion.div
-        className="w-96 bg-white rounded-xl shadow-2xl z-50 max-h-[80vh] flex flex-col"
+        className="w-96 bg-white dark:bg-gray-900 rounded-xl shadow-2xl z-50 max-h-[80vh] flex flex-col"
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
@@ -61,10 +61,10 @@ export default function DataSyncModal({
       >
         <div className="p-6 pb-0">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-medium text-gray-800">数据同步选择</h2>
+            <h2 className="text-xl font-medium text-gray-800 dark:text-gray-100">数据同步选择</h2>
             <button
               onClick={onClose}
-              className="text-gray-500 hover:text-gray-700"
+              className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
               disabled={loading}
             >
               <i className="fa-solid fa-xmark text-lg"></i>
@@ -73,8 +73,8 @@ export default function DataSyncModal({
         </div>
 
         <div className="flex-1 px-6 py-2 pb-6 space-y-4 overflow-y-auto">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p className="text-sm text-blue-800 mb-2">
+          <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+            <p className="text-sm text-blue-800 dark:text-blue-300 mb-2">
               <i className="fa-solid fa-info-circle mr-2"></i>
               检测到您有本地数据和云端数据，请选择如何处理：
             </p>
@@ -82,19 +82,19 @@ export default function DataSyncModal({
 
           <div className="space-y-3">
             {/* 本地数据信息 */}
-            <div className="bg-gray-50 rounded-lg p-3">
-              <h4 className="text-sm font-medium text-gray-700 mb-2">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                 <i className="fa-solid fa-computer mr-2"></i>本地数据
               </h4>
-              <p className="text-xs text-gray-600">{localWebsites.length} 个网站卡片</p>
+              <p className="text-xs text-gray-600 dark:text-gray-400">{localWebsites.length} 个网站卡片</p>
             </div>
 
             {/* 云端数据信息 */}
-            <div className="bg-gray-50 rounded-lg p-3">
-              <h4 className="text-sm font-medium text-gray-700 mb-2">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                 <i className="fa-solid fa-cloud mr-2"></i>云端数据
               </h4>
-              <p className="text-xs text-gray-600">{cloudWebsites.length} 个网站卡片</p>
+              <p className="text-xs text-gray-600 dark:text-gray-400">{cloudWebsites.length} 个网站卡片</p>
             </div>
           </div>
 
@@ -150,7 +150,7 @@ export default function DataSyncModal({
           {loading && (
             <div className="flex items-center justify-center py-4">
               <i className="fa-solid fa-spinner fa-spin mr-2"></i>
-              <span className="text-sm text-gray-600">处理中...</span>
+              <span className="text-sm text-gray-600 dark:text-gray-400">处理中...</span>
             </div>
           )}
         </div>

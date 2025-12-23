@@ -51,13 +51,13 @@ export default function ListItem({ item, index, isFocused, searchQuery = '' }: L
   // 高亮搜索文本
   const highlightText = (text: string, query: string) => {
     if (!query.trim()) return text;
-    
+
     const regex = new RegExp(`(${query})`, 'gi');
     const parts = text.split(regex);
-    
-    return parts.map((part, i) => 
+
+    return parts.map((part, i) =>
       regex.test(part) ? (
-        <mark key={i} className="bg-yellow-200 text-yellow-900 px-0.5 rounded">
+        <mark key={i} className="bg-yellow-200 dark:bg-yellow-700 text-yellow-900 dark:text-yellow-100 px-0.5 rounded">
           {part}
         </mark>
       ) : part
@@ -120,17 +120,17 @@ export default function ListItem({ item, index, isFocused, searchQuery = '' }: L
       ref={itemRef}
       className={`
         relative group cursor-pointer select-none
-        bg-white rounded-xl p-4
+        bg-white dark:bg-gray-800 rounded-xl p-4
         transition-all duration-200
-        border border-gray-200 hover:border-gray-300
+        border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600
       `}
       style={{ userSelect: 'none' }}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       tabIndex={0}
       initial={{ opacity: 0, y: 20 }}
-      animate={{ 
-        opacity: 1, 
+      animate={{
+        opacity: 1,
         y: 0,
         transition: {
           duration: 0.3,
@@ -143,7 +143,7 @@ export default function ListItem({ item, index, isFocused, searchQuery = '' }: L
       <div className="flex items-start space-x-4">
         {/* 图标 */}
         <div className="flex-shrink-0">
-          <div 
+          <div
             className={`w-12 h-12 rounded-xl ${getIconColor()} flex items-center justify-center shadow-lg transform transition-transform group-hover:scale-105`}
           >
             <span className="text-white font-bold text-lg">
@@ -157,21 +157,21 @@ export default function ListItem({ item, index, isFocused, searchQuery = '' }: L
           {/* 标题和分类 */}
           <div className="flex items-start justify-between mb-2">
             <div className="flex-1 min-w-0">
-              <h3 className="text-base font-semibold text-gray-900 truncate">
+              <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 truncate">
                 {highlightText(item.title, searchQuery)}
               </h3>
               <div className="flex items-center space-x-2 mt-1">
                 <span className={`
                   inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
-                  ${item.category === '工作链接' 
-                    ? 'bg-blue-100 text-blue-700' 
-                    : 'bg-orange-100 text-orange-700'
+                  ${item.category === '工作链接'
+                    ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300'
+                    : 'bg-orange-100 dark:bg-orange-900/50 text-orange-700 dark:text-orange-300'
                   }
                 `}>
                   {item.category === '工作链接' ? '🏢' : '🛠️'} {item.category}
                 </span>
                 {hasCredentials && (
-                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300">
                     🔐 有登录信息
                   </span>
                 )}
@@ -185,25 +185,25 @@ export default function ListItem({ item, index, isFocused, searchQuery = '' }: L
                   e.stopPropagation();
                   handleCopyUrl();
                 }}
-                className="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg transition-colors"
+                className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg transition-colors"
                 title="复制链接 (C)"
               >
                 <i className="fa-solid fa-copy text-xs"></i>
               </button>
-              
+
               {hasCredentials && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     setShowCredentials(!showCredentials);
                   }}
-                  className="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg transition-colors"
+                  className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg transition-colors"
                   title="显示登录信息 (D)"
                 >
                   <i className={`fa-solid ${showCredentials ? 'fa-eye-slash' : 'fa-eye'} text-xs`}></i>
                 </button>
               )}
-              
+
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -224,7 +224,7 @@ export default function ListItem({ item, index, isFocused, searchQuery = '' }: L
               target="_blank"
               rel="noopener noreferrer"
               onClick={(e) => e.stopPropagation()}
-              className="text-sm text-blue-600 hover:text-blue-700 hover:underline truncate block select-text"
+              className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline truncate block select-text"
               style={{ userSelect: 'text' }}
             >
               {highlightText(item.url, searchQuery)}
@@ -233,7 +233,7 @@ export default function ListItem({ item, index, isFocused, searchQuery = '' }: L
 
           {/* 描述 */}
           {item.description && (
-            <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
+            <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 leading-relaxed">
               {highlightText(item.description, searchQuery)}
             </p>
           )}
@@ -241,7 +241,7 @@ export default function ListItem({ item, index, isFocused, searchQuery = '' }: L
           {/* 登录信息（展开时显示） */}
           {showCredentials && hasCredentials && (
             <motion.div
-              className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200"
+              className="mt-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600"
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
@@ -251,9 +251,9 @@ export default function ListItem({ item, index, isFocused, searchQuery = '' }: L
                 {item.username && (
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
-                      <i className="fa-solid fa-user text-blue-600 text-sm"></i>
-                      <span className="text-sm font-medium text-gray-700">账号:</span>
-                      <code className="text-sm text-gray-900 bg-white px-2 py-1 rounded border select-text" style={{ userSelect: 'text' }}>
+                      <i className="fa-solid fa-user text-blue-600 dark:text-blue-400 text-sm"></i>
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">账号:</span>
+                      <code className="text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 px-2 py-1 rounded border dark:border-gray-600 select-text" style={{ userSelect: 'text' }}>
                         {item.username}
                       </code>
                     </div>
@@ -262,7 +262,7 @@ export default function ListItem({ item, index, isFocused, searchQuery = '' }: L
                         e.stopPropagation();
                         handleCopyCredentials('username');
                       }}
-                      className="p-1 text-gray-400 hover:text-gray-600 rounded transition-colors"
+                      className="p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 rounded transition-colors"
                       title="复制账号"
                     >
                       <i className="fa-solid fa-copy text-xs"></i>
@@ -273,9 +273,9 @@ export default function ListItem({ item, index, isFocused, searchQuery = '' }: L
                 {item.password && (
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
-                      <i className="fa-solid fa-key text-amber-600 text-sm"></i>
-                      <span className="text-sm font-medium text-gray-700">密码:</span>
-                      <code className="text-sm text-gray-900 bg-white px-2 py-1 rounded border select-text" style={{ userSelect: 'text' }}>
+                      <i className="fa-solid fa-key text-amber-600 dark:text-amber-400 text-sm"></i>
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">密码:</span>
+                      <code className="text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 px-2 py-1 rounded border dark:border-gray-600 select-text" style={{ userSelect: 'text' }}>
                         {'●'.repeat(Math.min(item.password.length, 12))}
                       </code>
                     </div>
@@ -284,7 +284,7 @@ export default function ListItem({ item, index, isFocused, searchQuery = '' }: L
                         e.stopPropagation();
                         handleCopyCredentials('password');
                       }}
-                      className="p-1 text-gray-400 hover:text-gray-600 rounded transition-colors"
+                      className="p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 rounded transition-colors"
                       title="复制密码"
                     >
                       <i className="fa-solid fa-copy text-xs"></i>

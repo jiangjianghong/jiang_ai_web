@@ -94,7 +94,7 @@ export default function PrivacySettings({ isOpen, onClose }: PrivacySettingsProp
       <div className="fixed inset-0 z-[9999] flex items-center justify-center">
         <div className="absolute inset-0 bg-black/50" onClick={onClose} />
         <motion.div
-          className="w-full max-w-2xl bg-white rounded-xl shadow-2xl z-50 max-h-[90vh] flex flex-col mx-4"
+          className="w-full max-w-2xl bg-white dark:bg-gray-900 rounded-xl shadow-2xl z-50 max-h-[90vh] flex flex-col mx-4"
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
@@ -104,10 +104,10 @@ export default function PrivacySettings({ isOpen, onClose }: PrivacySettingsProp
           <div className="p-6 pb-0">
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-3">
-                <i className="fa-solid fa-shield-halved text-blue-600 text-2xl"></i>
-                <h2 className="text-2xl font-bold text-gray-800">隐私与数据管理</h2>
+                <i className="fa-solid fa-shield-halved text-blue-600 dark:text-blue-400 text-2xl"></i>
+                <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">隐私与数据管理</h2>
               </div>
-              <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-xl">
+              <button onClick={onClose} className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-xl">
                 <i className="fa-solid fa-xmark"></i>
               </button>
             </div>
@@ -116,24 +116,23 @@ export default function PrivacySettings({ isOpen, onClose }: PrivacySettingsProp
           {/* 内容 */}
           <div className="flex-1 px-6 py-4 space-y-6 overflow-y-auto">
             {/* Cookie同意状态 */}
-            <div className="bg-gray-50 rounded-lg p-4">
-              <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3 flex items-center gap-2">
                 <i className="fa-solid fa-cookie-bite text-amber-500"></i>
                 Cookie使用状态
               </h3>
 
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-gray-600 dark:text-gray-300">
                     当前状态:
                     <span
-                      className={`ml-2 px-2 py-1 rounded text-xs font-medium ${
-                        consentStatus === 'accepted'
-                          ? 'bg-green-100 text-green-800'
+                      className={`ml-2 px-2 py-1 rounded text-xs font-medium ${consentStatus === 'accepted'
+                          ? 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300'
                           : consentStatus === 'declined'
-                            ? 'bg-red-100 text-red-800'
-                            : 'bg-yellow-100 text-yellow-800'
-                      }`}
+                            ? 'bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-300'
+                            : 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-300'
+                        }`}
                     >
                       {consentStatus === 'accepted'
                         ? '✅ 已同意'
@@ -142,7 +141,7 @@ export default function PrivacySettings({ isOpen, onClose }: PrivacySettingsProp
                           : '⏳ 待决定'}
                     </span>
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                     {consentStatus === 'accepted'
                       ? '您已同意使用Cookie和本地存储来提供完整功能'
                       : consentStatus === 'declined'
@@ -154,11 +153,10 @@ export default function PrivacySettings({ isOpen, onClose }: PrivacySettingsProp
                 {consentStatus !== 'pending' && (
                   <button
                     onClick={handleToggleConsent}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      consentStatus === 'accepted'
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${consentStatus === 'accepted'
                         ? 'bg-red-100 text-red-700 hover:bg-red-200'
                         : 'bg-green-100 text-green-700 hover:bg-green-200'
-                    }`}
+                      }`}
                   >
                     {consentStatus === 'accepted' ? '撤销同意' : '重新同意'}
                   </button>
@@ -167,71 +165,71 @@ export default function PrivacySettings({ isOpen, onClose }: PrivacySettingsProp
             </div>
 
             {/* 数据使用统计 */}
-            <div className="bg-blue-50 rounded-lg p-4">
-              <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                <i className="fa-solid fa-chart-pie text-blue-600"></i>
+            <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3 flex items-center gap-2">
+                <i className="fa-solid fa-chart-pie text-blue-600 dark:text-blue-400"></i>
                 数据使用统计
               </h3>
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-600">{stats.totalKeys}</div>
-                  <div className="text-xs text-gray-600">总数据项</div>
+                  <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{stats.totalKeys}</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400">总数据项</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600">{stats.essentialKeys}</div>
-                  <div className="text-xs text-gray-600">必要数据</div>
+                  <div className="text-2xl font-bold text-green-600 dark:text-green-400">{stats.essentialKeys}</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400">必要数据</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-purple-600">{stats.nonEssentialKeys}</div>
-                  <div className="text-xs text-gray-600">功能数据</div>
+                  <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">{stats.nonEssentialKeys}</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400">功能数据</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-orange-600">{stats.storageUsed}</div>
-                  <div className="text-xs text-gray-600">存储占用</div>
+                  <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{stats.storageUsed}</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400">存储占用</div>
                 </div>
               </div>
             </div>
 
             {/* 数据类型说明 */}
             <div className="space-y-3">
-              <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                <i className="fa-solid fa-info-circle text-blue-600"></i>
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 flex items-center gap-2">
+                <i className="fa-solid fa-info-circle text-blue-600 dark:text-blue-400"></i>
                 我们存储的数据类型
               </h3>
 
               <div className="space-y-2 text-sm">
-                <div className="flex items-start gap-3 p-3 bg-green-50 rounded-lg">
-                  <i className="fa-solid fa-shield-check text-green-600 mt-0.5"></i>
+                <div className="flex items-start gap-3 p-3 bg-green-50 dark:bg-green-900/30 rounded-lg">
+                  <i className="fa-solid fa-shield-check text-green-600 dark:text-green-400 mt-0.5"></i>
                   <div>
-                    <div className="font-medium text-green-800">必要功能数据</div>
-                    <div className="text-green-700">
+                    <div className="font-medium text-green-800 dark:text-green-300">必要功能数据</div>
+                    <div className="text-green-700 dark:text-green-400">
                       Cookie同意状态、基本设置 - 网站正常运行必需
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
-                  <i className="fa-solid fa-bookmark text-blue-600 mt-0.5"></i>
+                <div className="flex items-start gap-3 p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
+                  <i className="fa-solid fa-bookmark text-blue-600 dark:text-blue-400 mt-0.5"></i>
                   <div>
-                    <div className="font-medium text-blue-800">收藏夹数据</div>
-                    <div className="text-blue-700">您添加的网站收藏、访问记录、个人笔记</div>
+                    <div className="font-medium text-blue-800 dark:text-blue-300">收藏夹数据</div>
+                    <div className="text-blue-700 dark:text-blue-400">您添加的网站收藏、访问记录、个人笔记</div>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-3 bg-purple-50 rounded-lg">
-                  <i className="fa-solid fa-palette text-purple-600 mt-0.5"></i>
+                <div className="flex items-start gap-3 p-3 bg-purple-50 dark:bg-purple-900/30 rounded-lg">
+                  <i className="fa-solid fa-palette text-purple-600 dark:text-purple-400 mt-0.5"></i>
                   <div>
-                    <div className="font-medium text-purple-800">界面偏好</div>
-                    <div className="text-purple-700">主题设置、透明度、布局偏好等个性化配置</div>
+                    <div className="font-medium text-purple-800 dark:text-purple-300">界面偏好</div>
+                    <div className="text-purple-700 dark:text-purple-400">主题设置、透明度、布局偏好等个性化配置</div>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-3 bg-orange-50 rounded-lg">
-                  <i className="fa-solid fa-chart-line text-orange-600 mt-0.5"></i>
+                <div className="flex items-start gap-3 p-3 bg-orange-50 dark:bg-orange-900/30 rounded-lg">
+                  <i className="fa-solid fa-chart-line text-orange-600 dark:text-orange-400 mt-0.5"></i>
                   <div>
-                    <div className="font-medium text-orange-800">性能分析</div>
-                    <div className="text-orange-700">加载时间、使用统计，帮助改善用户体验</div>
+                    <div className="font-medium text-orange-800 dark:text-orange-300">性能分析</div>
+                    <div className="text-orange-700 dark:text-orange-400">加载时间、使用统计，帮助改善用户体验</div>
                   </div>
                 </div>
               </div>
@@ -311,12 +309,12 @@ export default function PrivacySettings({ isOpen, onClose }: PrivacySettingsProp
           </div>
 
           {/* 底部 */}
-          <div className="p-6 pt-0 border-t">
-            <div className="flex justify-between items-center text-sm text-gray-500">
+          <div className="p-6 pt-0 border-t dark:border-gray-700">
+            <div className="flex justify-between items-center text-sm text-gray-500 dark:text-gray-400">
               <span>最后更新: {new Date().toLocaleDateString('zh-CN')}</span>
               <button
                 onClick={onClose}
-                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg"
+                className="px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg"
               >
                 关闭
               </button>

@@ -7,11 +7,11 @@ interface CategoryTabsProps {
 }
 
 export default function CategoryTabs({ className = '' }: CategoryTabsProps) {
-  const { 
-    categories, 
-    selectedCategory, 
+  const {
+    categories,
+    selectedCategory,
     setSelectedCategory,
-    setFocusedItemIndex 
+    setFocusedItemIndex
   } = useWorkspace();
 
   const [activeIndex, setActiveIndex] = useState(0);
@@ -82,11 +82,11 @@ export default function CategoryTabs({ className = '' }: CategoryTabsProps) {
 
   return (
     <div className={`category-tabs ${className}`}>
-      <div className="flex flex-wrap gap-2 p-4 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100 select-none" style={{ userSelect: 'none' }}>
+      <div className="flex flex-wrap gap-2 p-4 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 border-b border-gray-100 dark:border-gray-700 select-none" style={{ userSelect: 'none' }}>
         {categories.map((category, index) => {
           const isActive = activeIndex === index;
           const displayName = category.name === 'all' ? '全部' : category.name;
-          
+
           return (
             <motion.button
               key={category.name}
@@ -114,27 +114,27 @@ export default function CategoryTabs({ className = '' }: CategoryTabsProps) {
                   }}
                 />
               )}
-              
+
               {/* 内容层 - 始终在最上层 */}
-              <div className={`relative z-10 flex items-center gap-2 ${isActive ? 'text-white' : 'text-gray-600'}`}>
+              <div className={`relative z-10 flex items-center gap-2 ${isActive ? 'text-white' : 'text-gray-600 dark:text-gray-300'}`}>
                 <span className="text-base">{category.icon}</span>
                 <span className="text-sm font-medium">{displayName}</span>
-                <span 
+                <span
                   className={`
                     inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold rounded-full
-                    ${isActive 
-                      ? 'bg-white/20 text-white' 
-                      : 'bg-gradient-to-r from-gray-100 to-gray-50 text-gray-600'
+                    ${isActive
+                      ? 'bg-white/20 text-white'
+                      : 'bg-gradient-to-r from-gray-100 to-gray-50 dark:from-gray-700 dark:to-gray-600 text-gray-600 dark:text-gray-300'
                     }
                   `}
                 >
                   {category.count}
                 </span>
               </div>
-              
+
               {/* 非激活状态的背景 */}
               {!isActive && (
-                <div className="absolute inset-0 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-colors" />
+                <div className="absolute inset-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-500 transition-colors" />
               )}
             </motion.button>
           );

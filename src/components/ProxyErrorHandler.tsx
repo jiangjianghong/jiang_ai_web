@@ -17,7 +17,7 @@ interface ProxyErrorProps {
  */
 export function ProxyError({ title, message, actions = [], onClose }: ProxyErrorProps) {
   return (
-    <div className="proxy-error bg-red-50 border border-red-200 rounded-md p-4 my-4">
+    <div className="proxy-error bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-md p-4 my-4">
       <div className="flex items-start">
         <div className="flex-shrink-0">
           <svg
@@ -34,8 +34,8 @@ export function ProxyError({ title, message, actions = [], onClose }: ProxyError
           </svg>
         </div>
         <div className="ml-3 flex-1">
-          <h3 className="text-sm font-medium text-red-800">{title}</h3>
-          <div className="mt-2 text-sm text-red-700">
+          <h3 className="text-sm font-medium text-red-800 dark:text-red-300">{title}</h3>
+          <div className="mt-2 text-sm text-red-700 dark:text-red-400">
             <p className="whitespace-pre-line">{message}</p>
           </div>
           {actions.length > 0 && (
@@ -44,7 +44,7 @@ export function ProxyError({ title, message, actions = [], onClose }: ProxyError
                 <button
                   key={index}
                   type="button"
-                  className="rounded-md bg-red-50 px-2 py-1.5 text-sm font-medium text-red-800 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2"
+                  className="rounded-md bg-red-50 dark:bg-red-900/50 px-2 py-1.5 text-sm font-medium text-red-800 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/70 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2"
                   onClick={action.onClick}
                 >
                   {action.label}
@@ -58,7 +58,7 @@ export function ProxyError({ title, message, actions = [], onClose }: ProxyError
             <div className="-mx-1.5 -my-1.5">
               <button
                 type="button"
-                className="inline-flex rounded-md bg-red-50 p-1.5 text-red-500 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2"
+                className="inline-flex rounded-md bg-red-50 dark:bg-red-900/50 p-1.5 text-red-500 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/70 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2"
                 onClick={onClose}
               >
                 <span className="sr-only">关闭</span>
@@ -89,12 +89,12 @@ export function ProxyError({ title, message, actions = [], onClose }: ProxyError
 export function CorsHelpDialog({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
-        <h2 className="text-xl font-bold mb-4">CORS 问题解决方案</h2>
+      <div className="bg-white dark:bg-gray-900 rounded-lg p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
+        <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">CORS 问题解决方案</h2>
 
         <div className="mb-4">
-          <h3 className="font-semibold mb-2">什么是CORS问题？</h3>
-          <p className="text-sm text-gray-700">
+          <h3 className="font-semibold mb-2 text-gray-800 dark:text-gray-200">什么是CORS问题？</h3>
+          <p className="text-sm text-gray-700 dark:text-gray-300">
             跨源资源共享 (CORS) 是一种安全机制，它限制了网页从不同域名请求数据的能力。
             当我们的应用需要从其他网站（如Notion
             API）获取数据时，浏览器会阻止这些请求，除非服务器明确允许。
@@ -102,8 +102,8 @@ export function CorsHelpDialog({ onClose }: { onClose: () => void }) {
         </div>
 
         <div className="mb-4">
-          <h3 className="font-semibold mb-2">解决方案</h3>
-          <ol className="list-decimal list-inside text-sm text-gray-700 space-y-2">
+          <h3 className="font-semibold mb-2 text-gray-800 dark:text-gray-200">解决方案</h3>
+          <ol className="list-decimal list-inside text-sm text-gray-700 dark:text-gray-300 space-y-2">
             <li>
               <strong>使用浏览器扩展</strong>
               <p className="ml-5">

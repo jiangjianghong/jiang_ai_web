@@ -6,22 +6,22 @@ interface ViewSwitcherProps {
 }
 
 export default function ViewSwitcher({ className = '' }: ViewSwitcherProps) {
-  const { 
-    viewType, 
-    setViewType, 
-    filteredItems 
+  const {
+    viewType,
+    setViewType,
+    filteredItems
   } = useWorkspace();
 
   const viewOptions = [
-    { 
-      type: 'list' as ViewType, 
-      icon: 'fa-list', 
+    {
+      type: 'list' as ViewType,
+      icon: 'fa-list',
       label: '列表视图',
       description: '详细信息，易于扫描'
     },
-    { 
-      type: 'card' as ViewType, 
-      icon: 'fa-grid', 
+    {
+      type: 'card' as ViewType,
+      icon: 'fa-grid',
       label: '卡片视图',
       description: '视觉化浏览'
     }
@@ -71,12 +71,12 @@ export default function ViewSwitcher({ className = '' }: ViewSwitcherProps) {
   return (
     <div className={`view-switcher flex items-center space-x-4 select-none ${className}`} style={{ userSelect: 'none' }}>
       {/* 结果统计 */}
-      <div className="text-sm text-gray-600">
+      <div className="text-sm text-gray-600 dark:text-gray-400">
         <span className="font-medium">{filteredItems.length}</span> 个项目
       </div>
 
       {/* 视图切换按钮 */}
-      <div className="flex items-center bg-gray-100 rounded-lg p-1">
+      <div className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
         {viewOptions.map((option, index) => (
           <motion.button
             key={option.type}
@@ -86,8 +86,8 @@ export default function ViewSwitcher({ className = '' }: ViewSwitcherProps) {
               view-switcher-button relative flex items-center space-x-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all
               focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1
               ${viewType === option.type
-                ? 'text-blue-700 bg-white shadow-sm border border-blue-100'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'text-blue-700 dark:text-blue-300 bg-white dark:bg-gray-800 shadow-sm border border-blue-100 dark:border-blue-800'
+                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
               }
             `}
             whileHover={{ scale: 1.02 }}

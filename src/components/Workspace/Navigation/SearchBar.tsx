@@ -73,7 +73,7 @@ export default function SearchBar({
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (suggestionsRef.current && !suggestionsRef.current.contains(e.target as Node) &&
-          inputRef.current && !inputRef.current.contains(e.target as Node)) {
+        inputRef.current && !inputRef.current.contains(e.target as Node)) {
         setShowSuggestions(false);
       }
     };
@@ -160,7 +160,7 @@ export default function SearchBar({
 
     return parts.map((part, i) =>
       regex.test(part) ? (
-        <mark key={i} className="bg-blue-100 text-blue-900 px-0.5 rounded font-semibold">
+        <mark key={i} className="bg-blue-100 dark:bg-blue-800 text-blue-900 dark:text-blue-100 px-0.5 rounded font-semibold">
           {part}
         </mark>
       ) : part
@@ -224,10 +224,10 @@ export default function SearchBar({
           placeholder={placeholder}
           className={`
             w-full pl-10 pr-12 py-3 border rounded-xl text-sm transition-colors duration-200
-            focus:outline-none
+            focus:outline-none dark:text-gray-100 dark:placeholder-gray-400
             ${isFocused
-              ? 'border-transparent bg-white'
-              : 'border-gray-200 bg-gray-50 hover:bg-white hover:border-gray-300'
+              ? 'border-transparent bg-white dark:bg-gray-800'
+              : 'border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 hover:bg-white dark:hover:bg-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
             }
           `}
         />
@@ -236,7 +236,7 @@ export default function SearchBar({
         {searchQuery && (
           <motion.button
             onClick={clearSearch}
-            className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+            className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
             title="清除搜索 (Esc)"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -252,7 +252,7 @@ export default function SearchBar({
         {showSuggestions && (
           <motion.div
             ref={suggestionsRef}
-            className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden"
+            className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden"
             style={{ zIndex: 9999 }}
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -260,13 +260,13 @@ export default function SearchBar({
             transition={{ duration: 0.2 }}
           >
             {/* 标题栏 */}
-            <div className="px-4 py-2 bg-gradient-to-r from-blue-50 to-purple-50 border-b border-gray-100">
+            <div className="px-4 py-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/30 dark:to-purple-900/30 border-b border-gray-100 dark:border-gray-700">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-gray-600 flex items-center gap-1">
+                <span className="text-xs font-semibold text-gray-600 dark:text-gray-300 flex items-center gap-1">
                   <i className="fa-solid fa-briefcase text-blue-500"></i>
                   工作空间搜索结果
                 </span>
-                <span className="text-xs text-gray-500">
+                <span className="text-xs text-gray-500 dark:text-gray-400">
                   {searchSuggestions.length} 个匹配项
                 </span>
               </div>
@@ -278,9 +278,9 @@ export default function SearchBar({
                 <motion.div
                   key={suggestion.id}
                   className={`
-                    px-4 py-3 hover:bg-blue-50 cursor-pointer border-b border-gray-50 last:border-0
+                    px-4 py-3 hover:bg-blue-50 dark:hover:bg-blue-900/30 cursor-pointer border-b border-gray-50 dark:border-gray-700 last:border-0
                     transition-colors duration-150
-                    ${selectedSuggestionIndex === index ? 'bg-blue-50' : ''}
+                    ${selectedSuggestionIndex === index ? 'bg-blue-50 dark:bg-blue-900/30' : ''}
                   `}
                   onClick={() => selectSuggestion(suggestion)}
                   onMouseEnter={() => setSelectedSuggestionIndex(index)}
@@ -291,11 +291,11 @@ export default function SearchBar({
                     <div className="flex-1 min-w-0">
                       {/* 标题 */}
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-sm font-medium text-gray-900">
+                        <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
                           {highlightText(suggestion.title, searchQuery)}
                         </span>
                         {suggestion.hasCredentials && (
-                          <span className="px-1.5 py-0.5 bg-green-100 text-green-700 text-xs rounded-full flex items-center gap-0.5">
+                          <span className="px-1.5 py-0.5 bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 text-xs rounded-full flex items-center gap-0.5">
                             <i className="fa-solid fa-key text-xs"></i>
                             <span>登录</span>
                           </span>
@@ -304,13 +304,13 @@ export default function SearchBar({
 
                       {/* 描述 */}
                       {suggestion.description && (
-                        <p className="text-xs text-gray-600 line-clamp-1 mb-1">
+                        <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-1 mb-1">
                           {highlightText(suggestion.description, searchQuery)}
                         </p>
                       )}
 
                       {/* URL */}
-                      <p className="text-xs text-gray-400 truncate">
+                      <p className="text-xs text-gray-400 dark:text-gray-500 truncate">
                         {highlightText(suggestion.url, searchQuery)}
                       </p>
                     </div>
@@ -320,8 +320,8 @@ export default function SearchBar({
                       <span className={`
                         inline-flex items-center px-2 py-1 rounded-lg text-xs font-medium
                         ${suggestion.category === '工作链接'
-                          ? 'bg-blue-100 text-blue-700'
-                          : 'bg-orange-100 text-orange-700'
+                          ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300'
+                          : 'bg-orange-100 dark:bg-orange-900/50 text-orange-700 dark:text-orange-300'
                         }
                       `}>
                         <span className="mr-1">{getCategoryIcon(suggestion.category)}</span>
@@ -332,13 +332,13 @@ export default function SearchBar({
 
                   {/* 快捷操作提示 */}
                   {selectedSuggestionIndex === index && (
-                    <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
+                    <div className="flex items-center gap-3 mt-2 text-xs text-gray-500 dark:text-gray-400">
                       <span className="flex items-center gap-1">
-                        <kbd className="px-1.5 py-0.5 bg-gray-100 rounded text-xs">Enter</kbd>
+                        <kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-xs">Enter</kbd>
                         打开链接
                       </span>
                       <span className="flex items-center gap-1">
-                        <kbd className="px-1.5 py-0.5 bg-gray-100 rounded text-xs">Esc</kbd>
+                        <kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-xs">Esc</kbd>
                         关闭建议
                       </span>
                     </div>
@@ -348,10 +348,10 @@ export default function SearchBar({
             </div>
 
             {/* 底部提示 */}
-            <div className="px-4 py-2 bg-gray-50 border-t border-gray-100">
-              <p className="text-xs text-gray-500 text-center">
-                使用 <kbd className="px-1 py-0.5 bg-gray-100 rounded text-xs">↑↓</kbd> 导航，
-                <kbd className="px-1 py-0.5 bg-gray-100 rounded text-xs">Enter</kbd> 打开
+            <div className="px-4 py-2 bg-gray-50 dark:bg-gray-700/50 border-t border-gray-100 dark:border-gray-700">
+              <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
+                使用 <kbd className="px-1 py-0.5 bg-gray-100 dark:bg-gray-600 rounded text-xs">↑↓</kbd> 导航，
+                <kbd className="px-1 py-0.5 bg-gray-100 dark:bg-gray-600 rounded text-xs">Enter</kbd> 打开
               </p>
             </div>
           </motion.div>

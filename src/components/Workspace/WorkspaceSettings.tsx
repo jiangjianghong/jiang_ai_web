@@ -125,18 +125,18 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
   return (
     <div className="h-full flex flex-col select-none" style={{ userSelect: 'none' }}>
       {/* 设置头部 */}
-      <div className="px-6 py-4 border-b border-gray-200">
+      <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <button
               onClick={onClose}
-              className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
             >
               <i className="fa-solid fa-arrow-left text-sm"></i>
             </button>
             <div>
-              <h3 className="text-lg font-semibold text-gray-800">工作空间设置</h3>
-              <p className="text-sm text-gray-500">配置 Notion 数据库连接</p>
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">工作空间设置</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">配置 Notion 数据库连接</p>
             </div>
           </div>
 
@@ -145,7 +145,7 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
               href="/help/"
               target="_blank"
               rel="noopener noreferrer"
-              className="px-3 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors text-sm font-medium flex items-center space-x-1"
+              className="px-3 py-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors text-sm font-medium flex items-center space-x-1"
             >
               <i className="fa-solid fa-book text-xs"></i>
               <span>设置指南</span>
@@ -154,7 +154,7 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
             {isConfigured && (
               <button
                 onClick={handleClearConfiguration}
-                className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors text-sm font-medium"
+                className="px-3 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors text-sm font-medium"
               >
                 清除配置
               </button>
@@ -168,12 +168,12 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
         <div className="max-w-2xl mx-auto space-y-6">
           {/* 配置说明 */}
           {!isConfigured && (
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+            <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
               <div className="flex items-start space-x-3">
-                <i className="fa-solid fa-rocket text-blue-500 mt-0.5"></i>
+                <i className="fa-solid fa-rocket text-blue-500 dark:text-blue-400 mt-0.5"></i>
                 <div className="flex-1">
-                  <h4 className="font-medium text-blue-900 mb-2">首次配置 Notion 工作空间</h4>
-                  <p className="text-sm text-blue-800 mb-3">
+                  <h4 className="font-medium text-blue-900 dark:text-blue-300 mb-2">首次配置 Notion 工作空间</h4>
+                  <p className="text-sm text-blue-800 dark:text-blue-400 mb-3">
                     需要创建 Notion Integration 并获取 API 密钥。我们为您准备了详细的设置指南。
                   </p>
                   <a
@@ -191,12 +191,12 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
           )}
 
           {isConfigured && (
-            <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+            <div className="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-xl p-4">
               <div className="flex items-center space-x-3">
-                <i className="fa-solid fa-check-circle text-green-500"></i>
+                <i className="fa-solid fa-check-circle text-green-500 dark:text-green-400"></i>
                 <div>
-                  <h4 className="font-medium text-green-900">工作空间已配置</h4>
-                  <p className="text-sm text-green-800 mt-1">
+                  <h4 className="font-medium text-green-900 dark:text-green-300">工作空间已配置</h4>
+                  <p className="text-sm text-green-800 dark:text-green-400 mt-1">
                     您可以修改下方的配置信息或重新测试连接。
                   </p>
                 </div>
@@ -206,33 +206,31 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
 
           {/* 基础配置 */}
           <div className="space-y-4">
-            <h4 className="font-medium text-gray-900">基础配置</h4>
+            <h4 className="font-medium text-gray-900 dark:text-gray-100">基础配置</h4>
 
             {/* 数据库 ID 输入 */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">数据库 ID *</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">数据库 ID *</label>
               <input
                 type="text"
                 value={databaseIdInput}
                 onChange={(e) => handleDatabaseIdChange(e.target.value)}
                 placeholder="粘贴 Notion 分享链接或数据库 ID"
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent text-sm ${
-                  parseResult === null
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent text-sm ${parseResult === null
                     ? 'border-gray-300 focus:ring-blue-500'
                     : parseResult.isValid
                       ? 'border-green-300 focus:ring-green-500 bg-green-50'
                       : 'border-red-300 focus:ring-red-500 bg-red-50'
-                }`}
+                  }`}
               />
 
               {/* 解析状态提示 */}
               {parseResult && (
                 <div
-                  className={`mt-2 p-2 rounded-lg text-xs ${
-                    parseResult.isValid
+                  className={`mt-2 p-2 rounded-lg text-xs ${parseResult.isValid
                       ? 'bg-green-50 border border-green-200 text-green-700'
                       : 'bg-red-50 border border-red-200 text-red-700'
-                  }`}
+                    }`}
                 >
                   {parseResult.isValid ? (
                     <div className="flex items-center space-x-1">
@@ -248,14 +246,14 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
                 </div>
               )}
 
-              <p className="mt-1 text-xs text-gray-500">
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                 支持粘贴完整的 Notion 分享链接，系统会自动提取数据库 ID
               </p>
             </div>
 
             {/* API 密钥输入 */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                 Notion API 密钥 *
               </label>
               <input
@@ -263,9 +261,9 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
                 placeholder="secret_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono bg-white dark:bg-gray-800 dark:text-gray-100"
               />
-              <p className="mt-1 text-xs text-gray-500">
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                 从{' '}
                 <a
                   href="https://www.notion.so/my-integrations"
@@ -282,12 +280,12 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
 
           {/* 错误信息 */}
           {errorMessage && (
-            <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div className="p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg">
               <div className="flex items-start space-x-2">
-                <i className="fa-solid fa-exclamation-triangle text-red-500 mt-0.5"></i>
+                <i className="fa-solid fa-exclamation-triangle text-red-500 dark:text-red-400 mt-0.5"></i>
                 <div>
-                  <p className="text-red-700 text-sm font-medium">配置错误</p>
-                  <p className="text-red-600 text-sm mt-1">{errorMessage}</p>
+                  <p className="text-red-700 dark:text-red-300 text-sm font-medium">配置错误</p>
+                  <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errorMessage}</p>
                 </div>
               </div>
             </div>
@@ -296,30 +294,27 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
           {/* 连接状态 */}
           {connectionStatus !== 'idle' && (
             <div
-              className={`p-4 rounded-lg border ${
-                connectionStatus === 'success'
-                  ? 'bg-green-50 border-green-200'
-                  : 'bg-red-50 border-red-200'
-              }`}
+              className={`p-4 rounded-lg border ${connectionStatus === 'success'
+                  ? 'bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800'
+                  : 'bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800'
+                }`}
             >
               <div className="flex items-center space-x-2">
                 <i
-                  className={`fa-solid ${
-                    connectionStatus === 'success'
+                  className={`fa-solid ${connectionStatus === 'success'
                       ? 'fa-check-circle text-green-500'
                       : 'fa-times-circle text-red-500'
-                  }`}
+                    }`}
                 ></i>
                 <span
-                  className={`text-sm font-medium ${
-                    connectionStatus === 'success' ? 'text-green-700' : 'text-red-700'
-                  }`}
+                  className={`text-sm font-medium ${connectionStatus === 'success' ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'
+                    }`}
                 >
                   {connectionStatus === 'success' ? '连接成功！' : '连接失败'}
                 </span>
               </div>
               {connectionStatus === 'success' && (
-                <p className="text-green-600 text-sm mt-1">
+                <p className="text-green-600 dark:text-green-400 text-sm mt-1">
                   Notion API 连接正常，可以开始同步工作空间数据
                 </p>
               )}

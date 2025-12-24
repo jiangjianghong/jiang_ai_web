@@ -57,6 +57,10 @@ const getLocalizedErrorMessage = (error: any): string => {
     'Email already in use': '该邮箱已被使用',
     'Weak password': '密码强度不够',
     'Invalid password': '密码不正确',
+    // 身份绑定冲突
+    'Identity is already linked': '该账号已绑定到其他用户，请先登录该账号并注销后再绑定',
+    'identity is already linked to another user': '该账号已绑定到其他用户，请先登录该账号并注销后再绑定',
+    'User with this identity already exists': '该账号已绑定到其他用户，请先登录该账号并注销后再绑定',
   };
 
   // 检查是否有匹配的错误消息

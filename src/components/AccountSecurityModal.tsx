@@ -38,6 +38,11 @@ export default function AccountSecurityModal({ isOpen, onClose }: AccountSecurit
     const [emailError, setEmailError] = useState('');
     const [emailLoading, setEmailLoading] = useState(false);
 
+    // 检测用户是否有 email provider 身份（即有密码登录能力）
+    const hasEmailPassword = currentUser?.identities?.some(
+        (identity) => identity.provider === 'email'
+    ) || false;
+
     // 当 displayName 更新时，同步更新 newName
     useEffect(() => {
         setNewName(displayName || '');
@@ -376,19 +381,26 @@ export default function AccountSecurityModal({ isOpen, onClose }: AccountSecurit
                                 安全设置
                             </h3>
                             {!showChangePassword ? (
-                                <div className="flex items-center justify-between">
-                                    <span className="text-sm text-gray-700 dark:text-gray-200">登录密码</span>
-                                    <button
-                                        onClick={() => setShowChangePassword(true)}
-                                        className="text-xs text-blue-500 hover:text-blue-600"
-                                    >
-                                        修改
-                                    </button>
+                                <div className="space-y-2">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-sm text-gray-700 dark:text-gray-200">登录密码</span>
+                                        <button
+                                            onClick={() => setShowChangePassword(true)}
+                                            className="text-xs text-blue-500 hover:text-blue-600"
+                                        >
+                                            {hasEmailPassword ? '修改' : '设置'}
+                                        </button>
+                                    </div>
+                                    {!hasEmailPassword && (
+                                        <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-2 py-1.5 rounded">
+                                            💡 您通过第三方登录，尚未设置密码。建议设置密码以便使用邮箱+密码登录。
+                                        </p>
+                                    )}
                                 </div>
                             ) : (
                                 <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 space-y-2">
                                     <div className="flex items-center justify-between">
-                                        <span className="text-sm text-gray-700">修改密码</span>
+                                        <span className="text-sm text-gray-700 dark:text-gray-200">{hasEmailPassword ? '修改密码' : '设置密码'}</span>
                                         <button onClick={handleCancelChangePassword} className="text-xs text-gray-400 hover:text-gray-600">
                                             取消
                                         </button>

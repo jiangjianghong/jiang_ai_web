@@ -12,6 +12,7 @@ interface DatabaseOption {
   id: string;
   title: string;
   url: string;
+  type?: 'database' | 'page';
 }
 
 export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSettingsProps) {
@@ -249,8 +250,8 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
                       <label
                         key={db.id}
                         className={`group flex items-center p-4 rounded-xl border cursor-pointer transition-all duration-200 ${selectedDatabaseId === db.id
-                            ? 'bg-blue-50/50 dark:bg-blue-900/20 border-blue-500/50 shadow-sm'
-                            : 'border-transparent hover:bg-white/50 dark:hover:bg-gray-700/30 hover:shadow-sm'
+                          ? 'bg-blue-50/50 dark:bg-blue-900/20 border-blue-500/50 shadow-sm'
+                          : 'border-transparent hover:bg-white/50 dark:hover:bg-gray-700/30 hover:shadow-sm'
                           }`}
                       >
                         <input
@@ -260,16 +261,27 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
                           checked={selectedDatabaseId === db.id}
                           onChange={() => setSelectedDatabaseId(db.id)}
                         />
-                        <div className={`w-5 h-5 rounded-full border-2 flex-shrink-0 mr-4 flex items-center justify-center transition-colors ${selectedDatabaseId === db.id
-                            ? 'border-blue-500'
-                            : 'border-gray-300 dark:border-gray-600 group-hover:border-blue-400'
+                        <div className={`w-10 h-10 rounded-lg flex-shrink-0 mr-4 flex items-center justify-center transition-colors ${selectedDatabaseId === db.id
+                          ? 'bg-blue-500 text-white'
+                          : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/40 group-hover:text-blue-500'
                           }`}>
-                          {selectedDatabaseId === db.id && <div className="w-2.5 h-2.5 rounded-full bg-blue-500"></div>}
+                          <i className={`fa-solid ${db.type === 'page' ? 'fa-file-lines' : 'fa-database'} text-lg`}></i>
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className={`font-medium truncate transition-colors ${selectedDatabaseId === db.id ? 'text-blue-700 dark:text-blue-300' : 'text-gray-700 dark:text-gray-200'
-                            }`}>{db.title}</div>
-                          <div className="text-xs text-gray-400 dark:text-gray-500 truncate font-mono mt-0.5 opacity-60 group-hover:opacity-100 transition-opacity">ID: {db.id}</div>
+                          <div className="flex items-center gap-2">
+                            <div className={`font-medium truncate transition-colors ${selectedDatabaseId === db.id ? 'text-blue-700 dark:text-blue-300' : 'text-gray-700 dark:text-gray-200'
+                              }`}>{db.title}</div>
+                            <span className={`text-[10px] px-1.5 py-0.5 rounded border ${db.type === 'page'
+                              ? 'bg-orange-50 text-orange-600 border-orange-200 dark:bg-orange-900/20 dark:border-orange-800'
+                              : 'bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800'
+                              }`}>
+                              {db.type === 'page' ? 'Page' : 'Database'}
+                            </span>
+                          </div>
+                          <div className="text-xs text-gray-400 dark:text-gray-500 truncate font-mono mt-0.5 opacity-60 group-hover:opacity-100 transition-opacity">
+                            ID: {db.id}
+                            {db.type === 'page' && <span className="ml-2 text-orange-500"><i className="fa-solid fa-triangle-exclamation mr-1"></i>注意：这是页面，可能不包含数据</span>}
+                          </div>
                         </div>
                         <a
                           href={db.url}

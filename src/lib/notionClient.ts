@@ -113,7 +113,7 @@ export class NotionClient {
         if (this.corsProxy.includes('supabase.co') || this.corsProxy.includes('localhost:54321')) {
           const proxyUrl = this.corsProxy + endpoint;
           console.log('🚀 使用 Supabase Edge Functions 代理:', options.method || 'GET', proxyUrl);
-          console.log('🔑 认证头:', this.apiKey.substring(0, 20) + '...');
+          console.log('🔑 认证头:', authToken.substring(0, 20) + '...');
 
           const response = await fetch(proxyUrl, {
             method: options.method || 'GET',
@@ -423,16 +423,17 @@ export class NotionClient {
     }
   }
 
-  // 搜索数据库
-  async searchDatabases(): Promise<Array<{ id: string; title: string; url: string }>> {
+  // 搜索数据库和页面
+  async searchDatabases(): Promise<Array<{ id: string; title: string; url: string; type: 'database' | 'page' }>> {
     try {
       const response = await this.makeRequest('/search', {
         method: 'POST',
         body: JSON.stringify({
-          filter: {
-            value: 'database',
-            property: 'object'
-          },
+          // 移除过滤器，获取所有授权内容（页面和数据库）以帮助用户排查
+          // filter: {
+          //   value: 'database',
+          //   property: 'object'
+          // },
           sort: {
             direction: 'descending',
             timestamp: 'last_edited_time'
@@ -440,11 +441,26 @@ export class NotionClient {
         }),
       });
 
-      return response.results.map((db: any) => ({
-        id: db.id,
-        title: db.title?.[0]?.plain_text || 'Untitled',
-        url: db.url
-      }));
+      return response.results.map((item: any) => {
+        let title = 'Untitled';
+
+        if (item.object === 'database') {
+          title = item.title?.[0]?.plain_text || 'Untitled';
+        } else if (item.object === 'page' && item.properties) {
+          // 查找类型为 title 的属性
+          const titleProp = Object.values(item.properties).find((p: any) => p.type === 'title') as any;
+          if (titleProp && titleProp.title && titleProp.title.length > 0) {
+            title = titleProp.title[0].plain_text;
+          }
+        }
+
+        return {
+          id: item.id,
+          title: title,
+          url: item.url,
+          type: item.object
+        };
+      });
     } catch (error) {
       console.error('搜索数据库失败:', error);
       throw error;

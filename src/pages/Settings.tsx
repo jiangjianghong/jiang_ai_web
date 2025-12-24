@@ -500,16 +500,40 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
     return () => setIsSettingsOpen(false);
   }, [setIsSettingsOpen]);
 
-  // ESC键关闭设置页面（仅在没有子模态框打开时）
+  // ESC键关闭设置页面和键盘上下键导航（仅在没有子模态框打开时）
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // 检查是否有子模态框打开
+      const hasModalOpen = showPrivacySettings || showAccountSecurityModal || showAddCardModal ||
+        showImportConfirm || showWallpaperGallery || showPreviewModal || showUserStatsModal;
+
       if (e.key === 'Escape') {
-        // 检查是否有子模态框打开，如果有则让子模态框处理ESC
-        if (showPrivacySettings || showAccountSecurityModal || showAddCardModal ||
-          showImportConfirm || showWallpaperGallery || showPreviewModal || showUserStatsModal) {
-          return; // 让子模态框自己处理ESC关闭
+        // 如果有子模态框打开，让子模态框处理ESC
+        if (hasModalOpen) {
+          return;
         }
         onClose();
+      } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        // 如果有子模态框打开，不处理方向键
+        if (hasModalOpen) {
+          return;
+        }
+
+        // 阻止默认的滚动行为
+        e.preventDefault();
+
+        // 找到当前激活分区的索引
+        const currentIndex = SECTIONS.findIndex(s => s.id === activeSection);
+
+        if (e.key === 'ArrowDown') {
+          // 向下导航：移动到下一个分区
+          const nextIndex = (currentIndex + 1) % SECTIONS.length;
+          scrollToSection(SECTIONS[nextIndex].id);
+        } else if (e.key === 'ArrowUp') {
+          // 向上导航：移动到上一个分区
+          const prevIndex = currentIndex === 0 ? SECTIONS.length - 1 : currentIndex - 1;
+          scrollToSection(SECTIONS[prevIndex].id);
+        }
       }
     };
 
@@ -518,7 +542,7 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, [onClose, showPrivacySettings, showAccountSecurityModal, showAddCardModal,
-    showImportConfirm, showWallpaperGallery, showPreviewModal, showUserStatsModal]);
+    showImportConfirm, showWallpaperGallery, showPreviewModal, showUserStatsModal, activeSection]);
 
   const handleClose = () => {
     setIsSettingsOpen(false);
@@ -797,17 +821,6 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                 <span className="relative z-10">{section.label}</span>
               </button>
             ))}
-          </div>
-
-          {/* 底部关闭按钮 */}
-          <div className="p-4 border-t border-gray-100 dark:border-gray-800">
-            <button
-              onClick={handleClose}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-gray-500 dark:text-gray-400 hover:bg-gray-200/50 dark:hover:bg-gray-700/50 transition-colors"
-            >
-              <i className="fa-solid fa-xmark"></i>
-              <span className="text-sm">关闭</span>
-            </button>
           </div>
         </div>
 

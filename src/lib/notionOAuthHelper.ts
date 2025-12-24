@@ -73,21 +73,21 @@ export async function hasNotionAuth(): Promise<boolean> {
  */
 export async function getNotionOAuthInfo(): Promise<{
     hasToken: boolean;
-  isNot ionAuth: boolean;
-userId ?: string;
-email ?: string;
-} | null > {
+    isNotionAuth: boolean;
+    userId?: string;
+    email?: string;
+} | null> {
     try {
         const { data: { session } } = await supabase.auth.getSession();
 
-        if(!session) {
+        if (!session) {
             return {
                 hasToken: false,
                 isNotionAuth: false,
             };
         }
-    
-    const isNotionAuth = session.user?.identities?.some(
+
+        const isNotionAuth = session.user?.identities?.some(
             (identity) => identity.provider === 'notion'
         );
 
@@ -97,7 +97,7 @@ email ?: string;
             userId: session.user?.id,
             email: session.user?.email,
         };
-    } catch(error) {
+    } catch (error) {
         console.error('获取 Notion OAuth 信息失败:', error);
         return null;
     }

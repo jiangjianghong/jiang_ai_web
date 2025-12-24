@@ -181,59 +181,67 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
 
           {/* 1. 引导卡片 / 连接状态 */}
           {!isNotionConnected ? (
-            <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 rounded-2xl p-8 shadow-sm text-center">
-              <div className="w-16 h-16 mx-auto bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-2xl flex items-center justify-center mb-6 shadow-inner">
-                <i className="fa-brands fa-notion text-3xl text-gray-800 dark:text-white"></i>
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">连接 Notion 工作空间</h3>
-              <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-sm mx-auto">
-                简单两步，将您的 Notion 数据库转变为强大的个人导航站。
-              </p>
+            <div className="relative bg-gradient-to-br from-white/80 to-white/60 dark:from-gray-800/80 dark:to-gray-800/60 backdrop-blur-xl border border-white/60 dark:border-gray-600/40 rounded-2xl p-8 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.25)] dark:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)] text-center overflow-hidden group transition-all duration-300 hover:shadow-[0_25px_60px_-12px_rgba(0,0,0,0.3)] dark:hover:shadow-[0_25px_60px_-12px_rgba(0,0,0,0.6)]">
+              {/* 背景装饰光效 */}
+              <div className="absolute -top-20 -right-20 w-40 h-40 bg-gradient-to-br from-blue-400/20 to-indigo-400/20 dark:from-blue-500/10 dark:to-indigo-500/10 rounded-full blur-3xl opacity-60 group-hover:opacity-80 transition-opacity"></div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8 text-left max-w-lg mx-auto">
-                <div className="p-4 rounded-xl bg-white/50 dark:bg-gray-700/30 border border-gray-100 dark:border-gray-700/50">
-                  <div className="flex items-center mb-2">
-                    <span className="w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-600 flex items-center justify-center text-xs font-bold mr-2 text-gray-600 dark:text-gray-300">1</span>
-                    <span className="font-semibold text-gray-800 dark:text-gray-200">准备模板</span>
-                  </div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 ml-8">
-                    复制 <button onClick={() => setShowGuide(true)} className="text-blue-600 dark:text-blue-400 hover:underline">官方模板</button> 到您的 Notion
-                  </p>
+              <div className="relative z-10">
+                <div className="w-20 h-20 mx-auto bg-blue-100 dark:bg-blue-900/50 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-blue-500/20 ring-1 ring-blue-200/50 dark:ring-blue-700/30">
+                  <span className="text-4xl font-black text-blue-600 dark:text-blue-400 font-serif">N</span>
                 </div>
-                <div className="p-4 rounded-xl bg-white/50 dark:bg-gray-700/30 border border-gray-100 dark:border-gray-700/50">
-                  <div className="flex items-center mb-2">
-                    <span className="w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-600 flex items-center justify-center text-xs font-bold mr-2 text-gray-600 dark:text-gray-300">2</span>
-                    <span className="font-semibold text-gray-800 dark:text-gray-200">授权连接</span>
-                  </div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 ml-8">
-                    登录并选择刚才复制的页面
-                  </p>
-                </div>
-              </div>
+                <h3 className="text-2xl font-bold bg-gradient-to-r from-gray-900 via-gray-700 to-gray-800 dark:from-white dark:via-gray-200 dark:to-gray-300 bg-clip-text text-transparent mb-3">连接 Notion 工作空间</h3>
+                <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-sm mx-auto leading-relaxed">
+                  简单两步，将您的 Notion 数据库转变为强大的个人导航站。
+                </p>
 
-              <button
-                onClick={handleConnectNotion}
-                className="px-8 py-3 bg-gray-900 hover:bg-black text-white dark:bg-white dark:text-black dark:hover:bg-gray-100 rounded-xl font-medium transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:translate-y-0"
-              >
-                <i className="fa-brands fa-notion mr-2"></i>
-                前往 Notion 授权
-              </button>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8 text-left max-w-lg mx-auto">
+                  <div className="p-4 rounded-xl bg-white/70 dark:bg-gray-700/40 border border-gray-100/80 dark:border-gray-600/40 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5">
+                    <div className="flex items-center mb-2">
+                      <span className="w-7 h-7 rounded-lg bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center text-xs font-bold mr-2.5 text-blue-600 dark:text-blue-400 shadow-sm">1</span>
+                      <span className="font-semibold text-gray-800 dark:text-gray-200">准备模板</span>
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 ml-9">
+                      复制 <button onClick={() => setShowGuide(true)} className="text-blue-600 dark:text-blue-400 hover:underline font-medium">官方模板</button> 到您的 Notion
+                    </p>
+                  </div>
+                  <div className="p-4 rounded-xl bg-white/70 dark:bg-gray-700/40 border border-gray-100/80 dark:border-gray-600/40 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5">
+                    <div className="flex items-center mb-2">
+                      <span className="w-7 h-7 rounded-lg bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center text-xs font-bold mr-2.5 text-blue-600 dark:text-blue-400 shadow-sm">2</span>
+                      <span className="font-semibold text-gray-800 dark:text-gray-200">授权连接</span>
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 ml-9">
+                      登录并选择刚才复制的页面
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleConnectNotion}
+                  className="px-8 py-3.5 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl font-medium transition-all duration-300 shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transform hover:-translate-y-1 active:translate-y-0 active:scale-[0.98]"
+                >
+                  <i className="fa-solid fa-arrow-right mr-2"></i>
+                  前往 Notion 授权
+                </button>
+              </div>
             </div>
           ) : (
             /* 2. 数据库选择 - 只在已连接时显示 */
-            <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 rounded-2xl p-6 shadow-sm animate-fadeIn">
+            <div className="relative bg-gradient-to-br from-white/80 to-white/60 dark:from-gray-800/80 dark:to-gray-800/60 backdrop-blur-xl border border-white/60 dark:border-gray-600/40 rounded-2xl p-6 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.25)] dark:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)] overflow-hidden animate-fadeIn">
+              {/* 顶部装饰渐变条 */}
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 rounded-t-2xl"></div>
+
               <div className="flex items-center justify-between mb-6">
                 <h4 className="font-semibold text-gray-900 dark:text-white flex items-center text-lg">
-                  <span className="w-8 h-8 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 flex items-center justify-center mr-3">
+                  <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-green-400 to-emerald-500 text-white flex items-center justify-center mr-3 shadow-lg shadow-green-500/30">
                     <i className="fa-solid fa-check"></i>
                   </span>
                   选择作为数据源的页面
                 </h4>
                 <button
                   onClick={handleConnectNotion}
-                  className="text-xs text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex items-center"
+                  className="text-xs text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex items-center px-3 py-1.5 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20"
                 >
-                  <i className="fa-solid fa-sync mr-1"></i>
+                  <i className="fa-solid fa-sync mr-1.5"></i>
                   切换账号或重试
                 </button>
               </div>
@@ -245,13 +253,13 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
                 </div>
               ) : databases.length > 0 ? (
                 <div className="space-y-6">
-                  <div className="space-y-3 max-h-60 overflow-y-auto custom-scrollbar p-1">
+                  <div className="space-y-2 max-h-60 overflow-y-auto custom-scrollbar p-1">
                     {databases.map(db => (
                       <label
                         key={db.id}
-                        className={`group flex items-center p-4 rounded-xl border cursor-pointer transition-all duration-200 ${selectedDatabaseId === db.id
-                          ? 'bg-blue-50/50 dark:bg-blue-900/20 border-blue-500/50 shadow-sm'
-                          : 'border-transparent hover:bg-white/50 dark:hover:bg-gray-700/30 hover:shadow-sm'
+                        className={`group flex items-center p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${selectedDatabaseId === db.id
+                          ? 'bg-gradient-to-r from-blue-50/80 to-indigo-50/80 dark:from-blue-900/30 dark:to-indigo-900/30 border-blue-400/60 dark:border-blue-500/40 shadow-md shadow-blue-500/10 ring-1 ring-blue-400/20'
+                          : 'border-transparent hover:bg-white/70 dark:hover:bg-gray-700/40 hover:shadow-md hover:border-gray-200/50 dark:hover:border-gray-600/50'
                           }`}
                       >
                         <input
@@ -261,24 +269,24 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
                           checked={selectedDatabaseId === db.id}
                           onChange={() => setSelectedDatabaseId(db.id)}
                         />
-                        <div className={`w-10 h-10 rounded-lg flex-shrink-0 mr-4 flex items-center justify-center transition-colors ${selectedDatabaseId === db.id
-                          ? 'bg-blue-500 text-white'
-                          : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/40 group-hover:text-blue-500'
+                        <div className={`w-11 h-11 rounded-xl flex-shrink-0 mr-4 flex items-center justify-center transition-all duration-200 ${selectedDatabaseId === db.id
+                          ? 'bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30'
+                          : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 group-hover:bg-gradient-to-br group-hover:from-blue-400 group-hover:to-indigo-500 group-hover:text-white group-hover:shadow-md'
                           }`}>
                           <i className={`fa-solid ${db.type === 'page' ? 'fa-file-lines' : 'fa-database'} text-lg`}></i>
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <div className={`font-medium truncate transition-colors ${selectedDatabaseId === db.id ? 'text-blue-700 dark:text-blue-300' : 'text-gray-700 dark:text-gray-200'
+                            <div className={`font-semibold truncate transition-colors ${selectedDatabaseId === db.id ? 'text-blue-700 dark:text-blue-300' : 'text-gray-700 dark:text-gray-200'
                               }`}>{db.title}</div>
-                            <span className={`text-[10px] px-1.5 py-0.5 rounded border ${db.type === 'page'
-                              ? 'bg-orange-50 text-orange-600 border-orange-200 dark:bg-orange-900/20 dark:border-orange-800'
-                              : 'bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800'
+                            <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-medium ${db.type === 'page'
+                              ? 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400'
+                              : 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
                               }`}>
                               {db.type === 'page' ? 'Page' : 'Database'}
                             </span>
                           </div>
-                          <div className="text-xs text-gray-400 dark:text-gray-500 truncate font-mono mt-0.5 opacity-60 group-hover:opacity-100 transition-opacity">
+                          <div className="text-xs text-gray-400 dark:text-gray-500 truncate font-mono mt-1 opacity-60 group-hover:opacity-100 transition-opacity">
                             ID: {db.id}
                             {db.type === 'page' && <span className="ml-2 text-orange-500"><i className="fa-solid fa-triangle-exclamation mr-1"></i>注意：这是页面，可能不包含数据</span>}
                           </div>
@@ -287,7 +295,7 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
                           href={db.url}
                           target="_blank"
                           rel="noreferrer"
-                          className="ml-3 p-2 text-gray-300 hover:text-blue-500 dark:text-gray-600 dark:hover:text-blue-400 transition-colors rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/10"
+                          className="ml-3 p-2.5 text-gray-300 hover:text-blue-500 dark:text-gray-600 dark:hover:text-blue-400 transition-all rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:shadow-sm"
                           onClick={e => e.stopPropagation()}
                           title="在 Notion 中打开"
                         >
@@ -300,7 +308,7 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
                   <button
                     onClick={handleAutoSave}
                     disabled={isProcessing || !selectedDatabaseId}
-                    className="w-full py-3.5 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-xl font-medium transition-all shadow-lg shadow-blue-500/25 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none transform active:scale-[0.98]"
+                    className="w-full py-4 bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600 hover:from-blue-600 hover:via-blue-700 hover:to-indigo-700 text-white rounded-xl font-semibold transition-all duration-300 shadow-lg shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none transform hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99]"
                   >
                     {isProcessing ? (
                       <>
@@ -316,13 +324,17 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
                   </button>
                 </div>
               ) : (
-                <div className="text-center py-8 bg-gray-50/50 dark:bg-gray-800/30 rounded-xl border border-dashed border-gray-300 dark:border-gray-700">
-                  <p className="text-gray-600 dark:text-gray-300 mb-2">未找到可用的数据库页面</p>
-                  <p className="text-xs text-gray-500 mb-5 px-4">请确认您已经在 Notion 中允许访问该页面</p>
+                <div className="text-center py-10 bg-gradient-to-br from-gray-50/80 to-gray-100/60 dark:from-gray-800/40 dark:to-gray-800/20 rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-700">
+                  <div className="w-14 h-14 mx-auto mb-4 rounded-xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                    <i className="fa-solid fa-database text-2xl text-gray-400 dark:text-gray-500"></i>
+                  </div>
+                  <p className="text-gray-600 dark:text-gray-300 font-medium mb-2">未找到可用的数据库页面</p>
+                  <p className="text-xs text-gray-500 mb-6 px-4">请确认您已经在 Notion 中允许访问该页面</p>
                   <button
                     onClick={handleConnectNotion}
-                    className="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors shadow-sm"
+                    className="px-5 py-2.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-600 transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5"
                   >
+                    <i className="fa-solid fa-sync mr-2"></i>
                     重新授权
                   </button>
                 </div>

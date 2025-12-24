@@ -27,6 +27,17 @@ html {
   text-size-adjust: 100%;
 }
 
+/* 全局背景色 - 首屏加载优化 */
+body {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  min-height: 100vh;
+}
+
+#root {
+  background: transparent;
+  min-height: 100vh;
+}
+
 /* 全局兼容性样式 */
 * {
   user-select: text;

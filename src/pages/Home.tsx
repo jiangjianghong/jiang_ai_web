@@ -62,7 +62,6 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
 
   const [bgImage, setBgImage] = useState('');
   const [bgOriginalUrl, setBgOriginalUrl] = useState<string | undefined>(); // 原始URL用于收藏检测
-  const [bgImageLoaded, setBgImageLoaded] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showAddCardModal, setShowAddCardModal] = useState(false);
   const [mousePosition, setMousePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -172,7 +171,6 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
     const loadWallpaper = async () => {
       try {
         logger.debug('🖼️ 开始加载壁纸，分辨率:', wallpaperResolution);
-        setBgImageLoaded(false);
 
         // 调用壁纸服务获取壁纸（日期检测和缓存逻辑在服务中统一处理）
         const result = await optimizedWallpaperService.getWallpaper(wallpaperResolution);
@@ -184,7 +182,6 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
           });
           setBgImage(result.url);
           setBgOriginalUrl(result.originalUrl); // 保存原始 URL 用于收藏检测
-          setBgImageLoaded(true);
 
           // 智能遮罩模式：分析壁纸颜色
           if (darkOverlayMode === 'smart') {
@@ -208,13 +205,11 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
           logger.warn('❌ 无法获取壁纸');
           setBgImage('');
           setBgOriginalUrl(undefined);
-          setBgImageLoaded(true);
         }
       } catch (error) {
         logger.warn('获取壁纸失败:', error);
         setBgImage('');
         setBgOriginalUrl(undefined);
-        setBgImageLoaded(true);
       }
     };
 
@@ -389,12 +384,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
       {/* 系统公告横幅 */}
       <AnnouncementBanner />
 
-      {/* 壁纸加载前的静态背景 */}
-      {!bgImageLoaded && (
-        <div
-          className="fixed top-0 left-0 w-full h-full -z-10 bg-slate-800"
-        />
-      )}
+
 
       {/* 壁纸背景层 - 响应式优化 */}
       <div
@@ -404,29 +394,15 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
           backgroundSize: 'cover',
           backgroundPosition: isMobile ? 'center center' : 'center top',
           backgroundRepeat: 'no-repeat',
-          opacity: bgImageLoaded ? 1 : 0,
           transform:
             !isSettingsOpen && !isSearchFocused && parallaxEnabled && !isMobile && mousePosition
               ? `translate(${mousePosition.x * 0.02}px, ${mousePosition.y * 0.02}px) scale(1.05)`
               : 'translate(0px, 0px) scale(1)',
-          transition: 'opacity 1s ease-out, transform 0.3s ease-out',
+          transition: 'transform 0.3s ease-out',
         }}
       />
 
-      {/* 渐变遮罩层 - 响应式调整 */}
-      {bgImage && (
-        <div
-          className="fixed top-0 left-0 w-full h-full -z-10"
-          style={{
-            background: isMobile
-              ? 'linear-gradient(to bottom, rgba(30, 41, 59, 0.6) 0%, rgba(30, 41, 59, 0.4) 50%, rgba(30, 41, 59, 0.2) 100%)'
-              : 'linear-gradient(to bottom, rgba(30, 41, 59, 0.7) 0%, rgba(30, 41, 59, 0.3) 50%, rgba(30, 41, 59, 0.1) 100%)',
-            opacity: bgImageLoaded ? 0 : 1,
-            transition: 'opacity 1.5s ease-out',
-            pointerEvents: 'none',
-          }}
-        />
-      )}
+
 
       {/* 黑色遮罩层 - 暗角滤镜效果 */}
       {bgImage && (darkOverlayMode === 'always' || (darkOverlayMode === 'smart' && smartOverlayNeeded)) && (
@@ -444,17 +420,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
       {/* 雪花氛围效果 - 仅在开关开启且处于冬季时显示 */}
       {atmosphereEnabled && isWinterSeason() && <SnowEffect particleCount={atmosphereParticleCount} />}
 
-      {/* 壁纸加载指示器 - 响应式位置 */}
-      {!bgImageLoaded && bgImage && (
-        <div
-          className={`fixed ${isMobile ? 'top-2 left-2' : 'top-4 left-4'} z-40 bg-black/30 backdrop-blur-sm rounded-lg px-4 py-2`}
-        >
-          <div className="text-white/90 text-sm font-medium flex items-center space-x-2">
-            <div className="animate-pulse rounded-full h-2 w-2 bg-white/70"></div>
-            <span className={isMobile ? 'text-xs' : 'text-sm'}>壁纸加载中</span>
-          </div>
-        </div>
-      )}
+
 
       <div className={classes.container}>
         {/* SEO 导航 - 视觉上隐藏但对搜索引擎可见 */}

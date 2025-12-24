@@ -19,6 +19,7 @@ interface AuthContextType {
   sendVerificationEmail: () => Promise<void>;
   reloadUser: () => Promise<void>;
   updatePassword: (newPassword: string) => Promise<void>;
+  updateEmail: (newEmail: string) => Promise<void>; // 修改主邮箱
   resetPasswordForEmail: (email: string) => Promise<void>;
   getPrimaryEmail: () => string | null; // 获取主邮箱（优先 email provider）
   loading: boolean;
@@ -483,6 +484,39 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
+  // 更改主邮箱
+  const updateEmail = async (newEmail: string) => {
+    try {
+      clearError();
+
+      if (!currentUser) {
+        throw new Error('请先登录');
+      }
+
+      if (!newEmail || !newEmail.includes('@')) {
+        throw new Error('请输入有效的邮箱地址');
+      }
+
+      // 检查是否和当前邮箱相同
+      if (newEmail.toLowerCase() === currentUser.email?.toLowerCase()) {
+        throw new Error('新邮箱与当前邮箱相同');
+      }
+
+      const { error } = await supabase.auth.updateUser({
+        email: newEmail,
+      });
+
+      if (error) throw error;
+
+      setSuccessMessage('✅ 验证邮件已发送到新邮箱，请点击邮件中的链接确认更改');
+      setTimeout(() => setSuccessMessage(null), 8000);
+    } catch (err: any) {
+      const message = getLocalizedErrorMessage(err);
+      setError(message);
+      throw new Error(message);
+    }
+  };
+
   useEffect(() => {
     // 获取初始会话
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -640,6 +674,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     sendVerificationEmail,
     reloadUser,
     updatePassword,
+    updateEmail,
     resetPasswordForEmail,
     getPrimaryEmail,
     loading,

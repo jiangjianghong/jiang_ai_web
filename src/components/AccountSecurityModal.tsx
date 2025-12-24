@@ -10,7 +10,7 @@ interface AccountSecurityModalProps {
 }
 
 export default function AccountSecurityModal({ isOpen, onClose }: AccountSecurityModalProps) {
-    const { currentUser, updatePassword, linkWithGoogle, linkWithGithub, linkWithNotion, unlinkIdentity, deleteAccount, getPrimaryEmail } = useAuth();
+    const { currentUser, updatePassword, updateEmail, linkWithGoogle, linkWithGithub, linkWithNotion, unlinkIdentity, deleteAccount, getPrimaryEmail } = useAuth();
     const { displayName, updateDisplayName, avatarUrl, updateAvatar } = useUserProfile();
 
     // 使用 getPrimaryEmail 确保绑定 OAuth 后显示的主邮箱不变
@@ -32,6 +32,12 @@ export default function AccountSecurityModal({ isOpen, onClose }: AccountSecurit
     const [passwordError, setPasswordError] = useState('');
     const [passwordLoading, setPasswordLoading] = useState(false);
 
+    // 邮箱修改状态
+    const [showChangeEmail, setShowChangeEmail] = useState(false);
+    const [newEmail, setNewEmail] = useState('');
+    const [emailError, setEmailError] = useState('');
+    const [emailLoading, setEmailLoading] = useState(false);
+
     // 当 displayName 更新时，同步更新 newName
     useEffect(() => {
         setNewName(displayName || '');
@@ -46,12 +52,44 @@ export default function AccountSecurityModal({ isOpen, onClose }: AccountSecurit
         setNewPassword('');
         setConfirmPassword('');
         setPasswordError('');
+        setShowChangeEmail(false);
+        setNewEmail('');
+        setEmailError('');
     };
 
     // 关闭弹窗
     const handleClose = () => {
         resetFormState();
         onClose();
+    };
+
+    // 处理邮箱修改
+    const handleChangeEmail = async () => {
+        setEmailError('');
+
+        if (!newEmail || !newEmail.includes('@')) {
+            setEmailError('请输入有效的邮箱地址');
+            return;
+        }
+
+        setEmailLoading(true);
+        try {
+            await updateEmail(newEmail);
+            setShowChangeEmail(false);
+            setNewEmail('');
+            // 成功提示由 AuthContext 的 successMessage 处理
+        } catch (error) {
+            setEmailError((error as Error).message || '修改失败，请重试');
+        } finally {
+            setEmailLoading(false);
+        }
+    };
+
+    // 取消邮箱修改
+    const handleCancelChangeEmail = () => {
+        setNewEmail('');
+        setEmailError('');
+        setShowChangeEmail(false);
     };
 
     // ESC键关闭弹窗
@@ -378,6 +416,46 @@ export default function AccountSecurityModal({ isOpen, onClose }: AccountSecurit
                                         className="w-full py-1.5 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 text-white rounded text-xs transition-colors"
                                     >
                                         {passwordLoading ? '修改中...' : '确认修改'}
+                                    </button>
+                                </div>
+                            )}
+
+                            {/* 修改邮箱 */}
+                            {!showChangeEmail ? (
+                                <div className="flex items-center justify-between mt-2">
+                                    <span className="text-sm text-gray-700 dark:text-gray-200">主邮箱地址</span>
+                                    <button
+                                        onClick={() => setShowChangeEmail(true)}
+                                        className="text-xs text-blue-500 hover:text-blue-600"
+                                    >
+                                        修改
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 space-y-2 mt-2">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-sm text-gray-700 dark:text-gray-200">修改邮箱</span>
+                                        <button onClick={handleCancelChangeEmail} className="text-xs text-gray-400 hover:text-gray-600">
+                                            取消
+                                        </button>
+                                    </div>
+                                    <p className="text-xs text-gray-500">修改后需要验证新邮箱才能生效</p>
+                                    {emailError && (
+                                        <p className="text-xs text-red-500">{emailError}</p>
+                                    )}
+                                    <input
+                                        type="email"
+                                        value={newEmail}
+                                        onChange={(e) => setNewEmail(e.target.value)}
+                                        className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white dark:bg-gray-700 dark:text-gray-100"
+                                        placeholder="请输入新邮箱地址"
+                                    />
+                                    <button
+                                        onClick={handleChangeEmail}
+                                        disabled={emailLoading || !newEmail}
+                                        className="w-full py-1.5 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 text-white rounded text-xs transition-colors"
+                                    >
+                                        {emailLoading ? '发送中...' : '发送验证邮件'}
                                     </button>
                                 </div>
                             )}

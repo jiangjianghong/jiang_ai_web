@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
 import { workspaceManager } from '@/lib/notionClient';
+import { getNotionOAuthToken, hasNotionAuth } from '@/lib/notionOAuthHelper';
 
 interface WorkspaceItem {
   id: string;
@@ -16,7 +17,8 @@ interface WorkspaceItem {
 }
 
 interface WorkspaceConfig {
-  apiKey: string;
+  mode: 'api_key' | 'oauth';
+  apiKey?: string;
   databaseId: string;
   corsProxy?: string;
   lastConfigured: string;
@@ -73,24 +75,27 @@ interface WorkspaceContextType {
   setIsWorkspaceOpen: (open: boolean) => void;
   syncWorkspaceData: () => Promise<void>;
   configureNotion: (apiKey: string, databaseId: string, corsProxy?: string) => void;
+  configureWithOAuth: (databaseId: string, corsProxy?: string) => Promise<void>;
   testConnection: () => Promise<boolean>;
   clearConfiguration: () => void;
   refreshItems: () => Promise<void>;
   getConfiguration: () => WorkspaceConfig | null;
-  
+  hasNotionOAuth: () => Promise<boolean>;
+  searchDatabases: () => Promise<Array<{ id: string; title: string; url: string }>>;
+
   // 视图操作
   setViewType: (type: ViewType) => void;
-  
+
   // 筛选操作
   setSelectedCategory: (category: string) => void;
   setSearchQuery: (query: string) => void;
   clearFilters: () => void;
-  
+
   // 键盘导航操作
   setFocusedItemIndex: (index: number) => void;
   moveFocusUp: () => void;
   moveFocusDown: () => void;
-  
+
   // 工具方法
   openItem: (item: WorkspaceItem) => void;
   copyItemUrl: (item: WorkspaceItem) => Promise<void>;
@@ -117,19 +122,19 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       return 'list';
     }
   });
-  
+
   // 筛选状态
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [searchSuggestions, setSearchSuggestions] = useState<SearchSuggestion[]>([]);
-  
+
   // 键盘导航状态
   const [focusedItemIndex, setFocusedItemIndex] = useState<number>(-1);
 
   // 生成分类信息
   const categories: CategoryInfo[] = useMemo(() => {
     const categoryMap = new Map<string, number>();
-    
+
     workspaceItems.forEach(item => {
       const category = item.category || 'Default';
       categoryMap.set(category, (categoryMap.get(category) || 0) + 1);
@@ -240,6 +245,38 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       setError(error instanceof Error ? error.message : '配置失败');
       setIsConfigured(false);
+    }
+  };
+
+  // 配置 Notion 连接 (OAuth 模式)
+  const configureWithOAuth = async (databaseId: string, corsProxy?: string) => {
+    try {
+      const hasOAuth = await hasNotionAuth();
+      if (!hasOAuth) {
+        throw new Error('请先使用 Notion 登录');
+      }
+      workspaceManager.configureWithOAuth(getNotionOAuthToken, databaseId, corsProxy);
+      setIsConfigured(true);
+      setError(null);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : '配置失败');
+      setIsConfigured(false);
+      throw error;
+    }
+  };
+
+  // 检查是否有 Notion OAuth 认证
+  const checkHasNotionOAuth = async (): Promise<boolean> => {
+    return await hasNotionAuth();
+  };
+
+  // 搜索数据库
+  const searchDatabases = async () => {
+    try {
+      return await workspaceManager.searchDatabases();
+    } catch (error) {
+      console.error('搜索数据库失败:', error);
+      throw error;
     }
   };
 
@@ -361,16 +398,16 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 
     // 视图状态
     viewType,
-    
+
     // 筛选状态
     selectedCategory,
     searchQuery,
     searchSuggestions,
-    
+
     // 派生状态
     filteredItems,
     categories,
-    
+
     // 键盘导航状态
     focusedItemIndex,
 
@@ -378,24 +415,27 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     setIsWorkspaceOpen,
     syncWorkspaceData,
     configureNotion,
+    configureWithOAuth,
     testConnection,
     clearConfiguration,
     refreshItems,
     getConfiguration: () => workspaceManager.getConfig(),
-    
+    hasNotionOAuth: checkHasNotionOAuth,
+    searchDatabases,
+
     // 视图操作
     setViewType,
-    
+
     // 筛选操作
     setSelectedCategory,
     setSearchQuery,
     clearFilters,
-    
+
     // 键盘导航操作
     setFocusedItemIndex,
     moveFocusUp,
     moveFocusDown,
-    
+
     // 工具方法
     openItem,
     copyItemUrl,

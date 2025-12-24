@@ -1409,11 +1409,13 @@ function SearchBarComponent(props: SearchBarProps = {}) {
         }
       }
 
-      // 检测Help相关输入（支持中英文）
+      // Detect Help related inputs (support Chinese and English)
       if (queryLower === 'help' || queryLower === '帮助' ||
         queryLower === '帮助页面' || queryLower === '帮助界面') {
-        // 打开帮助页面
-        openUrl('/help/');
+        // Open Workspace Settings in guide mode
+        if (onOpenSettings) {
+          onOpenSettings();
+        }
         setSearchQuery('');
         setShowSuggestions(false);
         setWebsiteSuggestions([]);

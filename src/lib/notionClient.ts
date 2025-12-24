@@ -37,14 +37,31 @@ interface WorkspaceItem {
 }
 
 export class NotionClient {
-  private apiKey: string;
+  private apiKey?: string;
   private baseUrl = 'https://api.notion.com/v1';
   private corsProxy: string;
+  private useOAuth: boolean;
+  private getOAuthToken?: () => Promise<string | null>;
 
-  constructor(apiKey: string, corsProxy?: string) {
-    this.apiKey = apiKey;
-    // 默认使用 Supabase Edge Functions 代理
-    this.corsProxy = corsProxy || this.getDefaultSupabaseProxy();
+  constructor(
+    config: string | {
+      apiKey?: string;
+      corsProxy?: string;
+      useOAuth?: boolean;
+      getOAuthToken?: () => Promise<string | null>;
+    }
+  ) {
+    // 兼容旧的字符串参数形式
+    if (typeof config === 'string') {
+      this.apiKey = config;
+      this.useOAuth = false;
+      this.corsProxy = this.getDefaultSupabaseProxy();
+    } else {
+      this.apiKey = config.apiKey;
+      this.useOAuth = config.useOAuth || false;
+      this.getOAuthToken = config.getOAuthToken;
+      this.corsProxy = config.corsProxy || this.getDefaultSupabaseProxy();
+    }
   }
 
   // 获取默认的 Supabase 代理 URL
@@ -56,13 +73,37 @@ export class NotionClient {
     return ''; // 如果没有配置 Supabase URL，则使用公共代理
   }
 
+  // 获取认证 Token（优先使用 OAuth，降级到 API Key）
+  private async getAuthToken(): Promise<string> {
+    // 优先使用 OAuth Token
+    if (this.useOAuth && this.getOAuthToken) {
+      const oauthToken = await this.getOAuthToken();
+      if (oauthToken) {
+        console.log('✅ 使用 Notion OAuth Token');
+        return oauthToken;
+      }
+      console.warn('⚠️ 无法获取 OAuth Token，尝试使用 API Key');
+    }
+
+    // 降级到 API Key
+    if (this.apiKey) {
+      console.log('🔑 使用 Notion API Key');
+      return this.apiKey;
+    }
+
+    throw new Error('未配置 API Key 且无法获取 OAuth Token，请先登录或配置 API Key');
+  }
+
   private async makeRequest(endpoint: string, options: RequestInit = {}): Promise<any> {
     const targetUrl = this.baseUrl + endpoint;
 
+    // 获取认证 Token
+    const authToken = await this.getAuthToken();
+
     console.log('🔍 Notion API 请求详情:');
     console.log('- 目标URL:', targetUrl);
-    console.log('- 使用智能代理:', !this.corsProxy);
-    console.log('- API Key前缀:', this.apiKey.substring(0, 15) + '...');
+    console.log('- 认证方式:', this.useOAuth ? 'OAuth Token' : 'API Key');
+    console.log('- Token前缀:', authToken.substring(0, 15) + '...');
     console.log('- 请求方法:', options.method || 'GET');
 
     // 优先使用 Supabase Edge Functions 代理
@@ -77,9 +118,9 @@ export class NotionClient {
           const response = await fetch(proxyUrl, {
             method: options.method || 'GET',
             headers: {
-              Authorization: this.apiKey.startsWith('Bearer ')
-                ? this.apiKey
-                : `Bearer ${this.apiKey}`,
+              Authorization: authToken.startsWith('Bearer ')
+                ? authToken
+                : `Bearer ${authToken}`,
               'Content-Type': 'application/json',
               'Notion-Version': '2022-06-28',
             },
@@ -184,7 +225,7 @@ export class NotionClient {
           const response = await fetch(proxyUrl, {
             method: options.method || 'GET',
             headers: {
-              Authorization: `Bearer ${this.apiKey}`,
+              Authorization: `Bearer ${authToken}`,
               'Content-Type': 'application/json',
               'Notion-Version': '2022-06-28',
             },
@@ -323,9 +364,9 @@ export class NotionClient {
           if (!value) return '';
           const cleanedValue = value.trim();
           // 过滤常见的无效值
-          if (cleanedValue.toLowerCase() === 'null' || 
-              cleanedValue.toLowerCase() === 'undefined' ||
-              cleanedValue === '') {
+          if (cleanedValue.toLowerCase() === 'null' ||
+            cleanedValue.toLowerCase() === 'undefined' ||
+            cleanedValue === '') {
             return '';
           }
           return cleanedValue;
@@ -381,6 +422,34 @@ export class NotionClient {
       return false;
     }
   }
+
+  // 搜索数据库
+  async searchDatabases(): Promise<Array<{ id: string; title: string; url: string }>> {
+    try {
+      const response = await this.makeRequest('/search', {
+        method: 'POST',
+        body: JSON.stringify({
+          filter: {
+            value: 'database',
+            property: 'object'
+          },
+          sort: {
+            direction: 'descending',
+            timestamp: 'last_edited_time'
+          }
+        }),
+      });
+
+      return response.results.map((db: any) => ({
+        id: db.id,
+        title: db.title?.[0]?.plain_text || 'Untitled',
+        url: db.url
+      }));
+    } catch (error) {
+      console.error('搜索数据库失败:', error);
+      throw error;
+    }
+  }
 }
 
 // 工作空间数据管理
@@ -393,15 +462,43 @@ export class WorkspaceManager {
     this.loadConfig();
   }
 
-  // 配置Notion连接
+  // 配置 Notion 连接 (API Key 模式)
   configureNotion(apiKey: string, databaseId: string, corsProxy?: string) {
     // 如果没有指定代理，使用默认的 Supabase 代理
     const finalProxy = corsProxy || this.getDefaultSupabaseProxy();
-    this.notionClient = new NotionClient(apiKey, finalProxy);
+    this.notionClient = new NotionClient({
+      apiKey,
+      corsProxy: finalProxy,
+      useOAuth: false,
+    });
 
     // 保存配置
     const config = {
+      mode: 'api_key' as const,
       apiKey,
+      databaseId,
+      corsProxy: finalProxy,
+      lastConfigured: new Date().toISOString(),
+    };
+    localStorage.setItem(this.configKey, JSON.stringify(config));
+  }
+
+  // 配置 Notion 连接 (OAuth 模式)
+  configureWithOAuth(
+    getOAuthToken: () => Promise<string | null>,
+    databaseId: string,
+    corsProxy?: string
+  ) {
+    const finalProxy = corsProxy || this.getDefaultSupabaseProxy();
+    this.notionClient = new NotionClient({
+      useOAuth: true,
+      getOAuthToken,
+      corsProxy: finalProxy,
+    });
+
+    // 保存配置（不保存 OAuth token，每次从 session 获取）
+    const config = {
+      mode: 'oauth' as const,
       databaseId,
       corsProxy: finalProxy,
       lastConfigured: new Date().toISOString(),
@@ -423,12 +520,29 @@ export class WorkspaceManager {
     try {
       const config = localStorage.getItem(this.configKey);
       if (config) {
-        const { apiKey, databaseId, corsProxy } = JSON.parse(config);
-        if (apiKey && databaseId) {
-          // 如果没有保存的代理配置，使用默认的 Supabase 代理
-          const finalProxy = corsProxy || this.getDefaultSupabaseProxy();
-          this.notionClient = new NotionClient(apiKey, finalProxy);
-          return { apiKey, databaseId, corsProxy: finalProxy };
+        const parsedConfig = JSON.parse(config);
+        const { mode, apiKey, databaseId, corsProxy } = parsedConfig;
+
+        if (!databaseId) {
+          return null;
+        }
+
+        // 根据模式初始化 NotionClient
+        const finalProxy = corsProxy || this.getDefaultSupabaseProxy();
+
+        if (mode === 'oauth') {
+          // OAuth 模式：需要在使用时动态获取 token
+          // 暂时不初始化 client，在需要时通过 configureWithOAuth 配置
+          console.log('检测到 OAuth 配置，需要在使用时重新配置');
+          return { mode, databaseId, corsProxy: finalProxy };
+        } else if (apiKey) {
+          // API Key 模式
+          this.notionClient = new NotionClient({
+            apiKey,
+            corsProxy: finalProxy,
+            useOAuth: false,
+          });
+          return { mode: 'api_key', apiKey, databaseId, corsProxy: finalProxy };
         }
       }
     } catch (error) {
@@ -499,6 +613,15 @@ export class WorkspaceManager {
       throw error;
     }
   }
+
+  // 搜索数据库
+  async searchDatabases(): Promise<Array<{ id: string; title: string; url: string }>> {
+    if (!this.notionClient) {
+      throw new Error('Notion客户端未初始化');
+    }
+    return await this.notionClient.searchDatabases();
+  }
+
 
   // 缓存工作空间项目
   private cacheWorkspaceItems(items: WorkspaceItem[]) {

@@ -1,355 +1,322 @@
 import { useState, useEffect } from 'react';
 import { useWorkspace } from '@/contexts/WorkspaceContext';
-import { parseNotionUrl, isValidDatabaseId } from '@/lib/notionUrlParser';
+import { useAuth } from '@/contexts/SupabaseAuthContext';
+import NotionGuide from './NotionGuide';
 
 interface WorkspaceSettingsProps {
   onClose: () => void;
   onConfigured: () => void;
 }
 
+interface DatabaseOption {
+  id: string;
+  title: string;
+  url: string;
+}
+
 export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSettingsProps) {
-  const { configureNotion, testConnection, clearConfiguration, isConfigured, getConfiguration } =
-    useWorkspace();
+  const {
+    configureWithOAuth,
+    testConnection,
+    clearConfiguration,
+    isConfigured,
+    getConfiguration,
+    hasNotionOAuth,
+    searchDatabases
+  } = useWorkspace();
 
-  const [apiKey, setApiKey] = useState('');
-  const [databaseId, setDatabaseId] = useState('');
-  const [databaseIdInput, setDatabaseIdInput] = useState(''); // 用户输入的原始内容
-  const [parseResult, setParseResult] = useState<{ isValid: boolean; error?: string } | null>(null);
-  const [isTestingConnection, setIsTestingConnection] = useState(false);
-  const [connectionStatus, setConnectionStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const { loginWithNotion } = useAuth();
+
+  // 状态
+  const [databases, setDatabases] = useState<DatabaseOption[]>([]);
+  const [selectedDatabaseId, setSelectedDatabaseId] = useState('');
+  const [isLoadingDatabases, setIsLoadingDatabases] = useState(false);
+  const [isNotionConnected, setIsNotionConnected] = useState(false);
+
+  // 通用状态
+  const [isProcessing, setIsProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [showGuide, setShowGuide] = useState(false);
 
-  // 加载现有配置
+  // 初始化检查
   useEffect(() => {
+    checkNotionConnection();
+
+    // 加载已有配置
     const config = getConfiguration();
-    if (config) {
-      // 自动填充上次保存的配置
-      setApiKey(config.apiKey || '');
-      const savedDatabaseId = config.databaseId || '';
-      setDatabaseId(savedDatabaseId);
-      setDatabaseIdInput(savedDatabaseId); // 显示保存的数据库 ID
-      if (savedDatabaseId) {
-        setParseResult({ isValid: true });
+    if (config && config.mode !== 'api_key') {
+      setSelectedDatabaseId(config.databaseId || '');
+    }
+  }, []);
+
+  // 检查 OAuth 连接并加载数据库
+  const checkNotionConnection = async () => {
+    try {
+      const connected = await hasNotionOAuth();
+      setIsNotionConnected(connected);
+
+      if (connected) {
+        loadDatabases();
       }
-      console.log('✅ 已加载保存的工作空间配置');
-    }
-  }, [getConfiguration]);
-
-  // 处理数据库 ID 输入变化
-  const handleDatabaseIdChange = (input: string) => {
-    setDatabaseIdInput(input);
-
-    if (!input.trim()) {
-      setDatabaseId('');
-      setParseResult(null);
-      return;
-    }
-
-    const result = parseNotionUrl(input);
-    setParseResult({
-      isValid: result.isValid,
-      error: result.error,
-    });
-
-    if (result.isValid && result.databaseId) {
-      setDatabaseId(result.databaseId);
-    } else {
-      setDatabaseId('');
+    } catch (error) {
+      console.error('检查 Notion 连接失败:', error);
     }
   };
 
-  // 验证表单
-  const isFormValid =
-    apiKey.trim().length > 0 && databaseId.length > 0 && isValidDatabaseId(databaseId);
+  // 加载数据库列表
+  const loadDatabases = async () => {
+    setIsLoadingDatabases(true);
+    setErrorMessage('');
+    try {
+      const dbs = await searchDatabases();
+      setDatabases(dbs);
 
-  // 处理连接测试
-  const handleTestConnection = async () => {
-    if (!isFormValid) {
-      setErrorMessage('请填写必要的配置信息');
+      // 如果只有一个数据库且未选中，自动选中
+      if (dbs.length === 1 && !selectedDatabaseId) {
+        setSelectedDatabaseId(dbs[0].id);
+      }
+    } catch (error) {
+      console.error('加载数据库失败:', error);
+    } finally {
+      setIsLoadingDatabases(false);
+    }
+  };
+
+  // 处理 OAuth 登录
+  const handleConnectNotion = async () => {
+    try {
+      await loginWithNotion();
+    } catch (error) {
+      setErrorMessage('去 Notion 登录失败，请重试');
+    }
+  };
+
+  // 处理自动保存 (OAuth)
+  const handleAutoSave = async () => {
+    if (!selectedDatabaseId) {
+      setErrorMessage('请选择一个数据库');
       return;
     }
 
-    setIsTestingConnection(true);
-    setConnectionStatus('idle');
+    setIsProcessing(true);
     setErrorMessage('');
 
     try {
-      // 先配置连接
-      configureNotion(apiKey.trim(), databaseId, undefined);
+      await configureWithOAuth(selectedDatabaseId);
 
       // 测试连接
-      const isConnected = await testConnection();
-
-      if (isConnected) {
-        setConnectionStatus('success');
+      const success = await testConnection();
+      if (success) {
+        onConfigured();
       } else {
-        setConnectionStatus('error');
-        setErrorMessage('连接失败，请检查 API 密钥和数据库 ID 是否正确');
+        setErrorMessage('连接测试失败，请重试');
       }
     } catch (error) {
-      setConnectionStatus('error');
-      setErrorMessage(error instanceof Error ? error.message : '连接测试失败');
+      setErrorMessage(error instanceof Error ? error.message : '配置失败');
     } finally {
-      setIsTestingConnection(false);
-    }
-  };
-
-  // 保存配置
-  const handleSave = async () => {
-    if (!isFormValid) {
-      setErrorMessage('请填写必要的配置信息');
-      return;
-    }
-
-    try {
-      configureNotion(apiKey.trim(), databaseId, undefined);
-      onConfigured();
-    } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : '保存配置失败');
+      setIsProcessing(false);
     }
   };
 
   // 清除配置
-  const handleClearConfiguration = () => {
-    if (confirm('确定要清除所有工作空间配置吗？这将删除缓存的数据。')) {
+  const handleClear = () => {
+    if (confirm('确定要清除所有配置吗？')) {
       clearConfiguration();
-      setApiKey('');
-      setDatabaseId('');
-      setDatabaseIdInput('');
-      setParseResult(null);
-      setConnectionStatus('idle');
-      setErrorMessage('');
+      setSelectedDatabaseId('');
+      window.location.reload();
     }
   };
 
+  if (showGuide) {
+    return <NotionGuide onClose={() => setShowGuide(false)} />;
+  }
+
   return (
-    <div className="h-full flex flex-col select-none" style={{ userSelect: 'none' }}>
-      {/* 设置头部 */}
-      <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+    <div className="h-full flex flex-col select-none">
+      {/* 头部导航 - 透明背景 */}
+      <div className="flex-shrink-0 px-6 pt-2 pb-4">
         <div className="flex items-center justify-between">
+          <button
+            onClick={onClose}
+            className="group flex items-center space-x-2 text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+          >
+            <div className="w-8 h-8 rounded-full bg-gray-100/50 dark:bg-gray-800/50 group-hover:bg-gray-200 dark:group-hover:bg-gray-700 flex items-center justify-center transition-colors">
+              <i className="fa-solid fa-arrow-left text-sm"></i>
+            </div>
+            <span className="font-medium">返回列表</span>
+          </button>
+
           <div className="flex items-center space-x-3">
             <button
-              onClick={onClose}
-              className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+              onClick={() => setShowGuide(true)}
+              className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 px-3 py-1.5 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
             >
-              <i className="fa-solid fa-arrow-left text-sm"></i>
+              <i className="fa-solid fa-book-open mr-1.5"></i>
+              设置指南
             </button>
-            <div>
-              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">工作空间设置</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">配置 Notion 数据库连接</p>
-            </div>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <a
-              href="/help/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-3 py-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors text-sm font-medium flex items-center space-x-1"
-            >
-              <i className="fa-solid fa-book text-xs"></i>
-              <span>设置指南</span>
-            </a>
-
             {isConfigured && (
               <button
-                onClick={handleClearConfiguration}
-                className="px-3 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors text-sm font-medium"
+                onClick={handleClear}
+                className="text-sm font-medium text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 px-3 py-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
               >
-                清除配置
+                断开连接
               </button>
             )}
           </div>
         </div>
       </div>
 
-      {/* 设置内容 */}
-      <div className="flex-1 overflow-y-auto p-6">
+      {/* 内容区域 - 滚动 */}
+      <div className="flex-1 overflow-y-auto px-6 pb-6">
         <div className="max-w-2xl mx-auto space-y-6">
-          {/* 配置说明 */}
-          {!isConfigured && (
-            <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
-              <div className="flex items-start space-x-3">
-                <i className="fa-solid fa-rocket text-blue-500 dark:text-blue-400 mt-0.5"></i>
-                <div className="flex-1">
-                  <h4 className="font-medium text-blue-900 dark:text-blue-300 mb-2">首次配置 Notion 工作空间</h4>
-                  <p className="text-sm text-blue-800 dark:text-blue-400 mb-3">
-                    需要创建 Notion Integration 并获取 API 密钥。我们为您准备了详细的设置指南。
-                  </p>
-                  <a
-                    href="/help/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center space-x-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-                  >
-                    <i className="fa-solid fa-book text-xs"></i>
-                    <span>查看完整设置指南</span>
-                  </a>
-                </div>
-              </div>
-            </div>
-          )}
 
-          {isConfigured && (
-            <div className="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-xl p-4">
-              <div className="flex items-center space-x-3">
-                <i className="fa-solid fa-check-circle text-green-500 dark:text-green-400"></i>
-                <div>
-                  <h4 className="font-medium text-green-900 dark:text-green-300">工作空间已配置</h4>
-                  <p className="text-sm text-green-800 dark:text-green-400 mt-1">
-                    您可以修改下方的配置信息或重新测试连接。
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* 基础配置 */}
-          <div className="space-y-4">
-            <h4 className="font-medium text-gray-900 dark:text-gray-100">基础配置</h4>
-
-            {/* 数据库 ID 输入 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">数据库 ID *</label>
-              <input
-                type="text"
-                value={databaseIdInput}
-                onChange={(e) => handleDatabaseIdChange(e.target.value)}
-                placeholder="粘贴 Notion 分享链接或数据库 ID"
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent text-sm ${parseResult === null
-                    ? 'border-gray-300 focus:ring-blue-500'
-                    : parseResult.isValid
-                      ? 'border-green-300 focus:ring-green-500 bg-green-50'
-                      : 'border-red-300 focus:ring-red-500 bg-red-50'
-                  }`}
-              />
-
-              {/* 解析状态提示 */}
-              {parseResult && (
-                <div
-                  className={`mt-2 p-2 rounded-lg text-xs ${parseResult.isValid
-                      ? 'bg-green-50 border border-green-200 text-green-700'
-                      : 'bg-red-50 border border-red-200 text-red-700'
-                    }`}
-                >
-                  {parseResult.isValid ? (
-                    <div className="flex items-center space-x-1">
-                      <i className="fa-solid fa-check-circle"></i>
-                      <span>✅ 已成功提取数据库 ID: {databaseId}</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center space-x-1">
-                      <i className="fa-solid fa-exclamation-triangle"></i>
-                      <span>❌ {parseResult.error}</span>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                支持粘贴完整的 Notion 分享链接，系统会自动提取数据库 ID
-              </p>
-            </div>
-
-            {/* API 密钥输入 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-                Notion API 密钥 *
-              </label>
-              <input
-                type="password"
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                placeholder="secret_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono bg-white dark:bg-gray-800 dark:text-gray-100"
-              />
-              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                从{' '}
-                <a
-                  href="https://www.notion.so/my-integrations"
-                  target="_blank"
-                  rel="noopener"
-                  className="text-blue-500 hover:underline"
-                >
-                  Notion Integrations
-                </a>{' '}
-                获取
-              </p>
-            </div>
-          </div>
-
-          {/* 错误信息 */}
+          {/* 错误提示 */}
           {errorMessage && (
-            <div className="p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg">
-              <div className="flex items-start space-x-2">
-                <i className="fa-solid fa-exclamation-triangle text-red-500 dark:text-red-400 mt-0.5"></i>
-                <div>
-                  <p className="text-red-700 dark:text-red-300 text-sm font-medium">配置错误</p>
-                  <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errorMessage}</p>
+            <div className="p-4 bg-red-50/80 dark:bg-red-900/30 backdrop-blur-sm border border-red-200 dark:border-red-800 rounded-xl flex items-start space-x-3 animate-fadeIn">
+              <i className="fa-solid fa-circle-exclamation text-red-500 mt-0.5"></i>
+              <span className="text-sm text-red-800 dark:text-red-200">{errorMessage}</span>
+            </div>
+          )}
+
+          {/* 1. 引导卡片 / 连接状态 */}
+          {!isNotionConnected ? (
+            <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 rounded-2xl p-8 shadow-sm text-center">
+              <div className="w-16 h-16 mx-auto bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-2xl flex items-center justify-center mb-6 shadow-inner">
+                <i className="fa-brands fa-notion text-3xl text-gray-800 dark:text-white"></i>
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">连接 Notion 工作空间</h3>
+              <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-sm mx-auto">
+                简单两步，将您的 Notion 数据库转变为强大的个人导航站。
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8 text-left max-w-lg mx-auto">
+                <div className="p-4 rounded-xl bg-white/50 dark:bg-gray-700/30 border border-gray-100 dark:border-gray-700/50">
+                  <div className="flex items-center mb-2">
+                    <span className="w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-600 flex items-center justify-center text-xs font-bold mr-2 text-gray-600 dark:text-gray-300">1</span>
+                    <span className="font-semibold text-gray-800 dark:text-gray-200">准备模板</span>
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 ml-8">
+                    复制 <button onClick={() => setShowGuide(true)} className="text-blue-600 dark:text-blue-400 hover:underline">官方模板</button> 到您的 Notion
+                  </p>
+                </div>
+                <div className="p-4 rounded-xl bg-white/50 dark:bg-gray-700/30 border border-gray-100 dark:border-gray-700/50">
+                  <div className="flex items-center mb-2">
+                    <span className="w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-600 flex items-center justify-center text-xs font-bold mr-2 text-gray-600 dark:text-gray-300">2</span>
+                    <span className="font-semibold text-gray-800 dark:text-gray-200">授权连接</span>
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 ml-8">
+                    登录并选择刚才复制的页面
+                  </p>
                 </div>
               </div>
-            </div>
-          )}
 
-          {/* 连接状态 */}
-          {connectionStatus !== 'idle' && (
-            <div
-              className={`p-4 rounded-lg border ${connectionStatus === 'success'
-                  ? 'bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800'
-                  : 'bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800'
-                }`}
-            >
-              <div className="flex items-center space-x-2">
-                <i
-                  className={`fa-solid ${connectionStatus === 'success'
-                      ? 'fa-check-circle text-green-500'
-                      : 'fa-times-circle text-red-500'
-                    }`}
-                ></i>
-                <span
-                  className={`text-sm font-medium ${connectionStatus === 'success' ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'
-                    }`}
+              <button
+                onClick={handleConnectNotion}
+                className="px-8 py-3 bg-gray-900 hover:bg-black text-white dark:bg-white dark:text-black dark:hover:bg-gray-100 rounded-xl font-medium transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:translate-y-0"
+              >
+                <i className="fa-brands fa-notion mr-2"></i>
+                前往 Notion 授权
+              </button>
+            </div>
+          ) : (
+            /* 2. 数据库选择 - 只在已连接时显示 */
+            <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 rounded-2xl p-6 shadow-sm animate-fadeIn">
+              <div className="flex items-center justify-between mb-6">
+                <h4 className="font-semibold text-gray-900 dark:text-white flex items-center text-lg">
+                  <span className="w-8 h-8 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 flex items-center justify-center mr-3">
+                    <i className="fa-solid fa-check"></i>
+                  </span>
+                  选择作为数据源的页面
+                </h4>
+                <button
+                  onClick={handleConnectNotion}
+                  className="text-xs text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex items-center"
                 >
-                  {connectionStatus === 'success' ? '连接成功！' : '连接失败'}
-                </span>
+                  <i className="fa-solid fa-sync mr-1"></i>
+                  切换账号或重试
+                </button>
               </div>
-              {connectionStatus === 'success' && (
-                <p className="text-green-600 dark:text-green-400 text-sm mt-1">
-                  Notion API 连接正常，可以开始同步工作空间数据
-                </p>
+
+              {isLoadingDatabases ? (
+                <div className="py-12 text-center text-gray-500">
+                  <div className="w-12 h-12 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mx-auto mb-4"></div>
+                  <p className="text-sm">正在搜索授权的页面...</p>
+                </div>
+              ) : databases.length > 0 ? (
+                <div className="space-y-6">
+                  <div className="space-y-3 max-h-60 overflow-y-auto custom-scrollbar p-1">
+                    {databases.map(db => (
+                      <label
+                        key={db.id}
+                        className={`group flex items-center p-4 rounded-xl border cursor-pointer transition-all duration-200 ${selectedDatabaseId === db.id
+                            ? 'bg-blue-50/50 dark:bg-blue-900/20 border-blue-500/50 shadow-sm'
+                            : 'border-transparent hover:bg-white/50 dark:hover:bg-gray-700/30 hover:shadow-sm'
+                          }`}
+                      >
+                        <input
+                          type="radio"
+                          name="database"
+                          className="hidden"
+                          checked={selectedDatabaseId === db.id}
+                          onChange={() => setSelectedDatabaseId(db.id)}
+                        />
+                        <div className={`w-5 h-5 rounded-full border-2 flex-shrink-0 mr-4 flex items-center justify-center transition-colors ${selectedDatabaseId === db.id
+                            ? 'border-blue-500'
+                            : 'border-gray-300 dark:border-gray-600 group-hover:border-blue-400'
+                          }`}>
+                          {selectedDatabaseId === db.id && <div className="w-2.5 h-2.5 rounded-full bg-blue-500"></div>}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className={`font-medium truncate transition-colors ${selectedDatabaseId === db.id ? 'text-blue-700 dark:text-blue-300' : 'text-gray-700 dark:text-gray-200'
+                            }`}>{db.title}</div>
+                          <div className="text-xs text-gray-400 dark:text-gray-500 truncate font-mono mt-0.5 opacity-60 group-hover:opacity-100 transition-opacity">ID: {db.id}</div>
+                        </div>
+                        <a
+                          href={db.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="ml-3 p-2 text-gray-300 hover:text-blue-500 dark:text-gray-600 dark:hover:text-blue-400 transition-colors rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/10"
+                          onClick={e => e.stopPropagation()}
+                          title="在 Notion 中打开"
+                        >
+                          <i className="fa-solid fa-external-link-alt"></i>
+                        </a>
+                      </label>
+                    ))}
+                  </div>
+
+                  <button
+                    onClick={handleAutoSave}
+                    disabled={isProcessing || !selectedDatabaseId}
+                    className="w-full py-3.5 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-xl font-medium transition-all shadow-lg shadow-blue-500/25 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none transform active:scale-[0.98]"
+                  >
+                    {isProcessing ? (
+                      <>
+                        <i className="fa-solid fa-circle-notch fa-spin mr-2"></i>
+                        <span>配置中...</span>
+                      </>
+                    ) : (
+                      <>
+                        <i className="fa-solid fa-check mr-2"></i>
+                        <span>确认连接</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              ) : (
+                <div className="text-center py-8 bg-gray-50/50 dark:bg-gray-800/30 rounded-xl border border-dashed border-gray-300 dark:border-gray-700">
+                  <p className="text-gray-600 dark:text-gray-300 mb-2">未找到可用的数据库页面</p>
+                  <p className="text-xs text-gray-500 mb-5 px-4">请确认您已经在 Notion 中允许访问该页面</p>
+                  <button
+                    onClick={handleConnectNotion}
+                    className="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors shadow-sm"
+                  >
+                    重新授权
+                  </button>
+                </div>
               )}
             </div>
           )}
-
-          {/* 操作按钮 */}
-          <div className="flex flex-col sm:flex-row gap-3 pt-6">
-            <button
-              onClick={handleTestConnection}
-              disabled={!isFormValid || isTestingConnection}
-              className="flex-1 flex items-center justify-center space-x-2 px-4 py-3 border border-blue-500 text-blue-500 rounded-lg hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isTestingConnection ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
-                  <span>测试中...</span>
-                </>
-              ) : (
-                <>
-                  <i className="fa-solid fa-plug"></i>
-                  <span>测试连接</span>
-                </>
-              )}
-            </button>
-
-            <button
-              onClick={handleSave}
-              disabled={!isFormValid}
-              className="flex-1 flex items-center justify-center space-x-2 px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <i className="fa-solid fa-save"></i>
-              <span>保存配置</span>
-            </button>
-          </div>
         </div>
       </div>
     </div>

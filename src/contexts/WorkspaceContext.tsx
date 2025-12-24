@@ -273,6 +273,13 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   // 搜索数据库
   const searchDatabases = async () => {
     try {
+      // 确保 OAuth 模式下 NotionClient 已初始化
+      // 当用户通过 OAuth 登录后首次调用时，workspaceManager.notionClient 可能为空
+      const hasOAuth = await hasNotionAuth();
+      if (hasOAuth) {
+        // 临时初始化客户端用于搜索（使用空的 databaseId，因为我们只是要搜索数据库列表）
+        workspaceManager.configureWithOAuth(getNotionOAuthToken, '', undefined);
+      }
       return await workspaceManager.searchDatabases();
     } catch (error) {
       console.error('搜索数据库失败:', error);

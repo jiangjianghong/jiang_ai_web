@@ -784,7 +784,7 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
       />
 
       <motion.div
-        className="w-[900px] bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-2xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)] border border-white/40 dark:border-gray-700/50 ring-1 ring-black/5 dark:ring-white/10 z-50 h-[85vh] flex flex-row select-none overflow-hidden"
+        className="w-[900px] bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-2xl shadow-[0_35px_80px_-15px_rgba(0,0,0,0.7),0_0_40px_-10px_rgba(0,0,0,0.3)] dark:shadow-[0_35px_80px_-15px_rgba(0,0,0,0.9),0_0_50px_rgba(0,0,0,0.5)] border border-white/60 dark:border-gray-600/40 ring-1 ring-white/30 dark:ring-white/5 z-50 h-[85vh] flex flex-row select-none overflow-hidden relative before:absolute before:inset-0 before:rounded-2xl before:bg-gradient-to-br before:from-white/20 before:via-transparent before:to-transparent before:pointer-events-none"
         initial={{ scale: 0.8, opacity: 0, y: 20 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.8, opacity: 0, y: 20 }}

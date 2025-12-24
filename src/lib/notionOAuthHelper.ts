@@ -1,7 +1,9 @@
 import { supabase } from '@/lib/supabase';
 
 /**
- * 从 Supabase session 中获取 Notion OAuth access token
+ * 从 Supabase session 或数据库中获取 Notion OAuth access token
+ * 优先从 session.provider_token 获取（OAuth 回调后立即可用），
+ * 如果 session 中没有，则从 user_notion_tokens 表获取（持久化的 token）
  * @returns Notion OAuth token 或 null
  */
 export async function getNotionOAuthToken(): Promise<string | null> {
@@ -18,26 +20,47 @@ export async function getNotionOAuthToken(): Promise<string | null> {
             return null;
         }
 
-        // 检查是否使用 Notion 登录
+        // 检查是否有 Notion 身份绑定
         const isNotionAuth = session.user?.identities?.some(
             (identity) => identity.provider === 'notion'
         );
 
         if (!isNotionAuth) {
-            console.warn('用户未使用 Notion 登录');
+            console.warn('用户未绑定 Notion 账号');
             return null;
         }
 
-        // 获取 provider token (Notion OAuth access token)
-        const token = session.provider_token;
+        // 方式1: 优先从 session.provider_token 获取（OAuth 回调后立即可用）
+        if (session.provider_token) {
+            console.log('✅ 从 session 获取 Notion OAuth token');
+            return session.provider_token;
+        }
 
-        if (!token) {
-            console.warn('未找到 Notion OAuth token，可能需要重新登录');
+        // 方式2: 从数据库获取持久化的 token
+        console.log('🔍 session 中无 provider_token，尝试从数据库获取...');
+        const { data: tokenData, error: dbError } = await supabase
+            .from('user_notion_tokens')
+            .select('access_token')
+            .eq('user_id', session.user.id)
+            .single();
+
+        if (dbError) {
+            if (dbError.code === 'PGRST116') {
+                // 记录不存在
+                console.warn('数据库中未找到 Notion token，可能需要重新授权');
+            } else {
+                console.error('从数据库获取 Notion token 失败:', dbError);
+            }
             return null;
         }
 
-        console.log('✅ 成功获取 Notion OAuth token');
-        return token;
+        if (tokenData?.access_token) {
+            console.log('✅ 从数据库获取 Notion OAuth token');
+            return tokenData.access_token;
+        }
+
+        console.warn('未找到 Notion OAuth token，可能需要重新授权');
+        return null;
     } catch (error) {
         console.error('获取 Notion OAuth token 失败:', error);
         return null;
@@ -45,7 +68,7 @@ export async function getNotionOAuthToken(): Promise<string | null> {
 }
 
 /**
- * 检查用户是否已使用 Notion 登录
+ * 检查用户是否已绑定 Notion 并且有可用的 token
  * @returns 是否有 Notion 认证
  */
 export async function hasNotionAuth(): Promise<boolean> {
@@ -56,11 +79,32 @@ export async function hasNotionAuth(): Promise<boolean> {
             return false;
         }
 
+        // 检查是否有 Notion 身份绑定
         const isNotionAuth = session.user?.identities?.some(
             (identity) => identity.provider === 'notion'
         );
 
-        return !!isNotionAuth && !!session.provider_token;
+        if (!isNotionAuth) {
+            return false;
+        }
+
+        // 方式1: session 中有 provider_token
+        if (session.provider_token) {
+            return true;
+        }
+
+        // 方式2: 数据库中有持久化的 token
+        const { data: tokenData, error } = await supabase
+            .from('user_notion_tokens')
+            .select('access_token')
+            .eq('user_id', session.user.id)
+            .single();
+
+        if (error || !tokenData?.access_token) {
+            return false;
+        }
+
+        return true;
     } catch (error) {
         console.error('检查 Notion 认证状态失败:', error);
         return false;

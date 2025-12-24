@@ -2,6 +2,74 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 
+// 保存 Notion OAuth token 到数据库（如果存在）
+async function saveNotionTokenIfExists(session: any) {
+    try {
+        if (!session?.provider_token || !session?.user?.id) {
+            return;
+        }
+
+        // 检查是否是 Notion OAuth（通过 identities 判断）
+        const isNotionAuth = session.user?.identities?.some(
+            (identity: any) => identity.provider === 'notion'
+        );
+
+        if (!isNotionAuth) {
+            return;
+        }
+
+        console.log('🔐 检测到 Notion OAuth token，正在保存到数据库...');
+
+        // 尝试获取 Notion workspace 信息（通过 /users/me API）
+        let workspaceId = '';
+        let workspaceName = '';
+        try {
+            const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+            if (supabaseUrl) {
+                const proxyUrl = `${supabaseUrl.replace(/\/$/, '')}/functions/v1/notion-proxy/users/me`;
+                const response = await fetch(proxyUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${session.provider_token}`,
+                        'Content-Type': 'application/json',
+                        'Notion-Version': '2022-06-28',
+                    },
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    // Notion API 返回的 bot 用户信息包含 workspace
+                    if (data.bot?.workspace_name) {
+                        workspaceName = data.bot.workspace_name;
+                    }
+                }
+            }
+        } catch (error) {
+            console.warn('获取 Notion workspace 信息失败（非关键错误）:', error);
+        }
+
+        // 使用 upsert 保存 token（如果已存在则更新）
+        const { error } = await supabase
+            .from('user_notion_tokens')
+            .upsert({
+                user_id: session.user.id,
+                access_token: session.provider_token,
+                workspace_id: workspaceId || null,
+                workspace_name: workspaceName || null,
+                updated_at: new Date().toISOString(),
+            }, {
+                onConflict: 'user_id'
+            });
+
+        if (error) {
+            console.error('❌ 保存 Notion token 失败:', error);
+        } else {
+            console.log('✅ Notion OAuth token 已保存到数据库');
+        }
+    } catch (error) {
+        console.error('保存 Notion token 时出错:', error);
+    }
+}
+
 export default function AuthCallback() {
     const navigate = useNavigate();
     const [error, setError] = useState<string | null>(null);
@@ -23,6 +91,9 @@ export default function AuthCallback() {
                 }
 
                 if (session) {
+                    // 检查并保存 Notion token（如果存在）
+                    await saveNotionTokenIfExists(session);
+
                     // 登录成功，重定向到主页
                     // 使用 replace 防止用户点后退再次触发认证流程
                     navigate('/', { replace: true });
@@ -33,8 +104,10 @@ export default function AuthCallback() {
                     // 我们可以给一点延迟或者监听 onAuthStateChange
 
                     // 监听一次状态变化
-                    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+                    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
                         if (event === 'SIGNED_IN' && session) {
+                            // 检查并保存 Notion token（如果存在）
+                            await saveNotionTokenIfExists(session);
                             navigate('/', { replace: true });
                         }
                     });

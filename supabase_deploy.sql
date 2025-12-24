@@ -414,4 +414,45 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- - 函数: is_admin(), aggregate_daily_stats(), get_popular_searches(), get_hourly_activity()
 -- ==============================================================================
 
+-- ==============================================================================
+-- 13. Notion OAuth Token Storage (Notion OAuth 令牌存储)
+-- ==============================================================================
+
+-- 存储用户的 Notion OAuth access token，用于持久化访问 Notion API
+CREATE TABLE IF NOT EXISTS user_notion_tokens (
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
+  access_token TEXT NOT NULL,  -- OAuth access token
+  workspace_id TEXT,           -- Notion workspace ID
+  workspace_name TEXT,         -- Notion workspace name
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE user_notion_tokens ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policies - 用户只能访问自己的 token
+DROP POLICY IF EXISTS "Users can read own notion token" ON user_notion_tokens;
+CREATE POLICY "Users can read own notion token" ON user_notion_tokens 
+  FOR SELECT USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can insert own notion token" ON user_notion_tokens;
+CREATE POLICY "Users can insert own notion token" ON user_notion_tokens 
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can update own notion token" ON user_notion_tokens;
+CREATE POLICY "Users can update own notion token" ON user_notion_tokens 
+  FOR UPDATE USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can delete own notion token" ON user_notion_tokens;
+CREATE POLICY "Users can delete own notion token" ON user_notion_tokens 
+  FOR DELETE USING (auth.uid() = user_id);
+
+-- Trigger for updated_at
+DROP TRIGGER IF EXISTS update_user_notion_tokens_updated_at ON user_notion_tokens;
+CREATE TRIGGER update_user_notion_tokens_updated_at BEFORE UPDATE ON user_notion_tokens 
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- ==============================================================================
+-- 部署完成! 新增表: user_notion_tokens
+-- ==============================================================================
 

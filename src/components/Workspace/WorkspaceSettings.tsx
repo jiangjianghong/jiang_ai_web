@@ -26,7 +26,7 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
     searchDatabases
   } = useWorkspace();
 
-  const { loginWithNotion } = useAuth();
+  const { linkWithNotion } = useAuth();
 
   // 状态
   const [databases, setDatabases] = useState<DatabaseOption[]>([]);
@@ -83,12 +83,12 @@ export default function WorkspaceSettings({ onClose, onConfigured }: WorkspaceSe
     }
   };
 
-  // 处理 OAuth 登录
+  // 处理 OAuth 身份链接（不是登录，而是将 Notion 链接到当前用户）
   const handleConnectNotion = async () => {
     try {
-      await loginWithNotion();
+      await linkWithNotion();
     } catch (error) {
-      setErrorMessage('去 Notion 登录失败，请重试');
+      setErrorMessage('连接 Notion 失败，请重试');
     }
   };
 

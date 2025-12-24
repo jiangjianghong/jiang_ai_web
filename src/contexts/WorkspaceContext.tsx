@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
 import { workspaceManager } from '@/lib/notionClient';
 import { getNotionOAuthToken, hasNotionAuth } from '@/lib/notionOAuthHelper';
+import { supabase } from '@/lib/supabase';
 
 interface WorkspaceItem {
   id: string;
@@ -223,7 +224,10 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   // 初始化时检查配置状态
   useEffect(() => {
     const config = workspaceManager.getConfig();
-    setIsConfigured(!!config?.apiKey && !!config?.databaseId);
+    // 支持两种模式：API Key 模式需要 apiKey + databaseId，OAuth 模式只需要 mode=oauth + databaseId
+    const isApiKeyConfigured = !!config?.apiKey && !!config?.databaseId;
+    const isOAuthConfigured = config?.mode === 'oauth' && !!config?.databaseId;
+    setIsConfigured(isApiKeyConfigured || isOAuthConfigured);
 
     // 加载Notion缓存的项目
     const cachedItems = workspaceManager.getCachedWorkspaceItems();
@@ -289,9 +293,24 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 
   // 同步工作空间数据
   const syncWorkspaceData = async () => {
-    if (!isConfigured) {
-      setError('请先配置Notion API密钥和数据库ID');
+    // 检查配置状态，同时支持 API Key 和 OAuth 两种模式
+    const config = workspaceManager.getConfig();
+    const hasValidConfig = config && config.databaseId && (config.apiKey || config.mode === 'oauth');
+
+    if (!hasValidConfig) {
+      setError('请先配置Notion连接或选择数据库');
       return;
+    }
+
+    // 如果是 OAuth 模式，确保客户端已初始化
+    if (config.mode === 'oauth') {
+      const hasOAuth = await hasNotionAuth();
+      if (!hasOAuth) {
+        setError('Notion OAuth 已过期，请重新授权');
+        return;
+      }
+      // 确保 OAuth 客户端已配置
+      workspaceManager.configureWithOAuth(getNotionOAuthToken, config.databaseId, config.corsProxy);
     }
 
     setIsLoading(true);
@@ -327,9 +346,20 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     if (!config) return false;
 
     try {
+      // 如果是 OAuth 模式，确保客户端已初始化
+      if (config.mode === 'oauth') {
+        const hasOAuth = await hasNotionAuth();
+        if (!hasOAuth) {
+          setError('Notion OAuth 已过期，请重新授权');
+          return false;
+        }
+        // 确保 OAuth 客户端已配置
+        workspaceManager.configureWithOAuth(getNotionOAuthToken, config.databaseId || '', config.corsProxy);
+      }
+
       const isConnected = await workspaceManager.testConnection();
       if (!isConnected) {
-        setError('无法连接到Notion API，请检查API密钥是否正确');
+        setError('无法连接到Notion API，请检查配置是否正确');
       }
       return isConnected;
     } catch (error) {
@@ -338,8 +368,28 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // 清除配置
-  const clearConfiguration = () => {
+  // 清除配置（包括删除数据库中的 token）
+  const clearConfiguration = async () => {
+    // 删除数据库中的 Notion token
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user?.id) {
+        const { error } = await supabase
+          .from('user_notion_tokens')
+          .delete()
+          .eq('user_id', session.user.id);
+
+        if (error) {
+          console.error('删除 Notion token 失败:', error);
+        } else {
+          console.log('✅ 已删除数据库中的 Notion token');
+        }
+      }
+    } catch (error) {
+      console.error('清除 Notion token 时出错:', error);
+    }
+
+    // 清除本地配置
     workspaceManager.clearAll();
     setIsConfigured(false);
     setWorkspaceItems([]);

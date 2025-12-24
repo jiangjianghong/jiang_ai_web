@@ -7,10 +7,13 @@ interface AccountSettingsSectionProps {
 }
 
 export default function AccountSettingsSection({ onClose, onOpenSecurityModal }: AccountSettingsSectionProps) {
-    const { currentUser, logout } = useAuth();
+    const { currentUser, logout, getPrimaryEmail } = useAuth();
     const { displayName, avatarUrl } = useUserProfile();
 
     if (!currentUser) return null;
+
+    // 使用 getPrimaryEmail 确保绑定 OAuth 后显示的主邮箱不变
+    const primaryEmail = getPrimaryEmail();
 
     return (
         <div className="space-y-4">
@@ -39,7 +42,7 @@ export default function AccountSettingsSection({ onClose, onOpenSecurityModal }:
                         <h3 className="text-lg font-semibold text-slate-800 dark:text-gray-100 mb-1 select-none">{displayName || '用户'}</h3>
                         <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-gray-400 select-none">
                             <i className="fa-solid fa-envelope text-xs"></i>
-                            <span>{currentUser.email}</span>
+                            <span>{primaryEmail}</span>
                         </div>
                     </div>
                 </div>

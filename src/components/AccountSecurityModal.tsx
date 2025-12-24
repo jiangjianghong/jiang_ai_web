@@ -10,8 +10,11 @@ interface AccountSecurityModalProps {
 }
 
 export default function AccountSecurityModal({ isOpen, onClose }: AccountSecurityModalProps) {
-    const { currentUser, updatePassword, linkWithGoogle, linkWithGithub, linkWithNotion, unlinkIdentity, deleteAccount } = useAuth();
+    const { currentUser, updatePassword, linkWithGoogle, linkWithGithub, linkWithNotion, unlinkIdentity, deleteAccount, getPrimaryEmail } = useAuth();
     const { displayName, updateDisplayName, avatarUrl, updateAvatar } = useUserProfile();
+
+    // 使用 getPrimaryEmail 确保绑定 OAuth 后显示的主邮箱不变
+    const primaryEmail = getPrimaryEmail();
 
     // 头像上传状态
     const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -311,7 +314,7 @@ export default function AccountSecurityModal({ isOpen, onClose }: AccountSecurit
                                         <div className="flex items-center justify-between">
                                             <div>
                                                 <div className="font-medium text-gray-800 dark:text-gray-100">{displayName || '用户'}</div>
-                                                <div className="text-xs text-gray-400 dark:text-gray-500">{currentUser.email}</div>
+                                                <div className="text-xs text-gray-400 dark:text-gray-500">{primaryEmail}</div>
                                             </div>
                                             <button
                                                 onClick={() => setIsEditingName(true)}

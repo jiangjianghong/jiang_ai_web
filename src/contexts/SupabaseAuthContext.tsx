@@ -20,6 +20,7 @@ interface AuthContextType {
   reloadUser: () => Promise<void>;
   updatePassword: (newPassword: string) => Promise<void>;
   resetPasswordForEmail: (email: string) => Promise<void>;
+  getPrimaryEmail: () => string | null; // 获取主邮箱（优先 email provider）
   loading: boolean;
   isNetworkOnline: boolean;
   isSupabaseConnected: boolean;
@@ -594,6 +595,30 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return cleanup;
   }, []);
 
+  // 获取主邮箱（优先使用 email provider，确保绑定 OAuth 后显示不变）
+  const getPrimaryEmail = (): string | null => {
+    if (!currentUser) return null;
+
+    // 优先查找 email provider 的身份（邮箱密码注册）
+    const emailIdentity = currentUser.identities?.find(
+      (identity) => identity.provider === 'email'
+    );
+    if (emailIdentity?.identity_data?.email) {
+      return emailIdentity.identity_data.email as string;
+    }
+
+    // 如果没有 email provider，按创建时间排序，使用最早的身份邮箱
+    const sortedIdentities = [...(currentUser.identities || [])].sort(
+      (a, b) => new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime()
+    );
+    if (sortedIdentities.length > 0 && sortedIdentities[0].identity_data?.email) {
+      return sortedIdentities[0].identity_data.email as string;
+    }
+
+    // 最后使用 currentUser.email
+    return currentUser.email || null;
+  };
+
   const value: AuthContextType = {
     currentUser,
     session,
@@ -612,6 +637,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     reloadUser,
     updatePassword,
     resetPasswordForEmail,
+    getPrimaryEmail,
     loading,
     isNetworkOnline,
     isSupabaseConnected,

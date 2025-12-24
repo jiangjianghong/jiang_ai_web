@@ -78,7 +78,7 @@ interface WorkspaceContextType {
   configureNotion: (apiKey: string, databaseId: string, corsProxy?: string) => void;
   configureWithOAuth: (databaseId: string, corsProxy?: string) => Promise<void>;
   testConnection: () => Promise<boolean>;
-  clearConfiguration: () => void;
+  clearConfiguration: () => Promise<void>;
   refreshItems: () => Promise<void>;
   getConfiguration: () => WorkspaceConfig | null;
   hasNotionOAuth: () => Promise<boolean>;

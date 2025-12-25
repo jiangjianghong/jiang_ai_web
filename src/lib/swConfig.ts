@@ -1,7 +1,7 @@
 // Service Worker 配置常量
 // 更新版本时只需修改这里，sw.js 和 usePWA.ts 会自动同步
 
-export const SW_VERSION = 'v80aab43';
+export const SW_VERSION = 'v6b651eb';
 export const CACHE_PREFIX = 'tomato-tab';
 
 // 缓存名称

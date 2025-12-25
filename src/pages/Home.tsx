@@ -62,6 +62,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
 
   const [bgImage, setBgImage] = useState('');
   const [bgOriginalUrl, setBgOriginalUrl] = useState<string | undefined>(); // 原始URL用于收藏检测
+  const [wallpaperLoaded, setWallpaperLoaded] = useState(false); // 壁纸加载状态
   const [showSettings, setShowSettings] = useState(false);
   const [showAddCardModal, setShowAddCardModal] = useState(false);
   const [mousePosition, setMousePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -180,22 +181,42 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
             isToday: result.isToday,
             needsUpdate: result.needsUpdate,
           });
-          setBgImage(result.url);
-          setBgOriginalUrl(result.originalUrl); // 保存原始 URL 用于收藏检测
 
-          // 智能遮罩模式：分析壁纸颜色
-          if (darkOverlayMode === 'smart') {
-            try {
-              // 自定义壁纸传递 ID，Bing 壁纸不传（使用日期作为缓存键）
-              const wallpaperId = wallpaperResolution === 'custom' ? 'current-custom' : undefined;
-              const needsOverlay = await shouldApplyOverlay(result.url, wallpaperId);
-              setSmartOverlayNeeded(needsOverlay);
-              logger.debug('🎨 智能遮罩检测结果:', needsOverlay ? '需要遮罩' : '不需要遮罩');
-            } catch (error) {
-              logger.warn('壁纸颜色分析失败:', error);
-              setSmartOverlayNeeded(false);
+          // 重置加载状态，实现淡入效果
+          setWallpaperLoaded(false);
+
+          // 预加载图片
+          const img = new Image();
+          img.onload = async () => {
+            setBgImage(result.url);
+            setBgOriginalUrl(result.originalUrl);
+
+            // 智能遮罩模式：分析壁纸颜色（在图片加载完成后进行）
+            if (darkOverlayMode === 'smart') {
+              try {
+                // 自定义壁纸传递 ID，Bing 壁纸不传（使用日期作为缓存键）
+                const wallpaperId = wallpaperResolution === 'custom' ? 'current-custom' : undefined;
+                const needsOverlay = await shouldApplyOverlay(result.url, wallpaperId);
+                setSmartOverlayNeeded(needsOverlay);
+                logger.debug('🎨 智能遮罩检测结果:', needsOverlay ? '需要遮罩' : '不需要遮罩');
+              } catch (error) {
+                logger.warn('壁纸颜色分析失败:', error);
+                setSmartOverlayNeeded(false);
+              }
             }
-          }
+
+            // 延迟一帧设置加载完成，确保transition生效
+            requestAnimationFrame(() => {
+              setWallpaperLoaded(true);
+            });
+          };
+          img.onerror = () => {
+            // 图片加载失败时也设置URL，让浏览器显示默认状态
+            setBgImage(result.url);
+            setBgOriginalUrl(result.originalUrl);
+            setWallpaperLoaded(true);
+          };
+          img.src = result.url;
 
           // 如果缓存的不是今天的壁纸，记录警告
           if (!result.isToday && result.isFromCache) {
@@ -205,11 +226,13 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
           logger.warn('❌ 无法获取壁纸');
           setBgImage('');
           setBgOriginalUrl(undefined);
+          setWallpaperLoaded(true); // 确保不会一直透明
         }
       } catch (error) {
         logger.warn('获取壁纸失败:', error);
         setBgImage('');
         setBgOriginalUrl(undefined);
+        setWallpaperLoaded(true); // 确保不会一直透明
       }
     };
 
@@ -394,11 +417,12 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
           backgroundSize: 'cover',
           backgroundPosition: isMobile ? 'center center' : 'center top',
           backgroundRepeat: 'no-repeat',
+          opacity: wallpaperLoaded ? 1 : 0,
           transform:
             !isSettingsOpen && !isSearchFocused && parallaxEnabled && !isMobile && mousePosition
               ? `translate(${mousePosition.x * 0.02}px, ${mousePosition.y * 0.02}px) scale(1.05)`
               : 'translate(0px, 0px) scale(1)',
-          transition: 'transform 0.3s ease-out',
+          transition: 'opacity 0.5s ease-out, transform 0.3s ease-out',
         }}
       />
 

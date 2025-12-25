@@ -14,6 +14,7 @@ import { customWallpaperManager } from '@/lib/customWallpaperManager';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { useSyncStatus } from '@/contexts/SyncContext';
 import AccountSettingsSection from '@/components/AccountSettingsSection';
+import versionInfo from '@/version.json';
 
 import {
   WebsiteData,
@@ -821,6 +822,20 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                 <span className="relative z-10">{section.label}</span>
               </button>
             ))}
+          </div>
+
+          {/* 版本信息 - 左下角 */}
+          <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-700/50">
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-400 dark:text-gray-500">版本</span>
+                <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">v{versionInfo.version}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-400 dark:text-gray-500">更新</span>
+                <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">{versionInfo.buildDate}</span>
+              </div>
+            </div>
           </div>
         </div>
 

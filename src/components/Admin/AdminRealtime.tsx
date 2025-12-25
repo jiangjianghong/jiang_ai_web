@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
+import { formatRelativeTime } from '@/lib/adminUtils';
 
 interface OnlineUser {
     id: string;
@@ -117,20 +118,6 @@ export default function AdminRealtime() {
             supabase.removeChannel(channel);
         };
     }, [loadRealtimeData]);
-
-    const formatRelativeTime = (isoString: string): string => {
-        const date = new Date(isoString);
-        const now = new Date();
-        const diffMs = now.getTime() - date.getTime();
-
-        if (diffMs < 60000) return '刚刚';
-
-        const diffMins = Math.floor(diffMs / 60000);
-        if (diffMins < 60) return `${diffMins}分钟前`;
-
-        const diffHours = Math.floor(diffMins / 60);
-        return `${diffHours}小时前`;
-    };
 
     if (loading) {
         return (

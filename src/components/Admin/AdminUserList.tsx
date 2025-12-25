@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { logAdminAction } from '@/lib/adminUtils';
+import { logAdminAction, formatRelativeTime } from '@/lib/adminUtils';
 import ConfirmModal from '@/components/ConfirmModal';
 import AdminUserDetail from './AdminUserDetail';
 
@@ -18,29 +18,6 @@ interface UserWithStats extends UserProfile {
     total_searches: number;
     total_site_visits: number;
     is_banned: boolean;
-}
-
-// 相对时间格式化函数
-function formatRelativeTime(isoString: string | null): string {
-    if (!isoString) return '-';
-
-    const date = new Date(isoString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-
-    if (diffMs < 0) return '刚刚';
-
-    const diffMins = Math.floor(diffMs / (1000 * 60));
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-    if (diffMins < 1) return '刚刚';
-    if (diffMins < 60) return `${diffMins}分钟前`;
-    if (diffHours < 24) return `${diffHours}小时前`;
-    if (diffDays < 7) return `${diffDays}天前`;
-    if (diffDays < 30) return `${Math.floor(diffDays / 7)}周前`;
-    if (diffDays < 365) return `${Math.floor(diffDays / 30)}月前`;
-    return `${Math.floor(diffDays / 365)}年前`;
 }
 
 export default function AdminUserList() {

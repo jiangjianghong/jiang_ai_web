@@ -13,7 +13,8 @@ import { UserProfileProvider, useUserProfile } from '@/contexts/UserProfileConte
 import { WorkspaceProvider } from '@/contexts/WorkspaceContext';
 import { AdminProvider } from '@/contexts/AdminContext';
 import { WebsiteData, updateUserActiveTime } from '@/lib/supabaseSync';
-import { useState, useEffect } from 'react';
+import { checkUserBanned } from '@/lib/adminUtils';
+import { useState, useEffect, useRef } from 'react';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useResourcePreloader } from '@/hooks/useResourcePreloader';
 import { useCloudData } from '@/hooks/useCloudData';
@@ -39,7 +40,7 @@ function AppContent() {
 
   // 存储管理
   const storage = useStorage();
-  const { currentUser } = useAuth();
+  const { currentUser, logout } = useAuth();
   const {
     setCardOpacity,
     setSearchBarOpacity,
@@ -71,12 +72,33 @@ function AppContent() {
   const [showPrivacySettings, setShowPrivacySettings] = useState(false);
   const [lastMergedDataId, setLastMergedDataId] = useState<string>('');
 
+  // 用于防止重复检查禁用状态
+  const banCheckRef = useRef(false);
+
   // 当用户变化时重置状态
   useEffect(() => {
     setDataInitialized(false);
     setSettingsApplied(false);
     setLastMergedDataId('');
+    banCheckRef.current = false;
   }, [currentUser?.id]);
+
+  // 检查用户是否被禁用，如果是则强制登出
+  useEffect(() => {
+    if (!currentUser || banCheckRef.current) return;
+
+    const checkBan = async () => {
+      banCheckRef.current = true;
+      const isBanned = await checkUserBanned(currentUser.id);
+      if (isBanned) {
+        // 显示提示并登出
+        alert('您的账户已被禁用，如有疑问请联系管理员。');
+        await logout();
+      }
+    };
+
+    checkBan();
+  }, [currentUser, logout]);
 
   // 后台静默更新用户活跃时间（用于后台显示在线状态）
   useEffect(() => {

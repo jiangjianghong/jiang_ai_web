@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { formatRelativeTime } from '@/lib/adminUtils';
 import {
     BarChart,
     Bar,
@@ -106,22 +107,6 @@ export default function AdminUserDetail({ userId, onClose }: UserDetailProps) {
         return new Date(dateStr).toLocaleDateString('zh-CN');
     };
 
-    const formatRelativeTime = (isoString: string | null): string => {
-        if (!isoString) return '-';
-        const date = new Date(isoString);
-        const now = new Date();
-        const diffMs = now.getTime() - date.getTime();
-        if (diffMs < 0) return '刚刚';
-        const diffMins = Math.floor(diffMs / (1000 * 60));
-        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-        if (diffMins < 1) return '刚刚';
-        if (diffMins < 60) return `${diffMins}分钟前`;
-        if (diffHours < 24) return `${diffHours}小时前`;
-        if (diffDays < 30) return `${diffDays}天前`;
-        return formatDate(isoString);
-    };
-
     const getActionTypeLabel = (type: string) => {
         const labels: Record<string, string> = {
             'ban_user': '🚫 禁用用户',
@@ -190,8 +175,8 @@ export default function AdminUserDetail({ userId, onClose }: UserDetailProps) {
                                     <div>
                                         <p className="text-white/40 text-xs">角色</p>
                                         <span className={`px-2 py-1 rounded-full text-xs ${profile.role === 'super_admin' ? 'bg-red-500/20 text-red-400' :
-                                                profile.role === 'admin' ? 'bg-orange-500/20 text-orange-400' :
-                                                    'bg-gray-500/20 text-gray-400'
+                                            profile.role === 'admin' ? 'bg-orange-500/20 text-orange-400' :
+                                                'bg-gray-500/20 text-gray-400'
                                             }`}>
                                             {profile.role === 'super_admin' ? '超管' : profile.role === 'admin' ? '管理员' : '用户'}
                                         </span>

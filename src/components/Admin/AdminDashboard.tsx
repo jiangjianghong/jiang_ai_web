@@ -49,8 +49,9 @@ export default function AdminDashboard() {
 
             if (usersError) throw usersError;
 
-            // 获取今日新用户
-            const today = new Date().toISOString().split('T')[0];
+            // 获取本地时区的今日日期字符串
+            const now = new Date();
+            const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
             const { count: newUsersToday, error: newUsersError } = await supabase
                 .from('user_profiles')
                 .select('*', { count: 'exact', head: true })
@@ -65,10 +66,13 @@ export default function AdminDashboard() {
 
             if (statsError) throw statsError;
 
-            // 今日活跃：判断 last_active_at 是否在今天，或回退到 last_visit_date
+            // 今日活跃：判断 last_active_at 是否在今天（使用本地时区），或回退到 last_visit_date
             const activeUsersToday = statsData?.filter((s) => {
                 if (s.last_active_at) {
-                    return s.last_active_at.startsWith(today);
+                    // 将 ISO 时间转换为本地日期进行比较
+                    const activeDate = new Date(s.last_active_at);
+                    const activeLocalDate = `${activeDate.getFullYear()}-${String(activeDate.getMonth() + 1).padStart(2, '0')}-${String(activeDate.getDate()).padStart(2, '0')}`;
+                    return activeLocalDate === today;
                 }
                 return s.last_visit_date === today;
             }).length || 0;
@@ -208,8 +212,8 @@ export default function AdminDashboard() {
                             <button
                                 onClick={() => setChartView('line')}
                                 className={`px-3 py-1 rounded text-sm transition-colors ${chartView === 'line'
-                                        ? 'bg-blue-600 text-white'
-                                        : 'bg-white/10 text-white/60 hover:bg-white/20'
+                                    ? 'bg-blue-600 text-white'
+                                    : 'bg-white/10 text-white/60 hover:bg-white/20'
                                     }`}
                             >
                                 折线图
@@ -217,8 +221,8 @@ export default function AdminDashboard() {
                             <button
                                 onClick={() => setChartView('bar')}
                                 className={`px-3 py-1 rounded text-sm transition-colors ${chartView === 'bar'
-                                        ? 'bg-blue-600 text-white'
-                                        : 'bg-white/10 text-white/60 hover:bg-white/20'
+                                    ? 'bg-blue-600 text-white'
+                                    : 'bg-white/10 text-white/60 hover:bg-white/20'
                                     }`}
                             >
                                 柱状图

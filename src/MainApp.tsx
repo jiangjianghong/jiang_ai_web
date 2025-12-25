@@ -12,7 +12,7 @@ import { SyncProvider } from '@/contexts/SyncContext';
 import { UserProfileProvider, useUserProfile } from '@/contexts/UserProfileContext';
 import { WorkspaceProvider } from '@/contexts/WorkspaceContext';
 import { AdminProvider } from '@/contexts/AdminContext';
-import { WebsiteData } from '@/lib/supabaseSync';
+import { WebsiteData, updateUserActiveTime } from '@/lib/supabaseSync';
 import { useState, useEffect } from 'react';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useResourcePreloader } from '@/hooks/useResourcePreloader';
@@ -77,6 +77,27 @@ function AppContent() {
     setSettingsApplied(false);
     setLastMergedDataId('');
   }, [currentUser?.id]);
+
+  // 后台静默更新用户活跃时间（用于后台显示在线状态）
+  useEffect(() => {
+    if (!currentUser || !currentUser.email_confirmed_at) return;
+
+    // 使用 requestIdleCallback 在浏览器空闲时执行，不影响页面加载
+    const doUpdate = () => {
+      updateUserActiveTime(currentUser).catch(() => {
+        // 静默失败，不影响用户体验
+      });
+    };
+
+    if ('requestIdleCallback' in window) {
+      const id = requestIdleCallback(doUpdate, { timeout: 5000 });
+      return () => cancelIdleCallback(id);
+    } else {
+      // 回退方案：使用 setTimeout
+      const timer = setTimeout(doUpdate, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [currentUser]);
 
   // 数据合并逻辑：当云端数据加载完成时，合并本地和云端数据
   useEffect(() => {

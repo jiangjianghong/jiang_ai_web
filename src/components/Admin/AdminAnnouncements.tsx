@@ -1,26 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
-
-// 记录管理员操作日志
-async function logAdminAction(
-    actionType: string,
-    targetId: string,
-    targetType: string = 'announcement',
-    details: Record<string, any> = {}
-) {
-    try {
-        await supabase.from('admin_logs').insert({
-            admin_id: (await supabase.auth.getUser()).data.user?.id,
-            action_type: actionType,
-            target_id: targetId,
-            target_type: targetType,
-            details,
-        });
-    } catch (err) {
-        console.warn('Failed to log admin action:', err);
-    }
-}
+import { logAdminAction } from '@/lib/adminUtils';
 
 interface Announcement {
     id: string;
@@ -33,10 +14,10 @@ interface Announcement {
 }
 
 const TYPE_OPTIONS = [
-    { value: 'info', label: '📢 通知', color: 'blue' },
-    { value: 'update', label: '🆕 更新', color: 'green' },
-    { value: 'warning', label: '⚠️ 警告', color: 'yellow' },
-    { value: 'maintenance', label: '🔧 维护', color: 'red' },
+    { value: 'info', label: '📢 通知', bgClass: 'bg-blue-500/20', textClass: 'text-blue-400' },
+    { value: 'update', label: '🆕 更新', bgClass: 'bg-green-500/20', textClass: 'text-green-400' },
+    { value: 'warning', label: '⚠️ 警告', bgClass: 'bg-yellow-500/20', textClass: 'text-yellow-400' },
+    { value: 'maintenance', label: '🔧 维护', bgClass: 'bg-red-500/20', textClass: 'text-red-400' },
 ];
 
 export default function AdminAnnouncements() {
@@ -280,7 +261,7 @@ export default function AdminAnnouncements() {
                             <div className="flex items-start justify-between gap-4">
                                 <div className="flex-1">
                                     <div className="flex items-center gap-2 mb-2">
-                                        <span className={`px-2 py-0.5 rounded text-xs bg-${typeConfig?.color || 'gray'}-500/20 text-${typeConfig?.color || 'gray'}-400`}>
+                                        <span className={`px-2 py-0.5 rounded text-xs ${typeConfig?.bgClass || 'bg-gray-500/20'} ${typeConfig?.textClass || 'text-gray-400'}`}>
                                             {typeConfig?.label || announcement.type}
                                         </span>
                                         {!announcement.is_active && (

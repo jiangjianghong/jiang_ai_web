@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { logAdminAction } from '@/lib/adminUtils';
 import ConfirmModal from '@/components/ConfirmModal';
 import AdminUserDetail from './AdminUserDetail';
 
@@ -40,26 +41,6 @@ function formatRelativeTime(isoString: string | null): string {
     if (diffDays < 30) return `${Math.floor(diffDays / 7)}周前`;
     if (diffDays < 365) return `${Math.floor(diffDays / 30)}月前`;
     return `${Math.floor(diffDays / 365)}年前`;
-}
-
-// 记录管理员操作日志
-async function logAdminAction(
-    actionType: string,
-    targetId: string,
-    targetType: string = 'user',
-    details: Record<string, any> = {}
-) {
-    try {
-        await supabase.from('admin_logs').insert({
-            admin_id: (await supabase.auth.getUser()).data.user?.id,
-            action_type: actionType,
-            target_id: targetId,
-            target_type: targetType,
-            details,
-        });
-    } catch (err) {
-        console.warn('Failed to log admin action:', err);
-    }
 }
 
 export default function AdminUserList() {

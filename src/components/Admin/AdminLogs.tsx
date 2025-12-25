@@ -54,7 +54,7 @@ export default function AdminLogs() {
             if (logsError) {
                 // 表可能不存在
                 if (logsError.code === '42P01' || logsError.message.includes('does not exist')) {
-                    setError('日志表尚未创建，请先运行数据库迁移脚本 (admin_enhancement_migration.sql)');
+                    setError('日志表尚未创建，请确保已运行数据库迁移脚本 (supabase_deploy.sql)');
                 } else {
                     throw logsError;
                 }
@@ -162,8 +162,8 @@ export default function AdminLogs() {
                         key={type.value}
                         onClick={() => { setFilterType(type.value); setPage(0); }}
                         className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${filterType === type.value
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-white/10 text-white/60 hover:bg-white/20'
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-white/10 text-white/60 hover:bg-white/20'
                             }`}
                     >
                         {type.label}

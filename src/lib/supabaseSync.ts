@@ -749,3 +749,30 @@ export const mergeUserStats = (local: UserStatsData, cloud: UserStatsData): User
     lastVisitDate: local.lastVisitDate > cloud.lastVisitDate ? local.lastVisitDate : cloud.lastVisitDate,
   };
 };
+
+// 更新用户活跃时间（轻量级，仅更新 last_active_at 字段）
+// 用于应用启动时静默更新，让后台能正确显示在线状态
+export const updateUserActiveTime = async (user: User): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from(TABLES.USER_STATS)
+      .upsert(
+        {
+          id: user.id,
+          last_active_at: new Date().toISOString(),
+        },
+        { onConflict: 'id' }
+      );
+
+    if (error) {
+      logger.sync.debug('更新活跃时间失败:', error);
+      return false;
+    }
+
+    logger.sync.debug('用户活跃时间已更新');
+    return true;
+  } catch (error) {
+    logger.sync.debug('更新活跃时间异常:', error);
+    return false;
+  }
+};

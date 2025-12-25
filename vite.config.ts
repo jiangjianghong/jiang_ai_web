@@ -2,19 +2,20 @@
 /** WARNING: DON'T EDIT THIS FILE */
 /** WARNING: DON'T EDIT THIS FILE */
 
-import { defineConfig } from "vite";
+import { defineConfig, ViteDevServer } from "vite";
 import react from "@vitejs/plugin-react";
 import tsconfigPaths from "vite-tsconfig-paths";
+import type { IncomingMessage, ServerResponse } from 'http';
 
 function getPlugins() {
   const plugins = [
-    react(), 
+    react(),
     tsconfigPaths(),
     // 自定义插件：设置正确的MIME类型
     {
       name: 'mime-fix',
-      configureServer(server) {
-        server.middlewares.use((req, res, next) => {
+      configureServer(server: ViteDevServer) {
+        server.middlewares.use((req: IncomingMessage, res: ServerResponse, next: () => void) => {
           const url = req.url || '';
           if (url.endsWith('.js')) {
             res.setHeader('Content-Type', 'application/javascript');
@@ -35,16 +36,16 @@ export default defineConfig({
   // 运行在基础端口上，不使用子目录（适合自定义域名）
   base: '/',
   plugins: getPlugins(),
-  
+
   // 构建优化配置
   build: {
     // 复制.htaccess文件到构建目录
     copyPublicDir: true,
-    
+
     // 生产环境移除console语句
     minify: 'esbuild',
     target: 'es2015',
-    
+
     // 启用文件名哈希，确保缓存失效
     rollupOptions: {
       output: {
@@ -68,7 +69,7 @@ export default defineConfig({
           'react-vendor': ['react', 'react-dom'],
           'router-vendor': ['react-router-dom'],
           'ui-vendor': ['framer-motion', 'react-dnd', 'react-dnd-html5-backend'],
-          'chart-vendor': ['recharts'],
+          // recharts 已通过 Admin 页面懒加载优化，不再单独打包
         }
       }
     },
@@ -105,7 +106,7 @@ export default defineConfig({
       ]
     }
   },
-  
+
   // 依赖预构建优化
   optimizeDeps: {
     // 强制预构建这些依赖
@@ -120,7 +121,7 @@ export default defineConfig({
     // 排除不需要预构建的依赖
     exclude: ['@tsparticles/react']
   },
-  
+
   // 预览服务器配置(用于生产构建预览)
   preview: {
     // 设置安全和缓存头

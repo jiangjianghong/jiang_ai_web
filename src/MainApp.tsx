@@ -3,7 +3,10 @@ import Home from '@/pages/Home';
 import AuthCallback from '@/pages/AuthCallback';
 import ResetPassword from '@/pages/ResetPassword';
 import NotFound from '@/pages/NotFound';
-import Admin from '@/pages/Admin';
+import { lazy, Suspense } from 'react';
+
+// Admin 页面懒加载 - 包含 Recharts 图表库，延迟加载减少首屏 bundle
+const Admin = lazy(() => import('@/pages/Admin'));
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { TransparencyProvider } from '@/contexts/TransparencyContext';
@@ -278,7 +281,18 @@ function AppContent() {
         />
         <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/admin" element={<Admin />} />
+        <Route path="/admin" element={
+          <Suspense fallback={
+            <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+                <p className="text-white/80">加载管理后台...</p>
+              </div>
+            </div>
+          }>
+            <Admin />
+          </Suspense>
+        } />
         <Route path="*" element={<NotFound />} />
       </Routes>
 

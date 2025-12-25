@@ -385,14 +385,14 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
     const gridClasses = getGridClasses();
 
     return {
-      container: `relative min-h-screen ${isMobile ? 'pt-[18vh]' : 'pt-[33vh]'}`,
+      container: `relative min-h-[100dvh] ${isMobile ? 'pt-[12vh]' : 'pt-[33vh]'}`,
       searchContainer: searchBarLayout.containerClass,
-      cardContainer: `${isMobile ? 'pt-4 pb-4' : 'pt-16 pb-8'} px-4 max-w-6xl mx-auto`,
+      cardContainer: `${isMobile ? 'pt-2 pb-4' : 'pt-16 pb-8'} px-2 max-w-6xl mx-auto`,
       gridLayout: gridClasses,
       userInfo: isMobile ? 'fixed top-2 right-2 z-40 scale-90' : 'fixed top-4 right-4 z-40',
       workspaceButton: isMobile ? 'fixed top-2 left-2 z-40 scale-90' : 'fixed top-4 left-4 z-40',
       settingsButton: isMobile
-        ? 'fixed bottom-2 right-2 z-[9999] p-2 bg-white/10 rounded-full backdrop-blur-sm'
+        ? 'fixed bottom-4 right-4 z-[9999] p-3 bg-white/15 rounded-full backdrop-blur-md min-w-[44px] min-h-[44px] flex items-center justify-center'
         : 'fixed bottom-4 right-4 z-[9999]',
     };
   };

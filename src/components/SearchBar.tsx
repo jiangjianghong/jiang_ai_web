@@ -2200,8 +2200,8 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                   style={{ display: 'inline-block' }}
                 />
 
-                {/* 悬停时显示的AI图标（以搜索图标为圆心）- 圆形布局模式 */}
-                {isHovered && aiIconDisplayMode === 'circular' && (
+                {/* 悬停时显示的AI图标（以搜索图标为圆心）- 圆形布局模式 - 移动端隐藏 */}
+                {isHovered && !isMobile && aiIconDisplayMode === 'circular' && (
                   <div
                     className="absolute z-30"
                     style={{
@@ -2317,8 +2317,8 @@ function SearchBarComponent(props: SearchBarProps = {}) {
                 )}
               </motion.button>
 
-              {/* 下拉面板式AI图标 */}
-              {isHovered && aiIconDisplayMode === 'dropdown' && !searchQuery && (
+              {/* 下拉面板式AI图标 - 移动端隐藏 */}
+              {isHovered && !isMobile && aiIconDisplayMode === 'dropdown' && !searchQuery && (
                 <div
                   className="absolute z-30 opacity-0"
                   style={{

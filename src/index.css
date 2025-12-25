@@ -518,3 +518,49 @@ input[type='range']::-moz-range-thumb:hover {
   -moz-user-select: text !important;
   -ms-user-select: text !important;
 }
+
+/* ==================== 移动端优化样式 ==================== */
+
+/* 隐藏滚动条（用于水平导航） */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* 移动端触摸优化 */
+@media (max-width: 640px) {
+  /* 减少动画持续时间提升性能 */
+  .settings-section {
+    animation-duration: 0.2s !important;
+  }
+  
+  /* 优化滑块控件触摸区域 */
+  input[type="range"] {
+    height: 44px;
+    padding: 8px 0;
+  }
+  
+  input[type="range"]::-webkit-slider-thumb {
+    width: 24px;
+    height: 24px;
+  }
+  
+  input[type="range"]::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+/* 安全区域适配（iPhone X 及以上） */
+@supports (padding: max(0px)) {
+  .safe-area-bottom {
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+  }
+  
+  .safe-area-top {
+    padding-top: max(16px, env(safe-area-inset-top));
+  }
+}

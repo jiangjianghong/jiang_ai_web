@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useTransparency } from '@/contexts/TransparencyContext';
+import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import { TodoModal } from './TodoModal';
 
 export function TimeDisplay() {
@@ -19,6 +20,7 @@ export function TimeDisplay() {
     lunchTime,
     offWorkTime,
   } = useTransparency();
+  const { isMobile } = useResponsiveLayout();
   const [isHovered, setIsHovered] = useState(false);
 
   useEffect(() => {
@@ -46,11 +48,11 @@ export function TimeDisplay() {
 
     if (showSeconds) {
       const seconds = date.getSeconds().toString().padStart(2, '0');
-      return { text: `${hours}:${minutes}:${seconds}`, colonOpacity: 1 };
+      return { text: `${hours}:${minutes}:${seconds} `, colonOpacity: 1 };
     } else {
       // 不精确到秒时，冒号透明度闪烁效果
       const colonOpacity = isColonVisible ? 1 : 0.3;
-      return { text: `${hours}:${minutes}`, colonOpacity };
+      return { text: `${hours}:${minutes} `, colonOpacity };
     }
   };
 
@@ -114,7 +116,7 @@ export function TimeDisplay() {
       const hours = Math.floor(diff / (1000 * 60 * 60));
       const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-      return `${hours}时${minutes}分${seconds}秒`;
+      return `${hours}时${minutes}分${seconds} 秒`;
     };
 
     return (
@@ -163,7 +165,7 @@ export function TimeDisplay() {
           }}
         >
           <div
-            className="text-white/80 font-mono text-4xl font-semibold tracking-wide mb-1 drop-shadow-sm cursor-pointer hover:text-white/90 transition-all duration-200 hover:scale-105 pointer-events-auto time-display-clickable select-none"
+            className={`text-white/80 font-mono ${isMobile ? 'text-2xl' : 'text-4xl'} font-semibold tracking-wide mb-1 drop-shadow-sm cursor-pointer hover:text-white/90 transition-all duration-200 hover:scale-105 pointer-events-auto time-display-clickable select-none`}
             onClick={handleTimeClick}
           >
             {(() => {
@@ -208,8 +210,8 @@ export function TimeDisplay() {
             onMouseLeave={() => setIsHovered(false)}
           >
             <span
-              className={`transition-opacity duration-200 text-center absolute select-none ${workCountdownEnabled && isHovered ? 'opacity-0' : (showFullDate ? 'opacity-100' : 'opacity-0')
-                }`}
+              className={`transition - opacity duration - 200 text - center absolute select - none ${workCountdownEnabled && isHovered ? 'opacity-0' : (showFullDate ? 'opacity-100' : 'opacity-0')
+                } `}
             >
               {showFullDate ? formatDate(currentTime) : '占位文本'}
             </span>
@@ -217,8 +219,8 @@ export function TimeDisplay() {
             {/* 倒计时显示 */}
             {workCountdownEnabled && (
               <span
-                className={`transition-opacity duration-200 text-center absolute select-none ${isHovered ? 'opacity-100' : 'opacity-0'
-                  }`}
+                className={`transition - opacity duration - 200 text - center absolute select - none ${isHovered ? 'opacity-100' : 'opacity-0'
+                  } `}
               >
                 {getCountdownText()}
               </span>

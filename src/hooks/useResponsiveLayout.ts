@@ -36,14 +36,14 @@ const DEFAULT_BREAKPOINTS: ResponsiveBreakpoints = {
 
 const DEFAULT_LAYOUT: ResponsiveLayoutConfig = {
   columns: {
-    mobile: 2,
+    mobile: 4,  // 移动端改为4列紧凑布局
     tablet: 3,
     tabletLandscape: 4,
     desktop: 6,
     wide: 8,
   },
   gaps: {
-    mobile: 'gap-x-2 gap-y-6',
+    mobile: 'gap-x-1.5 gap-y-3',  // 更紧凑的间距
     tablet: 'gap-x-3 gap-y-8',
     desktop: 'gap-x-4 gap-y-10',
   },
@@ -121,7 +121,7 @@ export function useResponsiveLayout(customConfig?: Partial<ResponsiveLayoutConfi
     const baseClasses = 'grid';
 
     if (layout.isMobile) {
-      return `${baseClasses} grid-cols-2 ${layout.gap} px-2`;
+      return `${baseClasses} grid-cols-4 ${layout.gap} px-2`;  // 4列紧凑网格
     } else if (layout.isTablet) {
       return layout.isTabletLandscape
         ? `${baseClasses} grid-cols-4 ${layout.gap} px-4`
@@ -151,9 +151,9 @@ export function useResponsiveLayout(customConfig?: Partial<ResponsiveLayoutConfi
 
     if (layout.isMobile) {
       return {
-        containerClass: 'px-4 py-4',
-        searchClass: 'w-full max-w-lg mx-auto',
-        buttonSize: 'text-sm px-3 py-2',
+        containerClass: 'px-2 py-3',
+        searchClass: 'w-full max-w-[280px] mx-auto',  // 移动端更窄的搜索框
+        buttonSize: 'text-xs px-2 py-1.5',
       };
     } else if (layout.isTablet) {
       return {

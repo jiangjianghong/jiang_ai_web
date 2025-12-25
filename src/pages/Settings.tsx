@@ -25,6 +25,7 @@ import {
   getUserWebsites,
 } from '@/lib/supabaseSync';
 import { useDataManager } from '@/hooks/useDataManager';
+import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import { faviconCache } from '@/lib/faviconCache';
 
 interface SettingsProps {
@@ -49,6 +50,7 @@ const SECTIONS = [
 ];
 
 function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: SettingsProps) {
+  const { isMobile } = useResponsiveLayout();
   const [showAddCardModal, setShowAddCardModal] = useState(false);
   const [showPrivacySettings, setShowPrivacySettings] = useState(false);
   const [showAccountSecurityModal, setShowAccountSecurityModal] = useState(false);
@@ -785,59 +787,91 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
       />
 
       <motion.div
-        className="w-[900px] bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-2xl shadow-[0_35px_80px_-15px_rgba(0,0,0,0.7),0_0_40px_-10px_rgba(0,0,0,0.3)] dark:shadow-[0_35px_80px_-15px_rgba(0,0,0,0.9),0_0_50px_rgba(0,0,0,0.5)] border border-white/60 dark:border-gray-600/40 ring-1 ring-white/30 dark:ring-white/5 z-50 h-[85vh] flex flex-row select-none overflow-hidden relative before:absolute before:inset-0 before:rounded-2xl before:bg-gradient-to-br before:from-white/20 before:via-transparent before:to-transparent before:pointer-events-none"
+        className={`${isMobile ? 'w-full h-full rounded-none' : 'w-[900px] h-[85vh] rounded-2xl'} bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl shadow-[0_35px_80px_-15px_rgba(0,0,0,0.7),0_0_40px_-10px_rgba(0,0,0,0.3)] dark:shadow-[0_35px_80px_-15px_rgba(0,0,0,0.9),0_0_50px_rgba(0,0,0,0.5)] border border-white/60 dark:border-gray-600/40 ring-1 ring-white/30 dark:ring-white/5 z-50 flex ${isMobile ? 'flex-col' : 'flex-row'} select-none overflow-hidden relative before:absolute before:inset-0 before:rounded-2xl before:bg-gradient-to-br before:from-white/20 before:via-transparent before:to-transparent before:pointer-events-none`}
         initial={{ scale: 0.8, opacity: 0, y: 20 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.8, opacity: 0, y: 20 }}
         transition={{ type: 'spring', damping: 25, stiffness: 400 }}
       >
-        {/* 左侧侧边栏 */}
-        <div className="w-[180px] flex-shrink-0 flex flex-col border-r border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/30">
-          {/* 标题 */}
-          <div className="p-6 pb-4">
-            <div className="text-2xl font-black bg-gradient-to-br from-gray-800 to-gray-500 dark:from-white dark:to-gray-400 bg-clip-text text-transparent select-none mb-1 drop-shadow-sm filter">设置</div>
-          </div>
-
-          {/* 导航列表 - 使用 SECTIONS 生成 */}
-          <div className="flex-1 overflow-y-auto custom-scrollbar px-3 space-y-1 py-2">
-            {SECTIONS.map((section) => (
+        {/* 移动端顶部导航 */}
+        {isMobile && (
+          <div className="flex-shrink-0 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/30 p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-xl font-bold bg-gradient-to-br from-gray-800 to-gray-500 dark:from-white dark:to-gray-400 bg-clip-text text-transparent">设置</div>
               <button
-                key={section.id}
-                onClick={() => scrollToSection(section.id)}
-                className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-all duration-200 group relative ${activeSection === section.id
-                  ? 'text-gray-900 dark:text-white font-bold'
-                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-white/50 dark:hover:bg-gray-700/30'
-                  }`}
+                onClick={handleClose}
+                className="p-2 rounded-full hover:bg-gray-200/50 dark:hover:bg-gray-700/50 transition-colors"
               >
-                {activeSection === section.id && (
-                  <motion.div
-                    layoutId="activeSectionBg"
-                    className="absolute inset-0 bg-gradient-to-b from-white to-gray-50 dark:from-gray-700 dark:to-gray-800 shadow-md border border-gray-100 dark:border-gray-600 rounded-xl"
-                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                  />
-                )}
-                <span className="relative z-10 w-5 flex justify-center">
-                  <i className={`fa-solid ${section.icon}`}></i>
-                </span>
-                <span className="relative z-10">{section.label}</span>
+                <i className="fa-solid fa-times text-gray-500 dark:text-gray-400 text-lg"></i>
               </button>
-            ))}
+            </div>
+            <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
+              {SECTIONS.map((section) => (
+                <button
+                  key={section.id}
+                  onClick={() => scrollToSection(section.id)}
+                  className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs transition-all duration-200 whitespace-nowrap ${activeSection === section.id
+                    ? 'bg-blue-500 text-white font-medium shadow-sm'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
+                    }`}
+                >
+                  <i className={`fa-solid ${section.icon} mr-1.5`}></i>
+                  {section.label}
+                </button>
+              ))}
+            </div>
           </div>
+        )}
 
-          {/* 版本信息 - 左下角 */}
-          <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-700/50">
-            <div className="flex flex-col gap-1">
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-400 dark:text-gray-500">版本</span>
-                <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">v{versionInfo.version}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-400 dark:text-gray-500">更新</span>
-                <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">{versionInfo.buildDate}</span>
+        {/* 左侧侧边栏 - 移动端隐藏 */}
+        {!isMobile && (
+          <div className="w-[180px] flex-shrink-0 flex flex-col border-r border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/30">
+            {/* 标题 */}
+            <div className="p-6 pb-4">
+              <div className="text-2xl font-black bg-gradient-to-br from-gray-800 to-gray-500 dark:from-white dark:to-gray-400 bg-clip-text text-transparent select-none mb-1 drop-shadow-sm filter">设置</div>
+            </div>
+
+            {/* 导航列表 - 使用 SECTIONS 生成 */}
+            <div className="flex-1 overflow-y-auto custom-scrollbar px-3 space-y-1 py-2">
+              {SECTIONS.map((section) => (
+                <button
+                  key={section.id}
+                  onClick={() => scrollToSection(section.id)}
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-all duration-200 group relative ${activeSection === section.id
+                    ? 'text-gray-900 dark:text-white font-bold'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-white/50 dark:hover:bg-gray-700/30'
+                    }`}
+                >
+                  {activeSection === section.id && (
+                    <motion.div
+                      layoutId="activeSectionBg"
+                      className="absolute inset-0 bg-gradient-to-b from-white to-gray-50 dark:from-gray-700 dark:to-gray-800 shadow-md border border-gray-100 dark:border-gray-600 rounded-xl"
+                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                    />
+                  )}
+                  <span className="relative z-10 w-5 flex justify-center">
+                    <i className={`fa-solid ${section.icon}`}></i>
+                  </span>
+                  <span className="relative z-10">{section.label}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* 版本信息 - 左下角 */}
+            <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-700/50">
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-400 dark:text-gray-500">版本</span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">v{versionInfo.version}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-400 dark:text-gray-500">更新</span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">{versionInfo.buildDate}</span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* 主要内容区域 */}
         <div

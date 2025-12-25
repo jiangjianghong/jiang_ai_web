@@ -53,7 +53,7 @@ export default function DataSyncModal({
     <div className="fixed inset-0 z-[9999] flex items-center justify-center">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
       <motion.div
-        className="w-96 bg-white dark:bg-gray-900 rounded-xl shadow-2xl z-50 max-h-[80vh] flex flex-col"
+        className="w-full max-w-[384px] mx-4 bg-white dark:bg-gray-900 rounded-xl shadow-2xl z-50 max-h-[80vh] flex flex-col"
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}

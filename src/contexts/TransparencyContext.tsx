@@ -41,7 +41,7 @@ interface TransparencyContextType {
   lunchTime: string; // 午休时间 HH:mm
   offWorkTime: string; // 下班时间 HH:mm
   aiIconDisplayMode: 'circular' | 'dropdown'; // AI图标显示模式：圆形布局或下拉面板
-  atmosphereEnabled: boolean; // 氛围效果开关（立冬下雪等）
+  atmosphereMode: 'auto' | 'snow' | 'leaf' | 'off'; // 氛围效果模式：自动/雪花/落叶/关闭
   atmosphereParticleCount: number; // 氛围效果粒子数量（10-1000）
   darkOverlayEnabled: boolean; // 黑色遮罩开关（壁纸暗角效果）
   darkOverlayMode: 'off' | 'always' | 'smart'; // 黑色遮罩模式：关闭/始终/智能
@@ -75,7 +75,7 @@ interface TransparencyContextType {
   setLunchTime: (time: string) => void;
   setOffWorkTime: (time: string) => void;
   setAiIconDisplayMode: (mode: 'circular' | 'dropdown') => void;
-  setAtmosphereEnabled: (enabled: boolean) => void;
+  setAtmosphereMode: (mode: 'auto' | 'snow' | 'leaf' | 'off') => void;
   setAtmosphereParticleCount: (count: number) => void;
   setDarkOverlayEnabled: (enabled: boolean) => void;
   setDarkOverlayMode: (mode: 'off' | 'always' | 'smart') => void;
@@ -234,10 +234,15 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
     return saved || 'circular'; // 默认圆形布局
   });
 
-  // 氛围效果开关（立冬下雪等）
-  const [atmosphereEnabled, setAtmosphereEnabled] = useState(() => {
-    const saved = localStorage.getItem('atmosphereEnabled');
-    return saved ? saved === 'true' : true; // 默认开启
+  // 氛围效果模式（自动/雪花/落叶/关闭）
+  const [atmosphereMode, setAtmosphereMode] = useState<'auto' | 'snow' | 'leaf' | 'off'>(() => {
+    const saved = localStorage.getItem('atmosphereMode');
+    // 兼容旧的 atmosphereEnabled 配置
+    if (!saved) {
+      const oldEnabled = localStorage.getItem('atmosphereEnabled');
+      return oldEnabled === 'false' ? 'off' : 'auto';
+    }
+    return (saved as 'auto' | 'snow' | 'leaf' | 'off') || 'auto';
   });
 
   // 氛围效果粒子数量（10-1000）
@@ -445,8 +450,8 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
   }, [aiIconDisplayMode]);
 
   useEffect(() => {
-    localStorage.setItem('atmosphereEnabled', atmosphereEnabled.toString());
-  }, [atmosphereEnabled]);
+    localStorage.setItem('atmosphereMode', atmosphereMode);
+  }, [atmosphereMode]);
 
   useEffect(() => {
     localStorage.setItem('atmosphereParticleCount', atmosphereParticleCount.toString());
@@ -507,7 +512,7 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
     lunchTime,
     offWorkTime,
     aiIconDisplayMode,
-    atmosphereEnabled,
+    atmosphereMode,
     atmosphereParticleCount,
     darkOverlayEnabled,
     darkOverlayMode,
@@ -541,7 +546,7 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
     setLunchTime,
     setOffWorkTime,
     setAiIconDisplayMode,
-    setAtmosphereEnabled,
+    setAtmosphereMode,
     setAtmosphereParticleCount,
     setDarkOverlayEnabled,
     setDarkOverlayMode,
@@ -551,7 +556,7 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
   }), [
     cardOpacity, searchBarOpacity, parallaxEnabled, wallpaperResolution, isSettingsOpen, isSearchFocused, cardColor, searchBarColor,
     autoSyncEnabled, autoSyncInterval, searchInNewTab, autoSortEnabled, timeComponentEnabled, showFullDate, showSeconds, showWeekday,
-    showYear, showMonth, showDay, dateDisplayMode, searchBarBorderRadius, animationStyle, workCountdownEnabled, lunchTime, offWorkTime, aiIconDisplayMode, atmosphereEnabled, atmosphereParticleCount, darkOverlayEnabled, darkOverlayMode, darkMode, darkModePreference, darkModeScheduleStart, darkModeScheduleEnd
+    showYear, showMonth, showDay, dateDisplayMode, searchBarBorderRadius, animationStyle, workCountdownEnabled, lunchTime, offWorkTime, aiIconDisplayMode, atmosphereMode, atmosphereParticleCount, darkOverlayEnabled, darkOverlayMode, darkMode, darkModePreference, darkModeScheduleStart, darkModeScheduleEnd
   ]);
 
   return (

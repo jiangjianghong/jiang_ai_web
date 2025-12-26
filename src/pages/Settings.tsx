@@ -219,8 +219,8 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
     setOffWorkTime,
     aiIconDisplayMode,
     setAiIconDisplayMode,
-    atmosphereEnabled,
-    setAtmosphereEnabled,
+    atmosphereMode,
+    setAtmosphereMode,
     atmosphereParticleCount,
     setAtmosphereParticleCount,
     darkOverlayMode,
@@ -1643,7 +1643,7 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
               </div>
 
               <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 space-y-4">
-                {/* 氛围效果开关 */}
+                {/* 氛围效果模式选择 */}
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
@@ -1653,27 +1653,54 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                       </span>
                     </div>
                     <p className="text-xs text-gray-500 dark:text-gray-400 select-none">
-                      {atmosphereEnabled ? '立冬至立春期间页面会飘落雪花' : '已关闭季节氛围效果'}
+                      {atmosphereMode === 'auto' && '根据季节自动切换效果'}
+                      {atmosphereMode === 'snow' && '显示雪花飘落效果'}
+                      {atmosphereMode === 'leaf' && '显示落叶飘落效果'}
+                      {atmosphereMode === 'off' && '已关闭氛围效果'}
                     </p>
                   </div>
-                  <button
-                    onClick={() => setAtmosphereEnabled(!atmosphereEnabled)}
-                    className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 hover:scale-105 ${atmosphereEnabled
-                      ? 'bg-gradient-to-r from-indigo-500 to-purple-600 shadow-lg shadow-indigo-300/50'
-                      : 'bg-gradient-to-r from-gray-400 to-gray-500 dark:from-gray-600 dark:to-gray-700 shadow-lg shadow-gray-300/50 dark:shadow-gray-900/50'
-                      }`}
-                  >
-                    <span
-                      className={`inline-block h-5 w-5 transform rounded-full bg-white dark:bg-gray-200 transition-all duration-300 shadow-md ${atmosphereEnabled
-                        ? 'translate-x-6 shadow-indigo-200'
-                        : 'translate-x-1 shadow-gray-200 dark:shadow-gray-600'
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => setAtmosphereMode('auto')}
+                      className={`px-2 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${atmosphereMode === 'auto'
+                        ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md'
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                         }`}
-                    />
-                  </button>
+                    >
+                      <i className="fa-solid fa-wand-magic-sparkles mr-1"></i>自动
+                    </button>
+                    <button
+                      onClick={() => setAtmosphereMode('snow')}
+                      className={`px-2 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${atmosphereMode === 'snow'
+                        ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-md'
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                        }`}
+                    >
+                      <i className="fa-solid fa-snowflake mr-1"></i>雪花
+                    </button>
+                    <button
+                      onClick={() => setAtmosphereMode('leaf')}
+                      className={`px-2 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${atmosphereMode === 'leaf'
+                        ? 'bg-gradient-to-r from-orange-500 to-amber-600 text-white shadow-md'
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                        }`}
+                    >
+                      <i className="fa-solid fa-leaf mr-1"></i>落叶
+                    </button>
+                    <button
+                      onClick={() => setAtmosphereMode('off')}
+                      className={`px-2 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${atmosphereMode === 'off'
+                        ? 'bg-gradient-to-r from-gray-500 to-gray-600 text-white shadow-md'
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                        }`}
+                    >
+                      关闭
+                    </button>
+                  </div>
                 </div>
 
-                {/* 氛围效果粒子数量滑轨 - 仅开启时显示 */}
-                {atmosphereEnabled && (
+                {/* 氛围效果粒子数量滑轨 - 未关闭时显示 */}
+                {atmosphereMode !== 'off' && (
                   <>
                     <div className="border-t border-gray-100 dark:border-gray-700"></div>
                     <div className="space-y-3">

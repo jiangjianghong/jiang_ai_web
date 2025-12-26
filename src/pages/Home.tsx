@@ -19,9 +19,10 @@ import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import { logger } from '@/utils/logger';
 import { customWallpaperManager } from '@/lib/customWallpaperManager';
 import SnowEffect from '@/components/effects/SnowEffect';
+import LeafEffect from '@/components/effects/LeafEffect';
 import AnnouncementBanner from '@/components/AnnouncementBanner';
 import AnnouncementCenter from '@/components/AnnouncementCenter';
-import { isWinterSeason } from '@/utils/solarTerms';
+import { isWinterSeason, isAutumnSeason } from '@/utils/solarTerms';
 import { shouldApplyOverlay, clearAllColorCache } from '@/utils/imageColorAnalyzer';
 
 // 暴露给控制台调试用
@@ -42,7 +43,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
     isSettingsOpen,
     autoSortEnabled,
     isSearchFocused,
-    atmosphereEnabled,
+    atmosphereMode,
     atmosphereParticleCount,
     darkOverlayMode,
   } = useTransparency();
@@ -444,8 +445,15 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
         />
       )}
 
-      {/* 雪花氛围效果 - 仅在开关开启且处于冬季时显示 */}
-      {atmosphereEnabled && isWinterSeason() && <SnowEffect particleCount={atmosphereParticleCount} />}
+      {/* 雪花氛围效果 */}
+      {(atmosphereMode === 'snow' || (atmosphereMode === 'auto' && isWinterSeason())) && (
+        <SnowEffect particleCount={atmosphereParticleCount} />
+      )}
+
+      {/* 落叶氛围效果 */}
+      {(atmosphereMode === 'leaf' || (atmosphereMode === 'auto' && isAutumnSeason())) && (
+        <LeafEffect particleCount={atmosphereParticleCount} />
+      )}
 
 
 

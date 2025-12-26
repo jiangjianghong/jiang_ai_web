@@ -72,3 +72,65 @@ export const isWinterSeason = (): boolean => {
 export const clearWinterSeasonCache = (): void => {
     winterSeasonCache = null;
 };
+
+// 秋季缓存结构
+interface AutumnSeasonCache {
+    date: string; // 格式: YYYY-MM-DD
+    isAutumn: boolean;
+}
+
+let autumnSeasonCache: AutumnSeasonCache | null = null;
+
+/**
+ * 判断当前是否处于秋季（立秋至立冬期间）
+ * 
+ * 立秋: 通常在每年 8 月 7-8 日
+ * 立冬: 通常在每年 11 月 7-8 日
+ * 
+ * 简化判断逻辑：8月7日至11月6日期间返回 true
+ * 
+ * 结果会缓存一天，避免重复计算
+ * 
+ * @returns 是否在秋季期间
+ */
+export const isAutumnSeason = (): boolean => {
+    const todayString = getTodayString();
+
+    // 检查缓存是否有效
+    if (autumnSeasonCache && autumnSeasonCache.date === todayString) {
+        return autumnSeasonCache.isAutumn;
+    }
+
+    const now = new Date();
+    const month = now.getMonth() + 1; // 1-12
+    const day = now.getDate();
+
+    let isAutumn = false;
+
+    // 判断是否在秋季期间
+    // 8月7日及之后 或 9月全月 或 10月全月 或 11月6日及之前
+    if (month === 8 && day >= 7) {
+        isAutumn = true;
+    } else if (month === 9) {
+        isAutumn = true;
+    } else if (month === 10) {
+        isAutumn = true;
+    } else if (month === 11 && day <= 6) {
+        isAutumn = true;
+    }
+
+    // 更新缓存
+    autumnSeasonCache = {
+        date: todayString,
+        isAutumn,
+    };
+
+    return isAutumn;
+};
+
+/**
+ * 清除秋季缓存（用于测试）
+ */
+export const clearAutumnSeasonCache = (): void => {
+    autumnSeasonCache = null;
+};

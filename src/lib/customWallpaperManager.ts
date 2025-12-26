@@ -468,6 +468,21 @@ class CustomWallpaperManager {
   // 提取URL的核心标识（用于判重）
   private extractUrlCore(url: string): string {
     try {
+      // 0. 特殊处理 Supabase Edge Function URL
+      // 格式: .../wallpaper-service?resolution=...&date=...
+      if (url.includes('wallpaper-service')) {
+        // 对于壁纸服务 URL，必须保留参数，因为日期在参数里
+        // 为了避免参数顺序不同导致的问题，提取 date 作为核心标识
+        const dateMatch = url.match(/date=([^&]+)/);
+        if (dateMatch) {
+          const date = dateMatch[1];
+          logger.wallpaper.debug('提取 Wallpapaer Service Date:', date);
+          return `wallpaper-service-${date}`;
+        }
+        // 如果没有 date 参数，回退到使用完整 URL
+        return url;
+      }
+
       // 多种匹配模式，适配不同的 URL 格式
 
       // 1. Bing 格式: OHR.ImageName_ZH-CN1234567890
@@ -509,6 +524,12 @@ class CustomWallpaperManager {
 
   // 检查URL是否已经被收藏
   async isUrlAlreadyFavorited(url: string): Promise<boolean> {
+    const id = await this.getWallpaperIdByUrl(url);
+    return !!id;
+  }
+
+  // 根据URL获取壁纸ID
+  async getWallpaperIdByUrl(url: string): Promise<string | null> {
     try {
       const list = await this.getWallpaperList();
       const urlCore = this.extractUrlCore(url);
@@ -520,35 +541,46 @@ class CustomWallpaperManager {
       });
 
       // 检查列表中是否有相同的URL（比较核心部分）
-      const found = list.some((item) => {
+      let foundItem = list.find((item) => {
         if (!item.sourceUrl) return false;
         const itemUrlCore = this.extractUrlCore(item.sourceUrl);
         const isMatch = itemUrlCore === urlCore;
 
         if (isMatch) {
-          logger.wallpaper.info('✅ 找到匹配的收藏壁纸', {
+          logger.wallpaper.info('✅ 找到匹配的收藏壁纸 (Core Match)', {
             savedUrl: item.sourceUrl,
             savedCore: itemUrlCore,
             checkingCore: urlCore,
+            id: item.id
           });
         }
 
         return isMatch;
       });
 
-      if (!found) {
+      // 如果核心匹配失败，尝试完全匹配
+      if (!foundItem) {
+        foundItem = list.find(item => item.sourceUrl === url);
+        if (foundItem) {
+          logger.wallpaper.info('✅ 找到匹配的收藏壁纸 (Exact Match)', { id: foundItem.id });
+        }
+      }
+
+      if (!foundItem) {
         logger.wallpaper.debug('❌ 未找到匹配的收藏壁纸', {
+          checkingUrl: url,
           checkingCore: urlCore,
           savedCores: list.map((item) =>
             item.sourceUrl ? this.extractUrlCore(item.sourceUrl) : 'no-url'
           ),
         });
+        return null;
       }
 
-      return found;
+      return foundItem.id;
     } catch (error) {
-      logger.wallpaper.error('检查URL是否已收藏失败', error);
-      return false;
+      logger.wallpaper.error('通过URL获取壁纸ID失败', error);
+      return null;
     }
   }
 

@@ -127,45 +127,73 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
     });
   }, [wallpaperResolution, bgImage, bgOriginalUrl, isSearchFocused, isAlreadyFavorited]);
 
-  // 收藏当前壁纸
+  // 收藏/取消收藏当前壁纸
   const handleFavoriteWallpaper = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
-    // 如果已经收藏，不允许重复收藏
-    if (isFavoriting || !bgOriginalUrl || wallpaperResolution === 'custom' || isAlreadyFavorited) {
+    // 如果正在操作中，或者没有URL，或者是自定义壁纸，直接返回
+    if (isFavoriting || !bgOriginalUrl || wallpaperResolution === 'custom') {
       return;
     }
 
     setIsFavoriting(true);
 
+    logger.debug('🖱️ 点击壁纸收藏按钮', {
+      isAlreadyFavorited,
+      bgOriginalUrl,
+      wallpaperResolution
+    });
+
     try {
-      // 使用原始 Unsplash URL 下载并保存壁纸
-      const result = await customWallpaperManager.downloadAndSaveFromUrl(
-        bgOriginalUrl, // 使用原始URL而不是Blob URL
-        `unsplash-${wallpaperResolution}-${Date.now()}.jpg`
-      );
+      if (isAlreadyFavorited) {
+        // 取消收藏逻辑
+        logger.debug('🔄 尝试取消收藏...', { bgOriginalUrl });
+        const id = await customWallpaperManager.getWallpaperIdByUrl(bgOriginalUrl);
 
-      if (result.success) {
-        setIsFavorited(true);
-        setIsAlreadyFavorited(true); // 标记为已收藏
-        logger.debug('✅ 壁纸收藏成功', { id: result.id });
-
-        // 3秒后隐藏"收藏成功"提示（但保持已收藏状态）
-        setTimeout(() => {
+        if (id) {
+          logger.debug('🆔 找到壁纸ID，正在删除', { id });
+          const success = await customWallpaperManager.deleteWallpaper(id);
+          if (success) {
+            setIsAlreadyFavorited(false);
+            setIsFavorited(false);
+            logger.debug('🗑️ 壁纸取消收藏成功', { id });
+          } else {
+            logger.warn('❌ 壁纸取消收藏失败');
+          }
+        } else {
+          logger.warn('❌ 无法找到对应壁纸ID，无法取消收藏', { bgOriginalUrl });
+          // 强制重置状态，避免UI卡死在已收藏状态
+          setIsAlreadyFavorited(false);
           setIsFavorited(false);
-        }, 3000);
-      } else {
-        logger.warn('❌ 壁纸收藏失败', result.error);
-        // 如果是重复收藏的错误，更新状态
-        if (result.error?.includes('已经在你的收藏中')) {
-          setIsAlreadyFavorited(true);
         }
-        alert(`收藏失败: ${result.error || '未知错误'}`);
+      } else {
+        // 收藏逻辑
+        // 使用原始 Unsplash URL 下载并保存壁纸
+        const result = await customWallpaperManager.downloadAndSaveFromUrl(
+          bgOriginalUrl, // 使用原始URL而不是Blob URL
+          `unsplash-${wallpaperResolution}-${Date.now()}.jpg`
+        );
+
+        if (result.success) {
+          setIsFavorited(true);
+          setIsAlreadyFavorited(true); // 标记为已收藏
+          logger.debug('✅ 壁纸收藏成功', { id: result.id });
+
+          // 3秒后隐藏"收藏成功"提示（但保持已收藏状态）
+          setTimeout(() => {
+            setIsFavorited(false);
+          }, 3000);
+        } else {
+          logger.warn('❌ 壁纸收藏失败', result.error);
+          // 如果是重复收藏的错误，更新状态
+          if (result.error?.includes('已经在你的收藏中')) {
+            setIsAlreadyFavorited(true);
+          }
+        }
       }
     } catch (error) {
-      logger.error('收藏壁纸时出错', error);
-      alert('收藏失败，请重试');
+      logger.error('操作壁纸收藏状态时出错', error);
     } finally {
       setIsFavoriting(false);
     }
@@ -574,7 +602,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
               <button
                 onClick={handleFavoriteWallpaper}
                 onMouseDown={(e) => e.preventDefault()} // 阻止焦点转移，保持搜索框聚焦状态
-                disabled={isFavoriting || isAlreadyFavorited}
+                disabled={isFavoriting}
                 className="flex items-center justify-center transition-all duration-300 cursor-pointer hover:scale-110 disabled:cursor-default"
               >
                 {isFavoriting ? (
@@ -600,7 +628,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
               {/* hover提示文字 - 已收藏时 */}
               {!isFavoriting && isAlreadyFavorited && !isFavorited && (
                 <div className="absolute right-0 top-full mt-2 px-4 py-2 bg-red-500/90 text-white text-sm rounded-lg shadow-lg backdrop-blur-sm border border-red-400/30 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none z-50">
-                  ❤️ 已收藏
+                  ❤️ 已收藏 · 点击取消
                   <div className="absolute bottom-full right-4 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-red-500/90"></div>
                 </div>
               )}

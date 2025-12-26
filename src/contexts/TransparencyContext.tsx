@@ -247,10 +247,11 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
     return (saved as 'auto' | 'snow' | 'leaf' | 'off') || 'auto';
   });
 
-  // 氛围效果粒子数量（10-1000）
+  // 氛围效果粒子数量（1-100）
   const [atmosphereParticleCount, setAtmosphereParticleCount] = useState(() => {
     const saved = localStorage.getItem('atmosphereParticleCount');
-    return saved ? parseInt(saved, 10) : 100; // 默认100
+    const value = saved ? parseInt(saved, 10) : 50;
+    return Math.min(Math.max(value, 1), 100); // 限制在 1-100 范围内
   });
 
   // 风力效果开关

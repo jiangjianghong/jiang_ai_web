@@ -1707,11 +1707,14 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                     <div className="border-t border-gray-100 dark:border-gray-700"></div>
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <i className="fa-solid fa-sliders text-indigo-500 text-sm"></i>
-                          <span className="text-sm font-medium text-gray-700 dark:text-gray-200 select-none">
-                            粒子数量
-                          </span>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <i className="fa-solid fa-sliders text-indigo-500 text-sm"></i>
+                            <span className="text-sm font-medium text-gray-700 dark:text-gray-200 select-none">
+                              粒子数量
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-400 mt-0.5 select-none">过多的粒子会消耗更多性能哦</p>
                         </div>
                         <span className="text-sm font-medium text-indigo-600">
                           {atmosphereParticleCount}
@@ -1719,16 +1722,16 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                       </div>
                       <input
                         type="range"
-                        min="10"
-                        max="1000"
-                        step="10"
+                        min="1"
+                        max="100"
+                        step="1"
                         value={atmosphereParticleCount}
                         onChange={(e) => setAtmosphereParticleCount(parseInt(e.target.value, 10))}
                         className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer"
                       />
                       <div className="flex justify-between text-xs text-gray-400">
-                        <span>10</span>
-                        <span>1000</span>
+                        <span>1</span>
+                        <span>100</span>
                       </div>
                     </div>
 

@@ -24,6 +24,7 @@ interface Leaf {
 
 interface LeafEffectProps {
     particleCount?: number;
+    windEnabled?: boolean; // 风力开关
 }
 
 // 内置 SVG 尖叶子（统一形状，不同颜色）
@@ -42,7 +43,7 @@ const LEAF_SVGS = [
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 50"><path fill="#F39C12" stroke="#D68910" stroke-width="0.5" d="M15 2 Q26 17 21 32 Q17 44 15 48 Q13 44 9 32 Q4 17 15 2 Z"/><line x1="15" y1="8" x2="15" y2="45" stroke="#D68910" stroke-width="0.6"/></svg>`,
 ];
 
-export default function LeafEffect({ particleCount = 100 }: LeafEffectProps) {
+export default function LeafEffect({ particleCount = 100, windEnabled = true }: LeafEffectProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const sceneRef = useRef<HTMLDivElement>(null);
     const nearSceneRef = useRef<HTMLDivElement>(null); // 近景层
@@ -121,7 +122,7 @@ export default function LeafEffect({ particleCount = 100 }: LeafEffectProps) {
         const wind = windRef.current;
         const timer = timerRef.current;
 
-        const leafWindSpeed = wind.speed(timer - wind.start, leaf.y);
+        const leafWindSpeed = windEnabled ? wind.speed(timer - wind.start, leaf.y) : 0;
         const xSpeed = leafWindSpeed + leaf.xSpeedVariation;
 
         leaf.x -= xSpeed;
@@ -214,7 +215,9 @@ export default function LeafEffect({ particleCount = 100 }: LeafEffectProps) {
             const w = container.offsetWidth;
             const h = container.offsetHeight;
 
-            updateWind(h);
+            if (windEnabled) {
+                updateWind(h);
+            }
             leavesRef.current.forEach(leaf => updateLeaf(leaf, w, h));
             timerRef.current++;
 

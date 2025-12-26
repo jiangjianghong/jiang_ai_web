@@ -19,14 +19,15 @@ interface Snowflake {
 }
 
 interface SnowEffectProps {
-    particleCount?: number; // 粒子数量（10-1000）
+    particleCount?: number;
+    windEnabled?: boolean; // 风力开关
 }
 
 // 性能配置
-const SPAWN_RATE = 0.5; // 每帧生成雪花的概率
-const SIZE_THRESHOLD = 2.2; // 大于此值的雪花在近景层
+const SPAWN_RATE = 0.5;
+const SIZE_THRESHOLD = 2.2;
 
-export default function SnowEffect({ particleCount = 100 }: SnowEffectProps) {
+export default function SnowEffect({ particleCount = 100, windEnabled = true }: SnowEffectProps) {
     const maxSnowflakes = particleCount;
     const farCanvasRef = useRef<HTMLCanvasElement>(null);
     const nearCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -102,7 +103,9 @@ export default function SnowEffect({ particleCount = 100 }: SnowEffectProps) {
         const { width, height } = farCanvas;
 
         // 更新风力
-        updateWind(height);
+        if (windEnabled) {
+            updateWind(height);
+        }
         const wind = windRef.current;
         const timer = timerRef.current;
 
@@ -118,7 +121,7 @@ export default function SnowEffect({ particleCount = 100 }: SnowEffectProps) {
         // 更新雪花位置并过滤
         snowflakesRef.current = snowflakesRef.current.filter((flake) => {
             // 计算风力影响
-            const windSpeed = wind.speed(timer - wind.start, flake.y) * 0.5;
+            const windSpeed = windEnabled ? wind.speed(timer - wind.start, flake.y) * 0.5 : 0;
             flake.x -= windSpeed;
             flake.y += flake.speed;
             flake.swingOffset += flake.swingSpeed;
@@ -154,7 +157,7 @@ export default function SnowEffect({ particleCount = 100 }: SnowEffectProps) {
 
         timerRef.current++;
         animationFrameRef.current = requestAnimationFrame(animate);
-    }, [createSnowflake, maxSnowflakes, updateWind]);
+    }, [createSnowflake, maxSnowflakes, updateWind, windEnabled]);
 
     // 调整 Canvas 大小
     const resizeCanvas = useCallback(() => {

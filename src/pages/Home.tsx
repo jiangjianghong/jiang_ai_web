@@ -45,6 +45,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
     isSearchFocused,
     atmosphereMode,
     atmosphereParticleCount,
+    atmosphereWindEnabled,
     darkOverlayMode,
   } = useTransparency();
   const { isWorkspaceOpen, setIsWorkspaceOpen } = useWorkspace();
@@ -447,12 +448,12 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
 
       {/* 雪花氛围效果 */}
       {(atmosphereMode === 'snow' || (atmosphereMode === 'auto' && isWinterSeason())) && (
-        <SnowEffect particleCount={atmosphereParticleCount} />
+        <SnowEffect particleCount={atmosphereParticleCount} windEnabled={atmosphereWindEnabled} />
       )}
 
       {/* 落叶氛围效果 */}
       {(atmosphereMode === 'leaf' || (atmosphereMode === 'auto' && isAutumnSeason())) && (
-        <LeafEffect particleCount={atmosphereParticleCount} />
+        <LeafEffect particleCount={atmosphereParticleCount} windEnabled={atmosphereWindEnabled} />
       )}
 
 

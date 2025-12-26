@@ -223,6 +223,8 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
     setAtmosphereMode,
     atmosphereParticleCount,
     setAtmosphereParticleCount,
+    atmosphereWindEnabled,
+    setAtmosphereWindEnabled,
     darkOverlayMode,
     setDarkOverlayMode,
     darkMode,
@@ -1728,6 +1730,26 @@ function SettingsComponent({ onClose, websites, setWebsites, onSettingsClose }: 
                         <span>10</span>
                         <span>1000</span>
                       </div>
+                    </div>
+
+                    {/* 风力效果开关 */}
+                    <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-700">
+                      <div className="flex items-center gap-2">
+                        <i className="fa-solid fa-wind text-cyan-500 text-sm"></i>
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-200 select-none">
+                          风力效果
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => setAtmosphereWindEnabled(!atmosphereWindEnabled)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${atmosphereWindEnabled ? 'bg-cyan-500' : 'bg-gray-300 dark:bg-gray-600'
+                          }`}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${atmosphereWindEnabled ? 'translate-x-6' : 'translate-x-1'
+                            }`}
+                        />
+                      </button>
                     </div>
                   </>
                 )}

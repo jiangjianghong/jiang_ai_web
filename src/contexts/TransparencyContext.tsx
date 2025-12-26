@@ -147,7 +147,7 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
 
   const [autoSyncInterval, setAutoSyncInterval] = useState(() => {
     const saved = localStorage.getItem('autoSyncInterval');
-    const value = saved ? parseInt(saved) : 30; // 默认30秒
+    const value = saved ? parseInt(saved) : 10; // 默认10秒
     return Math.max(3, Math.min(60, value)); // 限制在3-60秒之间
   });
 
@@ -269,7 +269,7 @@ export function TransparencyProvider({ children }: { children: ReactNode }) {
   // 黑色遮罩模式：关闭/始终/智能
   const [darkOverlayMode, setDarkOverlayMode] = useState<'off' | 'always' | 'smart'>(() => {
     const saved = localStorage.getItem('darkOverlayMode') as 'off' | 'always' | 'smart';
-    return saved || 'off'; // 默认关闭
+    return saved || 'smart'; // 默认智能模式
   });
   // 夜间模式偏好设置
   const [darkModePreference, setDarkModePreference] = useState<'system' | 'on' | 'off' | 'scheduled'>(() => {

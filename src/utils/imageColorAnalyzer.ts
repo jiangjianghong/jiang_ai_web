@@ -139,8 +139,9 @@ export function clearCustomWallpaperColorCache(wallpaperId: string): void {
 }
 
 /**
- * 分析图片的平均颜色
- * 使用缩放到 1x1 像素取平均值的方式，非常轻量
+ * 分析图片中心上方区域的平均颜色
+ * 重点分析时间和搜索栏所在位置（水平20%-80%，垂直5%-40%）
+ * 使用10x10采样点取平均，性能好且精准
  * 支持缓存，避免重复计算
  * @param imageUrl 图片 URL（可以是 blob URL 或普通 URL）
  * @param cacheKey 可选的缓存键，不传则每次都重新计算
@@ -174,23 +175,51 @@ export async function analyzeImageColor(
                     return;
                 }
 
-                // 缩放到 1x1 像素，让浏览器自动计算平均颜色
-                canvas.width = 1;
-                canvas.height = 1;
+                // 使用 10x10 采样点分析中心上方区域
+                const sampleSize = 10;
+                canvas.width = sampleSize;
+                canvas.height = sampleSize;
 
-                // 绘制图片到 1x1 画布
-                ctx.drawImage(img, 0, 0, img.width, img.height, 0, 0, 1, 1);
+                // 定义中心上方区域（时间和搜索栏所在位置）
+                // 水平：20% - 80%（中间60%）
+                // 垂直：5% - 40%（上方35%）
+                const sourceX = img.width * 0.2;
+                const sourceY = img.height * 0.05;
+                const sourceWidth = img.width * 0.6;
+                const sourceHeight = img.height * 0.35;
 
-                // 获取像素数据
-                const imageData = ctx.getImageData(0, 0, 1, 1);
-                const [r, g, b] = imageData.data;
+                // 将中心区域绘制到小画布
+                ctx.drawImage(
+                    img,
+                    sourceX, sourceY, sourceWidth, sourceHeight,
+                    0, 0, sampleSize, sampleSize
+                );
+
+                // 获取所有采样点的像素数据
+                const imageData = ctx.getImageData(0, 0, sampleSize, sampleSize);
+                const pixels = imageData.data;
+
+                // 计算平均颜色
+                let totalR = 0, totalG = 0, totalB = 0;
+                const pixelCount = sampleSize * sampleSize;
+
+                for (let i = 0; i < pixels.length; i += 4) {
+                    totalR += pixels[i];
+                    totalG += pixels[i + 1];
+                    totalB += pixels[i + 2];
+                }
+
+                const r = Math.round(totalR / pixelCount);
+                const g = Math.round(totalG / pixelCount);
+                const b = Math.round(totalB / pixelCount);
 
                 // 计算亮度（使用感知亮度公式）
                 // 人眼对绿色更敏感，所以绿色权重更高
                 const brightness = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
 
-                // 判断是否为浅色：亮度 > 140 认为是浅色/偏亮（更宽松的阈值）
-                const isLight = brightness > 140;
+                // 判断是否为浅色：亮度 > 150 认为是浅色/偏亮
+                // 由于只分析中心区域，阈值可以适当提高
+                const isLight = brightness > 150;
 
                 const result: ColorAnalysisResult = {
                     r,
@@ -203,7 +232,7 @@ export async function analyzeImageColor(
                 // 缓存结果
                 if (cacheKey) {
                     cacheColorResult(cacheKey, result);
-                    console.log('🎨 缓存颜色分析结果:', cacheKey, result);
+                    console.log('🎨 缓存中心区域颜色分析结果:', cacheKey, result);
                 }
 
                 resolve(result);
@@ -246,11 +275,12 @@ export async function shouldApplyOverlay(
         return false;
     }
 
-    console.log('🎨 壁纸颜色分析:', {
+    console.log('🎨 壁纸中心区域颜色分析:', {
         cacheKey,
         rgb: `rgb(${result.r}, ${result.g}, ${result.b})`,
         brightness: result.brightness,
         isLight: result.isLight,
+        note: '已优化为只分析中心上方区域（时间和搜索栏位置）',
     });
 
     return result.isLight;

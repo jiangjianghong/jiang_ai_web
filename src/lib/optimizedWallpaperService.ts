@@ -405,15 +405,41 @@ class OptimizedWallpaperService {
         throw new Error('下载的壁纸数据为空');
       }
 
+      // 🔧 从响应头读取壁纸源 URL（Edge Function 返回的 X-Wallpaper-Source）
+      // 注意：当 Edge Function 从 Supabase Storage 缓存返回时，值可能是 'cache' 而不是 URL
+      let wallpaperSourceUrl = response.headers.get('X-Wallpaper-Source') || '';
+
+      // 如果 X-Wallpaper-Source 不是有效的 URL（例如是 'cache'），尝试从本地元数据读取
+      const isValidUrl = wallpaperSourceUrl.startsWith('http://') || wallpaperSourceUrl.startsWith('https://');
+      if (!isValidUrl) {
+        // 尝试读取本地缓存的元数据
+        const cacheKey = this.getTodayCacheKey(resolution);
+        const existingOriginalUrl = await this.getOriginalUrl(cacheKey);
+        if (existingOriginalUrl) {
+          logger.wallpaper.debug('从本地元数据获取 originalUrl', { existingOriginalUrl });
+          wallpaperSourceUrl = existingOriginalUrl;
+        } else {
+          // 没有本地元数据，使用请求 URL 作为降级
+          logger.wallpaper.warn('无法获取真正的壁纸源 URL，使用请求 URL 作为降级', {
+            headerValue: response.headers.get('X-Wallpaper-Source'),
+          });
+          wallpaperSourceUrl = url;
+        }
+      }
+
       // 基本验证：4K壁纸应该至少 500KB
       if (resolution === '4k' && blob.size < 500 * 1024) {
         logger.wallpaper.warn(`4K壁纸大小异常 (${Math.round(blob.size / 1024)}KB)，跳过缓存`);
         const blobUrl = await memoryManager.createBlobUrl(blob, 'wallpaper');
-        return { blobUrl, originalUrl: url, isFallback: true };
+        return { blobUrl, originalUrl: wallpaperSourceUrl, isFallback: true };
       }
 
       const blobUrl = await memoryManager.createBlobUrl(blob, 'wallpaper');
 
+      logger.wallpaper.debug('壁纸源 URL', {
+        requestUrl: url,
+        actualSourceUrl: wallpaperSourceUrl,
+      });
 
       // 异步缓存到IndexedDB（保存 Blob）
       const cacheKey = this.getTodayCacheKey(resolution);
@@ -422,23 +448,23 @@ class OptimizedWallpaperService {
         .then(() => logger.wallpaper.info('壁纸已缓存到IndexedDB'))
         .catch((error) => logger.wallpaper.warn('缓存壁纸失败', error));
 
-      // 保存原始 URL 元数据
+      // 保存真正的壁纸源 URL 元数据（用于收藏功能去重）
       const metadataKey = `${cacheKey}-metadata`;
       indexedDBCache
         .set(
           metadataKey,
-          new Blob([JSON.stringify({ originalUrl: url })], { type: 'application/json' }),
+          new Blob([JSON.stringify({ originalUrl: wallpaperSourceUrl })], { type: 'application/json' }),
           48 * 60 * 60 * 1000
         )
-        .then(() => logger.wallpaper.info('壁纸元数据已缓存'))
+        .then(() => logger.wallpaper.info('壁纸元数据已缓存', { originalUrl: wallpaperSourceUrl }))
         .catch((error) => logger.wallpaper.warn('缓存元数据失败', error));
 
       logger.wallpaper.info('壁纸下载完成', {
         size: `${(blob.size / 1024 / 1024).toFixed(2)}MB`,
-        originalUrl: url,
+        originalUrl: wallpaperSourceUrl,
       });
 
-      return { blobUrl, originalUrl: url, isFallback: false };
+      return { blobUrl, originalUrl: wallpaperSourceUrl, isFallback: false };
     } catch (error) {
       logger.wallpaper.error('下载壁纸失败', error);
       throw error;

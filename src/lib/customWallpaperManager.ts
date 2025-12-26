@@ -468,18 +468,29 @@ class CustomWallpaperManager {
   // 提取URL的核心标识（用于判重）
   private extractUrlCore(url: string): string {
     try {
-      // 移除 URL 参数
-      const urlWithoutParams = url.split('?')[0];
-
       // 多种匹配模式，适配不同的 URL 格式
-      // 1. Unsplash 格式: /photo-xxx 或 photo-xxx
-      let match = urlWithoutParams.match(/photo-[a-zA-Z0-9_-]+/);
-      if (match) {
-        logger.wallpaper.debug('提取 Unsplash photo ID:', match[0]);
-        return match[0];
+
+      // 1. Bing 格式: OHR.ImageName_ZH-CN1234567890
+      // 完整 URL 示例: https://www.bing.com/th?id=OHR.LakeAubert_ZH-CN4567890123_UHD.jpg
+      // 或者路径格式: https://www.bing.com/th/id/OHR.LakeAubert_ZH-CN4567890123_1920x1080.jpg
+      // 注意：OHR ID 可能在 URL 参数中，所以需要在完整 URL 中搜索
+      const bingMatch = url.match(/OHR\.([A-Za-z0-9]+)_[A-Z]{2,3}-[A-Z]{2,3}\d+/);
+      if (bingMatch) {
+        logger.wallpaper.debug('提取 Bing OHR ID:', bingMatch[0]);
+        return bingMatch[0];
       }
 
-      // 2. 尝试提取路径的最后一段（通常是图片ID）
+      // 移除 URL 参数（对于 Unsplash 和其他格式）
+      const urlWithoutParams = url.split('?')[0];
+
+      // 2. Unsplash 格式: /photo-xxx 或 photo-xxx
+      const unsplashMatch = urlWithoutParams.match(/photo-[a-zA-Z0-9_-]+/);
+      if (unsplashMatch) {
+        logger.wallpaper.debug('提取 Unsplash photo ID:', unsplashMatch[0]);
+        return unsplashMatch[0];
+      }
+
+      // 3. 尝试提取路径的最后一段（通常是图片ID）
       const pathSegments = urlWithoutParams.split('/').filter(Boolean);
       if (pathSegments.length > 0) {
         const lastSegment = pathSegments[pathSegments.length - 1];
@@ -494,6 +505,7 @@ class CustomWallpaperManager {
       return url;
     }
   }
+
 
   // 检查URL是否已经被收藏
   async isUrlAlreadyFavorited(url: string): Promise<boolean> {

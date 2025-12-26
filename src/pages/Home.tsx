@@ -93,6 +93,9 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
   // 检查当前壁纸是否已收藏
   useEffect(() => {
     const checkIfFavorited = async () => {
+      // 壁纸变化时，重置"刚刚收藏成功"的状态
+      setIsFavorited(false);
+
       if (!bgOriginalUrl || wallpaperResolution === 'custom') {
         setIsAlreadyFavorited(false);
         return;
@@ -561,6 +564,7 @@ export default function Home({ websites, setWebsites, dataInitialized = true }: 
             <div className="relative group">
               <button
                 onClick={handleFavoriteWallpaper}
+                onMouseDown={(e) => e.preventDefault()} // 阻止焦点转移，保持搜索框聚焦状态
                 disabled={isFavoriting || isAlreadyFavorited}
                 className="flex items-center justify-center transition-all duration-300 cursor-pointer hover:scale-110 disabled:cursor-default"
               >

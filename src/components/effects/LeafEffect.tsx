@@ -18,6 +18,8 @@ interface Leaf {
     xSpeedVariation: number;
     ySpeed: number;
     imageIndex: number;
+    layer: 'far' | 'near'; // 图层
+    opacity: number;
 }
 
 interface LeafEffectProps {
@@ -43,6 +45,7 @@ const LEAF_SVGS = [
 export default function LeafEffect({ particleCount = 100 }: LeafEffectProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const sceneRef = useRef<HTMLDivElement>(null);
+    const nearSceneRef = useRef<HTMLDivElement>(null); // 近景层
     const leavesRef = useRef<Leaf[]>([]);
     const timerRef = useRef(0);
     const animationRef = useRef<number | null>(null);
@@ -54,7 +57,7 @@ export default function LeafEffect({ particleCount = 100 }: LeafEffectProps) {
         speed: (_t: number, _y: number): number => 0,
     });
 
-    const numLeaves = Math.min(Math.max(particleCount / 5, 10), 40); // 10-40 片叶子
+    const numLeaves = Math.min(Math.max(particleCount, 10), 100); // 叶子数量由粒子数控制，范围 10-100
 
     // 重置叶子位置
     const resetLeaf = useCallback((leaf: Leaf, width: number, height: number, init = false) => {
@@ -143,20 +146,31 @@ export default function LeafEffect({ particleCount = 100 }: LeafEffectProps) {
     useEffect(() => {
         const container = containerRef.current;
         const scene = sceneRef.current;
-        if (!container || !scene) return;
+        const nearScene = nearSceneRef.current;
+        if (!container || !scene || !nearScene) return;
 
         const width = container.offsetWidth;
         const height = container.offsetHeight;
 
         // 清空之前的叶子
         scene.innerHTML = '';
+        nearScene.innerHTML = '';
         leavesRef.current = [];
 
-        // 创建叶子
+        // 创建叶子（远景层 + 近景层）
         for (let i = 0; i < numLeaves; i++) {
             const el = document.createElement('div');
             const imageIndex = Math.floor(Math.random() * LEAF_SVGS.length);
-            const size = 8 + Math.random() * 8; // 8-16px
+
+            // 分层：前 60% 远景层，后 40% 近景层
+            const isNear = i >= numLeaves * 0.6;
+            const layer = isNear ? 'near' : 'far';
+
+            // 远景层：小、淡、慢；近景层：大、浓、快
+            const size = isNear
+                ? 10 + Math.random() * 8   // 近景 10-18px
+                : 5 + Math.random() * 5;   // 远景 5-10px
+            const opacity = isNear ? 0.85 : 0.5;
 
             el.style.cssText = `
                 position: absolute;
@@ -168,6 +182,7 @@ export default function LeafEffect({ particleCount = 100 }: LeafEffectProps) {
                 transform-style: preserve-3d;
                 backface-visibility: visible;
                 will-change: transform;
+                opacity: ${opacity};
             `;
 
             const leaf: Leaf = {
@@ -179,11 +194,19 @@ export default function LeafEffect({ particleCount = 100 }: LeafEffectProps) {
                 xSpeedVariation: 0,
                 ySpeed: 0,
                 imageIndex,
+                layer,
+                opacity,
             };
 
             resetLeaf(leaf, width, height, true);
             leavesRef.current.push(leaf);
-            scene.appendChild(el);
+
+            // 远景层放 sceneRef，近景层放 nearSceneRef
+            if (isNear) {
+                nearSceneRef.current?.appendChild(el);
+            } else {
+                scene.appendChild(el);
+            }
         }
 
         // 动画循环
@@ -218,7 +241,7 @@ export default function LeafEffect({ particleCount = 100 }: LeafEffectProps) {
 
     return (
         <>
-            {/* 远景层 */}
+            {/* 远景层 - 在搜索框下方 */}
             <div
                 ref={containerRef}
                 style={{
@@ -234,6 +257,32 @@ export default function LeafEffect({ particleCount = 100 }: LeafEffectProps) {
             >
                 <div
                     ref={sceneRef}
+                    style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        transformStyle: 'preserve-3d',
+                        perspective: '400px',
+                    }}
+                />
+            </div>
+            {/* 近景层 - 在搜索框上方 */}
+            <div
+                style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    pointerEvents: 'none',
+                    zIndex: 100,
+                    overflow: 'hidden',
+                }}
+            >
+                <div
+                    ref={nearSceneRef}
                     style={{
                         position: 'absolute',
                         top: 0,

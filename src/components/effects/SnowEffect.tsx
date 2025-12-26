@@ -27,27 +27,58 @@ const SPAWN_RATE = 0.5; // 每帧生成雪花的概率
 const SIZE_THRESHOLD = 2.2; // 大于此值的雪花在近景层
 
 export default function SnowEffect({ particleCount = 100 }: SnowEffectProps) {
-    const maxSnowflakes = particleCount; // 使用传入的粒子数量
-    const farCanvasRef = useRef<HTMLCanvasElement>(null);  // 远景 Canvas
-    const nearCanvasRef = useRef<HTMLCanvasElement>(null); // 近景 Canvas
+    const maxSnowflakes = particleCount;
+    const farCanvasRef = useRef<HTMLCanvasElement>(null);
+    const nearCanvasRef = useRef<HTMLCanvasElement>(null);
     const snowflakesRef = useRef<Snowflake[]>([]);
     const animationFrameRef = useRef<number | null>(null);
     const lastTimeRef = useRef<number>(0);
+    const timerRef = useRef(0);
+
+    // 风力系统
+    const windRef = useRef({
+        magnitude: 0.8,
+        maxSpeed: 6,
+        duration: 200,
+        start: 0,
+        speed: (_t: number, _y: number): number => 0,
+    });
 
     // 创建雪花
     const createSnowflake = useCallback((canvasWidth: number): Snowflake => {
-        const radius = Math.random() * 2.5 + 1; // 1-3.5px
+        const radius = Math.random() * 2.5 + 1;
         return {
             x: Math.random() * canvasWidth,
             y: -10,
             radius,
-            speed: Math.random() * 1.2 + 0.8, // 0.8-2.0px/帧
+            speed: Math.random() * 1.2 + 0.8,
             opacity: Math.random() * 0.5 + 0.3,
             swing: Math.random() * 1.5 + 0.5,
             swingSpeed: Math.random() * 0.02 + 0.01,
             swingOffset: Math.random() * Math.PI * 2,
             layer: radius > SIZE_THRESHOLD ? 'near' : 'far',
         };
+    }, []);
+
+    // 更新风力
+    const updateWind = useCallback((height: number) => {
+        const timer = timerRef.current;
+        const wind = windRef.current;
+
+        if (timer === 0 || timer > wind.start + wind.duration) {
+            wind.magnitude = Math.random() * wind.maxSpeed;
+            wind.duration = wind.magnitude * 40 + (Math.random() * 30 - 15);
+            wind.start = timer;
+
+            const screenHeight = height;
+            const mag = wind.magnitude;
+            const dur = wind.duration;
+
+            wind.speed = (t: number, y: number) => {
+                const a = (mag / 2) * (screenHeight - (2 * y) / 3) / screenHeight;
+                return a * Math.sin((2 * Math.PI / dur) * t + (3 * Math.PI / 2)) + a;
+            };
+        }
     }, []);
 
     // 动画循环
@@ -70,6 +101,11 @@ export default function SnowEffect({ particleCount = 100 }: SnowEffectProps) {
 
         const { width, height } = farCanvas;
 
+        // 更新风力
+        updateWind(height);
+        const wind = windRef.current;
+        const timer = timerRef.current;
+
         // 清空两个画布
         farCtx.clearRect(0, 0, width, height);
         nearCtx.clearRect(0, 0, width, height);
@@ -81,8 +117,16 @@ export default function SnowEffect({ particleCount = 100 }: SnowEffectProps) {
 
         // 更新雪花位置并过滤
         snowflakesRef.current = snowflakesRef.current.filter((flake) => {
+            // 计算风力影响
+            const windSpeed = wind.speed(timer - wind.start, flake.y) * 0.5;
+            flake.x -= windSpeed;
             flake.y += flake.speed;
             flake.swingOffset += flake.swingSpeed;
+
+            // 超出左右边界时重新出现在另一侧
+            if (flake.x < -10) flake.x = width + 10;
+            if (flake.x > width + 10) flake.x = -10;
+
             return flake.y < height + 10;
         });
 
@@ -90,16 +134,16 @@ export default function SnowEffect({ particleCount = 100 }: SnowEffectProps) {
         const farFlakes = snowflakesRef.current.filter(f => f.layer === 'far');
         const nearFlakes = snowflakesRef.current.filter(f => f.layer === 'near');
 
-        // 绘制远景雪花（按大小排序，小的先画）
+        // 绘制远景雪花
         farFlakes.sort((a, b) => a.radius - b.radius).forEach((flake) => {
             const swingX = Math.sin(flake.swingOffset) * flake.swing;
             farCtx.beginPath();
             farCtx.arc(flake.x + swingX, flake.y, flake.radius, 0, Math.PI * 2);
-            farCtx.fillStyle = `rgba(255, 255, 255, ${flake.opacity * 0.7})`; // 远景稍暗
+            farCtx.fillStyle = `rgba(255, 255, 255, ${flake.opacity * 0.7})`;
             farCtx.fill();
         });
 
-        // 绘制近景雪花（按大小排序，小的先画）
+        // 绘制近景雪花
         nearFlakes.sort((a, b) => a.radius - b.radius).forEach((flake) => {
             const swingX = Math.sin(flake.swingOffset) * flake.swing;
             nearCtx.beginPath();
@@ -108,8 +152,9 @@ export default function SnowEffect({ particleCount = 100 }: SnowEffectProps) {
             nearCtx.fill();
         });
 
+        timerRef.current++;
         animationFrameRef.current = requestAnimationFrame(animate);
-    }, [createSnowflake]);
+    }, [createSnowflake, maxSnowflakes, updateWind]);
 
     // 调整 Canvas 大小
     const resizeCanvas = useCallback(() => {
